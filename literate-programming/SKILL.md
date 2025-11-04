@@ -1,6 +1,6 @@
 ---
 name: literate-programming
-description: Apply literate programming principles using the noweb system. Use this when writing or analyzing literate programs that explain code for human understanding.
+description: Write and analyze literate programs using noweb (.nw files) with notangle and noweave commands. Use when working with .nw files, literate programming, documenting code narratively, or when user mentions noweb, literate programming, tangling, or weaving.
 ---
 
 # Literate Programming Skill

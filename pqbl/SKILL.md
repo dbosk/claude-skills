@@ -1,6 +1,6 @@
 ---
 name: pqbl
-description: Apply pure question-based learning (pQBL) principles when creating educational materials. Use this when writing instructional content, designing learning activities, or when the user mentions pQBL, question-based learning, or active learning approaches.
+description: Create question-first learning materials with embedded feedback using pure question-based learning (pQBL). Use when designing educational content, quizzes, learning activities, formative assessments, or when user mentions pQBL, question-based learning, active learning, or retrieval practice.
 ---
 
 # Pure Question-Based Learning (pQBL)
