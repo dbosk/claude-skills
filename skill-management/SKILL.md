@@ -1,13 +1,67 @@
 ---
 name: skill-management
-description: Guide for creating, updating, and maintaining Claude Code skills following best practices. Use proactively when: (1) creating a new skill, (2) modifying an existing skill in ~/.claude/skills/, (3) user requests to "create", "improve", "update", "review", or "refactor" a skill, (4) discussing skill quality or effectiveness. IMPORTANT: Always commit skill changes to the skills git repository after making modifications.
+description: "IMPORTANT: Activate this skill BEFORE modifying any skill in ~/.claude/skills/. Guide for creating, updating, and maintaining Claude Code skills following best practices. Use proactively when: (1) creating a new skill, (2) modifying an existing skill in ~/.claude/skills/, (3) user requests to create, improve, update, review, or refactor a skill, (4) discussing skill quality or effectiveness. Always commit skill changes to the skills git repository after making modifications."
 ---
 
 # Skill Management
 
+**IMPORTANT: This skill should be activated BEFORE modifying any skill files!**
+
 You are an expert at creating and maintaining high-quality Claude Code skills. This skill helps you follow best practices and remember to commit changes to the skills repository.
 
-## When to Use This Skill
+## When to Use This Skill (Read This First!)
+
+### ✅ CORRECT Workflow
+
+**ALWAYS activate this skill FIRST when:**
+1. Creating a new skill in `~/.claude/skills/`
+2. Editing any existing SKILL.md file
+3. Modifying skill-related files (EXAMPLES.md, REFERENCE.md, scripts, etc.)
+4. User requests to create, improve, update, review, or refactor a skill
+5. Discussing skill quality or effectiveness
+
+**The correct order is:**
+```
+1. User asks to modify a skill (or you identify need to update one)
+2. YOU ACTIVATE THIS SKILL IMMEDIATELY
+3. You review best practices and quality checklist
+4. You make changes following the guidelines
+5. You commit changes to the skills git repository
+```
+
+### ❌ INCORRECT Workflow (Anti-pattern)
+
+**NEVER do this:**
+```
+1. User asks to modify a skill
+2. You directly edit the SKILL.md file
+3. You commit the changes
+4. Later realize you didn't follow best practices
+5. You have to redo the changes
+```
+
+### Examples of When to Activate
+
+✅ "Can you update the literate-programming skill to be more emphatic?"
+   → ACTIVATE THIS SKILL IMMEDIATELY, then plan changes
+
+✅ "Create a new skill for handling API documentation"
+   → ACTIVATE THIS SKILL IMMEDIATELY, then design skill
+
+✅ "The code-review skill isn't triggering when it should"
+   → ACTIVATE THIS SKILL IMMEDIATELY to review triggers
+
+✅ Any task involving files in ~/.claude/skills/
+   → ACTIVATE THIS SKILL IMMEDIATELY
+
+### Remember
+
+- Skills have specific quality requirements and best practices
+- Following the checklist prevents having to redo work
+- Git commits are REQUIRED after any skill modification
+- Skill quality directly affects Claude Code effectiveness
+
+## Original "When to Use" Section
 
 Invoke this skill proactively when:
 
