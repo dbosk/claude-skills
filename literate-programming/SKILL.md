@@ -1,11 +1,91 @@
 ---
 name: literate-programming
-description: Write and analyze literate programs using noweb (.nw files) with notangle and noweave commands. Use proactively when: (1) creating, editing, reviewing, or improving any .nw file, (2) user asks about "literate quality", "literate programming quality", "narrative quality", or "documentation quality" of .nw files, (3) user requests to "review", "analyze", "improve", or "check" a .nw file, (4) user mentions noweb, literate programming, tangling, weaving, or chunk structure. This skill should be invoked BEFORE making changes to .nw files to ensure proper literate programming principles are applied.
+description: "CRITICAL: ALWAYS activate this skill BEFORE making ANY changes to .nw files. Use proactively when: (1) creating, editing, reviewing, or improving any .nw file, (2) user asks about literate quality, (3) user mentions noweb, literate programming, tangling, or weaving. Never edit .nw files directly without first activating this skill to ensure literate programming principles are applied."
 ---
 
 # Literate Programming Skill
 
+**CRITICAL: This skill MUST be activated BEFORE making any changes to .nw files!**
+
 You are an expert in literate programming using the noweb system. Apply these principles when writing or analyzing literate programs.
+
+## WHEN TO USE THIS SKILL (Read This First!)
+
+### ✅ CORRECT Workflow
+
+**ALWAYS activate this skill FIRST when:**
+1. Creating a new .nw file
+2. Editing an existing .nw file
+3. Reviewing any .nw file
+4. User asks to modify anything in a .nw file
+5. You notice a file has a .nw extension
+
+**The correct order is:**
+```
+1. User asks to modify a .nw file
+2. YOU ACTIVATE THIS SKILL IMMEDIATELY
+3. You plan the changes with literate programming principles
+4. You make the changes following the principles
+5. You regenerate code with make/notangle
+```
+
+### ❌ INCORRECT Workflow (Anti-pattern)
+
+**NEVER do this:**
+```
+1. User asks to modify a .nw file
+2. You directly edit the .nw file
+3. User asks you to review literate quality
+4. You activate skill and find problems
+5. You have to redo everything
+```
+
+### Examples of When to Activate
+
+✅ "Can you fix the -M and -a options in assignments.nw?"
+   → ACTIVATE SKILL IMMEDIATELY, then plan changes
+
+✅ "Add a new feature to modules.nw"
+   → ACTIVATE SKILL IMMEDIATELY, then design feature
+
+✅ "I'm getting an error in the code generated from grades.nw"
+   → ACTIVATE SKILL IMMEDIATELY to review before fixing
+
+✅ Any task involving a .nw file
+   → ACTIVATE SKILL IMMEDIATELY
+
+### Remember
+
+- .nw files are NOT regular source code files
+- They are literate programs combining documentation and code
+- Literate quality is AS IMPORTANT as code correctness
+- Bad literate quality = failed task, even if code works
+- ALWAYS think: "Is this a .nw file? Then activate skill FIRST!"
+
+## Planning Changes to Literate Programs
+
+**When you activate this skill to make changes to a .nw file, follow this process:**
+
+1. **Read the existing .nw file** to understand the current structure and narrative
+2. **Plan the changes with literate programming in mind:**
+   - What is the "why" behind this change? (Explain in documentation)
+   - How does this fit into the existing narrative?
+   - Should I use contrast to explain the change? (old vs new approach)
+   - What new chunks are needed? What are their meaningful names?
+   - Where in the pedagogical order should this be explained?
+3. **Design the documentation BEFORE writing code:**
+   - Write prose explaining the problem and solution
+   - Use subsections to structure complex explanations
+   - Provide examples showing the new behavior
+   - Explain design decisions and trade-offs
+4. **Decompose code into well-named chunks:**
+   - Each chunk = one coherent concept
+   - Names describe purpose (like pseudocode), not syntax
+   - Use the web structure effectively
+5. **Write the code chunks referenced in documentation**
+6. **Regenerate and test**
+
+**Key principle:** If you find yourself writing code comments to explain logic, that explanation belongs in the TeX/documentation chunks instead!
 
 ## Reviewing Existing Literate Programs
 
