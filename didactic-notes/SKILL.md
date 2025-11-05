@@ -1,22 +1,51 @@
 ---
 name: didactic-notes
-description: Document pedagogical design decisions in educational materials using the didactic package and \ltnote command. Use when writing educational content (lectures, tutorials, course materials), documenting instructional design rationale, or when user mentions didactic notes, learning theory notes, pedagogical reasoning, or \ltnote. This is to educational writing what literate programming is to code.
+description: Document pedagogical design decisions in educational materials using the didactic LaTeX package and \ltnote command. Use when writing lectures, tutorials, course materials, or documenting instructional design rationale. Invoke when user mentions didactic notes, \ltnote, pedagogical reasoning, learning theory notes, or educational design documentation.
 ---
 
 # Didactic Notes: Literate Pedagogy
 
 This skill applies the principle of documenting pedagogical design decisions in educational materials, analogous to how literate programming documents code design decisions.
 
-## Core Philosophy
+## Core Principle
 
-Just as literate programming explains "why" code is written a certain way, **didactic notes** explain why educational material is designed and structured in a particular manner. The goal is to make the pedagogical reasoning explicit, helping:
+**Document not just what you teach, but *why* you teach it that way.**
 
-- Future instructors understand and improve the material
-- Authors reflect on their instructional design choices
-- Readers (when notes are visible) understand the learning design
-- Researchers analyze pedagogical approaches
+Just as literate programming makes code reasoning explicit, didactic notes make pedagogical reasoning explicit using the `\ltnote{...}` command from the LaTeX `didactic` package.
 
-**Key principle**: Document not just what you teach, but *why* you teach it that way.
+## Quick Example
+
+**Without didactic notes:**
+```latex
+\begin{activity}\label{PredictOutput}
+  What do you think this function returns?
+\end{activity}
+```
+
+**With didactic notes:**
+```latex
+\begin{activity}\label{PredictOutput}
+  What do you think this function returns?
+\end{activity}
+
+\ltnote{%
+  Following try-first pedagogy, we ask students to predict before
+  explaining. This creates contrast between their mental model and
+  the actual behavior, helping them discern the critical aspect of
+  how the function processes its input.
+}
+```
+
+The note documents the pedagogical strategy (try-first), the learning theory (contrast pattern from variation theory), and the intended learning outcome (discerning the critical aspect).
+
+## Who Benefits from Didactic Notes
+
+Making pedagogical reasoning explicit helps:
+
+- **Future instructors**: Understand and adapt the material
+- **Authors**: Reflect on instructional design choices
+- **Researchers**: Analyze pedagogical approaches
+- **Students** (when notes are visible): Understand the learning design
 
 ## The `didactic` Package
 
@@ -312,14 +341,13 @@ Didactic notes work well with:
 
 ## When to Use This Skill
 
-Use didactic notes when:
+Use didactic notes when writing or designing:
+- Lecture materials (Beamer slides, course notes)
+- Tutorials and educational documentation
+- Learning activities and exercises
+- Materials for collaborative development
+- Instructional design research
 
-- Writing lecture materials (slides and notes)
-- Developing course content
-- Creating educational tutorials or documentation
-- Designing learning activities
-- Collaborating on educational materials
-- Researching instructional design approaches
-- Refining materials based on student feedback
+## Summary
 
-**Key insight**: If literate programming is about explaining code to humans, didactic notes are about explaining *pedagogical design* to educators. Both make implicit reasoning explicit for future readers (including your future self).
+**Key insight**: Literate programming explains code to humans; didactic notes explain *pedagogical design* to educators. Both make implicit reasoning explicit for future readers (including your future self).
