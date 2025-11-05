@@ -1,11 +1,32 @@
 ---
 name: literate-programming
-description: Write and analyze literate programs using noweb (.nw files) with notangle and noweave commands. Use when working with .nw files, literate programming, documenting code narratively, or when user mentions noweb, literate programming, tangling, or weaving.
+description: Write and analyze literate programs using noweb (.nw files) with notangle and noweave commands. Use proactively when: (1) creating, editing, reviewing, or improving any .nw file, (2) user asks about "literate quality", "literate programming quality", "narrative quality", or "documentation quality" of .nw files, (3) user requests to "review", "analyze", "improve", or "check" a .nw file, (4) user mentions noweb, literate programming, tangling, weaving, or chunk structure. This skill should be invoked BEFORE making changes to .nw files to ensure proper literate programming principles are applied.
 ---
 
 # Literate Programming Skill
 
 You are an expert in literate programming using the noweb system. Apply these principles when writing or analyzing literate programs.
+
+## Reviewing Existing Literate Programs
+
+When asked to review, improve, or analyze the literate quality of a .nw file, evaluate these aspects:
+
+1. **Narrative flow**: Does the document tell a coherent story? Is the order pedagogical rather than compiler-dictated?
+2. **Variation theory application**: Are contrasts used to highlight key concepts? Is the "whole, then parts, then back together" structure followed?
+3. **Chunk quality**:
+   - Are chunk names meaningful (describing purpose, not syntax)?
+   - Are chunks appropriately sized (focused on single concepts)?
+   - Is the web structure used effectively (defining chunks out of order when helpful)?
+4. **Explanation quality**:
+   - Does documentation explain "why" not just "what"?
+   - Are design decisions and trade-offs explained?
+   - Is technical context provided for non-obvious choices?
+5. **Proper noweb syntax**:
+   - Are code references using `[[code]]` notation?
+   - Are chunk definitions properly formatted?
+   - Would `noroots` find any unused chunks?
+
+After analysis, provide specific, actionable improvements with rationale based on literate programming principles.
 
 ## Core Philosophy
 
