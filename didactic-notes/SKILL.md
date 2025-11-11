@@ -1,6 +1,6 @@
 ---
 name: didactic-notes
-description: Document pedagogical design decisions in educational materials using the didactic LaTeX package and \ltnote command. Use when writing lectures, tutorials, course materials, or documenting instructional design rationale. Invoke when user mentions didactic notes, \ltnote, pedagogical reasoning, learning theory notes, or educational design documentation.
+description: Document pedagogical design decisions in educational materials using the didactic LaTeX package and \ltnote command. Use proactively when (1) writing or editing educational LaTeX materials with pedagogical content, (2) adding variation theory labels or patterns to student-facing content, (3) explaining design trade-offs or choices in educational materials, (4) documenting why specific examples or exercises are sequenced in a particular way. Invoke when user mentions didactic notes, \ltnote, pedagogical reasoning, learning theory notes, educational design documentation, variation theory labels in student content, or asks to move pedagogical reasoning to instructor notes. CRITICAL: Pedagogical reasoning (variation/invariance labels, pattern names, design rationale) should be in \ltnote{}, NOT in student-facing text.
 ---
 
 # Didactic Notes: Literate Pedagogy
@@ -113,12 +113,58 @@ Use `\ltnote` to document:
 
 ## Writing Effective Didactic Notes
 
+### CRITICAL: Connect to Learning Objectives
+
+**Core principle**: Variation patterns must be tied to specific learning objectives.
+
+When documenting variation theory applications, ALWAYS:
+
+1. **State learning objectives explicitly** at the beginning of sections:
+   ```latex
+   \ltnote{%
+     \textbf{Learning Objectives:}
+     \begin{enumerate}
+       \item Students should discern [critical aspect]
+       \item Students should identify [relationship/pattern]
+       \item Students should be able to [apply/justify]
+     \end{enumerate}
+   }
+   ```
+
+2. **Map variation patterns to objectives**: Show HOW the variation helps achieve the objectives:
+   ```latex
+   \ltnote{%
+     \textbf{Relation to Learning Objectives:}
+
+     This [pattern name] directly addresses:
+     \begin{itemize}
+       \item \textbf{LO1}: By varying [X] while keeping [Y] invariant,
+         students can discern [critical aspect]
+       \item \textbf{LO2}: The contrast makes [relationship] visible
+     \end{itemize}
+
+     \textbf{Variation Pattern: [Name]}
+
+     \textbf{What varies}: ...
+     \textbf{What remains invariant}: ...
+     \textbf{Critical aspects to discern (mapped to LOs)}: ...
+   }
+   ```
+
+3. **Explain why the variation works**: Connect Marton's principles to your objectives:
+   ```latex
+   \textbf{Why this variation works:} Following Marton \& Pang (2006),
+   we vary [X] while keeping [Y] invariant. This makes [critical aspect]
+   discernible because students can see EXACTLY what changes...
+   ```
+
 ### Structure Your Notes
 
-1. **State the purpose**: What are you trying to achieve?
+1. **State learning objectives**: What should students be able to do?
 2. **Reference theory**: Connect to established learning principles
-3. **Explain the mechanism**: How does this design choice support learning?
-4. **Note alternatives or improvements**: What else could work?
+3. **Explain the mechanism**: How does this design choice support the objectives?
+4. **Map activities to objectives**: Show which activities address which objectives
+5. **Note alternatives or improvements**: What else could work?
 
 ### Example Patterns
 
