@@ -255,10 +255,74 @@ Todo item completed → Commit immediately → Mark todo as completed
 Complete all todos → One big commit → Mark all completed
 ```
 
+## Branch Safety: Never Commit Directly to main/master
+
+**CRITICAL**: Before making any commits, verify you're on the correct branch.
+
+### Pre-Commit Branch Check
+
+```bash
+# Always check current branch first
+git branch --show-current
+```
+
+**Rules:**
+- ✅ **NEVER** commit directly to `main` or `master` branches
+- ✅ **ALWAYS** work on a feature/topic branch
+- ✅ **ASK** the user about the branch if uncertain
+
+### Branch Workflow
+
+**Before starting work:**
+```bash
+# Check current branch
+git branch --show-current
+
+# If on main/master, ask user:
+# "I see you're on the main branch. Should I create a feature branch
+# or switch to an existing one before making changes?"
+```
+
+**If user hasn't specified a branch:**
+- Ask which branch to use
+- Suggest creating a descriptive branch name based on the work
+- Wait for confirmation before committing
+
+**Example dialogue:**
+```
+User: "Please fix the bug in authentication.py"
+Assistant: "I see you're currently on the main branch. Should I create
+a new branch like 'fix-authentication-bug' for these changes, or would
+you like to use an existing branch?"
+```
+
+### Creating Feature Branches
+
+```bash
+# Create and switch to new branch
+git checkout -b feature-name
+
+# Verify you're on the new branch
+git branch --show-current
+```
+
+**Branch naming conventions:**
+- Use descriptive names: `fix-auth-bug` not `fix1`
+- Use hyphens: `add-user-feature` not `add_user_feature`
+- Be specific: `fix-timestamp-parsing` not `fixes`
+
+### Exception: Repository-Specific Workflows
+
+Some repositories may allow direct commits to main (e.g., personal notes, documentation repos). In these cases:
+- User will explicitly confirm it's acceptable
+- Still follow atomic commit practices
+- Consider the repository's workflow
+
 ## Checklist for Each Commit
 
 Before committing, verify:
 
+- [ ] **On correct branch** - Not on main/master (unless explicitly approved)
 - [ ] This commit represents ONE logical change
 - [ ] The commit message clearly describes what changed
 - [ ] All related changes are included (nothing missing)
