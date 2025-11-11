@@ -120,9 +120,32 @@ When reviewing or writing LaTeX, look for these patterns that indicate `descript
 - Use proper citation commands (`\cite`, `\citep`, `\citet`) not manual references
 - Never write `[1]` or `(Smith 2020)` manually
 
+### Quotations (csquotes package)
+- **Always** use `\enquote{...}` for quotes, never manual quote marks
+- Handles nested quotes automatically: `\enquote{outer \enquote{inner} quote}`
+- Language-aware: Swedish uses »...« or "...", English uses "..." or '...'
+- For block quotes, use `\begin{displayquote}...\end{displayquote}`
+
+**Anti-pattern**: Manual quotes
+```latex
+% INCORRECT
+"This is a quote"
+``This is a quote''
+'single quotes'
+```
+
+**Correct**: Use csquotes
+```latex
+% CORRECT
+\enquote{This is a quote}
+\enquote{outer \enquote{inner} quote}
+```
+
+**Why**: Manual quote marks don't adapt to language settings and can cause typographical inconsistencies. The csquotes package handles all quote styling correctly based on document language.
+
 ### Floats
 - Use `figure` and `table` environments with `\caption` and `\label`
-- Remember: "an image is not a figure, but a figure can contain an image"
+- Remember the principle: an image is not a figure, but a figure can contain an image
 
 ### Verbatim and Code
 - Use `listings` package for code with syntax highlighting
@@ -149,6 +172,7 @@ Check for these common issues:
 - [ ] Lists using `\textbf{Label:}` instead of `description` environment
 - [ ] Hard-coded numbers instead of `\ref`
 - [ ] Manual citation formatting instead of `\cite` commands
+- [ ] Manual quotes (`"..."`, `'...'`, `` `...` ``) instead of `\enquote{...}`
 - [ ] Images without `figure` environment
 - [ ] Code without proper formatting (listings/verbatim)
 - [ ] Windows-style backslashes in paths
