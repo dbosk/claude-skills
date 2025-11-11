@@ -143,6 +143,32 @@ When reviewing or writing LaTeX, look for these patterns that indicate `descript
 
 **Why**: Manual quote marks don't adapt to language settings and can cause typographical inconsistencies. The csquotes package handles all quote styling correctly based on document language.
 
+### Emphasis
+- **Never** use ALL CAPITALS for emphasis in running text
+- Use `\emph{...}` to emphasize words or phrases
+- For strong emphasis, use `\textbf{...}` or nested `\emph{\emph{...}}`
+- Let LaTeX handle the typographic styling
+
+**Anti-pattern**: ALL CAPITALS for emphasis
+```latex
+% INCORRECT
+This is VERY important to understand.
+We must do this NOW before moving forward.
+The BENEFITS of classes are clear.
+```
+
+**Correct**: Semantic emphasis
+```latex
+% CORRECT
+This is \emph{very} important to understand.
+We must do this \emph{now} before moving forward.
+The \emph{benefits} of classes are clear.
+```
+
+**Why**: ALL CAPITALS in running text is considered shouting and poor typography. It's harder to read and looks unprofessional. Use `\emph{...}` to provide semantic emphasis, and LaTeX will render it appropriately (typically as italics, but this can be configured based on context and document style).
+
+**Exception**: Acronyms and proper names that are conventionally written in capitals (e.g., NASA, USA, PDF) are fine and should not be emphasized.
+
 ### Floats
 - Use `figure` and `table` environments with `\caption` and `\label`
 - Remember the principle: an image is not a figure, but a figure can contain an image
