@@ -63,6 +63,70 @@ Research suggests using patterns in this developmental order:
 3. **Apply Generalization** - Show the pattern across contexts
 4. **Achieve Fusion** - Integrate aspects into comprehensive understanding
 
+## Language Consistency When Documenting Variation Patterns
+
+**CRITICAL**: When documenting variation theory in pedagogical notes (e.g., `\ltnote`), match the document's instructional language.
+
+**Rule**: Write variation theory annotations in the same language as the student-facing content.
+
+**Standard terminology translation examples (Swedish)**:
+- "Variation Pattern" → "Variationsmönster"
+- "Contrast" → "Kontrast"
+- "Separation" → "Separation"
+- "Generalization" → "Generalisering"
+- "Fusion" → "Fusion"
+- "What varies" → "Vad som varierar"
+- "What remains invariant" → "Vad som hålls invariant"
+- "Critical aspects to discern" → "Kritiska aspekter att urskilja"
+- "Learning Objectives" → "Lärandemål"
+- "Why this variation works" → "Varför denna variation fungerar"
+
+**Keeping English terms when appropriate**:
+- Citations: "Following Marton & Pang (2006)..." → "Enligt Marton & Pang (2006)..."
+- Technical terms without standard translations: use `\foreignlanguage{english}{term}`
+- Code-related terms: naturally remain in English
+
+**Example - Swedish documentation:**
+```latex
+\ltnote{%
+  \textbf{Variationsmönster}: Kontrast
+
+  \textbf{Vad som varierar}: Implementeringsmetod (dict-baserad vs klassbaserad)
+
+  \textbf{Vad som hålls invariant}: Problemet (telefonbokshantering) och
+  funktionaliteten
+
+  \textbf{Kritiska aspekter att urskilja}: Genom att se samma problem
+  löst både med och utan klasser kan studenter urskilja vad en klass ÄR
+  kontra vad den INTE är.
+
+  \textbf{Varför denna variation fungerar}: Enligt Marton \& Pang (2006)
+  varierar vi implementeringsmetoden medan vi håller problemet invariant.
+  Detta gör FÖRDELARNA med klasser urskiljbara eftersom studenter kan se
+  EXAKT vad som förändras när man introducerar klasser.
+}
+```
+
+**Example - English documentation:**
+```latex
+\ltnote{%
+  \textbf{Variation Pattern}: Contrast
+
+  \textbf{What varies}: Implementation approach (dict-based vs class-based)
+
+  \textbf{What remains invariant}: The problem domain and functionality
+
+  \textbf{Critical aspects to discern}: By seeing the same problem solved
+  with and without classes, students can discern what a class IS versus
+  what it is NOT.
+
+  \textbf{Why this variation works}: Following Marton \& Pang (2006), we
+  vary the implementation approach while keeping the problem invariant...
+}
+```
+
+**Avoid mixing languages unnecessarily** - it creates cognitive load for instructors reviewing the pedagogical design.
+
 ## When Applying This Skill
 
 - Identify the **object of learning** (what should be understood)

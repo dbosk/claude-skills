@@ -166,6 +166,72 @@ When documenting variation theory applications, ALWAYS:
 4. **Map activities to objectives**: Show which activities address which objectives
 5. **Note alternatives or improvements**: What else could work?
 
+### Language Consistency in Notes
+
+**CRITICAL**: Match the language of `\ltnote` content to the document's instructional language.
+
+**Rule**: If the student-facing content is in language X, write `\ltnote` content in language X.
+
+**When to use English in non-English documents**:
+- Established technical terms (use `\foreignlanguage{english}{term}`)
+- Direct quotations from English sources
+- Code examples and command names (naturally in English)
+- References to English-language concepts that lack standard translations
+
+**Examples**:
+
+**Good - Swedish document with Swedish notes:**
+```latex
+\begin{exercise}
+  Hur kan vi implementera addition av två bråk?
+\end{exercise}
+
+\ltnote{%
+  \textbf{Lärandemål}: LO1 (Implementera aritmetiska operationer)
+
+  \textbf{Variationsmönster}: Kontrast
+
+  Vi varierar operationen (addition vs subtraktion) medan vi håller
+  operatoröverlagringsmönstret invariant. Detta hjälper studenter att
+  urskilja att \mintinline{python}{__add__} och \mintinline{python}{__radd__}
+  följer samma mönster.
+
+  Enligt Marton \& Pang (2006) måste studenter erfara variation för att
+  kunna urskilja kritiska aspekter. Här skapar vi variation genom att
+  visa både \foreignlanguage{english}{commutative} (addition) och
+  \foreignlanguage{english}{non-commutative} (subtraktion) operationer.
+}
+```
+
+**Bad - Mixing languages unnecessarily:**
+```latex
+\ltnote{%
+  \textbf{Learning Objectives}: LO1 (Implement arithmetic operations)
+
+  \textbf{Variation Pattern}: Contrast
+
+  We vary the operation while keeping invariant...
+}
+```
+In a Swedish document, this creates cognitive dissonance and makes notes harder to read for instructors working in Swedish.
+
+**When English is appropriate:**
+```latex
+\ltnote{%
+  Vi använder \foreignlanguage{english}{try-first pedagogy} här eftersom
+  studenter ska förutspå innan vi förklarar. Detta skapar
+  \foreignlanguage{english}{contrast} mellan deras mentala modell och
+  det faktiska beteendet.
+
+  Referens till kod: \mintinline{python}{__add__} kallas automatiskt.
+}
+```
+
+**LaTeX command for language switching:**
+```latex
+\foreignlanguage{english}{technical term or phrase}
+```
+
 ### Example Patterns
 
 **Referencing variation theory:**
