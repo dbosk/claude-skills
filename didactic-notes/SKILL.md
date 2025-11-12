@@ -73,15 +73,15 @@ Options:
 
 ### Defining Learning Objectives
 
-Use `\begin{restatable}{lo}{MnemonicLabel}...\end{restatable}` in your abstract or learning objectives section:
+Use `\begin{restatable}{lo}{MnemonicLabel}\label{MnemonicLabel}...\end{restatable}` in your abstract or learning objectives section:
 
 ```latex
-\begin{restatable}{lo}{FilesLOPersistence}%
+\begin{restatable}{lo}{FilesLOPersistence}\label{FilesLOPersistence}%
   Förklara skillnaden mellan primärminne och sekundärminne samt varför filer
   behövs för persistens.
 \end{restatable}
 
-\begin{restatable}{lo}{FilesLOOperations}%
+\begin{restatable}{lo}{FilesLOOperations}\label{FilesLOOperations}%
   Använda filoperationer (\mintinline{python}{open()},
   \mintinline{python}{read()}, \mintinline{python}{write()},
   \mintinline{python}{close()}) korrekt.
@@ -91,11 +91,46 @@ Use `\begin{restatable}{lo}{MnemonicLabel}...\end{restatable}` in your abstract 
 **Key points:**
 - Use **mnemonic labels** (e.g., `FilesLOPersistence`, not `FilesLO1`)
 - Labels describe the objective content, not just numbers
+- **CRITICAL**: Add `\label{MnemonicLabel}` matching the restatable name for `\cref{}` support
 - The `%` after the opening brace prevents unwanted whitespace
 
 ### Referring to Learning Objectives
 
-In `\ltnote{}` blocks, refer to learning objectives using the **starred command** created by `restatable`:
+**Two ways to reference learning objectives:**
+
+1. **Using `\cref{}`** - For explicit, prose-style references in expanded notes
+2. **Using starred commands** - For compact display of full LO text
+
+#### Method 1: Using `\cref{}` (Recommended for Expanded Notes)
+
+When writing more detailed pedagogical notes, use `\cref{Label}` to reference learning objectives explicitly:
+
+**Format pattern:**
+```latex
+\ltnote{%
+  Relevanta lärandemål:
+  \cref{FilesLOPersistence}
+
+  \textbf{Variationsmönster}: Kontrast
+
+  \textbf{Vad som varierar}: Typ av minne (primär vs sekundär)...
+
+  \textbf{Kritiska aspekter för} \cref{FilesLOPersistence}:
+  \begin{itemize}
+    \item \textbf{Persistens som koncept}: Studenten måste urskilja...
+  \end{itemize}
+}
+```
+
+**Advantages of `\cref{}`:**
+- More natural in prose: "Kritiska aspekter för \cref{FilesLOOperations}:"
+- Cleaner when referencing multiple times in the same note
+- Better for expanded, detailed pedagogical annotations
+- Works in lists and other environments
+
+#### Method 2: Using Starred Commands (Compact Version)
+
+For more concise notes, use the starred command `\LabelName*` which expands to the full LO text:
 
 **Format pattern:**
 ```latex
@@ -113,7 +148,22 @@ In `\ltnote{}` blocks, refer to learning objectives using the **starred command*
 3. **No trailing punctuation**: Don't add periods after LO commands
 4. **Blank line after LOs**: Separate LOs from the rest of the note content
 
-**Multiple learning objectives:**
+**Multiple learning objectives with `\cref{}`:**
+```latex
+\ltnote{%
+  Relevanta lärandemål:
+  \cref{FilesLOOperations}, \cref{FilesLOContextMgr}, \cref{FilesLOFileTypes}
+
+  \textbf{Variationsmönster}: Generalisering + Kontrast
+
+  \textbf{Kontrast för} \cref{FilesLOContextMgr}: Resurshanteringsmetod...
+
+  \textbf{Separation för} \cref{FilesLOOperations} \textbf{och}
+  \cref{FilesLOFileTypes}: Läsa vs skriva...
+}
+```
+
+**Multiple learning objectives with starred commands:**
 ```latex
 \ltnote{%
   Relevanta lärandemål:
@@ -350,16 +400,24 @@ Use `\ltnote` to document:
 
 When documenting variation theory applications, ALWAYS:
 
-1. **Reference learning objectives using restatable commands**:
+1. **Reference learning objectives explicitly with `\cref{}`**:
    ```latex
    \ltnote{%
      Relevanta lärandemål:
-     \FilesLOPersistence*
+     \cref{FilesLOPersistence}
 
-     \textbf{Mönster}: Kontrast
+     \textbf{Variationsmönster}: Kontrast
 
-     \textbf{Varierar}: Typ av minne (primär vs sekundär)
-     \textbf{Invariant}: Behovet att lagra data
+     \textbf{Vad som varierar}: Typ av minne (primär vs sekundär), egenskaper
+     (flyktigt vs oflyktigt).
+
+     \textbf{Vad som hålls invariant}: Behovet att lagra data.
+
+     \textbf{Kritiska aspekter för} \cref{FilesLOPersistence}:
+     \begin{itemize}
+       \item \textbf{Persistens som koncept}: Studenten måste urskilja att
+         filer löser problemet med datapersistens.
+     \end{itemize}
    }
    ```
 
@@ -367,16 +425,19 @@ When documenting variation theory applications, ALWAYS:
    ```latex
    \ltnote{%
      Relevanta lärandemål:
-     \FilesLOOperations*
-     \FilesLOContextMgr*
+     \cref{FilesLOOperations}, \cref{FilesLOContextMgr}
 
-     \textbf{Mönster}: Generalisering + Kontrast
+     \textbf{Variationsmönster}: Generalisering + Kontrast
+
+     \textbf{Kontrast för} \cref{FilesLOContextMgr}: Resurshanteringsmetod
+     (\mintinline{python}{open()}/\mintinline{python}{close()} vs
+     \mintinline{python}{with}). Studenten måste urskilja att
+     \mintinline{python}{with} garanterar stängning även vid fel.
 
      \textbf{Kritiska aspekter}:
      \begin{itemize}
-       \item \textbf{Resurshantering}: Filer måste stängas
-       \item \textbf{Kontexthanterare}: \mintinline{python}{with} garanterar
-         automatisk stängning
+       \item \textbf{Resurshantering krävs}: Filer måste frigöras explicit.
+       \item \textbf{Kontexthanterare löser problemet}: Automatisk stängning.
      \end{itemize}
 
      \textbf{Koppling till print/input}: Samma princip (strukturera data för
@@ -388,11 +449,20 @@ When documenting variation theory applications, ALWAYS:
    ```latex
    \ltnote{%
      Relevanta lärandemål:
-     \FilesLOCSV*
+     \cref{FilesLOCSV}
+
+     \textbf{Variationsmönster}: Generalisering + Kontrast
+
+     \textbf{Kritiska aspekter för} \cref{FilesLOCSV}:
+     \begin{itemize}
+       \item \textbf{Struktureringsprincipen}: Studenten måste urskilja att
+         formatet är en konvention mellan skrivare och läsare.
+       \item \textbf{Standardformat överlägset}: CSV löser edge cases som egen
+         parsing missar.
+     \end{itemize}
 
      Enligt \textcite{MartonPang2006} måste studenter erfara variation i
-     kritiska dimensioner för att kunna urskilja dessa aspekter. Vi varierar
-     formatet (eget vs CSV) medan struktureringsprincipen förblir invariant.
+     kritiska dimensioner för att kunna urskilja dessa aspekter.
    }
    ```
 
@@ -470,33 +540,76 @@ In a Swedish document, this creates cognitive dissonance and makes notes harder 
 \foreignlanguage{english}{technical term or phrase}
 ```
 
+### Choosing Between Detailed and Compact Notes
+
+**Use detailed notes with `\cref{}` when:**
+- Writing comprehensive pedagogical annotations
+- Explaining multiple critical aspects for each LO
+- Referencing LOs multiple times within the same note
+- Need prose-style integration ("Kritiska aspekter för \cref{LO}:")
+
+**Use compact notes with starred commands when:**
+- Space is limited (avoiding "lost floats" errors)
+- LOs are only referenced once at the beginning
+- Simple, concise annotations suffice
+- Quick overview more important than detailed explanation
+
 ### Example Patterns
 
-**Referencing learning objectives and variation theory:**
+**Detailed pattern with `\cref{}`:**
 ```latex
 \ltnote{%
   Relevanta lärandemål:
-  \FilesLOPersistence*
+  \cref{FilesLOPersistence}
 
-  \textbf{Kontrast}: Typ av minne (primär vs sekundär), egenskaper (flyktigt vs
-  oflyktigt). Invariant: Behovet att lagra data.
+  \textbf{Variationsmönster}: Kontrast
+
+  \textbf{Vad som varierar}: Typ av minne (primär vs sekundär), egenskaper
+  (flyktigt vs oflyktigt).
+
+  \textbf{Vad som hålls invariant}: Behovet att lagra data.
+
+  \textbf{Kritiska aspekter för} \cref{FilesLOPersistence}:
+  \begin{itemize}
+    \item \textbf{Persistens som koncept}: Primärminne försvinner vid
+      avstängning, sekundärminne består. Studenten måste urskilja att filer
+      löser problemet med datapersistens.
+    \item \textbf{Avvägning}: Primärminne snabbt men temporärt, sekundärminne
+      långsammare men permanent.
+  \end{itemize}
 
   Enligt \textcite{MartonPang2006} gör denna kontrast de kritiska aspekterna
   av persistens urskiljbara för studenter.
 }
 ```
 
-**Referencing multiple learning objectives:**
+**Compact pattern with starred commands:**
 ```latex
 \ltnote{%
   Relevanta lärandemål:
-  \FilesLOOperations*
-  \FilesLOContextMgr*
-  \FilesLOFileTypes*
+  \FilesLOPersistence*
 
-  \textbf{Generalisering}: Koppling till \mintinline{python}{print()}/
-  \mintinline{python}{input()}. Samma princip (strukturera data för I/O),
-  olika destination.
+  \textbf{Kontrast}: Typ av minne (primär vs sekundär). Invariant: Behovet att
+  lagra data.
+}
+```
+
+**Referencing multiple learning objectives with detail:**
+```latex
+\ltnote{%
+  Relevanta lärandemål:
+  \cref{FilesLOOperations}, \cref{FilesLOContextMgr}, \cref{FilesLOFileTypes}
+
+  \textbf{Variationsmönster}: Generalisering + Kontrast + Separation
+
+  \textbf{Generalisering från terminal-I/O}: Filoperationer följer samma princip
+  som \mintinline{python}{print()}/\mintinline{python}{input()}. Invariant:
+  I/O-mönstret. Varierar: Destination (terminal vs fil).
+
+  \textbf{Kontrast för} \cref{FilesLOContextMgr}: Resurshanteringsmetod...
+
+  \textbf{Separation för} \cref{FilesLOOperations} \textbf{och}
+  \cref{FilesLOFileTypes}: Läsa vs skriva, text vs binär...
 }
 ```
 
@@ -686,10 +799,13 @@ Let's start with your intuition.
 
 \ltnote{%
   Relevanta lärandemål:
-  \RecursionLOConcept*
+  \cref{RecursionLOConcept}
 
-  \textbf{Try-first}: Vi börjar med utforskning av förkunskaper för att
-  aktivera studenternas intuitiva förståelse (ryska dockor, fraktaler).
+  \textbf{Variationsmönster}: Try-first pedagogy
+
+  Vi börjar med utforskning av förkunskaper för att aktivera studenternas
+  intuitiva förståelse. Studenten förbinder rekursion med konkreta exempel
+  (ryska dockor, fraktaler) innan formell definition introduceras.
 }
 
 \begin{activity}\label{WhatIsRecursion}
@@ -700,11 +816,14 @@ Let's start with your intuition.
 Now let's look at how this appears in programming.
 
 \ltnote{%
-  \textbf{Generalisering}: Vi rör oss från konkreta vardagsexempel till kod,
-  vilket ger en bro mellan intuitiv och formell förståelse.
+  \textbf{Variationsmönster}: Generalisering
+
+  Vi rör oss från konkreta vardagsexempel till kod, vilket ger en bro mellan
+  intuitiv och formell förståelse.
 
   Enligt \textcite{MartonPang2006} underlättar denna progression från bekanta
-  till abstrakta kontexter lärande.
+  till abstrakta kontexter lärande genom att skapa variation i representation
+  medan konceptet hålls invariant.
 }
 
 Here's a simple recursive function:
@@ -718,14 +837,22 @@ def factorial(n):
 
 \ltnote{%
   Relevanta lärandemål:
-  \RecursionLOConcept*
-  \RecursionLOImplementation*
+  \cref{RecursionLOConcept}, \cref{RecursionLOImplementation}
 
-  \textbf{Mönster}: Generalisering (helhet före delar)
+  \textbf{Variationsmönster}: Generalisering (helhet före delar)
 
-  Vi börjar med den kompletta funktionen (helheten). I senare avsnitt
-  bryter vi ner basfallet och det rekursiva steget (delarna), genom att
-  variera vad vi fokuserar på medan andra aspekter hålls invarianta.
+  \textbf{Kritiska aspekter för} \cref{RecursionLOConcept}:
+  \begin{itemize}
+    \item \textbf{Rekursiv struktur}: Funktionen anropar sig själv med
+      modifierat argument. Studenten måste urskilja självreferensen.
+    \item \textbf{Basfall}: Villkoret \mintinline{python}{n <= 1} stoppar
+      rekursionen. Utan detta blir det oändlig loop.
+  \end{itemize}
+
+  \textbf{Pedagogisk sekvens}: Vi börjar med den kompletta funktionen
+  (helheten) enligt variation theory. I senare avsnitt bryter vi ner
+  basfallet och det rekursiva steget (delarna), genom att variera vad vi
+  fokuserar på medan andra aspekter hålls invarianta.
 }
 ```
 
