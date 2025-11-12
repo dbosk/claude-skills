@@ -67,6 +67,198 @@ Options:
 - `inner=20mm`, `outer=60mm` - Set margin widths
 - `notheorems` - Disable automatic theorem environments
 
+## Learning Objectives with Restatable Environment
+
+**CRITICAL**: When documenting learning objectives in educational materials, use the `restatable` environment with the `lo` semantic environment.
+
+### Defining Learning Objectives
+
+Use `\begin{restatable}{lo}{MnemonicLabel}...\end{restatable}` in your abstract or learning objectives section:
+
+```latex
+\begin{restatable}{lo}{FilesLOPersistence}%
+  Förklara skillnaden mellan primärminne och sekundärminne samt varför filer
+  behövs för persistens.
+\end{restatable}
+
+\begin{restatable}{lo}{FilesLOOperations}%
+  Använda filoperationer (\mintinline{python}{open()},
+  \mintinline{python}{read()}, \mintinline{python}{write()},
+  \mintinline{python}{close()}) korrekt.
+\end{restatable}
+```
+
+**Key points:**
+- Use **mnemonic labels** (e.g., `FilesLOPersistence`, not `FilesLO1`)
+- Labels describe the objective content, not just numbers
+- The `%` after the opening brace prevents unwanted whitespace
+
+### Referring to Learning Objectives
+
+In `\ltnote{}` blocks, refer to learning objectives using the **starred command** created by `restatable`:
+
+```latex
+\ltnote{%
+  \FilesLOPersistence*.
+
+  \textbf{Kontrast}: Typ av minne (primär vs sekundär)...
+}
+```
+
+**CRITICAL: Do NOT add prefixes like "LO:" or "\textbf{LO}:"**
+
+The command `\FilesLOPersistence*` already produces "Lärandemål 1" (or "Learning Objective 1" in English documents). Adding extra prefixes creates redundancy:
+
+**Wrong:**
+```latex
+\ltnote{%
+  \textbf{LO}: \FilesLOPersistence*.  % WRONG: Double prefix
+}
+```
+
+**Correct:**
+```latex
+\ltnote{%
+  \FilesLOPersistence*.  % Correct: Command includes prefix
+}
+```
+
+### Learning Objectives Cannot Be in Lists
+
+**CRITICAL**: Learning objective commands created by `restatable` are like theorem environments—they cannot be placed inside `\begin{itemize}` or other list environments.
+
+**Wrong:**
+```latex
+\ltnote{%
+  \textbf{Kritiska aspekter}:
+  \begin{itemize}
+    \item \FilesLOOperations* --- Resurshantering
+    \item \FilesLOContextMgr* --- Automatisk stängning
+  \end{itemize}
+}
+```
+
+**Correct - Move LO commands outside lists:**
+```latex
+\ltnote{%
+  \FilesLOOperations*, \FilesLOContextMgr*.
+
+  \textbf{Kritiska aspekter}:
+  \begin{itemize}
+    \item \textbf{Resurshantering}: Filer måste stängas.
+    \item \textbf{Kontexthanterare}: Automatisk stängning även vid fel.
+  \end{itemize}
+}
+```
+
+**Alternative - Reference in prose:**
+```latex
+\ltnote{%
+  \textbf{Kritiska aspekter för} \FilesLOOperations* \textbf{och} \FilesLOContextMgr*\textbf{:}
+  \begin{itemize}
+    \item \textbf{Resurshantering}: Filer måste stängas.
+    \item \textbf{Kontexthanterare}: Automatisk stängning.
+  \end{itemize}
+}
+```
+
+### Setup for Restatable Learning Objectives
+
+Ensure your preamble includes:
+
+```latex
+\usepackage{thmtools,thm-restate}
+\usepackage{didactic}
+
+\ProvideSemanticEnv{lo}{Learning Objective}
+  [style=definition,numbered=yes]
+  {LO}{LO}
+  {Learning objective}{Learning objectives}
+
+% Translations for Swedish
+\ProvideTranslation{swedish}{Learning Objective}{Lärandemål}
+\ProvideTranslation{swedish}{LO}{lm}
+\ProvideTranslation{swedish}{Learning objective}{Lärandemål}
+\ProvideTranslation{swedish}{Learning objectives}{Lärandemål}
+```
+
+## Citing Pedagogical Research with Biblatex
+
+### Separate Bibliography for Pedagogical References
+
+**Best practice**: Use a separate `.bib` file for pedagogical and learning theory references (e.g., `ltnotes.bib`), distinct from domain-specific references.
+
+**In your preamble:**
+```latex
+\usepackage[natbib,style=alphabetic,maxbibnames=99]{biblatex}
+\addbibresource{bibliography.bib}  % Domain references
+\addbibresource{ltnotes.bib}        % Pedagogical references
+```
+
+### Creating ltnotes.bib
+
+Create a separate file with pedagogical references:
+
+```bibtex
+@article{MartonPang2006,
+  author    = {Marton, Ference and Pang, Ming Fai},
+  title     = {On Some Necessary Conditions of Learning},
+  journal   = {Journal of the Learning Sciences},
+  year      = {2006},
+  volume    = {15},
+  number    = {2},
+  pages     = {193--220},
+  doi       = {10.1207/s15327809jls1502_2}
+}
+
+@book{Marton2015,
+  author    = {Marton, Ference},
+  title     = {Necessary Conditions of Learning},
+  publisher = {Routledge},
+  address   = {London},
+  year      = {2015},
+  isbn      = {978-0-415-739139}
+}
+```
+
+### Using Citations in Didactic Notes
+
+**Use biblatex citation commands** instead of hardcoded references:
+
+**Wrong:**
+```latex
+\ltnote{%
+  Following Marton & Pang (2006), we vary the operation while keeping
+  the pattern invariant...
+}
+```
+
+**Correct:**
+```latex
+\ltnote{%
+  Following \textcite{MartonPang2006}, we vary the operation while keeping
+  the pattern invariant...
+}
+```
+
+**Common biblatex commands for pedagogical notes:**
+- `\textcite{key}` → "Marton and Pang (2006)"
+- `\parencite{key}` → "(Marton and Pang 2006)"
+- `\citeauthor{key}` → "Marton and Pang"
+- `\citeyear{key}` → "2006"
+
+**Example in context:**
+```latex
+\ltnote{%
+  \FilesLOPersistence*.
+
+  \textbf{Kontrast}: Typ av minne (primär vs sekundär).
+
+  Enligt \textcite{MartonPang2006} måste studenter erfara variation i
+  kritiska dimensioner för att kunna urskilja dessa aspekter.
+}
+```
+
 ## The `\ltnote` Command
 
 The `\ltnote{...}` command creates margin notes documenting pedagogical rationale:
@@ -86,28 +278,35 @@ The `\ltnote{...}` command creates margin notes documenting pedagogical rational
 
 Use `\ltnote` to document:
 
-1. **Why specific pedagogical strategies are used**
+1. **Which learning objectives are addressed**
+   - Reference using restatable commands: `\FilesLOPersistence*.`
+   - Map activities to specific objectives
+   - Show how variation patterns support objectives
+
+2. **Why specific pedagogical strategies are used**
    - "We use try-first pedagogy here to activate prior knowledge"
    - "This applies the contrast pattern from variation theory"
+   - Cite learning theory: `\textcite{MartonPang2006}`
 
-2. **References to learning theories**
+3. **References to learning theories**
    - Variation theory patterns (contrast, separation, generalization, fusion)
    - Cognitive load theory considerations
    - Active learning principles
+   - Use biblatex citations instead of hardcoded references
 
-3. **Intended learning outcomes**
-   - What critical aspects students should discern
-   - Which learning objectives an activity addresses
+4. **Critical aspects students should discern**
+   - What aspects become visible through variation
+   - How invariants help students focus on critical features
 
-4. **Design trade-offs and decisions**
+5. **Design trade-offs and decisions**
    - Why examples are ordered in a particular way
    - Why certain details are omitted or included
 
-5. **Future improvements**
+6. **Future improvements**
    - Notes for refining the material
    - Data to collect for assessment
 
-6. **Statistical or assessment purposes**
+7. **Statistical or assessment purposes**
    - "This question helps us gauge prior knowledge"
    - "We collect this data to improve future iterations"
 
@@ -119,43 +318,46 @@ Use `\ltnote` to document:
 
 When documenting variation theory applications, ALWAYS:
 
-1. **State learning objectives explicitly** at the beginning of sections:
+1. **Reference learning objectives using restatable commands**:
    ```latex
    \ltnote{%
-     \textbf{Learning Objectives:}
-     \begin{enumerate}
-       \item Students should discern [critical aspect]
-       \item Students should identify [relationship/pattern]
-       \item Students should be able to [apply/justify]
-     \end{enumerate}
+     \FilesLOPersistence*.
+
+     \textbf{Mönster}: Kontrast
+
+     \textbf{Varierar}: Typ av minne (primär vs sekundär)
+     \textbf{Invariant}: Behovet att lagra data
    }
    ```
 
 2. **Map variation patterns to objectives**: Show HOW the variation helps achieve the objectives:
    ```latex
    \ltnote{%
-     \textbf{Relation to Learning Objectives:}
+     \FilesLOOperations*, \FilesLOContextMgr*.
 
-     This [pattern name] directly addresses:
+     \textbf{Mönster}: Generalisering + Kontrast
+
+     \textbf{Kritiska aspekter}:
      \begin{itemize}
-       \item \textbf{LO1}: By varying [X] while keeping [Y] invariant,
-         students can discern [critical aspect]
-       \item \textbf{LO2}: The contrast makes [relationship] visible
+       \item \textbf{Resurshantering}: Filer måste stängas
+       \item \textbf{Kontexthanterare}: \mintinline{python}{with} garanterar
+         automatisk stängning
      \end{itemize}
 
-     \textbf{Variation Pattern: [Name]}
-
-     \textbf{What varies}: ...
-     \textbf{What remains invariant}: ...
-     \textbf{Critical aspects to discern (mapped to LOs)}: ...
+     \textbf{Koppling till print/input}: Samma princip (strukturera data för
+     I/O), olika destination (terminal vs fil).
    }
    ```
 
-3. **Explain why the variation works**: Connect Marton's principles to your objectives:
+3. **Explain why the variation works**: Connect to learning theory with citations:
    ```latex
-   \textbf{Why this variation works:} Following Marton \& Pang (2006),
-   we vary [X] while keeping [Y] invariant. This makes [critical aspect]
-   discernible because students can see EXACTLY what changes...
+   \ltnote{%
+     \FilesLOCSV*.
+
+     Enligt \textcite{MartonPang2006} måste studenter erfara variation i
+     kritiska dimensioner för att kunna urskilja dessa aspekter. Vi varierar
+     formatet (eget vs CSV) medan struktureringsprincipen förblir invariant.
+   }
    ```
 
 ### Structure Your Notes
@@ -234,12 +436,27 @@ In a Swedish document, this creates cognitive dissonance and makes notes harder 
 
 ### Example Patterns
 
-**Referencing variation theory:**
+**Referencing learning objectives and variation theory:**
 ```latex
 \ltnote{%
-  This adheres to the variation theory principle of starting with the
-  whole, to later break it down into parts by focusing on different
-  aspects using patterns of variation.
+  \FilesLOPersistence*.
+
+  \textbf{Kontrast}: Typ av minne (primär vs sekundär), egenskaper (flyktigt vs
+  oflyktigt). Invariant: Behovet att lagra data.
+
+  Enligt \textcite{MartonPang2006} gör denna kontrast de kritiska aspekterna
+  av persistens urskiljbara för studenter.
+}
+```
+
+**Referencing multiple learning objectives:**
+```latex
+\ltnote{%
+  \FilesLOOperations*, \FilesLOContextMgr*, \FilesLOFileTypes*.
+
+  \textbf{Generalisering}: Koppling till \mintinline{python}{print()}/
+  \mintinline{python}{input()}. Samma princip (strukturera data för I/O),
+  olika destination.
 }
 ```
 
@@ -286,13 +503,19 @@ In a Swedish document, this creates cognitive dissonance and makes notes harder 
 
 ### Variation Theory
 
-Document how your material creates patterns of variation:
+Document how your material creates patterns of variation, citing \textcite{MartonPang2006}:
 
 ```latex
 \ltnote{%
-  We vary the programming language (Python vs Java) while keeping the
-  algorithm invariant. This helps students discern that the algorithmic
-  principle is independent of language syntax.
+  \AlgorithmsLOAbstraction*.
+
+  \textbf{Mönster}: Generalisering
+
+  \textbf{Varierar}: Programmeringsspråk (Python vs Java)
+  \textbf{Invariant}: Algoritmisk princip
+
+  Enligt \textcite{MartonPang2006} hjälper denna variation studenter att
+  urskilja att den algoritmiska principen är oberoende av språksyntax.
 }
 ```
 
@@ -401,15 +624,30 @@ Use `\label` and `\cref` to reference activities in notes:
 
 ## Example: Complete Section with Notes
 
+First, define learning objectives in your abstract:
+
+```latex
+\begin{restatable}{lo}{RecursionLOConcept}%
+  Förklara rekursionsbegreppet och identifiera basfall och rekursivt steg.
+\end{restatable}
+
+\begin{restatable}{lo}{RecursionLOImplementation}%
+  Implementera enkla rekursiva funktioner korrekt.
+\end{restatable}
+```
+
+Then use them in your content:
+
 ```latex
 \section{Introduction to Recursion}
 
 Let's start with your intuition.
 
 \ltnote{%
-  We begin with an exploration of prior knowledge following try-first
-  pedagogy. This helps students connect recursion to concepts they
-  already understand (like Russian dolls or fractals).
+  \RecursionLOConcept*.
+
+  \textbf{Try-first}: Vi börjar med utforskning av förkunskaper för att
+  aktivera studenternas intuitiva förståelse (ryska dockor, fraktaler).
 }
 
 \begin{activity}\label{WhatIsRecursion}
@@ -420,9 +658,11 @@ Let's start with your intuition.
 Now let's look at how this appears in programming.
 
 \ltnote{%
-  We move from concrete everyday examples to code, providing a bridge
-  between intuitive and formal understanding. This follows variation
-  theory's principle of using familiar contexts before abstract ones.
+  \textbf{Generalisering}: Vi rör oss från konkreta vardagsexempel till kod,
+  vilket ger en bro mellan intuitiv och formell förståelse.
+
+  Enligt \textcite{MartonPang2006} underlättar denna progression från bekanta
+  till abstrakta kontexter lärande.
 }
 
 Here's a simple recursive function:
@@ -435,10 +675,13 @@ def factorial(n):
 @
 
 \ltnote{%
-  We start with the complete function (the whole) following variation
-  theory. In subsequent sections, we'll break down the base case and
-  recursive case (the parts), varying what we focus on while keeping
-  other aspects invariant.
+  \RecursionLOConcept*, \RecursionLOImplementation*.
+
+  \textbf{Mönster}: Generalisering (helhet före delar)
+
+  Vi börjar med den kompletta funktionen (helheten). I senare avsnitt
+  bryter vi ner basfallet och det rekursiva steget (delarna), genom att
+  variera vad vi fokuserar på medan andra aspekter hålls invarianta.
 }
 ```
 
