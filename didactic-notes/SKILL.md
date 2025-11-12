@@ -97,11 +97,31 @@ Use `\begin{restatable}{lo}{MnemonicLabel}...\end{restatable}` in your abstract 
 
 In `\ltnote{}` blocks, refer to learning objectives using the **starred command** created by `restatable`:
 
+**Format pattern:**
 ```latex
 \ltnote{%
-  \FilesLOPersistence*.
+  Relevanta lärandemål:
+  \FilesLOPersistence*
 
   \textbf{Kontrast}: Typ av minne (primär vs sekundär)...
+}
+```
+
+**Key formatting rules:**
+1. **Use header**: Begin with "Relevanta lärandemål:" (or "Relevant learning objectives:" in English)
+2. **Each LO on its own line**: Don't use commas between multiple LOs
+3. **No trailing punctuation**: Don't add periods after LO commands
+4. **Blank line after LOs**: Separate LOs from the rest of the note content
+
+**Multiple learning objectives:**
+```latex
+\ltnote{%
+  Relevanta lärandemål:
+  \FilesLOOperations*
+  \FilesLOContextMgr*
+  \FilesLOFileTypes*
+
+  \textbf{Generalisering + Kontrast}: Koppling till...
 }
 ```
 
@@ -116,10 +136,21 @@ The command `\FilesLOPersistence*` already produces "Lärandemål 1" (or "Learni
 }
 ```
 
+**Wrong:**
+```latex
+\ltnote{%
+  \FilesLOPersistence*, \FilesLOContextMgr*.  % WRONG: Commas, periods
+}
+```
+
 **Correct:**
 ```latex
 \ltnote{%
-  \FilesLOPersistence*.  % Correct: Command includes prefix
+  Relevanta lärandemål:
+  \FilesLOPersistence*
+  \FilesLOContextMgr*
+
+  \textbf{Mönster}: ...
 }
 ```
 
@@ -279,7 +310,8 @@ The `\ltnote{...}` command creates margin notes documenting pedagogical rational
 Use `\ltnote` to document:
 
 1. **Which learning objectives are addressed**
-   - Reference using restatable commands: `\FilesLOPersistence*.`
+   - Use "Relevanta lärandemål:" header (or "Relevant learning objectives:" in English)
+   - Reference using restatable commands on separate lines: `\FilesLOPersistence*`
    - Map activities to specific objectives
    - Show how variation patterns support objectives
 
@@ -321,7 +353,8 @@ When documenting variation theory applications, ALWAYS:
 1. **Reference learning objectives using restatable commands**:
    ```latex
    \ltnote{%
-     \FilesLOPersistence*.
+     Relevanta lärandemål:
+     \FilesLOPersistence*
 
      \textbf{Mönster}: Kontrast
 
@@ -333,7 +366,9 @@ When documenting variation theory applications, ALWAYS:
 2. **Map variation patterns to objectives**: Show HOW the variation helps achieve the objectives:
    ```latex
    \ltnote{%
-     \FilesLOOperations*, \FilesLOContextMgr*.
+     Relevanta lärandemål:
+     \FilesLOOperations*
+     \FilesLOContextMgr*
 
      \textbf{Mönster}: Generalisering + Kontrast
 
@@ -352,7 +387,8 @@ When documenting variation theory applications, ALWAYS:
 3. **Explain why the variation works**: Connect to learning theory with citations:
    ```latex
    \ltnote{%
-     \FilesLOCSV*.
+     Relevanta lärandemål:
+     \FilesLOCSV*
 
      Enligt \textcite{MartonPang2006} måste studenter erfara variation i
      kritiska dimensioner för att kunna urskilja dessa aspekter. Vi varierar
@@ -439,7 +475,8 @@ In a Swedish document, this creates cognitive dissonance and makes notes harder 
 **Referencing learning objectives and variation theory:**
 ```latex
 \ltnote{%
-  \FilesLOPersistence*.
+  Relevanta lärandemål:
+  \FilesLOPersistence*
 
   \textbf{Kontrast}: Typ av minne (primär vs sekundär), egenskaper (flyktigt vs
   oflyktigt). Invariant: Behovet att lagra data.
@@ -452,7 +489,10 @@ In a Swedish document, this creates cognitive dissonance and makes notes harder 
 **Referencing multiple learning objectives:**
 ```latex
 \ltnote{%
-  \FilesLOOperations*, \FilesLOContextMgr*, \FilesLOFileTypes*.
+  Relevanta lärandemål:
+  \FilesLOOperations*
+  \FilesLOContextMgr*
+  \FilesLOFileTypes*
 
   \textbf{Generalisering}: Koppling till \mintinline{python}{print()}/
   \mintinline{python}{input()}. Samma princip (strukturera data för I/O),
@@ -507,7 +547,8 @@ Document how your material creates patterns of variation, citing \textcite{Marto
 
 ```latex
 \ltnote{%
-  \AlgorithmsLOAbstraction*.
+  Relevanta lärandemål:
+  \AlgorithmsLOAbstraction*
 
   \textbf{Mönster}: Generalisering
 
@@ -644,7 +685,8 @@ Then use them in your content:
 Let's start with your intuition.
 
 \ltnote{%
-  \RecursionLOConcept*.
+  Relevanta lärandemål:
+  \RecursionLOConcept*
 
   \textbf{Try-first}: Vi börjar med utforskning av förkunskaper för att
   aktivera studenternas intuitiva förståelse (ryska dockor, fraktaler).
@@ -675,7 +717,9 @@ def factorial(n):
 @
 
 \ltnote{%
-  \RecursionLOConcept*, \RecursionLOImplementation*.
+  Relevanta lärandemål:
+  \RecursionLOConcept*
+  \RecursionLOImplementation*
 
   \textbf{Mönster}: Generalisering (helhet före delar)
 
