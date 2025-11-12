@@ -254,14 +254,17 @@ if n <= 1:
 ## Best Practices
 
 1. **Write documentation first** - Start with explanation, then add code
-2. **Use the -L flag for debugging** - Line directives help debuggers point to 
+2. **Keep lines under 80 characters** - Both in documentation and code chunks.
+   This improves readability and follows traditional Unix conventions. Break
+   long lines at natural points (after commas, before operators, etc.)
+3. **Use the -L flag for debugging** - Line directives help debuggers point to
    .nw file, however: this doesn't work for Python (among others).
-3. **Check for unused chunks** - Run `noroots` to find typos in chunk names
-4. **Mix languages freely** - Noweb is language-agnostic; include Makefiles, configs, etc.
-5. **Consider your audience** - Write for someone learning the code, not just maintaining it
-6. **Use cross-references** - The `-x` and `-index` flags help readers navigate
-7. **Keep tangled code in gitignore** - The .nw file is the source of truth
-8. **Test your tangles** - Ensure extracted code actually compiles/runs
+4. **Check for unused chunks** - Run `noroots` to find typos in chunk names
+5. **Mix languages freely** - Noweb is language-agnostic; include Makefiles, configs, etc.
+6. **Consider your audience** - Write for someone learning the code, not just maintaining it
+7. **Use cross-references** - The `-x` and `-index` flags help readers navigate
+8. **Keep tangled code in gitignore** - The .nw file is the source of truth
+9. **Test your tangles** - Ensure extracted code actually compiles/runs
 
 ## Language-Specific Notes
 
@@ -272,7 +275,13 @@ if n <= 1:
 
 ### Python
 - No special flags needed
+- Keep lines under 80 characters in .nw files (both prose and code)
+- Break long lines in Python code:
+  - Function calls: break after commas, indent continuation
+  - String literals: use implicit string concatenation or parentheses
+  - Long expressions: use parentheses and break at logical points
 - Consider using formatters on output: `notangle -Rfile.py file.nw | black - > file.py`
+- Note: Black may reformat to different line lengths, but keep source readable
 
 ### Haskell
 - Use `-L` flag (GHC understands line pragmas)

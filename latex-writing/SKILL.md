@@ -1,6 +1,6 @@
 ---
 name: latex-writing
-description: Guide LaTeX document authoring following best practices and proper semantic markup. Use proactively when: (1) writing or editing .tex files, (2) creating LaTeX content in .nw literate programming files, (3) user mentions LaTeX, BibTeX, or document formatting, (4) reviewing LaTeX code quality. Ensures proper use of semantic environments like description vs itemize.
+description: Guide LaTeX document authoring following best practices and proper semantic markup. Use proactively when: (1) writing or editing .tex files, (2) creating LaTeX content in .nw literate programming files, (3) literate-programming skill is active and working with .nw files, (4) user mentions LaTeX, BibTeX, or document formatting, (5) reviewing LaTeX code quality. Ensures proper use of semantic environments (description vs itemize) and csquotes (\enquote{} not ``...'').
 ---
 
 # LaTeX Writing Best Practices
