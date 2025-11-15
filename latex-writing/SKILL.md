@@ -169,9 +169,76 @@ The \emph{benefits} of classes are clear.
 
 **Exception**: Acronyms and proper names that are conventionally written in capitals (e.g., NASA, USA, PDF) are fine and should not be emphasized.
 
-### Floats
-- Use `figure` and `table` environments with `\caption` and `\label`
-- Remember the principle: an image is not a figure, but a figure can contain an image
+### Floats: Figures and Tables
+
+**Core principle**: An image is not a figure, but a figure can contain an image. Use proper figure and table environments with captions and labels.
+
+#### Using sidecaption (memoir class)
+
+When using the memoir document class, prefer `sidecaption` over traditional `\caption` for better layout and accessibility:
+
+**For figures:**
+```latex
+\begin{figure}
+  \begin{sidecaption}{Clear description of image content}[fig:label]
+    \includegraphics[width=0.7\textwidth]{path/to/image}
+  \end{sidecaption}
+\end{figure}
+```
+
+**For tables:**
+```latex
+\begin{table}
+  \begin{sidecaption}{Description of table content}[tab:label]
+    \begin{tabular}{lcc}
+      \toprule
+      Header1 & Header2 & Header3 \\
+      \midrule
+      Data1 & Data2 & Data3 \\
+      \bottomrule
+    \end{tabular}
+  \end{sidecaption}
+\end{table}
+```
+
+**Key features of sidecaption:**
+- **Caption placement**: Caption appears alongside the content (figure/table), not above or below
+- **Space efficiency**: Better use of page width, especially for narrow images/tables
+- **Improved readability**: Caption and content are visually connected
+- **Accessibility**: Clear semantic separation between caption text and content
+- **Consistent labeling**: Label goes in optional second argument `[fig:label]`
+
+**When to use sidecaption:**
+- Medium-sized figures/tables that don't need full text width
+- Educational materials where caption-content proximity aids understanding
+- Documents using memoir class (Beamer presentations with memoir features)
+
+**Traditional caption alternative:**
+```latex
+\begin{figure}
+  \centering
+  \includegraphics[width=0.7\textwidth]{path/to/image}
+  \caption{Description of image content}
+  \label{fig:label}
+\end{figure}
+```
+
+Use traditional `\caption` + `\label` when:
+- Not using memoir class
+- Figure/table spans full text width
+- Caption naturally belongs below content (e.g., wide tables)
+
+#### Referencing figures and tables
+
+Always use `\cref{fig:label}` (cleveref package) or `\ref{fig:label}` to reference figures and tables:
+
+```latex
+As shown in \cref{fig:memory-hierarchy}, secondary memory is slower but non-volatile.
+
+The results in \cref{tab:benchmark} demonstrate...
+```
+
+**Never** hard-code references like "Figure 1" or "Table 3.2"—let LaTeX handle numbering automatically
 
 ### Verbatim and Code
 - Use `listings` package for code with syntax highlighting
