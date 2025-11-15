@@ -119,21 +119,60 @@ och skalbarhet.
 - **Starred version** (`\textbytext*`): Uses fullwidth for maximum space
 - **Non-starred** (`\textbytext`): Uses normal column width
 
+**IMPORTANT - Beamer compatibility**:
+- `\textbytext*` (starred) does NOT work inside `\begin{frame}...\end{frame}`, even with `[fragile]`
+- **Solution**: Use mode-specific versions:
+  - `\mode<presentation>` with `\textbytext` (non-starred, column width works in beamer)
+  - `\mode<article>` with `\textbytext*` (starred, fullwidth for article mode)
+- This pattern is REQUIRED when using side-by-side contrast in beamer presentations
+
 **Example use case**: Primärminne vs Sekundärminne - concepts defined by their opposing characteristics (flyktigt vs oflyktigt, snabbt vs långsamt).
 
-**Implementation**:
+**Implementation** (beamer-compatible with mode splits):
+```latex
+\begin{frame}
+  \mode<presentation>{%
+    \textbytext{%
+      \begin{definition}[Primärminne]
+        Datorns arbetsminne där exekverande program lagras.
+        Detta är flyktigt minne med mycket snabb åtkomst
+        (storleksordning nanosekunder).
+      \end{definition}
+    }{%
+      \begin{definition}[Sekundärminne]
+        Oflyktigt minne där icke-exekverande program och
+        data (filer) lagras. Långsammare åtkomst än primärminne
+        (storleksordning mikro- till millisekunder).
+      \end{definition}
+    }
+  }
+  \mode<article>{%
+    \textbytext*{%
+      \begin{definition}[Primärminne]
+        Datorns arbetsminne där exekverande program lagras.
+        Detta är flyktigt minne med mycket snabb åtkomst
+        (storleksordning nanosekunder).
+      \end{definition}
+    }{%
+      \begin{definition}[Sekundärminne]
+        Oflyktigt minne där icke-exekverande program och
+        data (filer) lagras. Långsammare åtkomst än primärminne
+        (storleksordning mikro- till millisekunder).
+      \end{definition}
+    }
+  }
+\end{frame}
+```
+
+**For article-only contexts** (not beamer), you can use `\textbytext*` directly:
 ```latex
 \textbytext*{%
   \begin{definition}[Primärminne]
-    Datorns arbetsminne där exekverande program lagras.
-    Detta är flyktigt minne med mycket snabb åtkomst
-    (storleksordning nanosekunder).
+    ...
   \end{definition}
 }{%
   \begin{definition}[Sekundärminne]
-    Oflyktigt minne där icke-exekverande program och
-    data (filer) lagras. Långsammare åtkomst än primärminne
-    (storleksordning mikro- till millisekunder).
+    ...
   \end{definition}
 }
 ```

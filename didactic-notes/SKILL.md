@@ -760,27 +760,50 @@ The didactic.sty package provides `\textbytext{...}{...}` and `\textbytext*{...}
 ```
 
 **Key differences**:
-- **\textbytext**** (starred): Uses fullwidth for maximum space—best for Beamer slides
-- **\textbytext** (non-starred): Uses normal column width—better for article mode
+- **\textbytext**** (starred): Uses fullwidth for maximum space—for article mode
+- **\textbytext** (non-starred): Uses normal column width—works in Beamer presentations
+
+**CRITICAL - Beamer compatibility**:
+- `\textbytext*` (starred) does NOT work inside `\begin{frame}...\end{frame}`, even with `[fragile]`
+- **Solution**: Use `\mode<presentation>` and `\mode<article>` to split:
+  - Presentation mode: `\textbytext` (non-starred)
+  - Article mode: `\textbytext*` (starred, fullwidth)
 
 **When to use**:
 - Concepts defined in relation to each other (primärminne/sekundärminne)
 - Creating simultaneous contrast in variation theory
 - Comparing two approaches side-by-side (manual vs automatic)
 
-**Example**:
+**Example (Beamer-compatible with mode splits)**:
 ```latex
-\textbytext*{%
-  \begin{definition}[Primärminne]
-    Datorns arbetsminne där exekverande program lagras.
-    Flyktigt minne med snabb åtkomst (nanosekunder).
-  \end{definition}
-}{%
-  \begin{definition}[Sekundärminne]
-    Oflyktigt minne där filer lagras.
-    Långsammare åtkomst (mikro- till millisekunder).
-  \end{definition}
-}
+\begin{frame}
+  \mode<presentation>{%
+    \textbytext{%
+      \begin{definition}[Primärminne]
+        Datorns arbetsminne där exekverande program lagras.
+        Flyktigt minne med snabb åtkomst (nanosekunder).
+      \end{definition}
+    }{%
+      \begin{definition}[Sekundärminne]
+        Oflyktigt minne där filer lagras.
+        Långsammare åtkomst (mikro- till millisekunder).
+      \end{definition}
+    }
+  }
+  \mode<article>{%
+    \textbytext*{%
+      \begin{definition}[Primärminne]
+        Datorns arbetsminne där exekverande program lagras.
+        Flyktigt minne med snabb åtkomst (nanosekunder).
+      \end{definition}
+    }{%
+      \begin{definition}[Sekundärminne]
+        Oflyktigt minne där filer lagras.
+        Långsammare åtkomst (mikro- till millisekunder).
+      \end{definition}
+    }
+  }
+\end{frame}
 
 \ltnote{%
   Relevanta lärandemål:
@@ -793,6 +816,8 @@ The didactic.sty package provides `\textbytext{...}{...}` and `\textbytext*{...}
   vilket gör de kontrasterande aspekterna urskiljbara.
 }
 ```
+
+**For article-only documents** (not using Beamer), you can use `\textbytext*` directly without mode splits.
 
 **Works with**: definition, example, remark, block, any semantic environment
 
@@ -927,7 +952,7 @@ sedan arbeta med innehållet, och till sist stänga dem.
 \end{frame}
 ```
 
-**Note**: For side-by-side definitions, use `\textbytext*` instead of overlay specs—the spatial contrast is more effective than temporal uncovering.
+**Note**: For side-by-side definitions, use `\textbytext` (presentation) / `\textbytext*` (article) with mode splits instead of overlay specs—the spatial contrast is more effective than temporal uncovering. See "Side-by-Side Environments with \textbytext*" section above for Beamer-compatible implementation.
 
 **Correct approach for multiple examples with overlays**:
 ```latex
@@ -947,6 +972,91 @@ sedan arbeta med innehållet, och till sist stänga dem.
   \end{uncoverenv>
 \end{frame}
 ```
+
+### Verbose Environments: Presentation vs Article Splits
+
+**Issue**: Semantic environments (definition, remark, example, block) can become too verbose for slides when they contain multiple sentences or paragraphs.
+
+**Solution**: Use `\mode<presentation>` and `\mode<article>` to provide concise versions for slides and full explanations for articles.
+
+**When to split**:
+- **Verbose prose**: More than 2-3 lines of running text in an environment
+- **Multiple paragraphs**: Any environment with 2+ paragraphs
+- **Complex examples**: Scenarios with extensive context that can be summarized
+
+**Pattern**:
+```latex
+\begin{frame}
+  \mode<presentation>{%
+    \begin{remark}[Title]
+      \begin{itemize}
+        \item Concise bullet point 1
+        \item Concise bullet point 2
+        \item Concise bullet point 3
+      \end{itemize}
+    \end{remark}
+  }
+  \mode<article>{%
+    \begin{remark}[Title]
+      Full explanatory text with multiple sentences providing
+      detailed context and reasoning.
+
+      Additional paragraphs can explain nuances that would
+      overwhelm a slide but are valuable in written form.
+    \end{remark}
+  }
+\end{frame}
+```
+
+**Example - Verbose remark becomes bullets**:
+```latex
+\begin{frame}
+  \mode<presentation>{%
+    \begin{remark}[Kontrastpunkten: Garanterad resurshantering]
+      \begin{itemize}
+        \item \mintinline{python}{with}: Filen stängs alltid, även vid exception
+        \item Manuell hantering: Risk att filen lämnas öppen vid fel
+        \item Automatisk cleanup när blocket lämnas
+      \end{itemize}
+    \end{remark}
+  }
+  \mode<article>{%
+    \begin{remark}[Kontrastpunkten: Garanterad resurshantering]
+      Båda metoderna fungerar när allt går som planerat. Men
+      with-satsen har en avgörande fördel: den garanterar att
+      filen alltid stängs korrekt, även om ett exception uppstår.
+
+      Med manuell hantering riskerar vi att filen lämnas öppen
+      om något går fel. With-satsen implementerar
+      kontexthanterare-protokollet och anropar close()
+      automatiskt när blocket lämnas.
+    \end{remark}
+  }
+\end{frame}
+```
+
+**Example - Long example becomes concise**:
+```latex
+\begin{frame}
+  \mode<presentation>{%
+    \begin{example}[Spara spelets progress]
+      Spel måste minnas poäng och achievements mellan
+      sessioner—löses genom att spara data i fil.
+    \end{example}
+  }
+  \mode<article>{%
+    \begin{example}[Spara spelets progress]
+      Ett spel behöver komma ihåg spelarens poäng, nivå,
+      och upplåsta achievements mellan olika spelsessioner.
+      När spelaren stänger ner programmet och startar det
+      igen nästa dag ska all progress finnas kvar. Detta
+      löses genom att spara data i en fil på hårddisken.
+    \end{example}
+  }
+\end{frame}
+```
+
+**Key principle**: Slides need visual clarity and conciseness; articles can provide depth and explanation. Design for both audiences.
 
 ### Cross-References
 

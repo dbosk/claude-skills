@@ -270,6 +270,59 @@ Check for these common issues:
 - [ ] Code without proper formatting (listings/verbatim)
 - [ ] Windows-style backslashes in paths
 
+## Beamer: Presentation vs Article Mode
+
+When creating Beamer presentations that also generate article versions, use `\mode<presentation>` and `\mode<article>` to provide appropriate content for each format.
+
+### When to Split Content
+
+**Verbose text environments**: Semantic environments (definition, remark, example, block) with more than 2-3 lines of prose are too verbose for slides.
+
+**Solution**: Provide concise versions for presentations and full explanations for articles:
+
+```latex
+\begin{frame}
+  \mode<presentation>{%
+    \begin{remark}[Key Point]
+      \begin{itemize}
+        \item Concise point 1
+        \item Concise point 2
+        \item Concise point 3
+      \end{itemize}
+    \end{remark}
+  }
+  \mode<article>{%
+    \begin{remark}[Key Point]
+      Full explanatory paragraph with detailed reasoning and context
+      that would overwhelm a slide but provides value in written form.
+
+      Additional paragraphs can elaborate on nuances and implications.
+    \end{remark}
+  }
+\end{frame}
+```
+
+### Visual Elements
+
+**Side-by-side layouts** using `\textbytext`:
+- Presentation: `\textbytext` (non-starred, column width, works in beamer frames)
+- Article: `\textbytext*` (starred, fullwidth, better for printed documents)
+
+```latex
+\begin{frame}
+  \mode<presentation>{%
+    \textbytext{Left content}{Right content}
+  }
+  \mode<article>{%
+    \textbytext*{Left content}{Right content}
+  }
+\end{frame}
+```
+
+### Principle
+
+Slides need **visual clarity** and **conciseness** (bullets, short phrases). Articles can provide **depth** and **explanation** (full sentences, paragraphs). Design content appropriate for each medium.
+
 ## Remember
 
 LaTeX is a **document preparation system** based on **semantic markup**, not a word processor. The goal is to describe what content *is*, not how it should *look*. Let LaTeX handle the formatting based on the semantic structure you provide.
