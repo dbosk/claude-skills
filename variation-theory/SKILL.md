@@ -63,6 +63,146 @@ Research suggests using patterns in this developmental order:
 3. **Apply Generalization** - Show the pattern across contexts
 4. **Achieve Fusion** - Integrate aspects into comprehensive understanding
 
+### Temporal Sequencing: Examples Before Generalizations
+
+**Core principle**: Examples must precede generalizations. Students need concrete instances creating the necessary variation before abstract principles become meaningful.
+
+**Why this matters**: Variation must be **experienced** before invariants can be discerned. When you state a general principle first, students have no variation pattern to map it onto. The principle remains abstract and difficult to integrate with existing knowledge.
+
+**Anti-pattern example**:
+```latex
+% BAD: Generalization before examples
+Filer behövs för tre huvudsakliga anledningar: persistens, datautbyte,
+och skalbarhet.
+
+\begin{example}[Spara spelets progress]
+  ...
+\end{example}
+```
+
+**Good pattern example**:
+```latex
+% GOOD: Examples create variation, then generalize
+\begin{example}[Spara spelets progress]
+  Ett spel behöver komma ihåg spelarens poäng mellan körningar...
+\end{example}
+
+\begin{example}[Dela data mellan program]
+  Ett program genererar e-postadresser som ett annat sedan använder...
+\end{example}
+
+\begin{example}[Bearbeta stora datamängder]
+  SCB:s namnstatistik innehåller miljontals poster...
+\end{example}
+
+\begin{remark}[Varför filer behövs]
+  Filer behövs för persistens (minnas mellan körningar), datautbyte
+  (överföra mellan program), och skalbarhet (hantera stora mängder data).
+\end{remark}
+```
+
+**Pedagogical sequence**:
+1. Show concrete examples that vary in one dimension (use case)
+2. Keep invariant: the solution (using files)
+3. Students discern the pattern: different problems, same solution
+4. Generalize the pattern in a semantic environment (remark/definition/block)
+
+**Key insight**: The generalization is only meaningful AFTER students have experienced the variation that makes the invariant pattern discernible.
+
+### Side-by-Side Contrast with \textbytext*
+
+**Purpose**: Create simultaneous visual contrast when two concepts need immediate comparison. This implements the Contrast pattern spatially rather than temporally.
+
+**When to use**: Concepts that are defined **in relation to each other** and whose critical aspects are best understood through direct juxtaposition.
+
+**The tool**: LaTeX didactic.sty provides `\textbytext*{...}{...}` to place environments side-by-side:
+- **Starred version** (`\textbytext*`): Uses fullwidth for maximum space
+- **Non-starred** (`\textbytext`): Uses normal column width
+
+**Example use case**: Primärminne vs Sekundärminne - concepts defined by their opposing characteristics (flyktigt vs oflyktigt, snabbt vs långsamt).
+
+**Implementation**:
+```latex
+\textbytext*{%
+  \begin{definition}[Primärminne]
+    Datorns arbetsminne där exekverande program lagras.
+    Detta är flyktigt minne med mycket snabb åtkomst
+    (storleksordning nanosekunder).
+  \end{definition}
+}{%
+  \begin{definition}[Sekundärminne]
+    Oflyktigt minne där icke-exekverande program och
+    data (filer) lagras. Långsammare åtkomst än primärminne
+    (storleksordning mikro- till millisekunder).
+  \end{definition}
+}
+```
+
+**Variation pattern analysis**:
+- **What varies**: Memory type (primary vs secondary) and all associated characteristics
+- **What remains invariant**: The concept of computer memory storing data
+- **Critical aspects made discernible**: Volatility (flyktigt/oflyktigt), speed (nanosekunder/millisekunder), purpose (executing/stored programs)
+
+**Why this works**: Side-by-side presentation allows students to scan back and forth between the definitions, making the contrasting features immediately apparent. The spatial arrangement reinforces the conceptual opposition.
+
+**Alternative approaches and when NOT to use**:
+- **Sequential presentation** (uncoverenv): Better when you want students to understand each concept independently before comparing
+- **\textbytext*** (side-by-side): Better when the concepts are mutually defining and comparison is essential for understanding
+
+### Generalizations in Semantic Environments
+
+**Principle**: When generalizing from examples, capture the generalization in a semantic environment (definition, remark, block) placed AFTER the examples.
+
+**Why use semantic environments**:
+1. **Highlights importance**: Visual distinction signals "this is a key takeaway"
+2. **Makes referenceable**: Can be cited in pedagogical notes and student materials
+3. **Suitable for notes**: Environments appear cleanly in article mode/handouts
+4. **Searchable**: Students can scan for definitions/remarks when reviewing
+
+**Environment selection guide**:
+- **definition**: Formal concept definitions
+  - Example: "En fil är en namngiven samling data som lagras i sekundärminnet"
+- **remark**: Important observations, principles, or implications
+  - Example: "Filer behövs för persistens, datautbyte, och skalbarhet"
+- **block**: Key takeaways, summaries, or synthesis points
+  - Example: "Återkommande programmeringsmönster: validera input, dict för räkning, läs-bearbeta-skriv"
+- **example**: When the generalization is best shown through a code pattern
+  - Example: The general pattern for file transformation (read-process-write)
+
+**Anti-pattern**: Generalizations buried in prose paragraphs
+```latex
+% BAD: Important principle lost in prose
+När vi arbetar med filer måste vi alltid öppna dem först,
+sedan arbeta med innehållet, och till sist stänga dem.
+Detta mönster återkommer i all filhantering.
+
+\begin{example}[Läsa fil]
+  ...
+\end{example}
+```
+
+**Good pattern**: Generalization highlighted in semantic environment
+```latex
+% GOOD: Examples first, then generalization in environment
+\begin{example}[Läsa fil]
+  with open("data.txt", "r") as fil:
+      innehåll = fil.read()
+\end{example}
+
+\begin{example}[Skriva fil]
+  with open("data.txt", "w") as fil:
+      fil.write(text)
+\end{example}
+
+\begin{remark}[Filhanteringsmönster]
+  All filhantering följer mönstret: öppna → bearbeta → stäng.
+  Funktionen \mintinline{python}{with} garanterar att filen stängs
+  automatiskt även om fel uppstår.
+\end{remark}
+```
+
+**Integration with variation theory**: The semantic environment containing the generalization represents the discernible **invariant pattern** that emerged from the **variation** in the examples. Students have experienced the pattern varying across different contexts (reading, writing, different file types) while the core structure remained invariant.
+
 ## Language Consistency When Documenting Variation Patterns
 
 **CRITICAL**: When documenting variation theory in pedagogical notes (e.g., `\ltnote`), match the document's instructional language.
