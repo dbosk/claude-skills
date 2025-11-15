@@ -740,6 +740,214 @@ Available environments:
 - `summary` - Section summaries
 - `definition`, `theorem`, `example` - Mathematical content
 
+### Side-by-Side Environments with \textbytext*
+
+**Purpose**: Place two semantic environments side-by-side for immediate visual contrast.
+
+The didactic.sty package provides `\textbytext{...}{...}` and `\textbytext*{...}{...}` to create side-by-side layouts:
+
+**Syntax**:
+```latex
+\textbytext*{%
+  \begin{definition}[Concept A]
+    Description emphasizing one aspect...
+  \end{definition}
+}{%
+  \begin{definition}[Concept B]
+    Description emphasizing contrasting aspect...
+  \end{definition}
+}
+```
+
+**Key differences**:
+- **\textbytext**** (starred): Uses fullwidth for maximum space—best for Beamer slides
+- **\textbytext** (non-starred): Uses normal column width—better for article mode
+
+**When to use**:
+- Concepts defined in relation to each other (primärminne/sekundärminne)
+- Creating simultaneous contrast in variation theory
+- Comparing two approaches side-by-side (manual vs automatic)
+
+**Example**:
+```latex
+\textbytext*{%
+  \begin{definition}[Primärminne]
+    Datorns arbetsminne där exekverande program lagras.
+    Flyktigt minne med snabb åtkomst (nanosekunder).
+  \end{definition}
+}{%
+  \begin{definition}[Sekundärminne]
+    Oflyktigt minne där filer lagras.
+    Långsammare åtkomst (mikro- till millisekunder).
+  \end{definition}
+}
+
+\ltnote{%
+  Relevanta lärandemål:
+  \cref{FilesLOPersistence}
+
+  \textbf{Variationsmönster}: Kontrast (spatial, inte temporal)
+
+  Side-by-side layout skapar omedelbar visuell kontrast mellan flyktigt/oflyktigt,
+  snabbt/långsamt. Studenter kan scanna fram och tillbaka mellan definitionerna
+  vilket gör de kontrasterande aspekterna urskiljbara.
+}
+```
+
+**Works with**: definition, example, remark, block, any semantic environment
+
+### Figures and Tables with sidecaption
+
+**Principle**: Images and tables should use memoir's sidecaption for better layout and accessibility.
+
+**For figures**:
+```latex
+\begin{frame}
+  \begin{figure}
+    \begin{sidecaption}{Clear description of image content}[fig:label]
+      \includegraphics[width=0.7\textwidth]{path/to/image}
+    \end{sidecaption}
+  \end{figure}
+\end{frame}
+```
+
+**For tables**:
+```latex
+\begin{frame}
+  \begin{table}
+    \begin{sidecaption}{Description of table contents}[tab:label]
+      \begin{tabular}{ll}
+        ... table content ...
+      \end{tabular}
+    \end{sidecaption}
+  \end{table}
+\end{frame}
+```
+
+**Benefits**:
+- Caption alongside content (better use of horizontal space)
+- Improved accessibility (screen readers)
+- Context provided in notes/handouts
+
+**Caption guidelines**:
+- **Describe content**: "Python documentation for file I/O operations"
+- **Be specific**: "File modes available in open() function" not "Documentation screenshot"
+- **Explain relevance**: "CSV module methods showing reader and writer classes"
+
+**Anti-pattern** (standalone image without caption):
+```latex
+% BAD: No context or caption
+\begin{frame}
+  \includegraphics[width=\columnwidth]{docs-files.png}
+\end{frame}
+```
+
+### Semantic Environments for Generalizations
+
+**Principle**: When generalizing from examples, capture the generalization in a semantic environment (definition, remark, block) placed AFTER the examples.
+
+**Why use semantic environments for generalizations**:
+1. **Highlights importance**: Visual distinction signals "this is a key takeaway"
+2. **Makes referenceable**: Can be cited in pedagogical notes and student materials
+3. **Suitable for notes**: Environments appear cleanly in article mode/handouts
+4. **Searchable**: Students can scan for definitions/remarks when reviewing
+
+**Environment selection**:
+- **definition**: Formal concept definitions
+- **remark**: Important observations, principles, or implications
+- **block**: Key takeaways, summaries, or synthesis points
+- **example**: When generalization is best shown through code pattern
+
+**Integration with variation theory**: The semantic environment contains the **invariant pattern** that emerged from **variation** in the examples.
+
+**Example**:
+```latex
+% First: Examples creating variation
+\begin{example}[Läsa fil]
+  with open("data.txt", "r") as fil:
+      innehåll = fil.read()
+\end{example}
+
+\begin{example}[Skriva fil]
+  with open("data.txt", "w") as fil:
+      fil.write(text)
+\end{example}
+
+% Then: Generalization in semantic environment
+\begin{remark}[Filhanteringsmönster]
+  All filhantering följer mönstret: öppna → bearbeta → stäng.
+  Funktionen \mintinline{python}{with} garanterar att filen stängs
+  automatiskt även om fel uppstår.
+\end{remark}
+
+\ltnote{%
+  Relevanta lärandemål:
+  \cref{FilesLOOperations}, \cref{FilesLOContextMgr}
+
+  \textbf{Variationsmönster}: Generalisering
+
+  Studenter ser invariant mönster (öppna-bearbeta-stäng) över varierade
+  operationer (läsa vs skriva). Generaliseringen i remark-environment
+  gör mönstret explicit efter att studenter erfarit variationen.
+}
+```
+
+**Anti-pattern** (generalization buried in prose before examples):
+```latex
+% BAD: Principle stated before examples
+När vi arbetar med filer måste vi alltid öppna dem först,
+sedan arbeta med innehållet, och till sist stänga dem.
+
+\begin{example}[Läsa fil]
+  ...
+\end{example}
+```
+
+### Overlay Specifications with Didactic Environments
+
+**Issue**: Didactic package's semantic environments don't support Beamer's `<overlay>` syntax directly.
+
+**Problem**: Writing `\begin{definition}<1,3>[Title]` or `\begin{definition}[Title]<1,3>` causes the overlay spec to appear as text in notes.
+
+**Solution**: Wrap in `uncoverenv`:
+
+```latex
+\begin{frame}
+  \begin{uncoverenv}<1,3>
+    \begin{definition}[Primärminne]
+      Datorns arbetsminne där exekverande program lagras...
+    \end{definition}
+  \end{uncoverenv}
+
+  \begin{uncoverenv}<2,3>
+    \begin{definition}[Sekundärminne]
+      Oflyktigt minne där filer lagras...
+    \end{definition}
+  \end{uncoverenv>
+\end{frame}
+```
+
+**Note**: For side-by-side definitions, use `\textbytext*` instead of overlay specs—the spatial contrast is more effective than temporal uncovering.
+
+**Correct approach for multiple examples with overlays**:
+```latex
+\begin{frame}[fragile]
+  \begin{uncoverenv}<+->
+    \begin{example}[Write to file]
+      Skriva text till en fil:
+      \inputminted{python}{write.py}
+    \end{example}
+  \end{uncoverenv>
+
+  \begin{uncoverenv}<+->
+    \begin{example}[Read from file]
+      Läsa från fil:
+      \inputminted{python}{read.py}
+    \end{example}
+  \end{uncoverenv>
+\end{frame}
+```
+
 ### Cross-References
 
 Use `\label` and `\cref` to reference activities in notes:
