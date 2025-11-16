@@ -9,6 +9,59 @@ description: Guide proper git commit practices including commit granularity, fre
 
 This skill ensures you follow proper git commit practices to maintain clean, reviewable git history.
 
+## Automatic Activation Workflow
+
+**This skill should be automatically activated based on git repository status:**
+
+### Workflow Steps
+
+1. **Check if in git repository** - At the start of any work session or task
+   ```bash
+   git status
+   # or
+   git branch --show-current
+   ```
+
+2. **If in a git repository:**
+   - **On a feature/topic branch** → Activate this skill and follow commit-early-often practices
+   - **On master/main branch** → Create a new branch with a descriptive name, then activate this skill
+   - **Use the skill throughout the session** - Make atomic commits after each logical change
+
+3. **If NOT in a git repository:**
+   - Skip this skill (git commit practices don't apply)
+
+### Branch Creation When on master/main
+
+If you find yourself on the master or main branch:
+
+```bash
+# Create a new descriptive branch
+git checkout -b feature-name
+
+# Examples of good branch names:
+# - fix-parser-error
+# - add-export-feature
+# - refactor-authentication
+# - update-documentation
+```
+
+Then activate this skill and proceed with atomic commits.
+
+### Integration into Workflow
+
+This means:
+- **Proactively check** `git status` when starting work
+- **Automatically activate** this skill when in a git repo on a feature branch
+- **Create branches** when on master/main before making any commits
+- **Make atomic commits** throughout the work session, not just at the end
+- **Skip the skill** entirely when not in a git repository
+
+**Example:**
+```
+Task starts → Check git status → On feature branch → Activate skill →
+Work on change → Complete logical unit → Commit → Continue working
+```
+
 ## Core Principle: Atomic Commits
 
 Each commit should represent **one logical change** - a single fix, feature, or refactoring that can be understood, reviewed, and reverted independently.
