@@ -159,6 +159,7 @@ This skill should be invoked BEFORE making changes to .nw files.
 
 ### Writing Guidelines
 
+- **Use imperative/infinitive form** - Write instructions using verb-first format (e.g., "To accomplish X, do Y" rather than "You should do X"). Maintain objective, instructional language for AI consumption
 - **Avoid time-sensitive information** or use "Old Patterns" sections with details tags
 - **Maintain consistent terminology** - select one term and use exclusively
 - **Use forward slashes** in all paths (never Windows-style backslashes)
@@ -176,6 +177,78 @@ This skill should be invoked BEFORE making changes to .nw files.
 - Time-sensitive information without caveats
 - Vague activation language
 - Loading everything upfront instead of progressive disclosure
+
+## Bundled Resources
+
+Skills can include optional bundled resources organized in three directories:
+
+### scripts/
+
+Executable code (Python/Bash/etc.) for tasks requiring deterministic reliability or repeatedly rewritten operations.
+
+**When to include:**
+- Same code is rewritten repeatedly
+- Deterministic reliability needed
+- Complex operations benefit from pre-tested scripts
+
+**Examples from real skills:**
+- PDF skill: `fill_fillable_fields.py`, `extract_form_field_info.py` - PDF manipulation utilities
+- DOCX skill: `document.py`, `utilities.py` - document processing modules
+- This skill: `init_skill.py` - creates new skills from template, `quick_validate.py` - validates skill structure
+
+**Benefits:**
+- Token efficient (can execute without loading into context)
+- Deterministic behavior
+- Reusable across multiple invocations
+
+**Note:** Scripts may still need to be read by Claude for patching or environment-specific adjustments.
+
+### references/
+
+Documentation and reference material loaded into context to inform Claude's process and thinking.
+
+**When to include:**
+- Documentation Claude should reference while working
+- Information too lengthy for main SKILL.md
+- Domain-specific knowledge, schemas, or specifications
+
+**Examples from real skills:**
+- Product management: `communication.md`, `context_building.md` - detailed workflow guides
+- BigQuery: API reference documentation and query examples
+- Finance: `finance.md` - schemas, `mnda.md` - NDA template, `policies.md` - company policies
+
+**Benefits:**
+- Keeps SKILL.md lean and focused
+- Loaded only when Claude determines it's needed
+- Supports progressive disclosure
+
+**Best practice:** If files are large (>10k words), include grep search patterns in SKILL.md to help Claude find specific sections.
+
+### assets/
+
+Files not loaded into context, but used within the output Claude produces.
+
+**When to include:**
+- Files needed in final output
+- Templates to be copied or modified
+- Boilerplate code or starter projects
+
+**Examples from real skills:**
+- Brand guidelines: `logo.png`, `slides_template.pptx` - brand assets
+- Frontend builder: `hello-world/` - HTML/React boilerplate directory
+- Typography: `font.ttf`, `font-family.woff2` - font files
+
+**Common asset types:**
+- Templates: .pptx, .docx, boilerplate directories
+- Images: .png, .jpg, .svg
+- Fonts: .ttf, .otf, .woff, .woff2
+- Boilerplate code: project directories, starter files
+- Data files: .csv, .json, .xml, .yaml
+
+**Benefits:**
+- Separates output resources from documentation
+- Enables Claude to use files without loading into context
+- Provides consistent starting points for generated content
 
 ## Skill Quality Checklist
 
@@ -218,34 +291,144 @@ Before considering a skill complete, verify:
 
 ### Creating a New Skill
 
-1. **Identify the need**: What problem does this skill solve?
-2. **Create directory**: `mkdir -p ~/.claude/skills/skill-name`
-3. **Draft SKILL.md** with frontmatter:
-   - Write clear description with triggers
-   - Focus on what Claude doesn't already know
-   - Include examples and workflows
-   - Keep under 500 lines
-4. **Test the skill**: Create test scenarios and verify invocation
-5. **Refine based on testing**: Adjust triggers and content
-6. **Commit to repository**:
-   ```bash
-   cd ~/.claude/skills
-   git add skill-name/
-   git commit -m "Add [skill-name] skill: [brief description]"
-   ```
+Follow these steps in order. Skip a step only if there's a clear reason it's not applicable.
+
+#### Step 1: Understanding with Concrete Examples
+
+Clearly understand concrete examples of how the skill will be used. Skip this step only when usage patterns are already clearly understood.
+
+Ask questions to gather specific use cases:
+- "What functionality should this skill support?"
+- "Can you give examples of how this skill would be used?"
+- "What would a user say that should trigger this skill?"
+
+Example questions for an image-editor skill:
+- "What functionality should the image-editor skill support? Editing, rotating, anything else?"
+- "I can imagine users asking for things like 'Remove the red-eye from this image' or 'Rotate this image'. Are there other ways you imagine this skill being used?"
+
+**Important:** Avoid overwhelming users with too many questions. Start with the most important and follow up as needed.
+
+Conclude when there's a clear sense of the functionality the skill should support.
+
+#### Step 2: Plan Reusable Resources
+
+Analyze each concrete example to identify what bundled resources would be helpful:
+
+**For each example, consider:**
+1. How to execute it from scratch
+2. What scripts, references, and assets would make repeated execution easier
+
+**Example analyses:**
+
+*PDF rotation:* "Help me rotate this PDF"
+- Rotating PDFs requires rewriting the same code each time
+- → Include `scripts/rotate_pdf.py`
+
+*Frontend webapp:* "Build me a todo app" or "Build me a dashboard"
+- Requires same HTML/React boilerplate each time
+- → Include `assets/hello-world/` template directory
+
+*BigQuery queries:* "How many users logged in today?"
+- Requires re-discovering table schemas each time
+- → Include `references/schema.md` with table documentation
+
+Create a list of reusable resources to include: scripts/, references/, assets/ files.
+
+#### Step 3: Initialize the Skill
+
+Create the skill directory structure using the initialization script:
+
+```bash
+~/.claude/skills/skill-management/scripts/init_skill.py <skill-name> --path ~/.claude/skills
+```
+
+The script will:
+- Create the skill directory with proper structure
+- Generate SKILL.md template with frontmatter and TODO placeholders
+- Create example files in scripts/, references/, and assets/ directories
+
+After initialization, customize or delete the generated example files as needed.
+
+#### Step 4: Implement Bundled Resources
+
+Start by implementing the reusable resources identified in Step 2:
+- Add scripts to `scripts/`
+- Add reference documentation to `references/`
+- Add templates/assets to `assets/`
+
+**Note:** This may require user input (e.g., brand assets, templates, domain documentation).
+
+Delete any example files and directories not needed for the skill.
+
+#### Step 5: Complete SKILL.md
+
+Write SKILL.md content following the writing guidelines (imperative form, concise, focused).
+
+Answer these questions in SKILL.md:
+1. What is the purpose of the skill? (a few sentences)
+2. When should the skill be used? (specific triggers)
+3. How should Claude use the skill in practice? (reference bundled resources)
+
+**Remember:**
+- Keep under 500 lines
+- Use progressive disclosure (reference files instead of embedding everything)
+- Include concrete examples
+- Focus on information Claude doesn't already know
+
+#### Step 6: Validate the Skill
+
+Run the validation script to check for common issues:
+
+```bash
+~/.claude/skills/skill-management/scripts/quick_validate.py ~/.claude/skills/<skill-name>
+```
+
+Fix any validation errors reported.
+
+#### Step 7: Test the Skill
+
+Create test scenarios and verify the skill works:
+1. Ask questions that should trigger it
+2. Check if Claude invokes the skill
+3. Verify the skill provides value
+4. Adjust triggers if not invoked when expected
+
+#### Step 8: Commit to Repository
+
+```bash
+cd ~/.claude/skills
+git add skill-name/
+git commit -m "Add [skill-name] skill: [brief description]
+
+Detailed explanation of what the skill does and why it's needed.
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+```
 
 ### Updating an Existing Skill
 
 1. **Read current skill**: Review SKILL.md and related files
 2. **Identify improvements**: Based on usage patterns or new requirements
 3. **Make focused changes**: Edit specific sections, maintain structure
-4. **Verify quality checklist**: Ensure still meets all criteria
-5. **Test changes**: Verify skill still triggers correctly
-6. **Commit to repository**:
+4. **Validate changes**: Run validation script to catch any issues
+   ```bash
+   ~/.claude/skills/skill-management/scripts/quick_validate.py ~/.claude/skills/<skill-name>
+   ```
+5. **Verify quality checklist**: Ensure still meets all criteria
+6. **Test changes**: Verify skill still triggers correctly
+7. **Commit to repository**:
    ```bash
    cd ~/.claude/skills
    git add [skill-directory]/
-   git commit -m "Improve [skill-name]: [specific changes made]"
+   git commit -m "Improve [skill-name]: [specific changes made]
+
+   Detailed explanation of changes and rationale.
+
+   🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+   Co-Authored-By: Claude <noreply@anthropic.com>"
    ```
 
 ## Git Repository Management
