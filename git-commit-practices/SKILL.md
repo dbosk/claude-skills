@@ -382,6 +382,78 @@ Before committing, verify:
 - [ ] No unrelated changes are included (nothing extra)
 - [ ] The code works/builds at this commit (if applicable)
 - [ ] The commit can be understood independently
+- [ ] **No generated files** - If literate programming project, verify no .py/.tex files with .nw sources are staged
+
+## Special Case: Literate Programming Projects
+
+**CRITICAL WARNING**: In literate programming projects (using noweb, .nw files), NEVER commit generated files.
+
+### Pre-Commit Validation for Literate Projects
+
+Before committing in a project with .nw files:
+
+```bash
+# Check what's staged
+git diff --staged --name-only
+
+# Look for generated files that shouldn't be committed
+# A file is generated if there's a corresponding .nw file
+```
+
+### Common Mistake: Committing Generated Files
+
+**BAD** - Committing generated files:
+```bash
+✗ git add src/module.py    # Generated from module.nw - DO NOT COMMIT
+✗ git add src/module.tex   # Generated from module.nw - DO NOT COMMIT
+✗ git commit -m "Update module"
+```
+
+**GOOD** - Only committing source:
+```bash
+✓ git add src/module.nw    # Source file - OK to commit
+✓ git commit -m "Update module to add new feature"
+```
+
+### Identifying Generated Files
+
+A .py or .tex file is **generated** (DO NOT COMMIT) if:
+- There's a corresponding .nw file with same base name
+- It's listed in a Makefile as a target from notangle/noweave
+- The project uses literate programming
+
+A .py file is **source** (OK to commit) if:
+- No .nw file exists with same name
+- It's a hand-written file (like some `__init__.py` files)
+- It's explicitly marked as an exception in .gitignore
+
+### Fixing Accidentally Committed Generated Files
+
+If you discover generated files in git:
+
+```bash
+# Untrack but keep in working directory
+git rm --cached path/to/generated.py
+git rm --cached path/to/generated.tex
+
+# Update .gitignore to prevent future accidents
+# Then commit the .gitignore changes
+git add .gitignore
+git commit -m "Remove generated files from version control"
+
+# Regenerate fresh files from .nw sources
+make
+```
+
+### Integration with Literate Programming Workflow
+
+In literate programming projects:
+
+1. **Edit .nw files** - Make changes to literate source
+2. **Regenerate code** - Run `make` or `notangle` to generate .py/.tex
+3. **Test the changes** - Verify generated code works
+4. **Commit ONLY .nw** - Never commit the generated files
+5. **Let .gitignore work** - Ensure .gitignore covers all generated files
 
 ## Recovery from Large Commits
 

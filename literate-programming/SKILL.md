@@ -264,7 +264,8 @@ if n <= 1:
 6. **Consider your audience** - Write for someone learning the code, not just maintaining it
 7. **Use cross-references** - The `-x` and `-index` flags help readers navigate
 8. **Keep tangled code in gitignore** - The .nw file is the source of truth
-9. **Test your tangles** - Ensure extracted code actually compiles/runs
+9. **NEVER commit generated files** - .py and .tex files generated from .nw sources are build artifacts and must NEVER be committed to git. Only commit the .nw source files.
+10. **Test your tangles** - Ensure extracted code actually compiles/runs
 
 ## Language-Specific Notes
 
@@ -351,8 +352,71 @@ Literate programming is especially valuable for:
 
 ## Integration with Development Tools
 
-- **Version control**: Only commit .nw files, regenerate code with make
+- **Version control**:
+  - **CRITICAL**: Only commit .nw files to git. Generated .py and .tex files are build artifacts.
+  - Add generated files to .gitignore immediately when setting up a literate project
+  - If generated files are already tracked, use `git rm --cached` to untrack them
+  - Regenerate code with make after checkout/pull
 - **IDEs**: Configure to run notangle on save, or use file watchers
 - **CI/CD**: Add tangle step before build/test
 - **Documentation**: Weave to HTML or PDF for readable docs
 - **Code review**: Review .nw files for both code and explanation quality
+
+## Git Workflow for Literate Programming Projects
+
+**CRITICAL RULE**: Generated .py and .tex files from .nw sources must NEVER be committed to version control.
+
+### Setting Up .gitignore
+
+When starting a literate programming project:
+
+1. Create .gitignore patterns for all generated files
+2. Pattern examples:
+   ```
+   # Generated from literate programming (.nw files)
+   src/**/*.py
+   src/**/*.tex
+
+   # Exceptions for hand-written files (if any)
+   !src/specific_file.py
+   ```
+
+### Removing Accidentally Tracked Files
+
+If generated files are already in git:
+
+```bash
+# Untrack but keep in working directory
+git rm --cached path/to/generated.py
+git rm --cached path/to/generated.tex
+
+# Add to .gitignore
+echo "path/to/generated.py" >> .gitignore
+echo "path/to/generated.tex" >> .gitignore
+
+# Regenerate fresh files from .nw source
+make
+
+# Commit the .gitignore changes
+git add .gitignore
+git commit -m "Remove generated files from version control"
+```
+
+### Pre-commit Checks
+
+Before committing, verify:
+1. No .py files with corresponding .nw sources are staged
+2. No .tex files with corresponding .nw sources are staged
+3. Only .nw files and other hand-written sources are being committed
+
+### Identifying Generated vs Hand-Written Files
+
+A .py or .tex file is **generated** (should NOT be committed) if:
+- A corresponding .nw file exists with the same base name
+- The file is listed as a target in a Makefile that uses notangle/noweave
+- The file contains patterns typical of noweb output
+
+A .py file is **hand-written** (OK to commit) if:
+- No .nw source file exists
+- It's explicitly marked as an exception in .gitignore
+- It's a special file like `__init__.py` that's not generated from .nw
