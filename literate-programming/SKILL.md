@@ -331,6 +331,209 @@ assert sort([3,1,2]) == [1,2,3]
 @
 ```
 
+## Multi-Directory Project Organization
+
+For large literate programming projects spanning multiple modules, use hierarchical organization patterns. This section provides an overview; see `references/multi-directory-projects.md` for detailed examples.
+
+### When to Use Multi-Directory Organization
+
+**Use three-directory separation when:**
+- Project has 5+ .nw files across multiple modules
+- Documentation needs different organization than code structure
+- Tests should be cleanly separated for CI/CD
+- Multiple developers need clear separation of concerns
+
+**Use flat structure when:**
+- Single-file or small projects (1-3 .nw files)
+- Documentation and code naturally align
+- Simplicity is more important
+
+### Repository Structure Pattern
+
+Separate literate sources, documentation builds, and tests:
+
+```
+project/
+├── src/           # .nw source files (mirror package structure)
+│   └── package/
+│       ├── Makefile
+│       ├── module.nw → module.py + module.tex
+│       └── subpackage/
+│           └── module2.nw
+├── doc/           # Documentation build directory
+│   ├── Makefile
+│   ├── main.tex   # Master document (includes .tex from src)
+│   └── main.pdf   # Generated documentation
+├── tests/         # Extracted test files
+│   ├── Makefile
+│   └── test_*.py  # Generated from test chunks in .nw
+└── makefiles/     # Shared build infrastructure
+    ├── noweb.mk   # Tangle/weave rules
+    └── subdir.mk  # Recursive build rules
+```
+
+**Key insight**: .nw files in `/src` generate:
+- **Code** tangled back into `/src`
+- **Documentation** woven to .tex in `/src`, then included in `/doc`
+- **Tests** extracted to `/tests`
+
+### Hierarchical Build Systems
+
+Use recursive Makefiles with shared rules:
+
+**Each directory Makefile:**
+```makefile
+# Declare modules to build
+MODULES+= module.py
+
+# Declare subdirectories
+SUBDIR+= subpackage
+
+# Include shared rules (adjust path depth)
+INCLUDE_MAKEFILES=../../makefiles
+include ${INCLUDE_MAKEFILES}/noweb.mk
+include ${INCLUDE_MAKEFILES}/subdir.mk
+```
+
+**The noweb.mk provides:**
+- Suffix rules: `.nw.tex` (weaving), `.nw.py` (tangling)
+- Language-specific post-processing (e.g., Black for Python)
+- Common flags and customization points
+
+**The subdir.mk provides:**
+- Recursive traversal to subdirectories
+- Propagation of make goals (all, clean, etc.)
+
+**Python __init__.py pattern:**
+```makefile
+.INTERMEDIATE: init.py
+__init__.py: init.py
+    ${MV} $< $@
+```
+
+### Documentation Composition
+
+Create a master document in `/doc` that includes .tex from `/src`:
+
+**Master document** (`doc/main.tex`):
+```latex
+\documentclass{memoir}
+\part{Core Modules}
+\input{../src/package/module.tex}
+
+\part{Subpackages}
+\input{../src/package/subpackage/module2.tex}
+\end{document}
+```
+
+**Documentation Makefile** (`doc/Makefile`):
+```makefile
+main.pdf: ../src/package/module.tex
+main.pdf: ../src/package/subpackage/module2.tex
+
+# Pattern rule: build .tex files in src if they don't exist
+../src/%::
+    ${MAKE} -C $(dir $@) $(notdir $@)
+```
+
+This allows reorganizing documentation pedagogically without changing code structure.
+
+### Test Organization
+
+Define tests in .nw files, extract to `/tests`:
+
+**In your .nw file:**
+```noweb
+<<test modulename.py>>=
+import pytest
+from package.modulename import feature
+
+def test_feature():
+    assert feature() == expected
+@
+```
+
+**Note**: Use space in chunk name: `<<test modulename.py>>`, not `<<test_modulename.py>>`.
+
+**Tests Makefile** (`tests/Makefile`):
+```makefile
+# Auto-discover test chunks in all .nw files
+define find_tests
+find ../src -name "*.nw" | \
+    xargs grep "<<test [^.-]*\.py>>" | \
+    sed -En "s/^(.*):.*<<test ([^.-]*).py>>.*/test_\2.py:\1/p"
+endef
+
+# Extract each test file from its source .nw
+test_modulename.py: ../src/package/modulename.nw
+    notangle -R"test modulename.py" $< > $@
+
+# Run tests
+test: all
+    pytest
+```
+
+Benefits: tests stay with implementation documentation, but cleanly separated for pytest.
+
+### Navigating Multi-Directory Projects
+
+**Finding source code:**
+```bash
+grep -r "function_name" src/**/*.nw
+```
+
+**Reading documentation:**
+```bash
+cd doc && make all && open main.pdf
+```
+
+**Running tests:**
+```bash
+cd tests && make test
+```
+
+**Tracing bugs in generated code:**
+1. Find corresponding .nw: `module.py` → `module.nw`
+2. Fix the .nw source (NOT generated file)
+3. Regenerate: `make` in the directory
+
+**Understanding what gets built:**
+```bash
+cat src/package/Makefile  # Check MODULES+= lines
+make -n all               # Dry-run shows commands
+```
+
+### Multi-Output from Single .nw
+
+One .nw file can generate multiple artifacts:
+
+```makefile
+# Regular outputs
+MODULES+= module.py
+
+# Additional outputs from same .nw
+EXTRAS+= script.sh
+EXTRAS+= config.yaml
+
+${EXTRAS}: module.nw
+    notangle -R$(notdir $@) $< > $@
+
+all: ${MODULES} ${EXTRAS}
+```
+
+### Self-Documenting Build Systems
+
+The build infrastructure itself can be literate:
+
+```
+makefiles/
+├── noweb.mk.nw → noweb.mk + noweb.tex
+├── subdir.mk.nw → subdir.mk + subdir.tex
+└── makefiles.pdf  # Documentation of build system
+```
+
+See `references/multi-directory-projects.md` for complete examples including the nytid repository.
+
 ## When to Use Literate Programming
 
 Literate programming is especially valuable for:
