@@ -473,6 +473,16 @@ test: all
     pytest
 ```
 
+**Important for Poetry-managed projects:** If your project uses Poetry for dependency management, test dependencies (pytest, pytest-cov, etc.) are installed in Poetry's virtual environment. You must run tests with `poetry run pytest`:
+
+```makefile
+# Run tests with poetry
+test: all
+    poetry run pytest -v --cov=packagename --cov-report=term-missing
+```
+
+Without `poetry run`, pytest won't be found or will use a system-wide installation that lacks your test dependencies.
+
 Benefits: tests stay with implementation documentation, but cleanly separated for pytest.
 
 ### Navigating Multi-Directory Projects
