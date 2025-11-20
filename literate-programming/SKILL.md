@@ -101,7 +101,12 @@ When asked to review, improve, or analyze the literate quality of a .nw file, ev
    - Does documentation explain "why" not just "what"?
    - Are design decisions and trade-offs explained?
    - Is technical context provided for non-obvious choices?
-5. **Proper noweb syntax**:
+5. **Test organization** (if tests are present):
+   - Do tests appear AFTER the functionality they verify?
+   - Are tests distributed throughout the file, not all grouped at the beginning?
+   - Is there pedagogical framing introducing each test section?
+   - Are tests within ~10 lines of their implementation?
+6. **Proper noweb syntax**:
    - Are code references using `[[code]]` notation?
    - Are chunk definitions properly formatted?
    - Would `noroots` find any unused chunks?
@@ -158,9 +163,184 @@ When writing literate programs:
 4. **Decompose by concept, not syntax** - Break code into chunks based on logical units of thought
 5. **Explain the "why"** - Don't just describe what the code does (that's visible), explain why you chose this approach
 6. **Keep chunks focused** - Each chunk should represent a single, coherent idea
-7. **Use the web structure** - Don't be afraid to define chunks out of order or 
-   to reuse chunks. However, use helper functions, don't replace those with 
+7. **Use the web structure** - Don't be afraid to define chunks out of order or
+   to reuse chunks. However, use helper functions, don't replace those with
    chunks. We still want to do structured programming.
+
+## Organizing Tests in Literate Programs
+
+When embedding tests in literate programs (common for modules using pytest, unittest, etc.), follow these principles to maintain pedagogical clarity:
+
+### Test Placement: After Implementation, Not Before
+
+**CRITICAL PRINCIPLE:** Tests should appear AFTER the functionality they verify, not before.
+
+**Pedagogical flow:**
+1. **Explain** the problem and approach
+2. **Implement** the solution
+3. **Verify** it works with tests
+
+This ordering allows readers to:
+- Understand what's being built before seeing verification
+- See tests as proof/validation rather than mysterious code
+- Follow a natural learning progression
+
+### Pattern: Distributed Test Organization
+
+**DO NOT** group all tests at the beginning of the file. Instead, distribute tests throughout the document, placing each test section immediately after its corresponding implementation.
+
+**Example structure:**
+```noweb
+\section{Feature Implementation}
+
+We need to implement feature X...
+
+<<implementation>>=
+def feature_x():
+    # implementation code
+@
+
+Now let's verify this works correctly...
+
+<<test feature>>=
+def test_feature_x():
+    assert feature_x() == expected
+@
+```
+
+### Main Test File Structure Pattern
+
+Define the main test file structure early (imports, test file skeleton), then reference test chunks defined later:
+
+```noweb
+\section{Testing Overview}
+
+Tests are distributed throughout this document, appearing after
+each implementation section.
+
+<<test module.py>>=
+"""Tests for module functionality"""
+import pytest
+from module import feature_a, feature_b
+
+<<test feature a>>
+<<test feature b>>
+@
+
+\section{Feature A Implementation}
+<<implementation of feature a>>=
+...
+@
+
+\subsection{Verifying Feature A}
+<<test feature a>>=
+class TestFeatureA:
+    def test_basic_case(self):
+        ...
+@
+```
+
+### Anti-Pattern: Tests Before Implementation
+
+**BAD** (Tests appear 300 lines before implementation):
+```noweb
+\section{Testing}
+<<test module.py>>=
+import module
+
+<<test equality>>=    ← Reader doesn't know what this tests yet!
+def test_users_equal():
+    ...
+@
+
+[300 lines of other content]
+
+\section{Make Classes Comparable}  ← Implementation finally appears!
+<<implementation>>=
+def make_comparable(cls):
+    ...
+@
+```
+
+**Reader confusion:**
+- "What does `test_users_equal` test? I haven't seen the code yet!"
+- Must scroll back hundreds of lines to understand tests
+- Tests feel unmotivated and disconnected
+
+**GOOD** (Tests appear after implementation):
+```noweb
+\section{Make Classes Comparable}
+<<implementation>>=
+def make_comparable(cls):
+    ...
+@
+
+\subsection{Verifying Comparability}
+
+Now let's verify the decorator works correctly...
+
+<<test equality>>=
+def test_users_equal():
+    ...
+@
+```
+
+**Reader clarity:**
+- Sees implementation first
+- Understands what's being tested
+- Tests serve as proof/verification
+- Natural pedagogical flow
+
+### Framing Test Sections
+
+Use pedagogical framing to introduce test sections:
+
+**Good framing language:**
+- "Now let's verify this works correctly..."
+- "Let's prove this implementation handles edge cases..."
+- "We can demonstrate correctness with these tests..."
+- "To ensure reliability, we test..."
+
+**Avoid:**
+- Starting tests with no context
+- Separating tests completely from what they test
+- Grouping unrelated tests together
+
+### Test Organization Roadmap
+
+For files with many test sections, provide a roadmap early:
+
+```latex
+\subsection{Test Organization}
+
+Tests are distributed throughout this file:
+\begin{description}
+\item[Feature A tests] Appear after implementation (Section~\ref{sec:featureA})
+\item[Feature B tests] Appear after implementation (Section~\ref{sec:featureB})
+\item[Integration tests] Appear after all features (Section~\ref{sec:integration})
+\end{description}
+```
+
+### When to Use This Pattern
+
+**Use distributed test placement when:**
+- Tests verify specific implementations in the same file
+- Pedagogical clarity is important
+- Tests serve as proof/examples of correctness
+- File is meant to be read by humans (documentation-oriented)
+
+**Consider grouped tests when:**
+- Tests are integration tests spanning multiple modules
+- Test file is separate from implementation (.nw file just for tests)
+- Tests don't directly correspond to specific code sections
+
+### Benefits of This Approach
+
+1. **Pedagogical clarity**: Readers learn before they see verification
+2. **Proximity**: Tests next to implementation (easier maintenance)
+3. **Motivation**: Tests feel natural, not arbitrary
+4. **Flow**: Natural progression from problem → solution → proof
+5. **Findability**: Easy to locate tests for specific functionality
 
 ## Noweb Commands
 
