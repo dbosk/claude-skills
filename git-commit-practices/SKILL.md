@@ -155,6 +155,56 @@ Good (what you should have done):
 ✓ Commit 3: "Remove unused imports and dead code"
 ```
 
+### What Constitutes "One Logical Change"?
+
+A single logical change is one **conceptual** modification that can be described
+with a single purpose statement, even if it touches multiple files or locations.
+
+**Example: Replacing magic numbers with constants**
+
+Bad (too granular - split what should be one commit):
+```
+✗ Commit 1: "Define threshold constants at module level"
+✗ Commit 2: "Use constants for command-line argument defaults"
+✗ Commit 3: "Use constants for function parameter defaults"
+✗ Commit 4: "Use constants in documentation"
+```
+
+Good (single logical change):
+```
+✓ One commit: "Replace hardcoded threshold values with named constants"
+  - Define DEFAULT_THRESHOLD_FIXED and DEFAULT_THRESHOLD_PERCENT
+  - Update argument parser defaults to use constants
+  - Update function parameter defaults to use constants
+  - Update documentation to reference constants
+```
+
+**Why this is one commit:**
+- Single conceptual change: "eliminate magic numbers"
+- Changes are not independently useful (defining constants without using them
+  accomplishes nothing)
+- Would never want to revert just part of this change
+- Reviewer understands the complete picture in one diff
+
+**Contrast with truly independent changes:**
+```
+✓ Commit 1: "Add --threshold-fixed option"
+  (Independent: adds new functionality)
+
+✓ Commit 2: "Add --threshold-percent option"
+  (Independent: adds different functionality)
+
+✓ Commit 3: "Replace hardcoded values with constants"
+  (Independent: refactoring that doesn't add features)
+```
+
+**Rule of thumb:** If you can't describe the change without using "and" to link
+unrelated concepts, it should be multiple commits. But if "and" connects steps
+of the same change, it's one commit.
+
+- "Add user model **and** update constants" → Two commits
+- "Define constants **and** use them everywhere" → One commit
+
 ## Workflow for Multiple Changes
 
 ### Step-by-Step Process
