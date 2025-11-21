@@ -166,6 +166,11 @@ When writing literate programs:
 7. **Use the web structure** - Don't be afraid to define chunks out of order or
    to reuse chunks. However, use helper functions, don't replace those with
    chunks. We still want to do structured programming.
+8. **Define constants for magic numbers** - Never use hardcoded numeric or
+   string values scattered throughout code. Define named constants at the module
+   level and reference them. This makes code self-documenting and ensures values
+   stay synchronized. For example, define `DEFAULT_THRESHOLD = 5` once and use
+   it everywhere, rather than repeating `5` in multiple places.
 
 ## Organizing Tests in Literate Programs
 
