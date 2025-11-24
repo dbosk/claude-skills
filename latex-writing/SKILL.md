@@ -110,6 +110,93 @@ When reviewing or writing LaTeX, look for these patterns that indicate `descript
 \end{description}
 ```
 
+## Literate Programming (.nw files)
+
+**CRITICAL**: When writing LaTeX in literate programming files (.nw), use noweb's `[[code]]` notation for quoting code, not `\texttt` with manual escaping.
+
+### Use `[[code]]` Notation, Not `\texttt{...\_...}`
+
+The noweb literate programming system provides special notation for code references that automatically handles special characters like underscores.
+
+**Anti-pattern**: Manual underscore escaping with `\texttt`
+```latex
+% INCORRECT - in .nw files
+The \texttt{get\_submission()} method calls \texttt{\_\_getattribute\_\_}.
+We store \texttt{\_original\_get\_submission} in the closure.
+The \texttt{NOREFRESH\_GRADES} constant defines final grades.
+```
+
+**Correct**: Use `[[code]]` notation
+```latex
+% CORRECT - in .nw files
+The [[get_submission()]] method calls [[__getattribute__]].
+We store [[_original_get_submission]] in the closure.
+The [[NOREFRESH_GRADES]] constant defines final grades.
+```
+
+**Why this matters**:
+- Automatically escapes special characters (underscores, backslashes, etc.)
+- Makes source code more readable (no manual escaping)
+- Follows literate programming conventions
+- Prevents LaTeX errors from forgotten escapes
+- Clearly distinguishes code from prose
+
+### When to Use `[[code]]` vs `\texttt`
+
+**Use `[[code]]`** in .nw files for:
+- Function and method names: `[[get_submissions()]]`, `[[__init__]]`
+- Variable names: `[[_includes]]`, `[[user_id]]`
+- Class names: `[[LazySubmission]]`, `[[Assignment]]`
+- Constants: `[[NOREFRESH_GRADES]]`, `[[MAX_RETRIES]]`
+- Module names: `[[pickle]]`, `[[Canvas]]`
+- Any identifier with underscores or special characters
+
+**Use `\texttt`** in .nw files for:
+- Short non-code technical terms without special characters
+- File extensions: `\texttt{.py}`, `\texttt{.nw}`
+- Simple commands without underscores
+
+**In regular .tex files** (not literate programs):
+- Use `\texttt` with proper escaping as `[[...]]` is not available
+- Or use packages like `minted` or `listings` for code
+
+### Recognition Pattern for Review
+
+When reviewing .nw files, look for these anti-patterns:
+- `\texttt{..._...}` → Should use `[[...]]`
+- `\texttt{...__...}` → Should use `[[...]]`
+- `\item[SOME\_CONSTANT behavior]` → Should use better label + `[[SOME_CONSTANT]]` in text
+
+### Examples from Real Code
+
+**Documenting methods:**
+```latex
+% INCORRECT
+The \texttt{\_\_getstate\_\_} method excludes \texttt{\_original\_get\_submission}.
+
+% CORRECT
+The [[__getstate__]] method excludes [[_original_get_submission]].
+```
+
+**Documenting constants:**
+```latex
+% INCORRECT
+\item[NOREFRESH\_GRADES behavior] Submissions with final grades...
+
+% CORRECT
+\item[Final grade policy] Submissions with final grades (A, P, P+, complete)
+  are never refreshed, maintaining the [[NOREFRESH_GRADES]] policy.
+```
+
+**Documenting attributes:**
+```latex
+% INCORRECT
+The decorator adds a \texttt{\_\_cache} dictionary and \texttt{\_\_all\_fetched} flag.
+
+% CORRECT
+The decorator adds a [[__cache]] dictionary and [[__all_fetched]] flag.
+```
+
 ## Additional Best Practices
 
 ### Cross-References
@@ -253,11 +340,12 @@ The results in \cref{tab:benchmark} demonstrate...
 
 When writing or editing LaTeX content:
 
-1. **Identify content structure**: Is this a list of uniform items or term-definition pairs?
-2. **Choose semantic environment**: Match the environment to the content meaning
-3. **Use proper commands**: Leverage LaTeX's semantic commands rather than manual formatting
-4. **Verify cross-references**: Ensure labels and references are descriptive and correct
-5. **Check for anti-patterns**: Review for `\textbf{Label:}` in itemize environments
+1. **Check file type**: Are you in a .nw literate programming file? If yes, use `[[code]]` notation, not `\texttt{...\_...}`
+2. **Identify content structure**: Is this a list of uniform items or term-definition pairs?
+3. **Choose semantic environment**: Match the environment to the content meaning
+4. **Use proper commands**: Leverage LaTeX's semantic commands rather than manual formatting
+5. **Verify cross-references**: Ensure labels and references are descriptive and correct
+6. **Check for anti-patterns**: Review for `\textbf{Label:}` in itemize, `\texttt{..._...}` in .nw files
 
 ## When Reviewing LaTeX Code
 
@@ -269,6 +357,11 @@ Check for these common issues:
 - [ ] Images without `figure` environment
 - [ ] Code without proper formatting (listings/verbatim)
 - [ ] Windows-style backslashes in paths
+
+**Additional checks for .nw literate programming files:**
+- [ ] `\texttt{..._...}` or `\texttt{...__...}` → Should use `[[...]]` notation
+- [ ] Description labels with underscores `\item[FOO\_BAR behavior]` → Use better label + `[[FOO_BAR]]` in text
+- [ ] Any manually escaped underscores in code references → Use `[[...]]` instead
 
 ## Beamer: Presentation vs Article Mode
 
