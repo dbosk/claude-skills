@@ -451,6 +451,7 @@ if n <= 1:
 8. **Keep tangled code in gitignore** - The .nw file is the source of truth
 9. **NEVER commit generated files** - .py and .tex files generated from .nw sources are build artifacts and must NEVER be committed to git. Only commit the .nw source files.
 10. **Test your tangles** - Ensure extracted code actually compiles/runs
+11. **Keep docstrings independent from LaTeX** - Docstrings are for code users (rendered with pydoc/help()), not maintainers. Never include LaTeX commands (like `\cref`, `\section`, etc.) in docstrings. The literate source documentation is for maintainers who read the compiled PDF; docstrings are runtime documentation.
 
 ## Language-Specific Notes
 
@@ -468,6 +469,44 @@ if n <= 1:
   - Long expressions: use parentheses and break at logical points
 - Consider using formatters on output: `notangle -Rfile.py file.nw | black - > file.py`
 - Note: Black may reformat to different line lengths, but keep source readable
+
+**Docstring Anti-Pattern**: Never include LaTeX commands in Python docstrings
+
+**Why**: Docstrings serve two different audiences:
+- **Literate source (LaTeX)**: For maintainers who read the compiled PDF
+- **Python docstrings**: For code users who run `help()` or `pydoc`
+
+**Bad** - LaTeX in docstring causes Python syntax warnings:
+```python
+def is_submission_ungraded(submission):
+    """
+    Returns True if submission is ungraded.
+
+    See \cref{SubmissionsFiltering} for details.  # ← WARNING: invalid escape
+    """
+    return submission.submitted_at and ...
+```
+
+**Good** - LaTeX reference in literate source, plain docstring:
+```noweb
+\subsection{Helper function}
+
+This function implements the filtering strategy described above
+(\cref{SubmissionsFiltering}), encapsulating the logic...
+
+<<functions>>=
+def is_submission_ungraded(submission):
+    """
+    Returns True if submission is ungraded.
+
+    A submission is ungraded if submitted but not graded,
+    or if grade doesn't match current submission.
+    """
+    return submission.submitted_at and ...
+@
+```
+
+The cross-reference `\cref{SubmissionsFiltering}` belongs in the LaTeX documentation (for maintainers), not in the docstring (for users)
 
 ### Haskell
 - Use `-L` flag (GHC understands line pragmas)
