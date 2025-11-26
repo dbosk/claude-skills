@@ -414,6 +414,46 @@ git branch --show-current
 - Use hyphens: `add-user-feature` not `add_user_feature`
 - Be specific: `fix-timestamp-parsing` not `fixes`
 
+### Checking Branch Suitability
+
+**Before committing to an existing branch, verify it's suitable for the current work:**
+
+When you're about to commit changes:
+1. Check the current branch name
+2. Assess if the work matches the branch purpose
+3. If uncertain or mismatched, ask the user
+
+**When to ask about branching:**
+- Current branch name doesn't match the work being done
+  - Example: On `fix/calendar-stdlib-shadowing` but working on a different issue
+- Work is independent and could be a separate PR
+  - Example: Removing duplicate code (separate concern from renaming modules)
+- Preferring to branch from master/main for independence
+  - Allows PRs to be merged independently without dependencies
+
+**Example dialogue:**
+```
+Assistant: "I notice we're on branch 'fix/calendar-stdlib-shadowing' which is for
+renaming the calendar module. The current fix (removing duplicate format_canvas_time)
+is a separate concern. Should I:"
+
+Options presented to user:
+1. "Create new branch from master" - For independent PR, cleaner separation
+2. "Create new branch from current" - If this fix depends on the rename
+3. "Use current branch" - Group related cleanup together in one PR
+```
+
+**Benefits of proper branching:**
+- **Independent PRs** - Each fix can be reviewed and merged separately
+- **Clearer history** - Branch names accurately describe their changes
+- **Easier rollback** - Can revert one fix without affecting others
+- **Better collaboration** - Multiple people can work on different branches
+
+**Branching strategy preference:**
+- **Branch from master/main when possible** - Makes PRs independent
+- **Branch from feature branch only when** - The new work depends on uncommitted changes
+- **Use current branch only when** - Changes are closely related and belong together
+
 ### Exception: Repository-Specific Workflows
 
 Some repositories may allow direct commits to main (e.g., personal notes, documentation repos). In these cases:
