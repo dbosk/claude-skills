@@ -596,6 +596,52 @@ __init__.py: init.py
     ${MV} $< $@
 ```
 
+**LaTeX-safe chunk naming pattern:**
+
+When chunk names contain underscores (common in Python), LaTeX will interpret them
+as math subscripts outside of code blocks, causing compilation errors. The solution
+is to use hyphens in chunk names and rename the tangled output.
+
+```makefile
+# Pattern: module_name.nw contains <<module-name.py>>
+# Stage 1: Tangle to hyphenated name (LaTeX-safe)
+module-name.py: module_name.nw
+    ${NOTANGLE.py}
+
+# Stage 2: Rename to underscore (Python-compatible)
+.INTERMEDIATE: module-name.py
+module_name.py: module-name.py
+    ${MV} $< $@
+```
+
+**Example from canvaslms project:**
+```makefile
+# canvas_calendar.nw contains <<canvas-calendar.py>>
+.INTERMEDIATE: canvas-calendar.py
+canvas-calendar.py: canvas_calendar.nw
+    ${NOTANGLE.py}
+
+canvas_calendar.py: canvas-calendar.py
+    mv $< $@
+```
+
+**Why this works:**
+- `.nw` filename can have underscores (filenames aren't processed by LaTeX)
+- Chunk name `<<canvas-calendar.py>>` uses hyphens (LaTeX-safe in documentation)
+- Tangling produces `canvas-calendar.py` (matches chunk name exactly)
+- Makefile renames to `canvas_calendar.py` (Python's import-compatible name)
+- `.INTERMEDIATE` marks `canvas-calendar.py` for automatic cleanup
+
+**When to use this pattern:**
+- Python modules with underscores in names (most Python code)
+- Any situation where chunk names would contain LaTeX special characters
+- Projects that weave documentation to LaTeX format
+
+**Alternative considered but rejected:**
+- Escaping underscores as `\_` in chunk names requires escaping everywhere
+- Using `[[...]]` notation doesn't help in chunk definitions themselves
+- Renaming Python files to use hyphens breaks Python import conventions
+
 ### Documentation Composition
 
 Create a master document in `/doc` that includes .tex from `/src`:
