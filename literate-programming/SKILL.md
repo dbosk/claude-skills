@@ -172,6 +172,127 @@ When writing literate programs:
    stay synchronized. For example, define `DEFAULT_THRESHOLD = 5` once and use
    it everywhere, rather than repeating `5` in multiple places.
 
+## Chunk Concatenation Patterns
+
+Noweb allows multiple definitions of the same chunk name - they are concatenated in order of appearance. This feature can be used pedagogically to introduce concepts incrementally, but requires careful consideration of scope and context.
+
+### When to Use Multiple Definitions (Pedagogical Building)
+
+**Use multiple definitions** when building up a parameter list or configuration as you introduce each concept:
+
+```noweb
+\subsection{Adding the diff flag}
+We introduce a [[--diff]] flag to show differences between versions.
+<<args for diff option>>=
+diff=args.diff,
+@
+
+[... 300 lines later ...]
+
+\subsection{Fine-tuning diff matching with thresholds}
+To handle edge cases in file matching, we add threshold parameters.
+<<args for diff option>>=
+diff_threshold_fixed=args.diff_threshold_fixed,
+diff_threshold_percent=args.diff_threshold_percent
+@
+```
+
+**Result:** When `<<args for diff option>>` is used, it expands to all three parameters. This pedagogical pattern:
+- Introduces each concept at its natural point in the narrative
+- Builds understanding incrementally
+- Uses noweb's concatenation feature intentionally
+- Makes the document more readable by not front-loading all parameters
+
+**When this works well:**
+- Parameters are being added to the same logical concept
+- All uses of the chunk occur in the **same scope** (all have access to `args`)
+- The incremental introduction aids understanding
+- The chunk represents a single conceptual unit being built up over time
+
+### When to Use Separate Chunks (Different Contexts)
+
+**Use separate chunks** when the same parameters must be passed in different scopes:
+
+```noweb
+\subsection{Calling format\_submission from main}
+The command function has access to [[args]]:
+<<args for diff option>>=
+diff=args.diff,
+diff_threshold_fixed=args.diff_threshold_fixed,
+diff_threshold_percent=args.diff_threshold_percent
+@
+
+\subsection{Recursive calls inside format\_submission}
+Inside [[format_submission]], we don't have [[args]]---only parameters.
+We need a separate chunk to pass these through:
+<<diff params>>=
+diff=diff,
+diff_threshold_fixed=diff_threshold_fixed,
+diff_threshold_percent=diff_threshold_percent
+@
+```
+
+**Result:** Two distinct chunks for different scoping contexts. This pattern:
+- Makes scope explicit through chunk naming
+- Prevents `NameError` when `args` doesn't exist
+- Clearly distinguishes external calls from internal recursion
+- Improves code maintainability by making context visible
+
+**When you need separate chunks:**
+- The same logical parameters must be passed in **different scopes**
+- One context has `args` object, another has only parameters
+- External calls vs internal recursive calls
+- Command-line processing vs function implementation
+
+### Guidelines for Choosing
+
+Ask these questions:
+
+1. **Same scope?**
+   - Yes → Consider concatenation for pedagogical building
+   - No → Use separate chunks with descriptive names
+
+2. **Same conceptual unit?**
+   - Yes, building up one concept → Concatenation may be appropriate
+   - No, different purposes → Separate chunks
+
+3. **Will readers be confused?**
+   - If a reader at the first definition won't know there's a second → Add forward reference
+   - If scope differences aren't obvious → Use separate chunks with clear names
+
+### Anti-Pattern: Confusing Concatenation
+
+**Bad:** Using concatenation when contexts differ, causing scope errors:
+
+```noweb
+<<args for diff option>>=
+diff=args.diff,
+@
+
+# Used both in command function AND inside format_submission
+# This causes NameError inside format_submission where args doesn't exist!
+```
+
+**Good:** Recognize different contexts and use separate chunks:
+
+```noweb
+<<args for diff option>>=  # For command function (has args)
+diff=args.diff,
+@
+
+<<diff params>>=  # For internal calls (no args)
+diff=diff,
+@
+```
+
+### Best Practices
+
+1. **Document concatenation intent**: If using multiple definitions, mention it in the prose (e.g., "we'll extend this chunk later")
+2. **Use forward references**: If split is large, note "see Section X.Y for threshold parameters"
+3. **Check for scope issues**: Before reusing a chunk name, verify all usage sites have access to the same variables
+4. **Prefer separate chunks when in doubt**: Clear, explicit chunk names beat clever reuse
+5. **Name chunks for context**: `<<args for X>>` vs `<<X params>>` makes scope immediately visible
+
 ## Organizing Tests in Literate Programs
 
 When embedding tests in literate programs (common for modules using pytest, unittest, etc.), follow these principles to maintain pedagogical clarity:
