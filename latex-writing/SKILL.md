@@ -1,6 +1,6 @@
 ---
 name: latex-writing
-description: Guide LaTeX document authoring following best practices and proper semantic markup. Use proactively when: (1) writing or editing .tex files, (2) creating LaTeX content in .nw literate programming files, (3) literate-programming skill is active and working with .nw files, (4) user mentions LaTeX, BibTeX, or document formatting, (5) reviewing LaTeX code quality. Ensures proper use of semantic environments (description vs itemize) and csquotes (\enquote{} not ``...'').
+description: Guide LaTeX document authoring following best practices and proper semantic markup. Use proactively when: (1) writing or editing .tex files, (2) writing or editing .nw literate programming files, (3) literate-programming skill is active and working with .nw files, (4) user mentions LaTeX, BibTeX, or document formatting, (5) reviewing LaTeX code quality. Ensures proper use of semantic environments (description vs itemize), csquotes (\enquote{} not ``...''), and cleveref (\cref{} not \S\ref{}).
 ---
 
 # LaTeX Writing Best Practices
@@ -200,8 +200,29 @@ The decorator adds a [[__cache]] dictionary and [[__all_fetched]] flag.
 ## Additional Best Practices
 
 ### Cross-References
-- Use `\label` and `\ref` instead of hard-coded numbers
-- Labels should be descriptive: `\label{sec:introduction}` not `\label{s1}`
+- **Always** use `\cref{...}` (cleveref package) for all cross-references
+- **Never** use `\S\ref{...}` or manually type section/figure prefixes
+- Use descriptive labels: `\label{sec:introduction}` not `\label{s1}`
+- Examples:
+  - Sections: `\cref{sec:background}` → "Section 2.1"
+  - Figures: `\cref{fig:diagram}` → "Figure 3"
+  - Tables: `\cref{tab:results}` → "Table 1"
+  - Multiple: `\cref{sec:intro,sec:conclusion}` → "Sections 1 and 4"
+
+**Anti-pattern**: Manual prefixes
+```latex
+% INCORRECT
+Section~\ref{sec:intro} shows...
+\S\ref{sec:background} discusses...
+Figure~\ref{fig:plot} demonstrates...
+
+% CORRECT
+\cref{sec:intro} shows...
+\cref{sec:background} discusses...
+\cref{fig:plot} demonstrates...
+```
+
+**Why**: The cleveref package automatically adds the correct prefix (Section, Figure, etc.) and handles pluralization, ranges, and language-specific formatting.
 
 ### Citations
 - Use proper citation commands (`\cite`, `\citep`, `\citet`) not manual references
@@ -317,7 +338,7 @@ Use traditional `\caption` + `\label` when:
 
 #### Referencing figures and tables
 
-Always use `\cref{fig:label}` (cleveref package) or `\ref{fig:label}` to reference figures and tables:
+Always use `\cref{fig:label}` (cleveref package) to reference figures and tables:
 
 ```latex
 As shown in \cref{fig:memory-hierarchy}, secondary memory is slower but non-volatile.
@@ -325,7 +346,7 @@ As shown in \cref{fig:memory-hierarchy}, secondary memory is slower but non-vola
 The results in \cref{tab:benchmark} demonstrate...
 ```
 
-**Never** hard-code references like "Figure 1" or "Table 3.2"—let LaTeX handle numbering automatically
+**Never** hard-code references like "Figure 1", "Table 3.2", or use manual prefixes like `Figure~\ref{fig:label}`—let cleveref handle both numbering and prefixes automatically.
 
 ### Verbatim and Code
 - Use `listings` package for code with syntax highlighting
@@ -352,6 +373,7 @@ When writing or editing LaTeX content:
 Check for these common issues:
 - [ ] Lists using `\textbf{Label:}` instead of `description` environment
 - [ ] Hard-coded numbers instead of `\ref`
+- [ ] Manual cross-reference prefixes (`\S\ref`, `Section~\ref`, `Figure~\ref`) instead of `\cref`
 - [ ] Manual citation formatting instead of `\cite` commands
 - [ ] Manual quotes (`"..."`, `'...'`, `` `...` ``) instead of `\enquote{...}`
 - [ ] Images without `figure` environment
