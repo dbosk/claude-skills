@@ -198,6 +198,129 @@ When writing literate programs:
    @
    ```
 
+## Progressive Disclosure: Abstract Placeholder Chunks
+
+When introducing high-level structure early in a literate program, avoid exposing implementation details before the reader has sufficient context. Instead, use **abstract placeholder chunks** that defer specifics to pedagogically appropriate sections.
+
+### The Pattern
+
+**Core idea:** Define a conceptual chunk name at a high level, then use chunk concatenation to build it up incrementally as you explain each piece.
+
+**Structure:**
+1. **High-level reference**: Use an abstract chunk name describing the concept (e.g., `<<options for which contracts to show>>`)
+2. **Later definitions**: Define that same chunk multiple times, once for each piece, as you explain them
+3. **Concatenation builds it up**: Noweb concatenates all definitions in order
+
+### Example: Function Parameters
+
+Consider a function with multiple filtering options:
+
+**Anti-pattern (too much detail too early):**
+```noweb
+def cli_amanuens_show(user_regex,
+                      <<option [[all]] to show all contracts>>,
+                      <<option [[next]] to show next contract>>,
+                      <<option [[prev]] to show previous contract>>):
+  """Shows stored amanuensis contracts for TAs."""
+  <<implementation>>
+@
+```
+
+At this point in the narrative, readers see three specific options but don't yet know:
+- What contract filtering means
+- Why these particular options exist
+- How they interact with each other
+
+**Good pattern (progressive disclosure with concatenation):**
+```noweb
+def cli_amanuens_show(user_regex,
+                      <<options for which contracts to show>>):
+  """Shows stored amanuensis contracts for TAs."""
+  <<implementation>>
+@
+
+[... 300 lines explaining contract filtering concepts ...]
+
+\subsection{Options for filtering contracts by time}
+
+Users can filter which contracts to display based on time periods.
+We provide three options for different use cases.
+
+\paragraph{The [[--all]] option}
+This disables time filtering entirely, showing all valid contracts.
+<<options for which contracts to show>>=
+all: Annotated[bool, show_all_opt] = False,
+@
+
+\paragraph{The [[--next]] option}
+This shows only upcoming contracts.
+<<options for which contracts to show>>=
+next: Annotated[bool, show_next_opt] = False,
+@
+
+\paragraph{The [[--prev]] option}
+This shows only past contracts.
+<<options for which contracts to show>>=
+prev: Annotated[bool, show_prev_opt] = False
+@
+```
+
+When the function definition expands, `<<options for which contracts to show>>` becomes all three concatenated definitions:
+```python
+def cli_amanuens_show(user_regex,
+                      all: Annotated[bool, show_all_opt] = False,
+                      next: Annotated[bool, show_next_opt] = False,
+                      prev: Annotated[bool, show_prev_opt] = False):
+```
+
+### Benefits
+
+1. **Readable high-level structure**: Function signature shows conceptual parameter groups, not individual details
+2. **Pedagogical ordering**: Each option explained when reader has context to understand it
+3. **Variation theory alignment**: Shows "whole" (filtering concept) before "parts" (specific options)
+4. **Maintainability**: Easy to add new options by adding another concatenated definition
+5. **Natural flow**: Each option introduced with motivation and explanation
+
+### Relationship to Chunk Concatenation
+
+This pattern **uses** chunk concatenation (multiple definitions of the same chunk name), but applies it specifically for progressive disclosure at high-level structure points.
+
+**Key distinction:**
+- **General concatenation**: Building up any chunk incrementally (e.g., `<<constants>>` defined multiple times)
+- **This pattern**: Using concatenation specifically to defer details in high-level structure
+
+Both use the same mechanism (concatenation) but this pattern focuses on the pedagogical benefit of abstraction early in the document.
+
+### When to Use This Pattern
+
+**Use abstract placeholder chunks when:**
+- Defining high-level structure (module outlines, function signatures, class definitions)
+- You have 3+ related pieces that form a conceptual unit
+- Details aren't pedagogically relevant yet at this point in the narrative
+- Each piece deserves its own explanation section
+
+**Avoid when:**
+- Only 1-2 pieces involved (direct reference may be clearer)
+- All pieces should be introduced together
+- The abstraction would be artificial or forced
+- Pieces don't naturally form a conceptual group
+
+### Naming Abstract Chunks
+
+Good abstract chunk names describe **purpose**, not **syntax**:
+
+✅ Good:
+- `<<options for which contracts to show>>`
+- `<<initialization parameters>>`
+- `<<validation rules>>`
+- `<<error handling cases>>`
+
+❌ Avoid:
+- `<<all options>>` (too vague)
+- `<<option definitions>>` (describes syntax, not purpose)
+- `<<parameters>>` (not specific enough)
+- `<<stuff>>` (meaningless)
+
 ## Chunk Concatenation Patterns
 
 Noweb allows multiple definitions of the same chunk name - they are concatenated in order of appearance. This feature can be used pedagogically to introduce concepts incrementally, but requires careful consideration of scope and context.
