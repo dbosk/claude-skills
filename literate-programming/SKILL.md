@@ -171,6 +171,32 @@ When writing literate programs:
    level and reference them. This makes code self-documenting and ensures values
    stay synchronized. For example, define `DEFAULT_THRESHOLD = 5` once and use
    it everywhere, rather than repeating `5` in multiple places.
+9. **Distinguish constants from imports** - Constants and enums are code you define,
+   not external dependencies. They belong in `<<constants>>` chunks, not `<<imports>>`.
+   Use multiple `<<constants>>=` chunks throughout the file to define constants near
+   their first use (pedagogical order), and they will all be concatenated together.
+
+   Example:
+   ```noweb
+   <<module.py>>=
+   <<imports>>
+   <<constants>>
+   <<functions>>
+   @
+
+   \subsection{Configuration paths}
+   We define a constant for the config key...
+   <<constants>>=
+   CONFIG_KEY = "module.config.path"
+   @
+
+   \subsection{Filter modes}
+   We define an enum for filter modes...
+   <<constants>>=
+   class FilterMode(Enum):
+       ALL = "all"
+   @
+   ```
 
 ## Chunk Concatenation Patterns
 
