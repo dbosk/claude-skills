@@ -617,6 +617,190 @@ Tests are distributed throughout this file:
 4. **Flow**: Natural progression from problem → solution → proof
 5. **Findability**: Easy to locate tests for specific functionality
 
+### Testing Dependencies to Detect Breaking Changes
+
+While testing functionality is essential, it's not sufficient on its own. Tests should also verify assumptions about dependencies—the functions used within your implementation. This helps detect errors when implementations change elsewhere in the codebase.
+
+**Why this matters**: When a dependency changes its behavior (e.g., returning a generator instead of a list), your code may break in subtle ways. Tests that verify dependency contracts catch these breaking changes immediately.
+
+#### The Problem: Silent Breaking Changes
+
+Consider a function that filters objects based on regex patterns. Initially, it might return a list, but later be refactored to return a generator for efficiency. Code that depends on list-specific behavior (like indexing) will break, but the breakage might not be obvious.
+
+Here's a concrete example:
+
+**Initial implementation** (returns list implicitly):
+```noweb
+<<functions>>=
+def filter_by_regex(objects, attributes, require_all=False):
+    """
+    Filters objects based on regex patterns.
+    """
+    results = []
+    for object in objects:
+        # ... matching logic ...
+        if match:
+            results.append(object)
+    return results
+@
+```
+
+**Refactored implementation** (returns generator):
+```noweb
+<<functions>>=
+def filter_by_regex(objects, attributes, require_all=False):
+    """
+    Filters objects based on regex patterns.
+    """
+    for object in objects:
+        <<search [[object]] for [[regex]] in its [[attributes]] and yield matches>>
+@
+```
+
+Now consider code that uses this function and assumes list behavior:
+
+```noweb
+<<functions>>=
+def get_filtered_objects_from_api(api_url, attributes, require_all=False):
+    """
+    Fetches objects from API and filters them.
+    """
+    <<get [[data]] from [[api_url]]>>
+    objects = [TestObject(item['name'], item['description']) for item in data]
+    return filter_by_regex(objects, attributes, require_all)
+@
+```
+
+**The test that catches the problem**:
+```noweb
+<<test functions>>=
+def test_get_filtered_objects_from_api(monkeypatch):
+    sample_api_data = [
+        {"name": "apple", "description": "A fruit"},
+        {"name": "banana", "description": "Another fruit"},
+        {"name": "carrot", "description": "A vegetable"},
+        {"name": "apricot", "description": "A tasty vegetable fruit"},
+    ]
+    def mock_get(url):
+        class MockResponse:
+            def raise_for_status(self):
+                pass
+            def json(self):
+                return sample_api_data
+        return MockResponse()
+    monkeypatch.setattr(requests, "get", mock_get)
+
+    attributes = {
+        "name": r"^a",
+        "description": r"vegetable",
+    }
+    results = get_filtered_objects_from_api(api_url, attributes)
+
+    # These assertions assume list behavior (indexing)
+    assert len(results) == 3
+    assert results[0].name == "apple"
+    assert results[1].name == "carrot"
+    assert results[2].name == "apricot"
+@
+```
+
+**What happens**: After the refactoring to use generators, this test will fail because:
+1. `results` is now a generator object, not a list
+2. You cannot call `len()` on a generator
+3. You cannot index into a generator with `results[0]`
+
+**This is exactly what we want**: The test catches that `get_filtered_objects_from_api` (or code calling it) assumes list-like behavior from `filter_by_regex`. The test documents this dependency assumption and fails when the contract changes.
+
+#### Core Principle: Test Assumptions About Dependencies
+
+Tests should verify not just that your code produces the right output, but that dependencies behave as your code expects them to. When you use a function in a certain way, test that it supports that usage pattern.
+
+**Test the contract, not just the outcome**:
+- If your code indexes into a result: test that the dependency returns something indexable
+- If your code iterates multiple times: test that the dependency returns something re-iterable
+- If your code catches specific exceptions: test that the dependency raises those exceptions
+
+This makes implicit contracts explicit and documents assumptions for future maintainers.
+
+#### Types of Dependency Changes to Catch
+
+**1. Return type changes** (primary concern):
+- List vs generator (as in the example above)
+- List vs iterator vs iterable
+- Concrete type vs abstract protocol
+- Single value vs collection
+- None vs empty collection
+
+**2. Behavior changes**:
+- Raising exceptions vs returning None/default values
+- Eager vs lazy evaluation
+- Mutable vs immutable returns
+- Side effects vs pure functions
+
+**3. Interface/protocol changes**:
+- Available methods or attributes
+- Parameter signatures
+- Expected protocols (iterator, context manager, etc.)
+- State requirements (must call setup(), etc.)
+
+#### Pattern: Structure Dependency Tests
+
+Place dependency verification tests close to where dependencies are used, following the same proximity principle as other tests (~10 lines from usage).
+
+**Frame tests pedagogically**:
+```noweb
+We also want to test that [[filter_by_regex]] fulfils our expectations.
+The calling code assumes the result is indexable, so let's verify that:
+
+<<test functions>>=
+def test_filter_returns_indexable():
+    results = filter_by_regex(sample_objects, {"name": r"^a"})
+    # Verify we can index into results
+    first = results[0]
+    assert first.name == "apple"
+@
+```
+
+**Test the assumption explicitly**, not just indirectly through higher-level behavior. This makes it clear what contract you're depending on.
+
+#### Best Practices
+
+1. **Test contracts when you depend on them**: If your code uses `results[0]`, test that the dependency returns something indexable
+2. **Test iteration behavior**: If you iterate twice, test that the dependency supports it (generators don't)
+3. **Test exception contracts**: If you catch `ValueError`, test that the dependency actually raises it
+4. **Place tests near usage**: Keep dependency tests within ~10 lines of where the dependency is used
+5. **Frame pedagogically**: Explain why you're testing this assumption ("We need to verify that X returns Y because...")
+6. **Make implicit contracts explicit**: If your code assumes something, document it with a test
+
+#### Connection to Literate Programming
+
+Testing dependencies serves the literate programming goal of clarity and documentation:
+
+**Makes contracts explicit**: Your code may implicitly assume a function returns a list. The test makes this explicit: "This code requires filter_by_regex to return an indexable collection."
+
+**Documents assumptions**: Future maintainers see not just what your code does, but what it expects from dependencies. This prevents subtle bugs when refactoring.
+
+**Pedagogical value**: Readers understand the relationship between components. The test shows: "get_filtered_objects_from_api depends on filter_by_regex returning something indexable."
+
+**Prevents confusion**: Without dependency tests, readers might wonder: "Can I refactor filter_by_regex to return a generator?" The test answers: "No, because get_filtered_objects_from_api (and its tests) assume indexable behavior."
+
+**Supports refactoring**: Want to change filter_by_regex to return a generator? The dependency tests immediately show what calling code needs updating: any code that indexes into results must convert to a list first.
+
+#### When to Apply This Pattern
+
+**Always test dependency assumptions when**:
+- Your code uses specific behaviors (indexing, multiple iteration, exception catching)
+- Dependencies might reasonably be refactored (internal functions you control)
+- The contract is implicit rather than enforced by types
+- Breaking the contract would cause subtle bugs rather than immediate errors
+
+**Consider skipping when**:
+- The dependency is external and stable (standard library, major framework)
+- The contract is enforced by the type system (strict typing makes behavior guaranteed)
+- The dependency is trivial (one-line helper that obviously won't change)
+
+**Balance**: Test important contracts, especially for internal dependencies. Don't test every function call, but do test assumptions that would cause subtle bugs if broken.
+
 ## Noweb Commands
 
 ### Tangling (Extracting Code)
