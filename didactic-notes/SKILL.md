@@ -1,6 +1,17 @@
 ---
 name: didactic-notes
-description: Document pedagogical design decisions in educational materials using the didactic LaTeX package and \ltnote command. Use proactively when (1) writing or editing educational LaTeX materials with pedagogical content, (2) adding variation theory labels or patterns to student-facing content, (3) explaining design trade-offs or choices in educational materials, (4) documenting why specific examples or exercises are sequenced in a particular way. Invoke when user mentions didactic notes, \ltnote, pedagogical reasoning, learning theory notes, educational design documentation, variation theory labels in student content, or asks to move pedagogical reasoning to instructor notes. CRITICAL: Pedagogical reasoning (variation/invariance labels, pattern names, design rationale) should be in \ltnote{}, NOT in student-facing text.
+description: |
+  Document pedagogical design decisions in educational materials using the 
+  didactic LaTeX package and \ltnote command. Use proactively when (1) writing 
+  or editing educational LaTeX materials with pedagogical content, (2) adding 
+  variation theory labels or patterns to student-facing content, (3) explaining 
+  design trade-offs or choices in educational materials, (4) documenting why 
+  specific examples or exercises are sequenced in a particular way. Invoke when 
+  user mentions didactic notes, \ltnote, pedagogical reasoning, learning theory 
+  notes, educational design documentation, variation theory labels in student 
+  content, or asks to move pedagogical reasoning to instructor notes. CRITICAL: 
+  Pedagogical reasoning (variation/invariance labels, pattern names, design 
+  rationale) should be in \ltnote{}, NOT in student-facing text.
 ---
 
 # Didactic Notes: Literate Pedagogy

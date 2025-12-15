@@ -1,6 +1,15 @@
 ---
 name: git-commit-practices
-description: AUTOMATIC ACTIVATION REQUIRED - At the start of ANY task, check git status. If in a git repository on a feature/topic branch, activate this skill immediately. If on master/main branch, create a new feature branch first, then activate. If not in git repo, skip. This skill guides atomic commit practices - commit early and often after each logical unit of work. Use throughout work session when: (1) completing logical units, (2) fixing bugs, (3) adding features, (4) refactoring, (5) updating files, (6) completing todo items, (7) regenerating code from literate sources. Make single-purpose commits, not batched commits at the end. (project, gitignored)
+description: |
+  AUTOMATIC ACTIVATION REQUIRED - At the start of ANY task, check git status. 
+  If in a git repository on a feature/topic branch, activate this skill 
+  immediately. If on master/main branch, create a new feature branch first, 
+  then activate. If not in git repo, skip. This skill guides atomic commit 
+  practices - commit early and often after each logical unit of work. Use 
+  throughout work session when: (1) completing logical units, (2) fixing bugs, 
+  (3) adding features, (4) refactoring, (5) updating files, (6) completing todo 
+  items, (7) regenerating code from literate sources. Make single-purpose 
+  commits, not batched commits at the end. (project, gitignored)
 ---
 
 # Git Commit Practices
