@@ -198,6 +198,40 @@ When writing literate programs:
    @
    ```
 
+## LaTeX Documentation Quality
+
+**IMPORTANT**: Documentation chunks in .nw files are LaTeX. Apply the `latex-writing` skill best practices.
+
+### Most Common Anti-Patterns in .nw Files
+
+When writing documentation chunks, watch for these mistakes:
+
+1. **Lists with bold labels**: Use `\begin{description}` with `\item[Label]`, NOT `\begin{itemize}` with `\item \textbf{Label}:`
+
+   **Wrong:**
+   ```latex
+   \begin{itemize}
+   \item \textbf{Feature A}: Description of feature A
+   \item \textbf{Feature B}: Description of feature B
+   \end{itemize}
+   ```
+
+   **Correct:**
+   ```latex
+   \begin{description}
+   \item[Feature A] Description of feature A
+   \item[Feature B] Description of feature B
+   \end{description}
+   ```
+
+2. **Code with manual escaping**: Use `[[code]]` notation, NOT `\texttt{...\_...}`
+
+3. **Manual quotes**: Use `\enquote{...}`, NOT `"..."` or `` ``...'' ``
+
+4. **Manual cross-references**: Use `\cref{...}`, NOT `Section~\ref{...}`
+
+See the `latex-writing` skill for complete guidelines.
+
 ## Progressive Disclosure: Abstract Placeholder Chunks
 
 When introducing high-level structure early in a literate program, avoid exposing implementation details before the reader has sufficient context. Instead, use **abstract placeholder chunks** that defer specifics to pedagogically appropriate sections.
