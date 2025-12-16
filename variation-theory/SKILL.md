@@ -1,6 +1,6 @@
 ---
 name: variation-theory
-description: Apply variation theory of learning to structure instructional content using contrast, separation, generalization, and fusion patterns. Use when writing educational materials, explanations, tutorials, or when user mentions variation theory, learning theory, pedagogy, or critical aspects of learning.
+description: Apply variation theory of learning to structure instructional content using contrast, separation, generalization, and fusion patterns. Use when writing educational materials, explanations, tutorials, literate programming documentation (.nw files), or when user mentions variation theory, learning theory, pedagogy, or critical aspects of learning. Works alongside the literate-programming skill for .nw files.
 ---
 
 # Variation Theory of Learning

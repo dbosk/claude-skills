@@ -122,10 +122,35 @@ Literate programming, as introduced by Donald Knuth, has two fundamental goals:
 
 We want to explain the "why" behind the code, not just the "how".
 
-Variation theory is useful here. By contrasting different approaches and 
-explaining trade-offs, we help readers grasp the underlying concepts. Variation 
-theory also suggests to start with the whole and take it apart (contrast), look 
-at each part (generalization) and then put it back together (fusion).
+### Variation Theory in Literate Programming
+
+**Apply the `variation-theory` skill** when structuring explanations in documentation chunks. Variation theory provides the pedagogical foundation for effective literate programs.
+
+**The four patterns and how they apply:**
+
+1. **Contrast** - Show what something IS vs what it is NOT
+   - Compare two approaches to the same problem before choosing one
+   - Show an anti-pattern alongside the correct pattern
+   - Example: "We could use a list, but a dictionary provides O(1) lookup..."
+
+2. **Separation** - Break the whole into parts, examine each independently
+   - Start with the complete module structure, then explain each chunk
+   - Show the high-level algorithm, then detail each step
+   - Example: Module outline first, then individual functions
+
+3. **Generalization** - Show the same pattern across different contexts
+   - Demonstrate a pattern in multiple code chunks
+   - Show how the same design decision applies throughout
+   - Example: "This error handling pattern appears in all API calls..."
+
+4. **Fusion** - Integrate parts back into a coherent whole
+   - After explaining parts, show how they work together
+   - Provide a summary that ties concepts together
+   - Example: "With all pieces in place, the complete flow is..."
+
+**Key principle for literate programs**: Start with the whole (module outline), separate into parts (individual chunks with explanations), and fuse back together (how chunks combine to form the complete program).
+
+**CRITICAL - Examples before generalizations**: When explaining patterns or principles, show concrete code examples FIRST, then state the general principle. Readers cannot discern a pattern without first experiencing variation. See the `variation-theory` skill for detailed guidance on this common violation.
 
 ## Noweb File Format
 
