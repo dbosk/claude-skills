@@ -1,15 +1,14 @@
 ---
 name: git-commit-practices
 description: |
-  AUTOMATIC ACTIVATION REQUIRED - At the start of ANY task, check git status. 
-  If in a git repository on a feature/topic branch, activate this skill 
-  immediately. If on master/main branch, create a new feature branch first, 
-  then activate. If not in git repo, skip. This skill guides atomic commit 
-  practices - commit early and often after each logical unit of work. Use 
-  throughout work session when: (1) completing logical units, (2) fixing bugs, 
-  (3) adding features, (4) refactoring, (5) updating files, (6) completing todo 
-  items, (7) regenerating code from literate sources. Make single-purpose 
-  commits, not batched commits at the end. (project, gitignored)
+  CRITICAL: ALWAYS activate this skill at the start of ANY task in a git
+  repository. Check git status first - if on feature/topic branch, activate
+  immediately. If on master/main, create a feature branch first, then activate.
+  If not in git repo, skip. This skill guides continuous atomic commits
+  throughout work sessions. Key trigger: ANY task involving code changes in a
+  git repo. Plan commits during planning phase, execute continuously during
+  implementation. Commit early, commit often - one concern per commit. Never
+  batch commits at the end. (project, gitignored)
 ---
 
 # Git Commit Practices
@@ -70,6 +69,53 @@ This means:
 Task starts → Check git status → On feature branch → Activate skill →
 Work on change → Complete logical unit → Commit → Continue working
 ```
+
+## Planning Commit Milestones
+
+**During the planning phase**, before implementation begins, identify commit milestones. Commits should be planned, not an afterthought.
+
+### Workflow
+
+1. **When creating a task plan** - Identify natural commit points
+2. **Mark commit milestones** - Note where atomic commits should occur
+3. **Execute continuously** - Commit at each milestone as you reach it
+
+### Example: Planning a Feature
+
+Task: "Add user authentication"
+
+**Bad approach (commits as afterthought):**
+```
+Plan:
+1. Add user model
+2. Add API endpoint
+3. Add UI component
+4. Add tests
+
+[Then at end: "Now let's commit everything"]
+```
+
+**Good approach (commits planned upfront):**
+```
+Plan with commit milestones:
+1. Add user model → COMMIT: "Add user authentication data model"
+2. Add API endpoint → COMMIT: "Add user authentication API endpoint"
+3. Add UI component → COMMIT: "Add user authentication UI component"
+4. Add tests → COMMIT: "Add user authentication tests"
+```
+
+### Integration with TodoWrite
+
+When using TodoWrite tool, each todo item is a potential commit milestone:
+
+```
+Todo: "Add input validation to form"
+├── Implementation work
+├── Verify it works
+└── COMMIT immediately → Mark todo completed
+```
+
+**Never batch commits at task completion.**
 
 ## Core Principle: Atomic Commits
 
@@ -311,6 +357,15 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 ```
 
 ## Proactive Reminders
+
+### During Planning Phase
+
+When creating a plan (using plan mode or TodoWrite):
+- **Identify commit milestones** - Each major step should have a planned commit
+- **Include commit messages** - Plan what each commit will say
+- **Map todos to commits** - One todo = one commit (approximately)
+
+This ensures commits are intentional, not an afterthought.
 
 ### After Reading Multiple Files
 
