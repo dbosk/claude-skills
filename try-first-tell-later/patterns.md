@@ -445,3 +445,96 @@ When teaching complex topics, sequence prompts strategically:
 5. **Too much cognitive load**: Don't chain too many prompts together
 6. **No follow-through**: Always explain why the answer matters
 7. **Dismissing attempts**: Validate good thinking even if prediction is wrong
+8. **Revealing critical aspects in the question**: Don't point out what students should discern (see Teacher's Paradox in SKILL.md)
+
+## Diagnostic Use of Try-First Prompts
+
+Try-first prompts double as diagnostic tools, revealing which critical aspects students can already discern. This section provides implementation guidance.
+
+### Pre-Test Pattern
+
+```latex
+% Before teaching, pose open question that doesn't reveal critical aspects
+\begin{exercise}[Diagnostic]
+  [Present scenario without highlighting critical aspects]
+  
+  What would you do? / What do you think happens? / What could go wrong?
+\end{exercise}
+
+% Document expected response categories:
+% - Response showing discernment of critical aspect X: [description]
+% - Response missing critical aspect X: [description]  
+% - Common misconception: [description]
+```
+
+### Analyzing Responses
+
+Create a simple rubric for the critical aspects:
+
+| Critical Aspect | Student Discerns | Student Misses |
+|-----------------|------------------|----------------|
+| Aspect A | Mentions X, Y | Focuses only on Z |
+| Aspect B | Considers edge case | Assumes happy path |
+
+### Example: File Resource Management
+
+**Diagnostic prompt**:
+```latex
+\begin{exercise}
+  Here's code that reads a file:
+  \begin{minted}{python}
+file = open("data.txt", "r")
+content = file.read()
+file.close()
+  \end{minted}
+  What could go wrong with this code?
+\end{exercise}
+```
+
+**Response analysis**:
+
+| Response Type | Critical Aspect Discerned? | Next Step |
+|---------------|---------------------------|-----------|
+| "Exception before close()" | Yes - resource safety | Ready for `with` statement |
+| "File doesn't exist" | No - focuses on different aspect | Teach resource management first |
+| "Wrong filename" | No - surface level | Need contrast: working vs failing code |
+
+### Teaching Response Based on Diagnostic
+
+**For students who discern the critical aspect**:
+- Move directly to solution (`with` statement)
+- Use generalization to show pattern applies to other resources
+
+**For students who miss the critical aspect**:
+- First create contrast to reveal it (show code that fails to close)
+- Let them experience the problem before explaining the solution
+
+### Post-Test Comparison
+
+After teaching with appropriate variation patterns, re-pose the prompt (or similar). Students should now mention the critical aspects they previously missed.
+
+**Documentation template**:
+```latex
+\ltnote{%
+  \textbf{Diagnostic results}:
+  
+  Pre-test: X\% mentioned critical aspect (resource safety)
+  
+  Post-test: Y\% mentioned critical aspect
+  
+  \textbf{Implication}: Variation pattern (contrast between 
+  exception-safe and unsafe code) was effective/needs revision.
+}
+```
+
+### Connection to Variation Theory
+
+The diagnostic results inform which variation patterns to use:
+
+| Diagnostic Result | Variation Pattern Needed |
+|-------------------|-------------------------|
+| Students miss aspect entirely | Contrast (vary the critical aspect) |
+| Students see aspect in one context | Generalization (show across contexts) |
+| Students see aspects separately | Fusion (vary multiple aspects together) |
+
+See the variation-theory skill for detailed guidance on each pattern.

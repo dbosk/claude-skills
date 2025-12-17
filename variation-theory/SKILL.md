@@ -1,6 +1,6 @@
 ---
 name: variation-theory
-description: Apply variation theory of learning to structure instructional content using contrast, separation, generalization, and fusion patterns. Use when writing educational materials, explanations, tutorials, literate programming documentation (.nw files), or when user mentions variation theory, learning theory, pedagogy, or critical aspects of learning. Works alongside the literate-programming skill for .nw files.
+description: Apply variation theory of learning to structure instructional content using contrast, generalization, and fusion patterns. Variation must target the critical aspects of the learning objective. Use when writing educational materials, explanations, tutorials, literate programming documentation (.nw files), or when user mentions variation theory, learning theory, pedagogy, or critical aspects of learning. Works alongside the literate-programming skill for .nw files.
 ---
 
 # Variation Theory of Learning
@@ -22,9 +22,54 @@ The necessary condition for discernment: learners must experience **variation in
 
 Key insight: "When some aspect of a phenomenon or an event varies while another aspect or other aspects remain invariant, the varying aspect will be discerned."
 
-## The Four Patterns of Variation
+## Critical Aspects as the Focus of Variation
 
-According to Marton and Pang (2006), there are four patterns that enable discernment:
+**FUNDAMENTAL PRINCIPLE**: Variation must occur in the **critical aspects** of the object of learning. Arbitrary variation does not lead to learning—only variation in critical dimensions enables discernment.
+
+### Identifying Critical Aspects First
+
+Before designing any pattern of variation:
+
+1. **Define the object of learning** - What should learners understand/do?
+2. **Identify the critical aspects** - Which features must be discerned?
+3. **Design variation IN those aspects** - Create patterns varying the critical dimensions
+
+As Marton states: "The object of learning [...] amounts to becoming able to discern all the critical aspects and to focus on them simultaneously" (NCOL, p. 37).
+
+### Dimensions vs Values: A Crucial Distinction
+
+The principle "one thing at a time" applies to **dimensions of variation (aspects)**, NOT to **values within a dimension**.
+
+- **Dimension (aspect)**: A category/feature type (e.g., "punctuation marks", "file mode", "data structure")
+- **Values/features**: Specific instances within that dimension (e.g., `.`/`?`/`!` or `r`/`w`/`a`)
+
+**The principle**:
+- **Vary ONE dimension at a time** - to separate aspects from each other
+- **Contrast MULTIPLE values together** - within that dimension
+
+**Research evidence** (Gustavsson, 2008; NCOL Ch 6):
+- Teaching punctuation marks (`.`, `?`, `!`) separately: **15% improvement**
+- Teaching all three together with contrast: **63% improvement**
+
+Similarly, Hatala et al. (2003) found **50% higher diagnostic accuracy** when medical students learned three ECG patterns together versus one category at a time.
+
+**Why**: Meaning derives from differences. Without experiencing contrast between values, students cannot discern what makes each distinct.
+
+### Common Mistake: Varying Non-Critical Aspects
+
+**Anti-pattern**: Creating variation in aspects irrelevant to the learning objective.
+
+**Example**: Teaching "why files need open/close":
+- **Wrong**: Vary filename or content (not critical)
+- **Right**: Vary what happens when close() is/isn't called, when exceptions occur (the critical aspect is resource management)
+
+### Connection to Try-First-Tell-Later
+
+The try-first-tell-later skill complements variation theory: use try-first prompts to **diagnose which critical aspects students can already discern**, then design variation patterns to teach the aspects they cannot yet see. See the try-first-tell-later skill for implementation guidance.
+
+## The Three Patterns of Variation
+
+According to Marton (2015), there are three patterns that enable discernment:
 
 ### 1. Contrast
 **Purpose**: Help learners recognize that an aspect exists by experiencing what it is versus what it is not.
@@ -33,21 +78,16 @@ According to Marton and Pang (2006), there are four patterns that enable discern
 
 **Example**: To understand "height," show two objects identical in all respects except height.
 
-### 2. Separation
-**Purpose**: Isolate critical features from the whole so learners can discern them independently.
+**Note**: Contrast achieves *separation*—the critical aspect becomes separated (discernible) from the whole through experiencing variation in that aspect. Separation is the *result* of contrast, not a separate pattern.
 
-**How it works**: Systematically vary certain elements while holding others constant, revealing which aspects are invariant and which vary.
-
-**Example**: To understand how multiple variables affect a concept, vary them together so learners can examine the distinct effect of each variable.
-
-### 3. Generalization
+### 2. Generalization
 **Purpose**: Help learners recognize that a pattern or principle holds across different contexts.
 
-**How it works**: Present the same critical value in varied appearances. Experience the invariant aspect across different contexts.
+**How it works**: Present the same critical value in varied appearances. Keep the critical aspect invariant while varying other (non-critical) aspects.
 
 **Example**: Show the same geometric principle applied to triangles, rectangles, circles to reveal the universal pattern.
 
-### 4. Fusion
+### 3. Fusion
 **Purpose**: Enable learners to experience multiple critical aspects simultaneously as an integrated whole.
 
 **How it works**: Vary several critical aspects at once so learners must attend to their simultaneous interrelationships.
@@ -58,10 +98,11 @@ According to Marton and Pang (2006), there are four patterns that enable discern
 
 Research suggests using patterns in this developmental order:
 
-1. **Begin with Contrast** - Establish that the aspect exists
-2. **Use Separation** - Isolate individual critical aspects
-3. **Apply Generalization** - Show the pattern across contexts
-4. **Achieve Fusion** - Integrate aspects into comprehensive understanding
+1. **Contrast** - Vary the critical aspect while keeping other aspects invariant. This *separates* (makes discernible) the critical aspect from the whole.
+2. **Generalization** - Keep the critical value invariant while varying other aspects. This shows the pattern holds across different contexts.
+3. **Fusion** - Vary multiple critical aspects simultaneously. This enables learners to experience their interrelationships.
+
+**Important**: Within each pattern, contrast multiple **values** together. The "one at a time" principle applies to **dimensions/aspects**, not to values within a dimension.
 
 ### Temporal Sequencing: Examples Before Generalizations
 
@@ -505,7 +546,6 @@ Detta mönster återkommer i all filhantering.
 **Standard terminology translation examples (Swedish)**:
 - "Variation Pattern" → "Variationsmönster"
 - "Contrast" → "Kontrast"
-- "Separation" → "Separation"
 - "Generalization" → "Generalisering"
 - "Fusion" → "Fusion"
 - "What varies" → "Vad som varierar"
@@ -569,7 +609,7 @@ Detta mönster återkommer i all filhantering.
 
 ## Key References
 
+- Marton, F. (2015). *Necessary Conditions of Learning*. Routledge. (Primary reference, especially Chapters 3, 5, and 6)
 - Marton, F., & Booth, S. (1997). *Learning and Awareness*. Mahwah, NJ: Lawrence Erlbaum.
 - Marton, F., & Pang, M. F. (2006). On Some Necessary Conditions of Learning. *Journal of the Learning Sciences*, 15(2), 193-220.
-- Marton, F. (2015). *Necessary Conditions of Learning*. London: Routledge.
 - Marton, F., & Tsui, A. (2004). *Classroom discourse and the space of learning*. Mahwah, NJ: Lawrence Erlbaum.

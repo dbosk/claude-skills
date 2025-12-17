@@ -605,3 +605,168 @@ These prompts typically elicit:
 - **Reflection prompts**: Beginning strategic thinking about tool selection
 
 The key is to validate good thinking while gently correcting misconceptions and revealing missed critical aspects.
+
+---
+
+## Example 11: Diagnostic Pre-Test Analysis
+
+This example shows how to use a try-first prompt as both learning activity and diagnostic assessment, following insights from Marton's NCOL on the Teacher's Paradox.
+
+**Learning objective**: Understand why files need explicit resource management (the `with` statement)
+
+**Critical aspects to discern**:
+1. Files are system resources that must be released
+2. Exceptions can prevent `close()` from being called
+3. The `with` statement guarantees cleanup
+
+### Pre-Test Prompt
+
+```latex
+\begin{exercise}[Diagnostic: File handling]
+  Here's code that processes a file:
+  \begin{minted}{python}
+file = open("data.txt", "r")
+content = file.read()
+# ... process content ...
+file.close()
+  \end{minted}
+  
+  What problems might occur with this approach?
+  List as many as you can think of.
+\end{exercise}
+```
+
+**Note**: The prompt does NOT mention exceptions, resources, or the `with` statement. Students must discern the critical aspects themselves. This follows Marton's principle: "If we want to find out to what extent they have learned to do so, we should not point out those aspects for them."
+
+### Response Categories
+
+**Category A - Discerns critical aspect (exception safety)**:
+> "If an error happens while processing, close() never runs and the file stays open."
+
+**Analysis**: Student sees the critical aspect. Ready for:
+- Generalization: show pattern applies to other resources (network, database)
+- Solution: introduce `with` statement
+
+**Category B - Surface-level concerns**:
+> "The file might not exist" or "The filename could be wrong"
+
+**Analysis**: Student focuses on different aspects (valid but not the learning objective). Needs:
+- Contrast: show code that fails vs succeeds at close()
+- Concrete example: exception between open and close
+
+**Category C - No problems identified**:
+> "It looks fine to me"
+
+**Analysis**: Student hasn't considered edge cases. Needs:
+- Concrete failure scenario before any explanation
+- Let them experience the problem
+
+### Teaching Response by Category
+
+**For Category A students**:
+```latex
+\begin{frame}[fragile]
+  \begin{remark}
+    Du identifierade rätt att undantag kan förhindra close().
+    Python har en lösning: \mintinline{python}{with}-satsen.
+  \end{remark}
+  
+  \begin{example}[with-satsen]
+    \begin{minted}{python}
+with open("data.txt", "r") as file:
+    content = file.read()
+# file.close() called automatically, even if exception
+    \end{minted}
+  \end{example}
+\end{frame}
+```
+
+**For Category B/C students** (need contrast first):
+```latex
+% First, create contrast to reveal the critical aspect
+\begin{frame}[fragile]
+  \begin{example}[Vad händer här?]
+    \begin{minted}{python}
+file = open("data.txt", "r")
+content = file.read()
+result = int(content)  # Raises ValueError if not a number!
+file.close()           # Never reached!
+    \end{minted}
+  \end{example}
+  
+  \begin{exercise}
+    Kör koden med en fil som innehåller "hello".
+    Vad händer? Stängs filen?
+  \end{exercise}
+\end{frame}
+
+% Then introduce solution after they've experienced the problem
+\begin{frame}[fragile]
+  \begin{example}[with garanterar close()]
+    \begin{minted}{python}
+with open("data.txt", "r") as file:
+    content = file.read()
+    result = int(content)  # Even if this fails...
+# ... file is still closed!
+    \end{minted}
+  \end{example}
+\end{frame}
+```
+
+### Post-Test
+
+After teaching, re-assess with similar prompt to verify transfer:
+
+```latex
+\begin{exercise}[Post-test]
+  Here's database connection code:
+  \begin{minted}{python}
+conn = database.connect("mydb")
+data = conn.query("SELECT * FROM users")
+# ... process data ...
+conn.close()
+  \end{minted}
+  
+  What problems might occur? How would you fix them?
+\end{exercise}
+```
+
+**Expected improvement**: Students who previously gave Category B/C responses should now:
+- Mention exception safety (transfer of critical aspect to new context)
+- Suggest context manager / `with` pattern
+- Recognize the general pattern applies to all resources
+
+### Variation Pattern Analysis
+
+```latex
+\ltnote{%
+  \textbf{Diagnostic purpose}: Reveal which students discern 
+  the critical aspect (exception safety) before teaching.
+  
+  \textbf{Pre-test results}: 
+  - Category A (discerned): X students
+  - Category B (surface): Y students  
+  - Category C (none): Z students
+  
+  \textbf{Variation pattern used}: Contrast
+  - What varies: Whether exception occurs before close()
+  - What's invariant: The file operations, the need to close
+  - Critical aspect revealed: Resource cleanup must be guaranteed
+  
+  \textbf{Post-test}: Tests transfer to new context (database)
+  to verify discernment, not just recall of the specific solution.
+  
+  \textbf{Post-test results}: W\% now discern critical aspect
+  (compared to X\% pre-test).
+}
+```
+
+### Why This Works
+
+This example demonstrates the dual purpose of try-first prompts:
+
+1. **As learning activity**: Engages prediction, creates cognitive engagement before explanation
+2. **As diagnostic**: Reveals which critical aspects students see/miss, informing teaching approach
+3. **As post-test**: Verifies learning by testing transfer to new context (database instead of file)
+
+The key insight from Marton: by NOT revealing the critical aspects in the question, we can genuinely assess whether students can discern them. A question like "What happens if an exception occurs before close()?" would point out the critical aspect and defeat the diagnostic purpose.

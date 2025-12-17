@@ -17,6 +17,62 @@ This creates powerful learning through:
 - **Metacognitive awareness**: Predicting and comparing reveals gaps in understanding
 - **Productive failure**: Research shows attempting before instruction produces better learning than passive study
 
+## The Teacher's Paradox and Assessment
+
+### The Teacher's Paradox
+
+Marton identifies a fundamental tension in teaching:
+
+> "[T]he more the teacher does to enable the students to answer the questions asked, to solve the problems given, the fewer opportunities may be left for the students to learn to understand that which they are expected to learn to understand. The reason is that the more clearly the teacher tells the students what is to be done, the less chance the students get to make the necessary distinctions (for instance, between what is critical and what is not)." (NCOL, p. 13)
+
+**Implication**: Try-first prompts should NOT reveal which aspects are critical. Students must discern this themselves.
+
+### Try-First as Diagnostic Pre-Test
+
+Try-first prompts serve a dual purpose:
+
+1. **Learning function**: Engages prediction, activates prior knowledge, creates contrast
+2. **Diagnostic function**: Reveals which critical aspects students can already discern
+
+**Key insight** (Marton, NCOL p. 89):
+> "If we want to find out to what extent they have learned to do so, we should not point out those aspects for them but let the students discern them by themselves."
+
+**Use try-first prompts to diagnose**:
+- Which critical aspects students already discern
+- Which aspects need teaching (require variation patterns)
+- Common misconceptions to address
+
+### Designing Questions That Don't Reveal Critical Aspects
+
+**BAD example** (Swedish national physics exam):
+> "A ball falls and is affected by air braking force F = kv where k = 0.32 N·s/m. The ball's mass is 0.20 kg. What is the final velocity?"
+
+**Problem**: All critical aspects are given. Students just calculate—no discernment needed.
+
+**GOOD example** (Johansson, Marton, Svensson 1985):
+> "A car is driven at a high constant speed on a motorway. What forces act on the car?"
+
+**Why better**: Students must discern:
+- That "constant speed" implies balanced forces
+- Which forces are relevant
+- That "engine pushes forward" alone is wrong
+
+### Prompt Design Checklist
+
+- [ ] Does my question require discerning critical aspects, or point them out?
+- [ ] Could this serve as a pre-test to reveal student understanding?
+- [ ] Am I avoiding giving away "what matters" in the question?
+- [ ] Will responses reveal which critical aspects students see/miss?
+
+### Connection to Variation Theory
+
+Try-first prompts and variation theory work together:
+1. **Try-first reveals** which critical aspects students cannot yet discern
+2. **Variation patterns** then target those specific aspects
+3. **Post-test try-first** confirms students now discern the aspects
+
+See the variation-theory skill for designing appropriate patterns once diagnostic results are known.
+
 ## Quick Example
 
 **Traditional "Tell-First" approach:**
@@ -139,6 +195,25 @@ with open("data.txt", "r") as file:
 - Completely novel concepts with no prior knowledge base
 - Arbitrary facts with no logical derivation
 - Situations where frustration would outweigh benefit
+
+### Using Try-First for Diagnostic Assessment
+
+**Before teaching a topic**:
+1. Pose open-ended try-first question (without revealing critical aspects)
+2. Analyze responses: which critical aspects do students mention?
+3. Focus subsequent teaching on missing aspects using variation patterns
+
+**Analyzing student responses**:
+- Students who mention the critical aspect → ready for generalization/fusion
+- Students who miss the critical aspect → need contrast patterns first
+- Common wrong answers → reveal misconceptions to address
+
+**After teaching** (post-test):
+- Use same or similar prompt
+- Compare responses to pre-test
+- Students should now discern the critical aspects
+
+**See `patterns.md` for detailed implementation guidance on diagnostic use.**
 
 ### Crafting Effective Discovery Questions
 
