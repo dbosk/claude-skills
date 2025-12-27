@@ -965,6 +965,7 @@ if n <= 1:
 9. **NEVER commit generated files** - .py and .tex files generated from .nw sources are build artifacts and must NEVER be committed to git. Only commit the .nw source files.
 10. **Test your tangles** - Ensure extracted code actually compiles/runs
 11. **Keep docstrings independent from LaTeX** - Docstrings are for code users (rendered with pydoc/help()), not maintainers. Never include LaTeX commands (like `\cref`, `\section`, etc.) in docstrings. The literate source documentation is for maintainers who read the compiled PDF; docstrings are runtime documentation.
+12. **Include a table of contents** - Add `\tableofcontents` after `\maketitle` in the document preamble. This helps readers navigate the documentation, especially for larger literate programs with multiple sections.
 
 ## Language-Specific Notes
 
@@ -1152,47 +1153,59 @@ __init__.py: init.py
 
 When chunk names contain underscores (common in Python), LaTeX will interpret them
 as math subscripts outside of code blocks, causing compilation errors. The solution
-is to use hyphens in chunk names and rename the tangled output.
+is to use noweb's `[[...]]` notation, which automatically escapes all LaTeX special
+characters.
 
-```makefile
-# Pattern: module_name.nw contains <<module-name.py>>
-# Stage 1: Tangle to hyphenated name (LaTeX-safe)
-module-name.py: module_name.nw
-    ${NOTANGLE.py}
-
-# Stage 2: Rename to underscore (Python-compatible)
-.INTERMEDIATE: module-name.py
-module_name.py: module-name.py
-    ${MV} $< $@
+```noweb
+# In your .nw file, use [[...]] notation for ALL Python chunks:
+<<[[module_name.py]]>>=
+def my_function():
+    pass
+@
 ```
 
-**Example from canvaslms project:**
-```makefile
-# canvas_calendar.nw contains <<canvas-calendar.py>>
-.INTERMEDIATE: canvas-calendar.py
-canvas-calendar.py: canvas_calendar.nw
-    ${NOTANGLE.py}
+**Makefile integration:**
 
-canvas_calendar.py: canvas-calendar.py
-    mv $< $@
+The `noweb.mk` makefile infrastructure automatically handles `[[...]]` notation
+when extracting chunks:
+
+```makefile
+# In makefiles/noweb.mk - extraction uses [[...]] notation
+%.py: %.nw
+    ${NOTANGLE} -R"[[$(notdir $@)]]" $< > $@
+
+# In module Makefiles - just list the files
+MODULES = module_name.py another_module.py
 ```
 
 **Why this works:**
-- `.nw` filename can have underscores (filenames aren't processed by LaTeX)
-- Chunk name `<<canvas-calendar.py>>` uses hyphens (LaTeX-safe in documentation)
-- Tangling produces `canvas-calendar.py` (matches chunk name exactly)
-- Makefile renames to `canvas_calendar.py` (Python's import-compatible name)
-- `.INTERMEDIATE` marks `canvas-calendar.py` for automatic cleanup
+- `[[...]]` tells noweb to escape all LaTeX special characters automatically
+- Works for underscores, hashes, ampersands, and other special characters
+- Chunk name matches filename exactly (no renaming needed)
+- Simpler Makefiles (no intermediate file renaming)
+- Consistent pattern for all Python modules
+
+**Example from canvaslms project:**
+```noweb
+# attachment_cache.nw
+<<[[attachment_cache.py]]>>=
+"""Caching for Canvas attachment downloads"""
+import os
+import hashlib
+<<imports>>
+<<functions>>
+@
+```
 
 **When to use this pattern:**
-- Python modules with underscores in names (most Python code)
-- Any situation where chunk names would contain LaTeX special characters
+- **ALL Python chunks should use `[[...]]` notation** for consistency
+- Required for any filename with underscores, hashes, or special characters
 - Projects that weave documentation to LaTeX format
 
-**Alternative considered but rejected:**
-- Escaping underscores as `\_` in chunk names requires escaping everywhere
-- Using `[[...]]` notation doesn't help in chunk definitions themselves
-- Renaming Python files to use hyphens breaks Python import conventions
+**Alternatives and why they were rejected:**
+- **Escaping with `\_`**: Requires escaping everywhere `\_` characters appear, unmaintainable
+- **Hyphens + Makefile renaming** (old approach): Adds complexity, extra build steps, intermediate files
+- **Renaming files to avoid underscores**: Breaks Python import conventions
 
 ### Documentation Composition
 
@@ -1227,7 +1240,7 @@ Define tests in .nw files, extract to `/tests`:
 
 **In your .nw file:**
 ```noweb
-<<test modulename.py>>=
+<<test [[modulename.py]]>>=
 import pytest
 from package.modulename import feature
 
@@ -1236,20 +1249,21 @@ def test_feature():
 @
 ```
 
-**Note**: Use space in chunk name: `<<test modulename.py>>`, not `<<test_modulename.py>>`.
+**Note**: Use `[[...]]` notation for test chunks: `<<test [[modulename.py]]>>` to handle
+filenames with underscores or other LaTeX special characters consistently.
 
 **Tests Makefile** (`tests/Makefile`):
 ```makefile
 # Auto-discover test chunks in all .nw files
 define find_tests
 find ../src -name "*.nw" | \
-    xargs grep "<<test [^.-]*\.py>>" | \
-    sed -En "s/^(.*):.*<<test ([^.-]*).py>>.*/test_\2.py:\1/p"
+    xargs grep "<<test \[\[[^]]*\]\]>>" | \
+    sed -En "s/^(.*):.*<<test \[\[([^]]*)\]\]>>.*/test_\2:\1/p"
 endef
 
 # Extract each test file from its source .nw
 test_modulename.py: ../src/package/modulename.nw
-    notangle -R"test modulename.py" $< > $@
+    notangle -R"test [[modulename.py]]" $< > $@
 
 # Run tests
 test: all
