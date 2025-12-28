@@ -223,6 +223,58 @@ When writing literate programs:
    @
    ```
 
+10. **Co-locate dependencies with features** - When a module has multiple independent
+    features (like multiple providers, handlers, or plugins), keep each feature's
+    dependencies in a dedicated chunk defined within that feature's section.
+    This ensures that if a feature is removed, its dependencies go with it.
+
+    **Anti-pattern** (all imports in one place):
+    ```noweb
+    <<imports>>=
+    from provider_a import ClientA
+    from provider_b import ClientB
+    from provider_c import ClientC
+    @
+
+    [... 500 lines later, Provider C is removed but import remains ...]
+    ```
+
+    **Good pattern** (dependencies co-located with features):
+    ```noweb
+    <<imports>>=
+    from typing import Protocol
+    from common import Paper
+    <<provider a imports>>
+    <<provider b imports>>
+    <<provider c imports>>
+    @
+
+    \chapter{Provider A}
+    ...implementation...
+
+    \section{Dependencies}
+    <<provider a imports>>=
+    from provider_a import ClientA
+    @
+
+    \chapter{Provider B}
+    ...implementation...
+
+    \section{Dependencies}
+    <<provider b imports>>=
+    from provider_b import ClientB
+    @
+    ```
+
+    **Benefits:**
+    - Removing a feature removes its dependencies automatically
+    - Easy to see what each feature depends on
+    - Avoids orphaned imports when refactoring
+    - Self-documenting: dependencies are explained near their use
+
+    This pattern mirrors the `<<functions>>=` and `<<constants>>=` patterns where
+    chunks are defined throughout the file and concatenated together.
+
 ## LaTeX Documentation Quality
 
 **IMPORTANT**: Documentation chunks in .nw files are LaTeX. Apply the `latex-writing` skill best practices.
