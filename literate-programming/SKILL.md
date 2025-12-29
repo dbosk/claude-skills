@@ -1263,26 +1263,155 @@ import hashlib
 
 Create a master document in `/doc` that includes .tex from `/src`:
 
+**Directory structure:**
+```
+project/
+├── src/package/
+│   ├── module1.nw → module1.py + module1.tex
+│   └── module2.nw → module2.py + module2.tex
+└── doc/
+    ├── Makefile
+    ├── main.tex       # Master document (committed to git)
+    ├── preamble.tex   # Shared LaTeX preamble (committed to git)
+    └── main.pdf       # Generated (gitignored)
+```
+
+**Key principle**: The master document (`main.tex`) and preamble (`preamble.tex`) in `/doc`
+are **source files** that get committed to git. They are NOT generated from .nw files.
+Only the woven .tex files in `/src` are generated.
+
+### The Separate Preamble Pattern
+
+**ALWAYS use a separate preamble.tex file** that the main document inputs. This provides:
+- Consistent formatting across all literate programming projects
+- Easy updates to packages and settings
+- Clean separation of document structure from formatting
+
 **Master document** (`doc/main.tex`):
 ```latex
-\documentclass{memoir}
-\part{Core Modules}
-\input{../src/package/module.tex}
+\documentclass[a4paper,oneside]{memoir}
+\input{preamble}
 
-\part{Subpackages}
-\input{../src/package/subpackage/module2.tex}
+\usepackage{noweb}
+\noweboptions{shift,breakcode,longxref,longchunks}
+
+\title{Project Name}
+\author{Author Name}
+\date{\today}
+
+\begin{document}
+\frontmatter
+\maketitle
+
+\begin{abstract}
+Brief description of the project.
+\end{abstract}
+
+\tableofcontents
+
+\mainmatter
+
+\part{Core Functionality}
+\input{../src/package/module1.tex}
+\input{../src/package/module2.tex}
+
+\part{Extensions}
+\input{../src/package/subpackage/module3.tex}
+
+\backmatter
 \end{document}
 ```
 
+**Standard preamble** (`doc/preamble.tex`):
+
+Copy the standard preamble from `references/preamble.tex` in this skill directory.
+This preamble is used consistently across all literate programming projects and includes:
+- Language support (babel with swedish,british)
+- Bibliography (biblatex with alphabetic style)
+- Code highlighting (minted, pythontex)
+- Mathematics (amsmath, amssymb, mathtools, amsthm)
+- Cross-references (cleveref with custom question labels)
+- Various utilities (enumitem, csquotes, acro, etc.)
+
+### .nw Files as Chapters
+
+Each .nw file should be structured as a **chapter** (not a complete document):
+
+```noweb
+\chapter{Module Name}
+\label{module-name}
+
+\section{Introduction}
+
+This module provides...
+
+<<[[module_name.py]]>>=
+<<imports>>
+<<functions>>
+@
+
+\section{Implementation}
+...
+```
+
+**Key points:**
+- Start with `\chapter{...}` and `\label{...}`
+- NO `\documentclass`, `\begin{document}`, `\end{document}`
+- NO `\input{preamble}` or `\maketitle`
+- Use `\section`, `\subsection` for internal structure
+- The main document provides the document wrapper
+
+### Weaving for Inclusion
+
+Use the `-n -delay` flags when weaving to produce includable .tex files:
+
+```makefile
+# In src/package/Makefile
+NOWEAVEFLAGS.tex?= -x -n -delay -t2
+
+module.tex: module.nw
+    noweave ${NOWEAVEFLAGS.tex} $< > $@
+```
+
+The flags mean:
+- `-x`: Add cross-references
+- `-n`: No wrapper (no `\documentclass`, etc.)
+- `-delay`: Delay file info until after first doc chunk
+- `-t2`: Expand tabs to 2 spaces
+
+### Documentation Makefile Pattern
+
 **Documentation Makefile** (`doc/Makefile`):
 ```makefile
-main.pdf: ../src/package/module.tex
-main.pdf: ../src/package/subpackage/module2.tex
+DOC+=       main.pdf
 
-# Pattern rule: build .tex files in src if they don't exist
+SRC_TEX+=   ../src/package/module1.tex
+SRC_TEX+=   ../src/package/module2.tex
+SRC_TEX+=   ../src/package/subpackage/module3.tex
+
+.PHONY: all clean
+
+all: ${DOC}
+
+main.pdf: main.tex preamble.tex
+main.pdf: ${SRC_TEX}
+
+# Pattern rule: build .tex files in src if they don't exist or are outdated
 ../src/%::
     ${MAKE} -C $(dir $@) $(notdir $@)
+
+INCLUDE_MAKEFILES=../makefiles
+include ${INCLUDE_MAKEFILES}/tex.mk
+
+clean:
+    latexmk -C ${DOC}
 ```
+
+**How it works:**
+1. `main.pdf` depends on `main.tex`, `preamble.tex`, and all `SRC_TEX` files
+2. If any `.tex` in `/src` is missing or outdated, the pattern rule builds it
+3. The pattern rule calls `make` in the source directory to weave the .nw file
+4. Once all dependencies exist, latexmk compiles the main document
 
 This allows reorganizing documentation pedagogically without changing code structure.
 

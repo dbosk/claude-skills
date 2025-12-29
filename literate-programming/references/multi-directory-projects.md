@@ -201,34 +201,73 @@ project/
 │       └── module3.nw → module3.py + module3.tex
 └── doc/
     ├── Makefile
-    ├── main.tex      # Master document
-    └── preamble.tex  # Shared LaTeX preamble
+    ├── main.tex       # Master document (source, committed to git)
+    ├── preamble.tex   # Shared LaTeX preamble (source, committed to git)
+    └── main.pdf       # Generated (gitignored)
 ```
+
+**Key principle**: `main.tex` and `preamble.tex` are **source files** committed to git.
+They are NOT generated from .nw files. Only the woven .tex files in `/src` are generated.
+
+### The Separate Preamble Pattern
+
+**ALWAYS use a separate preamble.tex** that the main document inputs via `\input{preamble}`.
+This standard preamble is used consistently across all literate programming projects.
+
+Copy the preamble from the `literate-programming` skill's `references/preamble.tex` file.
 
 **Master document** (`doc/main.tex`):
 ```latex
-\documentclass{memoir}
+\documentclass[a4paper,oneside]{memoir}
 \input{preamble}
 
+\usepackage{noweb}
+\noweboptions{shift,breakcode,longxref,longchunks}
+
+\title{Project Name}
+\author{Author Name}
+\date{\today}
+
 \begin{document}
+\frontmatter
+\maketitle
+
+\begin{abstract}
+Brief description of the project.
+\end{abstract}
+
+\tableofcontents
+
+\mainmatter
 
 \part{Core Modules}
-
-This part describes the core functionality.
-
-\chapter{Module One}
 \input{../src/package/module1.tex}
-
-\chapter{Module Two}
 \input{../src/package/module2.tex}
 
 \part{Extensions}
-
-\chapter{Subpackage Features}
 \input{../src/package/subpackage/module3.tex}
 
+\backmatter
 \end{document}
 ```
+
+### .nw Files as Chapters
+
+Each .nw file should be structured as a **chapter** (not a complete document):
+
+```noweb
+\chapter{Module Name}
+\label{module-name}
+
+\section{Introduction}
+...
+```
+
+**Key points:**
+- Start with `\chapter{...}` and `\label{...}`
+- NO `\documentclass`, `\begin{document}`, `\end{document}`
+- NO `\input{preamble}` or `\maketitle`
+- The main document provides the document wrapper
 
 ### Build Dependencies
 
