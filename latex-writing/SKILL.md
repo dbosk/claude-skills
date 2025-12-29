@@ -445,6 +445,43 @@ When creating Beamer presentations that also generate article versions, use `\mo
 
 Slides need **visual clarity** and **conciseness** (bullets, short phrases). Articles can provide **depth** and **explanation** (full sentences, paragraphs). Design content appropriate for each medium.
 
+## Standard Preamble
+
+For new LaTeX documents, use the standard preamble from `references/preamble.tex`. Copy it verbatim to your project's `doc/preamble.tex` and include it with `\input{preamble}` after `\documentclass`.
+
+**Document structure:**
+```latex
+\documentclass[a4paper,oneside]{memoir}
+\input{preamble}
+
+\title{Document Title}
+\author{Author Name}
+\date{\today}
+
+\begin{document}
+\frontmatter
+\maketitle
+\tableofcontents
+
+\mainmatter
+% Content here
+
+\backmatter
+\end{document}
+```
+
+**The standard preamble provides:**
+- Language support (babel with swedish, british)
+- Bibliography (biblatex with alphabetic style)
+- Code highlighting (minted, noweb)
+- Mathematics (amsmath, amssymb, mathtools, amsthm)
+- Cross-references (cleveref with custom labels)
+- Quotations (csquotes)
+- Tables (booktabs)
+- Various utilities (enumitem, acro, siunitx, etc.)
+
+This ensures consistent formatting across all documents and projects.
+
 ## Remember
 
 LaTeX is a **document preparation system** based on **semantic markup**, not a word processor. The goal is to describe what content *is*, not how it should *look*. Let LaTeX handle the formatting based on the semantic structure you provide.
