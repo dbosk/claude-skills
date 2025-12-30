@@ -596,7 +596,7 @@ def test_feature_x():
 
 ### Main Test File Structure Pattern
 
-Define the main test file structure early (imports, test file skeleton), then reference test chunks defined later:
+Define the main test file structure early (imports, test file skeleton), then reference a single `<<test functions>>` chunk that gets built up throughout the document:
 
 ```noweb
 \section{Testing Overview}
@@ -604,13 +604,12 @@ Define the main test file structure early (imports, test file skeleton), then re
 Tests are distributed throughout this document, appearing after
 each implementation section.
 
-<<test module.py>>=
+<<test [[module.py]]>>=
 """Tests for module functionality"""
 import pytest
-from module import feature_a, feature_b
+from module import *
 
-<<test feature a>>
-<<test feature b>>
+<<test functions>>
 @
 
 \section{Feature A Implementation}
@@ -619,12 +618,32 @@ from module import feature_a, feature_b
 @
 
 \subsection{Verifying Feature A}
-<<test feature a>>=
+<<test functions>>=
 class TestFeatureA:
     def test_basic_case(self):
         ...
 @
+
+\section{Feature B Implementation}
+<<implementation of feature b>>=
+...
+@
+
+\subsection{Verifying Feature B}
+<<test functions>>=
+class TestFeatureB:
+    def test_another_case(self):
+        ...
+@
 ```
+
+**Key principles:**
+
+1. **Use `from module import *`** - Import everything from the module being tested. This allows freely adding to `<<test functions>>` without updating imports. The test setup should not need modification when adding new tests.
+
+2. **Single `<<test functions>>` chunk** - All test chunks use the same name. Noweb concatenates them in order of appearance, building up the complete test file.
+
+3. **Tests stay close to implementations** - Each `<<test functions>>=` chunk appears immediately after the implementation it verifies, maintaining pedagogical proximity.
 
 ### Anti-Pattern: Tests Before Implementation
 
@@ -665,7 +684,7 @@ def make_comparable(cls):
 
 Now let's verify the decorator works correctly...
 
-<<test equality>>=
+<<test functions>>=
 def test_users_equal():
     ...
 @
