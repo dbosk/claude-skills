@@ -2,7 +2,8 @@
 name: git-commit-practices
 description: |
   CRITICAL: ALWAYS activate this skill at the start of ANY task in a git
-  repository. Check git status first - if on feature/topic branch, activate
+  repository. ALWAYS activate this skill when the user asks you to commit. 
+  Check git status first - if on feature/topic branch, activate
   immediately. If on master/main, create a feature branch first, then activate.
   If not in git repo, skip. This skill guides continuous atomic commits
   throughout work sessions. Key trigger: ANY task involving code changes in a
