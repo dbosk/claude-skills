@@ -33,7 +33,7 @@ We use \ac{DH} to establish a shared key and authenticate with a \ac{MAC}.
 
 - `bibsp.sty` declares many crypto acronyms via `\DeclareAcronym{...}{...}`.
 - Many entries include `cite = {<bibkey>}`. When the acronym is used, `acro` can attach a citation.
-- In this project, `/home/dbosk/phd/thesis/preamble.tex` sets:
+- In this project, `preamble.tex` should set:
   - `\usepackage{bibsp}`
   - `\acsetup{cite/cmd=\autocite}`
   - `biblatex` is configured so `\autocite{...}` produces footnote citations.
@@ -71,12 +71,14 @@ Define algorithm/function macros that behave like operators and accept optional 
 Usage patterns:
 
 ```latex
-c \gets \Enc(m)
+c \gets \Enc[m]
 \qquad
-m \gets \Dec(c)
+m \gets \Dec[c]
 \qquad
-h \gets \Hash(m)
+h \gets \Hash[m]
 ```
+
+The [...] optional argument adds parentheses, automatically using \left and \right.
 
 Star form convention: most of these macros support a starred form (e.g., `\Enc*`) that draws an overline, used for “idealized/modified/adversarial” variants when you need that notation.
 
