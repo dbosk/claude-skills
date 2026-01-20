@@ -724,8 +724,11 @@ Practical rule:
 When producing both slides and an article/notes version:
 - Prefer writing expanded prose outside `frame` environments. Text outside
   frames is ignored in Beamer presentation mode.
-- Use `\only<article>{...}` / `\only<presentation>{...}` only when you must mix
-  article-only and slide-only material inside the same frame.
+- Use `\only<article>{...}` / `\only<presentation>{...}` inside a frame when you
+  must mix article-only and slide-only material.
+- Prefer `\only` inside frames to deduplicate content: keep a single frame with a
+  shared structure (e.g., a `definition` title) and switch only the body between
+  slide bullets and article prose.
 - Avoid overusing `\mode<article>` / `\mode<presentation>`; reserve it for
   structural switches (or when an environment/package genuinely requires it).
 
