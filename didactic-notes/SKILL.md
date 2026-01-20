@@ -487,9 +487,9 @@ When documenting variation theory applications, ALWAYS:
 
 ### Language Consistency in Notes
 
-**CRITICAL**: Match the language of `\ltnote` content to the document's instructional language.
+**CRITICAL**: Match the language of `\ltnote` content to the surrounding document.
 
-**Rule**: If the student-facing content is in language X, write `\ltnote` content in language X.
+**Rule**: Write `\ltnote{...}` in the same language as the student-facing text in that part of the document.
 
 **When to use English in non-English documents**:
 - Established technical terms (use `\foreignlanguage{english}{term}`)
