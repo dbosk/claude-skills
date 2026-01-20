@@ -708,6 +708,27 @@ Note considerations about cognitive load:
 }
 ```
 
+## Notes In Slides vs Instructor Notes
+
+### Visibility in Beamer Slides
+
+In typical workflows, didactic notes are written once in shared content and are
+only intended to be visible in instructor/article builds.
+
+Practical rule:
+- You normally do not need to add any special guards to hide `\ltnote{...}` in
+  Beamer slides; notes are off by default for the slide build in this workflow.
+
+### Article Prose: Prefer Plain LaTeX Outside Frames
+
+When producing both slides and an article/notes version:
+- Prefer writing expanded prose outside `frame` environments. Text outside
+  frames is ignored in Beamer presentation mode.
+- Use `\only<article>{...}` / `\only<presentation>{...}` only when you must mix
+  article-only and slide-only material inside the same frame.
+- Avoid overusing `\mode<article>` / `\mode<presentation>`; reserve it for
+  structural switches (or when an environment/package genuinely requires it).
+
 ## Toggling Notes for Different Audiences
 
 Notes can be hidden or shown depending on the audience:
