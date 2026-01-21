@@ -85,7 +85,12 @@ You are an expert in literate programming using the noweb system. Apply these pr
 5. **Write the code chunks referenced in documentation**
 6. **Regenerate and test**
 
-**Key principle:** If you find yourself writing code comments to explain logic, that explanation belongs in the TeX/documentation chunks instead!
+**Key principle:** If you find yourself writing code comments to explain logic, that explanation belongs in the TeX/documentation chunks instead.
+
+A good practical test: if a helper function is introduced, add a short
+subsection that explains what data it consumes/produces and what selection rule
+it implements (e.g., "latest timestamp wins"). Keep code comments minimal and
+save them for non-obvious low-level details (quoting, field indices, escaping).
 
 ## Reviewing Existing Literate Programs
 
@@ -189,8 +194,16 @@ When writing literate programs:
 5. **Explain the "why"** - Don't just describe what the code does (that's visible), explain why you chose this approach
 6. **Keep chunks focused** - Each chunk should represent a single, coherent idea
 7. **Use the web structure** - Don't be afraid to define chunks out of order or
-   to reuse chunks. However, use helper functions, don't replace those with
-   chunks. We still want to do structured programming.
+   to reuse chunks.
+
+   Prefer the simple noweb pattern of accumulating one "bucket" chunk such as
+   `<<functions>>=` (and `<<constants>>=`) as you introduce functions in the
+   narrative. This keeps tangling simple (only the root chunk needs to include
+   `<<functions>>`) while allowing pedagogical ordering.
+
+   Use helper functions for structure inside the tangled code; use noweb chunks
+   to control presentation order and to co-locate prose with the code it
+   explains.
 8. **Define constants for magic numbers** - Never use hardcoded numeric or
    string values scattered throughout code. Define named constants at the module
    level and reference them. This makes code self-documenting and ensures values
