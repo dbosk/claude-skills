@@ -110,7 +110,7 @@ Use different prompt types to engage students before providing explanations:
 6. **Reflection Prompts**: "Reflektera över..." or "What advantages/disadvantages do you see...?"
 7. **Experimentation Prompts**: "Prova!" or "Write a program that..."
 
-**For detailed implementation guidance, examples, and LaTeX/Beamer templates, see `patterns.md`.**
+**For detailed implementation guidance, examples, and LaTeX/Beamer templates, see `references/patterns.md`.**
 
 ## Typical Flow
 
@@ -213,7 +213,7 @@ with open("data.txt", "r") as file:
 - Compare responses to pre-test
 - Students should now discern the critical aspects
 
-**See `patterns.md` for detailed implementation guidance on diagnostic use.**
+**See `references/patterns.md` for detailed implementation guidance on diagnostic use.**
 
 ### Crafting Effective Discovery Questions
 
@@ -371,7 +371,7 @@ This approach creates specific variation patterns:
 - Invariant: The problem requirements
 - Discernment: Critical aspects that make the canonical solution effective
 
-**For detailed examples from actual teaching practice, including Python classes, operator overloading, and fraction arithmetic with LaTeX/Beamer code, see `examples.md`.**
+**For detailed examples from actual teaching practice, including Python classes, operator overloading, and fraction arithmetic with LaTeX/Beamer code, see `references/examples.md`.**
 
 ## Key Principles Summary
 
@@ -384,8 +384,12 @@ This approach creates specific variation patterns:
 7. **Connect to critical aspects** - Use the contrast to highlight what matters
 8. **Create safe failure** - Frame attempts as learning opportunities, not tests
 
-## Supporting Files
+## Reference Files
 
-- **`patterns.md`**: Detailed implementation guidance for all seven prompt types, LaTeX/Beamer templates, and markdown examples
-- **`examples.md`**: Real examples from Python programming courses showing each pattern in action
-- **`references.md`**: Theoretical background on productive failure, retrieval practice, variation theory, and the Socratic method
+This skill includes detailed references in `references/`:
+
+| File | Content | Search patterns |
+|------|---------|-----------------|
+| `patterns.md` | Implementation guidance for all seven prompt types, LaTeX/Beamer templates | `exercise`, `activity`, `\begin{exercise}` |
+| `examples.md` | Real examples from Python programming courses | `Python`, `class`, `fraction` |
+| `theoretical-background.md` | Productive failure, retrieval practice, variation theory | `Kapur`, `Socratic`, `research` |

@@ -1,7 +1,7 @@
 ---
 name: writing-crypto
 description: |
-  Write cryptography prose and notation using the project's bibsp.sty + preamble.tex conventions (acro + biblatex footnote citations and standardized math macros). Use proactively when: (1) writing/editing cryptography sections in .tex files, (2) introducing or using crypto acronyms such as IND-CPA, IND-CCA, AE, MAC, PRF, ZK, and DH, (3) defining schemes/algorithms/variables in math notation, (4) adding citations for security notions or standard primitives.
+  Write cryptography prose and notation using the project's bibsp.sty + preamble.tex conventions (acro + biblatex footnote citations and standardized math macros). Use proactively when: (1) writing/editing cryptography sections in .tex files, (2) introducing or using crypto acronyms such as IND-CPA, IND-CCA, AE, MAC, PRF, ZK, and DH, (3) defining schemes/algorithms/variables in math notation, (4) adding citations for security notions or standard primitives, (5) writing security proofs or reductions, (6) user mentions biblatex, crypto notation, or security proof in cryptographic context.
 ---
 
 # Writing Crypto With bibsp
