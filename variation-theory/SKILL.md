@@ -47,7 +47,7 @@ Before designing any pattern of variation:
 The principle "one thing at a time" applies to **dimensions** (aspects), NOT to **values** within a dimension.
 
 - **Dimension (aspect)**: A category/feature type (e.g., "punctuation marks", "file mode")
-- **Values/features**: Specific instances (e.g., `.`/`?`/`!` or `r`/`w`/`a`)
+- **Values/features**: Specific instances (e.g., punctuation marks like period, question mark, exclamation mark; or file modes like `r`, `w`, `a`)
 
 **The principle:**
 - **Vary ONE dimension at a time** - to separate aspects from each other
