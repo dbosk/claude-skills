@@ -120,13 +120,14 @@ Apply `variation-theory` skill when structuring explanations:
 1. **Start with the human story** - problem, approach, design decisions
 2. **Introduce concepts in pedagogical order** - not compiler order
 3. **Use meaningful chunk names** - 2-5 word summary of purpose (like pseudocode)
-4. **Decompose by concept, not syntax**
-5. **Explain the "why"** - don't just describe what the code does
-6. **Keep chunks focused** - single, coherent idea each
-7. **Use bucket chunks** - accumulate `<<functions>>=` and `<<constants>>=` throughout
-8. **Define constants for magic numbers** - never hardcode values
-9. **Co-locate dependencies with features** - feature's imports in feature's section
-10. **Keep lines under 80 characters** - both prose and code
+4. **Reference variables in chunk names** - when a chunk operates on a specific variable, use `[[variable]]` notation in the chunk name to make the connection explicit (e.g., `<<add graders to [[graders]] list>>`)
+5. **Decompose by concept, not syntax**
+6. **Explain the "why"** - don't just describe what the code does
+7. **Keep chunks focused** - single, coherent idea each
+8. **Use bucket chunks** - accumulate `<<functions>>=` and `<<constants>>=` throughout
+9. **Define constants for magic numbers** - never hardcode values
+10. **Co-locate dependencies with features** - feature's imports in feature's section
+11. **Keep lines under 80 characters** - both prose and code
 
 ### LaTeX Documentation Quality
 
