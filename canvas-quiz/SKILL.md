@@ -24,6 +24,20 @@ cryptography topics.
 - Pattern: `modules/week-N/INL1Quiz-<topic>.json`
 - Examples: `INL1Quiz-ciphers.json`, `INL1Quiz-zkp.json`, `INL1Quiz-mpc.json`
 
+## Up-to-Date Format Reference
+
+The `canvaslms` CLI provides canonical, up-to-date JSON examples. Run these
+to get the latest format (always in sync with the tool):
+
+```bash
+canvaslms quizzes create --example      # Full quiz envelope + all settings
+canvaslms quizzes items add --example   # All question types with examples
+```
+
+These show every supported question type (`choice`, `multi-answer`, `matching`,
+`true-false`, `ordering`, `rich-fill-blank`, `essay`, `file-upload`,
+`formula`) with correct `scoring_data` structure for each.
+
 ## JSON Structure
 
 ### Quiz Envelope
@@ -174,11 +188,37 @@ Include choice pairs differing in one critical aspect:
 
 The critical aspect: privacy is *relative to the output*, not absolute.
 
+### Matching Distractors
+
+Matching questions can include extra answers that don't match any term. Add
+them to the `answers` array and the `distractors` list in `edit_data`:
+
+```json
+"interaction_data": {
+  "answers": ["Stockholm", "Oslo", "Copenhagen", "Helsinki", "Berlin"],
+  "questions": [
+    { "id": "q1", "item_body": "Sweden" },
+    { "id": "q2", "item_body": "Norway" }
+  ]
+},
+"scoring_data": {
+  "edit_data": {
+    "matches": [ ... ],
+    "distractors": ["Berlin"]
+  }
+}
+```
+
 ### Format Variety
 
-Include at least one matching question per quiz. Available types:
-- `multi-answer` with `AllOrNothing` (primary)
-- `matching` with `DeepEquals` (for definitions/properties)
+Include at least one non-multi-answer question per quiz. Available types:
+- `multi-answer` with `AllOrNothing` — "select all true" (primary)
+- `matching` with `DeepEquals` — match terms to definitions
+- `choice` with `Equivalence` — single correct answer from choices
+- `true-false` with `Equivalence` — true/false statement
+- `ordering` with `DeepEquals` — arrange items in correct order
+
+Run `canvaslms quizzes items add --example` for JSON examples of each type.
 
 ## Redundancy Analysis
 

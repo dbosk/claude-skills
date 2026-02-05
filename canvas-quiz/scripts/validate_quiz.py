@@ -147,6 +147,66 @@ def validate_matching(entry, qnum):
     return errors, warnings
 
 
+def validate_choice(entry, qnum):
+    """Validate a single-choice question."""
+    errors = []
+    warnings = []
+
+    choices = entry.get("interaction_data", {}).get("choices", [])
+    if not choices:
+        errors.append(f"Q{qnum}: No choices in interaction_data")
+        return errors, warnings
+
+    scoring_value = entry.get("scoring_data", {}).get("value")
+    if scoring_value is None:
+        errors.append(f"Q{qnum}: Missing scoring_data.value")
+        return errors, warnings
+
+    # value can be a position number or a UUID string
+    if isinstance(scoring_value, int):
+        choice_positions = {c["position"] for c in choices}
+        if scoring_value not in choice_positions:
+            errors.append(
+                f"Q{qnum}: scoring_data.value {scoring_value} "
+                f"not in choice positions {sorted(choice_positions)}"
+            )
+
+    return errors, warnings
+
+
+def validate_ordering(entry, qnum):
+    """Validate an ordering question."""
+    errors = []
+    warnings = []
+
+    choices = entry.get("interaction_data", {}).get("choices", {})
+    if not choices:
+        errors.append(f"Q{qnum}: No choices in interaction_data")
+        return errors, warnings
+
+    scoring_value = entry.get("scoring_data", {}).get("value", [])
+    if not isinstance(scoring_value, list):
+        errors.append(f"Q{qnum}: scoring_data.value must be a list "
+                      f"for ordering, got {type(scoring_value).__name__}")
+        return errors, warnings
+
+    # Check all IDs in scoring exist in choices
+    choice_ids = set(choices.keys()) if isinstance(choices, dict) else set()
+    for item_id in scoring_value:
+        if choice_ids and item_id not in choice_ids:
+            errors.append(
+                f"Q{qnum}: scoring_data references '{item_id}' "
+                f"not in choices"
+            )
+
+    return errors, warnings
+
+
+# Question types that need no special validation beyond required fields
+SIMPLE_TYPES = {"true-false", "essay", "file-upload", "formula",
+                "rich-fill-blank"}
+
+
 def validate_item(item, qnum):
     """Validate a single quiz item."""
     errors = []
@@ -177,6 +237,16 @@ def validate_item(item, qnum):
         e, w = validate_matching(entry, qnum)
         errors.extend(e)
         warnings.extend(w)
+    elif itype == "choice":
+        e, w = validate_choice(entry, qnum)
+        errors.extend(e)
+        warnings.extend(w)
+    elif itype == "ordering":
+        e, w = validate_ordering(entry, qnum)
+        errors.extend(e)
+        warnings.extend(w)
+    elif itype in SIMPLE_TYPES:
+        pass  # No special validation needed
     else:
         warnings.append(f"Q{qnum}: Unknown interaction type '{itype}'")
 
@@ -234,11 +304,39 @@ def validate_quiz(path):
             })
         elif itype == "matching":
             questions = entry.get("interaction_data", {}).get("questions", [])
+            answers = entry.get("interaction_data", {}).get("answers", [])
+            distractors = entry.get("scoring_data", {}).get(
+                "edit_data", {}).get("distractors", [])
             stats["questions"].append({
                 "position": qnum,
                 "title": title,
                 "type": itype,
                 "n_pairs": len(questions),
+                "n_distractors": len(distractors),
+                "n_answers": len(answers),
+            })
+        elif itype == "choice":
+            choices = entry.get("interaction_data", {}).get("choices", [])
+            stats["questions"].append({
+                "position": qnum,
+                "title": title,
+                "type": itype,
+                "n_choices": len(choices),
+            })
+        elif itype == "ordering":
+            choices = entry.get("interaction_data", {}).get("choices", {})
+            n = len(choices) if isinstance(choices, dict) else 0
+            stats["questions"].append({
+                "position": qnum,
+                "title": title,
+                "type": itype,
+                "n_items": n,
+            })
+        else:
+            stats["questions"].append({
+                "position": qnum,
+                "title": title,
+                "type": itype,
             })
 
     return errors, warnings, stats
@@ -275,8 +373,21 @@ def print_results(path, errors, warnings, stats):
                       f" = {q['ratio']:.0f}% true"
                       f" -- {q['type']}")
             elif q["type"] == "matching":
+                dist = (f" + {q['n_distractors']} distractors"
+                        if q.get('n_distractors') else "")
                 print(f"    Q{q['position']}: {q['title']}"
-                      f" -- {q['n_pairs']} pairs"
+                      f" -- {q['n_pairs']} pairs{dist}"
+                      f" -- {q['type']}")
+            elif q["type"] == "choice":
+                print(f"    Q{q['position']}: {q['title']}"
+                      f" -- {q['n_choices']} choices"
+                      f" -- {q['type']}")
+            elif q["type"] == "ordering":
+                print(f"    Q{q['position']}: {q['title']}"
+                      f" -- {q['n_items']} items"
+                      f" -- {q['type']}")
+            else:
+                print(f"    Q{q['position']}: {q['title']}"
                       f" -- {q['type']}")
 
     status = "FAIL" if errors else ("WARN" if warnings else "OK")
