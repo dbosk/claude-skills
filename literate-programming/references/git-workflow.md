@@ -23,43 +23,99 @@ The `.nw` file is the single source of truth. Generated files are build artifact
 
 ## Setting Up .gitignore
 
-When starting a literate programming project, create .gitignore patterns for all generated files:
+Use **directory-level `.gitignore` files** rather than a single root-level
+file with path patterns. This approach is simpler, self-documenting, and
+doesn't require path maintenance when directories move.
 
-### Example .gitignore
+### Root `.gitignore`
+
+Use the standard Python template from GitHub (covers `__pycache__/`, `dist/`,
+`.venv/`, `*.egg-info/`, etc.). Do **not** add literate-programming-specific
+rules here — those belong in subdirectory `.gitignore` files.
+
+### `src/.gitignore`
 
 ```gitignore
-# Generated from literate programming (.nw files)
-src/**/*.py
-src/**/*.tex
+*.py
+*.tex
+```
 
-# LaTeX build artifacts
+Every `.py` and `.tex` file under `src/` is generated from `.nw` sources.
+This single file covers the entire `src/` tree regardless of package depth.
+
+### `tests/.gitignore`
+
+```gitignore
+*.py
+```
+
+All test `.py` files are tangled from `.nw` sources by the test Makefile.
+
+### `doc/.gitignore`
+
+```gitignore
+packagename.tex
+packagename.pdf
+ltxobj/
+_minted*
 *.aux
+*.bbl
+*.bcf
+*.blg
+*.fdb_latexmk
+*.fls
+*.idx
+*.ilg
+*.ind
+*.lof
 *.log
+*.lot
+*.nav
 *.out
+*.run.xml
+*.snm
+*.synctex.gz
 *.toc
-*.pdf
-
-# Test extraction
-tests/test_*.py
-
-# Exceptions for hand-written files (if any)
-!src/specific_handwritten.py
+*.vrb
 ```
 
-### Pattern for Poetry Projects
+The first two lines are project-specific (the woven `.tex` and compiled
+`.pdf`). The rest are standard LaTeX temporaries. The `preamble.tex`,
+`abstract.tex`, `bibliography.bib`, and document `.nw` files are all
+hand-written sources that **should** be committed.
 
-```gitignore
-# Generated code from .nw files
-src/packagename/**/*.py
-!src/packagename/__init__.py  # If hand-written
+### Why Directory-Level
 
-# Generated documentation
-src/**/*.tex
-doc/*.pdf
+- **Simpler patterns**: `*.py` instead of `src/packagename/**/*.py`
+- **Self-documenting**: Each directory declares what it generates
+- **No path maintenance**: Moving directories doesn't break patterns
+- **Separation of concerns**: Root handles Python packaging, subdirectories
+  handle literate-programming artifacts
 
-# Test files
-tests/test_*.py
+### Packaging: `pyproject.toml` Excludes
+
+The `.gitignore` only prevents git tracking. For Python packaging, you also
+need `[tool.poetry]` `exclude` patterns to prevent `.nw`, `.tex`, Makefiles,
+and build artifacts from being included in the wheel:
+
+```toml
+[tool.poetry]
+packages = [{include = "packagename", from = "src"}]
+include = [
+  { path = "src/**/*.py", format = "wheel" },
+]
+exclude = [
+  "src/packagename/.gitignore",
+  "src/packagename/Makefile",
+  "src/packagename/*.nw",
+  "src/packagename/*.tex",
+  "src/packagename/CLAUDE.md",
+  "src/packagename/ltxobj",
+]
 ```
+
+See `references/project-initialization.md` for the full `pyproject.toml`
+template.
 
 ---
 

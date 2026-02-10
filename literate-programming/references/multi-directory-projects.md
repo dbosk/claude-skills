@@ -21,21 +21,26 @@ For large projects, separate literate sources, documentation builds, and tests i
 
 ```
 project/
-├── src/              # Literate source files (.nw)
+├── Makefile            # Root orchestrator (compile → test → docs)
+├── pyproject.toml      # Poetry packaging configuration
+├── src/                # Literate source files (.nw)
 │   └── package/
+│       ├── Makefile
 │       ├── module1.nw
 │       ├── module2.nw
 │       └── subpackage/
 │           └── module3.nw
-├── doc/              # Documentation build directory
+├── doc/                # Documentation build directory
 │   ├── Makefile
-│   ├── main.tex      # Master document
-│   └── main.pdf      # Generated documentation
-├── tests/            # Extracted test files
+│   ├── project.nw      # Document wrapper (.nw, not .tex)
+│   ├── preamble.tex    # LaTeX preamble (committed to git)
+│   └── project.pdf     # Generated documentation
+├── tests/              # Extracted test files
 │   ├── Makefile
-│   ├── test_module1.py (generated)
-│   └── test_module2.py (generated)
-└── makefiles/        # Shared build infrastructure
+│   └── unit/
+│       ├── test_module1.py (generated)
+│       └── test_module2.py (generated)
+└── makefiles/          # Shared build infrastructure (submodule)
     ├── noweb.mk
     └── subdir.mk
 ```
@@ -154,20 +159,26 @@ ${SUBDIR}::
 ${actual_goals}: ${SUBDIR}
 ```
 
-### Special Pattern: Python __init__.py
+### Pattern: Python __init__.py
 
-Python modules need `__init__.py`, but noweb tangles to the chunk name. Use this pattern:
+Python modules need `__init__.py`. Name the chunk `<<[[__init__.py]]>>` directly
+and add an explicit dependency in the Makefile:
 
 ```makefile
-# Declare init.py as intermediate (won't be kept)
-.INTERMEDIATE: init.py
+MODULES+=	__init__.py packagename.tex
 
-# Tangle init.nw to init.py, then rename to __init__.py
-__init__.py: init.py
-    ${MV} $< $@
-
-# Standard tangling rule still applies for init.nw → init.py
+__init__.py: packagename.nw
+	${NOTANGLE.py}
 ```
+
+The explicit rule is needed because the `.nw` basename (`packagename`) doesn't
+match the output basename (`__init__`), so the default suffix rule won't fire.
+`${NOTANGLE.py}` extracts the `<<[[__init__.py]]>>` chunk by name.
+
+**Legacy pattern (still found in nytid):** Older projects use a
+`.INTERMEDIATE` + `${MV}` rename trick where `init.nw` tangles to `init.py`
+and is then renamed to `__init__.py`. New projects should use the direct
+`<<[[__init__.py]]>>` approach above.
 
 ### Self-Documenting Build Systems
 
@@ -182,6 +193,57 @@ makefiles/
 ├── subdir.mk         # Generated
 └── makefiles.pdf     # Documentation of build system
 ```
+
+### Root Orchestrator Makefile
+
+For projects with packaging (Poetry), create a root Makefile that orchestrates
+the compile → test → docs workflow:
+
+```makefile
+SUBDIR_GOALS=	all clean distclean
+
+SUBDIR+=		src/packagename
+SUBDIR+=		tests
+SUBDIR+=		doc
+
+version=$(shell sed -n 's/^ *version *= *\"\([^\"]\+\)\"/\1/p' pyproject.toml)
+
+
+.PHONY: all
+all: compile doc/packagename.pdf test
+
+.PHONY: test
+test: compile
+	${MAKE} -C tests test
+
+.PHONY: compile
+compile:
+	${MAKE} -C src/packagename all
+	poetry build
+
+doc/packagename.pdf:
+	${MAKE} -C $(dir $@) $(notdir $@)
+
+
+.PHONY: clean
+clean:
+
+.PHONY: distclean
+distclean:
+	${RM} -R build dist packagename.egg-info src/packagename.egg-info
+
+
+INCLUDE_MAKEFILES=makefiles
+include ${INCLUDE_MAKEFILES}/subdir.mk
+```
+
+**Key design:**
+- `compile` tangles code then runs `poetry build` to create the wheel.
+- `test` depends on `compile` so the package is installed before pytest runs.
+- `version` is extracted from `pyproject.toml` for release tagging.
+- `SUBDIR` + `subdir.mk` propagate `clean`/`distclean` to all subdirectories.
+
+See `references/project-initialization.md` for the complete project setup.
 
 ---
 
@@ -307,6 +369,83 @@ main.pdf: main.tex preamble.tex
 - **Automatic dependencies**: Make tracks .tex changes and rebuilds as needed
 - **Separation of concerns**: Code structure vs. documentation structure
 
+### Alternative: .nw Document Wrapper
+
+Instead of a plain `.tex` master document, the document wrapper can be a `.nw`
+file. This lets `noweb.mk` weaving rules process it alongside the source `.nw`
+files.
+
+**`doc/packagename.nw`:**
+```noweb
+\documentclass[a4paper,oneside]{memoir}
+\maxtocdepth{subsection}
+\setsecnumdepth{subsection}
+\nouppercaseheads
+
+\usepackage{noweb}
+\noweboptions{breakcode,longchunks,longxref}
+
+\usepackage[hyphens]{url}
+\usepackage[colorlinks]{hyperref}
+\usepackage{authblk}
+
+\input{preamble.tex}
+
+\title{Project Title}
+\author{Author Name}
+
+\begin{document}
+\frontmatter
+\maketitle
+
+\begin{abstract}
+  \input{abstract.tex}
+\end{abstract}
+
+\tableofcontents
+\clearpage
+
+\mainmatter
+
+\input{../src/packagename/packagename.tex}
+
+\backmatter
+\printbibliography
+
+\end{document}
+```
+
+**`doc/Makefile`:**
+```makefile
+LATEXFLAGS += -shell-escape
+
+.PHONY: all weave clean distclean
+all: packagename.pdf
+
+weave: packagename.tex
+
+../src/packagename/packagename.tex: ../src/packagename/packagename.nw
+
+%.tex: %.nw
+	${MAKE} -C $(dirname $@) $(basename $@)
+
+packagename.pdf: packagename.tex ../src/packagename/packagename.tex
+packagename.pdf: bibliography.bib preamble.tex
+
+clean:
+	${RM} packagename.tex packagename.pdf
+
+distclean:
+
+INCLUDE_MAKEFILES = ../makefiles
+include ${INCLUDE_MAKEFILES}/noweb.mk
+```
+
+The `.nw` wrapper is woven to `.tex` by `noweb.mk`, then compiled to PDF.
+The `\input` pulls in the woven `.tex` from `/src`.
+
+See `references/project-initialization.md` for the full document setup.
+
 ---
 
 ## Test Organization
@@ -317,10 +456,10 @@ Tests are defined IN the .nw files alongside implementation, but extracted to a 
 
 ### Chunk Naming Convention
 
-Use this specific format for test chunks (note the space, not underscore):
+Use this specific format for test chunks:
 
 ```noweb
-<<test modulename.py>>=
+<<test [[modulename.py]]>>=
 import pytest
 from package.modulename import *
 
@@ -329,52 +468,90 @@ def test_feature():
 @
 ```
 
-The chunk name is `<<test modulename.py>>` with a **space** between "test" and the filename.
+The chunk name is `<<test [[modulename.py]]>>` with a **space** between
+"test" and the filename. The `[[...]]` brackets make the filename LaTeX-safe
+(underscores in filenames won't break documentation).
 
 ### Discovery and Extraction Makefile
 
-The `/tests/Makefile` automatically discovers and extracts tests:
+The `/tests/Makefile` automatically discovers and extracts tests. This is the
+full version from the forcing project, handling `[[...]]` brackets, spaces in
+chunk names, and the `unit/` subdirectory:
 
 ```makefile
-# Function to find all test chunks in .nw files
+# Makefile for test suite
+#
+# Tests are written in .nw files throughout the src/ tree using
+# chunks named "<<test [[modulename.py]]>>". This Makefile automatically
+# discovers those chunks and tangles them to tests/unit/test_*.py files.
+
+# Auto-discover test chunks in .nw files
+# Output format: "unit/test_modulename.py:sourcefile.nw:test%20[[modulename.py]]"
+# We encode the single space in "test [[name.py]]" as %20 to avoid
+# word-splitting issues, while preserving literal underscores in names like
+# "attachment_cache".
 define find_tests
-find ../src -type f -name "*.nw" | \
-    xargs grep "<<test [^.-]*\.py>>" | \
-    sed -En "s/^(.*):.*<<test ([^.-]*).py>>.*/test_\2.py:\1/p" | \
-    sort -u
+( \
+	find ../src -name '*.nw' | xargs grep -l '<<test \[\[.*\.py\]\]>>' | \
+		while read file; do \
+			chunk=$$(grep -o '<<test \[\[\([^]]*\)\.py\]\]>>' "$$file" | head -1 | \
+			         sed 's/<<test \[\[\(.*\)\.py\]\]>>/\1/'); \
+			chunk_safe=$$(echo "$$chunk" | sed 's/ /%20/g'); \
+			echo "unit/test_$${chunk_safe}.py:$$file:test%20[[$$chunk_safe.py]]"; \
+		done; \
+) | sort -u
 endef
 
-# Function to create a make rule for each test file
+# Generate build target for each discovered test
+# Input: test_file:source_file:chunk_name_with_%20_for_spaces
+# Convert %20 back to spaces for the actual chunk name
 define def_target
 $(shell echo $1 | cut -d: -f1): $(shell echo $1 | cut -d: -f2)
-	notangle ${NOTANGLEFLAGS.py} "-R$$(shell echo $$@ | sed 's/_/ /')" $$^ > $$@
+	@mkdir -p $$(dir $$@)
+	notangle -R"$(shell echo $1 | cut -d: -f3 | sed 's/%20/ /g')" $$< | cpif $$@ && noroots $$<
 endef
 
-# Get list of all tests
-TESTS= $(shell ${find_tests})
+# Discover all tests
+TESTS := $(shell $(find_tests))
 
-# Build all test files
+# Extract just the test filenames for dependencies
+TEST_MODULES := $(foreach entry,$(TESTS),$(shell echo $(entry) | cut -d: -f1))
+
+# Main targets
 .PHONY: all
-all: $(foreach files,${TESTS},$(shell echo ${files} | cut -d: -f1))
+all: $(TEST_MODULES)
 
-# Generate make rules for each test
-$(foreach files,${TESTS},$(eval $(call def_target, ${files})))
+# Generate rules for each test
+$(foreach entry,$(TESTS),$(eval $(call def_target,$(entry))))
 
-# Run tests with pytest
+# Target to run tests after tangling
 .PHONY: test
-test: all
-    pytest ${PYTEST_FLAGS}
+test: all compile
+	poetry run pytest -v
+
+.PHONY: compile
+compile:
+	$(MAKE) -C ../src/packagename all
+
+# Clean generated test files
+.PHONY: clean
+clean:
+	$(RM) $(TEST_MODULES)
+	$(RM) -r .pytest_cache __pycache__ unit/__pycache__
+	$(RM) -r htmlcov .coverage
 ```
 
 ### How It Works
 
-1. `find_tests` searches all .nw files for `<<test *.py>>` chunks
-2. Extracts mapping: `test_modulename.py: ../src/package/modulename.nw`
-3. `def_target` creates a rule that:
-   - Depends on the source .nw file
-   - Uses `notangle -R"test modulename.py"` to extract the chunk
-   - Transforms filename: `test_modulename.py` → chunk `<<test modulename.py>>`
-4. `make test` extracts all tests then runs pytest
+1. `find_tests` searches all `.nw` files for `<<test [[*.py]]>>` chunks
+2. Encodes spaces as `%20` to avoid Make's word-splitting in `$(foreach)`
+3. Outputs triples: `unit/test_name.py:source.nw:test%20[[name.py]]`
+4. `def_target` creates a rule that:
+   - Creates the `unit/` directory with `mkdir -p`
+   - Uses `notangle -R"test [[modulename.py]]"` to extract the chunk
+   - Pipes through `cpif` (copy-if-different) to prevent unnecessary rebuilds
+   - Runs `noroots` to check for unused chunks
+5. `make test` first compiles the package, then runs `poetry run pytest`
 
 ### Benefits
 
@@ -533,6 +710,11 @@ INCLUDE_MAKEFILES=../../../makefiles
 include ${INCLUDE_MAKEFILES}/noweb.mk
 include ${INCLUDE_MAKEFILES}/subdir.mk
 ```
+
+**Note:** nytid uses the legacy `.INTERMEDIATE` + `${MV}` rename pattern for
+`__init__.py`. New projects should use the direct `<<[[__init__.py]]>>` chunk
+name with an explicit dependency rule instead (see "Pattern: Python
+\_\_init\_\_.py" above).
 
 ### Example: Master Documentation
 

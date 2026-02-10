@@ -19,6 +19,7 @@ This skill includes detailed references in `references/`:
 | `testing-patterns.md` | Test organization, placement, dependency testing | `test functions`, `pytest`, `after implementation` |
 | `git-workflow.md` | Version control, .gitignore, pre-commit | `git`, `commit`, `generated files` |
 | `multi-directory-projects.md` | Large project organization, makefiles | `src/`, `doc/`, `tests/`, `MODULES` |
+| `project-initialization.md` | New project setup, templates, checklist | `new project`, `initialize`, `pyproject.toml` |
 | `preamble.tex` | Standard LaTeX preamble for documentation | `\usepackage`, `memoir` |
 
 ## When to Use This Skill
@@ -210,11 +211,27 @@ For large projects (5+ .nw files), see `references/multi-directory-projects.md`.
 Key structure:
 ```
 project/
+├── Makefile       # Root orchestrator (compile → test → docs)
+├── pyproject.toml # Poetry packaging configuration
 ├── src/           # .nw files → .py + .tex
-├── doc/           # Master document, preamble.tex
-├── tests/         # Extracted test files
+├── doc/           # Document wrapper (.nw), preamble.tex
+├── tests/         # Extracted test files (unit/ subdir)
 └── makefiles/     # Shared build rules (noweb.mk, subdir.mk)
 ```
+
+### Initializing a New Project
+
+See `references/project-initialization.md` for full details. Quick checklist:
+
+1. Create `pyproject.toml` with `[tool.poetry]` packages/include/exclude
+2. Create `src/.gitignore` (`*.py`, `*.tex`) and `tests/.gitignore` (`*.py`)
+3. Create `src/packagename/Makefile` with explicit `__init__.py` rule
+4. Create `src/packagename/packagename.nw` with `<<[[__init__.py]]>>` and
+   `<<test [[packagename.py]]>>` chunks
+5. Create `tests/Makefile` with auto-discovery (uses `%20` encoding, `cpif`,
+   `unit/` subdirectory)
+6. Create `doc/packagename.nw` wrapper, `doc/Makefile`, `doc/preamble.tex`
+7. Create root `Makefile` orchestrating compile → test → docs
 
 ### LaTeX-Safe Chunk Names
 

@@ -185,6 +185,22 @@ test: all
 
 Without `poetry run`, pytest won't find your test dependencies.
 
+### Test Chunk Name vs. Output Filename
+
+The test chunk name is **logical** — it identifies the module being tested, not
+necessarily the output filename. The test Makefile handles the mapping
+automatically.
+
+For example, in the forcing project:
+- The module tangles to `__init__.py` (from chunk `<<[[__init__.py]]>>`)
+- But the test chunk is named `<<test [[forcing.py]]>>` (the logical module name)
+- The test Makefile discovers this chunk and tangles it to `unit/test_forcing.py`
+
+This works because the test Makefile's `find_tests` function matches any chunk
+matching `<<test [[*.py]]>>` and creates the appropriate output filename. The
+chunk name doesn't need to match the tangled code filename — it identifies
+**what is being tested** rather than **where the code lives**.
+
 ---
 
 ## Framing Test Sections
