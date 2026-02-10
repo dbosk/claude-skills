@@ -124,11 +124,97 @@ Apply `variation-theory` skill when structuring explanations:
 4. **Reference variables in chunk names** - when a chunk operates on a specific variable, use `[[variable]]` notation in the chunk name to make the connection explicit (e.g., `<<add graders to [[graders]] list>>`)
 5. **Decompose by concept, not syntax**
 6. **Explain the "why"** - don't just describe what the code does
-7. **Keep chunks focused** - single, coherent idea each
-8. **Use bucket chunks** - accumulate `<<functions>>=` and `<<constants>>=` throughout
+7. **Keep chunks focused — one function per `<<functions>>=` chunk with
+   prose before it.** Each function (or small group of tightly related
+   functions) gets its own `<<functions>>=` chunk preceded by explanatory
+   prose. Never put multiple unrelated functions in a single chunk.
+
+   **BAD** — four functions crammed into one chunk with minimal prose:
+   ```noweb
+   \subsection{Helper Functions}
+
+   We provide several utility functions.
+
+   <<functions>>=
+   def normalize_text(text): ...
+
+   def letters_only(text): ...
+
+   def key_shifts(key): ...
+
+   def index_of_coincidence(text): ...
+   @
+   ```
+
+   **GOOD** — each function with its own subsection and prose:
+   ```noweb
+   \subsection{Text Normalization}
+
+   Before analysis, we strip non-alphabetic characters and
+   convert to lowercase so that frequency counts are meaningful.
+
+   <<functions>>=
+   def normalize_text(text): ...
+   @
+
+   \subsection{Index of Coincidence}
+
+   The index of coincidence measures how likely two randomly
+   chosen letters from a text are identical ...
+
+   <<functions>>=
+   def index_of_coincidence(text): ...
+   @
+   ```
+8. **Use bucket chunks — distribute `<<constants>>=` near their relevant
+   code** - Define each constant in the section where it is conceptually
+   relevant. Never group all constants into a single `\subsection{Constants}`.
+
+   **BAD** — all constants dumped in one subsection:
+   ```noweb
+   \subsection{Constants}
+
+   <<constants>>=
+   DATA_DIR = ...        % used in loading section
+   GUTENBERG_START = ... % used in extraction section
+   SENTENCE_RE = ...     % used in sentence splitting section
+   KEEP_PUNCT = ...      % used in normalization section
+   @
+   ```
+
+   **GOOD** — each constant near the code that uses it:
+   ```noweb
+   \subsection{Loading Texts}
+
+   <<constants>>=
+   DATA_DIR = Path(__file__).parent / "data"
+   @
+
+   <<functions>>=
+   def load_text(path): ...
+   @
+
+   \subsection{Extracting Body Text}
+
+   <<constants>>=
+   GUTENBERG_START = "*** START OF"
+   GUTENBERG_END = "*** END OF"
+   @
+
+   <<functions>>=
+   def extract_body(text): ...
+   @
+   ```
 9. **Define constants for magic numbers** - never hardcode values
 10. **Co-locate dependencies with features** - feature's imports in feature's section
-11. **Keep lines under 80 characters** - both prose and code
+11. **Prefer public functions** - Default to making functions public with
+    docstrings. Only use `_`-prefixed private functions for true internal
+    helpers tightly coupled to a single caller. Public utilities (e.g.,
+    `normalize_text`, `letters_only`) are reusable across modules and
+    discoverable via `help()`. Duplicated private helpers across modules
+    (e.g., `_to_ascii` in both `vigenere.nw` and `plaintexts.nw`) are a
+    sign the function should be public in a shared module.
+12. **Keep lines under 80 characters** - both prose and code
 
 ### LaTeX Documentation Quality
 
@@ -194,15 +280,62 @@ diff=diff,
 
 ## Test Organization
 
-**CRITICAL**: Tests appear AFTER implementation, not before.
+**CRITICAL**: Tests MUST appear AFTER implementation, distributed throughout
+the file near the code they verify. **NEVER** create a `\section{Tests}` or
+`\section{Unit Tests}` that groups all tests at the end of the file.
 
 See `references/testing-patterns.md` for detailed patterns.
 
-Key points:
-- Distribute tests throughout file, near implementations
-- Use single `<<test functions>>` chunk, concatenated
-- Use `from module import *` in test file
+Key rules:
+- Each implementation section is followed by its `<<test functions>>=` chunk
+- Use single `<<test functions>>` chunk name — noweb concatenates them
+- Use `from module import *` in the test file header
 - Frame tests pedagogically: "Let's verify this works..."
+
+**BAD** — all tests collected at the end:
+```noweb
+\section{Encryption}
+<<functions>>=
+def encrypt(text, key): ...
+@
+
+\section{Decryption}
+<<functions>>=
+def decrypt(text, key): ...
+@
+
+\section{Tests}          % ← NEVER do this
+
+<<test functions>>=
+def test_encrypt(): ...
+def test_decrypt(): ...
+@
+```
+
+**GOOD** — each test immediately after its implementation:
+```noweb
+\section{Encryption}
+<<functions>>=
+def encrypt(text, key): ...
+@
+
+Let's verify that encryption produces the expected ciphertext:
+
+<<test functions>>=
+def test_encrypt(): ...
+@
+
+\section{Decryption}
+<<functions>>=
+def decrypt(text, key): ...
+@
+
+We can verify that decryption inverts encryption:
+
+<<test functions>>=
+def test_decrypt(): ...
+@
+```
 
 ## Multi-Directory Projects
 
@@ -254,7 +387,35 @@ Extract with: `notangle -R"[[module_name.py]]" file.nw > module_name.py`
 4. **Keep tangled code in .gitignore** - .nw is source of truth
 5. **NEVER commit generated files** - .py and .tex from .nw are build artifacts
 6. **Test your tangles** - ensure extracted code runs
-7. **Keep docstrings independent from LaTeX** - no `\cref` in docstrings
+7. **Require PEP-257 docstrings on all public functions** - Prose in `.nw`
+   is for **maintainers** reading the literate source; docstrings are for
+   **users** of the compiled `.py` who never see the `.nw` file. Both are
+   needed. Private functions (prefixed `_`) may omit docstrings. Never use
+   `\cref` or other LaTeX commands inside docstrings.
+
+   **BAD** — function with prose but no docstring:
+   ```noweb
+   We convert text to lowercase ASCII for uniform comparison.
+
+   <<functions>>=
+   def normalize_text(text):
+       return text.lower().encode("ascii", "ignore").decode()
+   @
+   ```
+
+   **GOOD** — prose for maintainers AND docstring for users:
+   ```noweb
+   We convert text to lowercase ASCII for uniform comparison.
+
+   <<functions>>=
+   def normalize_text(text):
+       """Return lowercase ASCII version of ``text``.
+
+       Non-ASCII characters are silently dropped.
+       """
+       return text.lower().encode("ascii", "ignore").decode()
+   @
+   ```
 8. **Include table of contents** - add `\tableofcontents` in documentation
 
 ## Git Workflow

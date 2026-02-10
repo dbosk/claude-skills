@@ -32,7 +32,11 @@ This ordering allows readers to:
 
 ### Keep Tests Close to Implementation
 
-Tests should be within ~10 lines of their implementation, distributed throughout the document rather than grouped at the beginning or end.
+Tests MUST be distributed throughout the document, each `<<test functions>>=`
+chunk appearing immediately after the implementation it verifies. NEVER
+create a `\section{Tests}` or `\section{Unit Tests}` that groups all tests
+at the beginning or end of the file — this is the most common anti-pattern
+and defeats the purpose of literate programming.
 
 ---
 
@@ -135,13 +139,20 @@ class TestFeatureB:
 @
 ```
 
+**Important distinction:** The **test file header** (`<<test [[module.py]]>>=`)
+appears once early in the file — it defines the output filename, imports, and
+references `<<test functions>>`. The **test function chunks**
+(`<<test functions>>=`) appear many times, distributed throughout the file
+after each implementation section. Do not confuse these two: the header is
+a single structural element; the function chunks are scattered everywhere.
+
 ### Key Principles
 
 1. **Use `from module import *`** - Import everything from the module being tested. This allows freely adding to `<<test functions>>` without updating imports.
 
-2. **Single `<<test functions>>` chunk** - All test chunks use the same name. Noweb concatenates them in order of appearance.
+2. **Single `<<test functions>>` chunk name** - All test chunks use the same name. Noweb concatenates them in order of appearance.
 
-3. **Tests stay close to implementations** - Each `<<test functions>>=` chunk appears immediately after the implementation it verifies.
+3. **Tests MUST stay close to implementations** - Each `<<test functions>>=` chunk appears immediately after the implementation it verifies. NEVER collect them into a `\section{Tests}` at the beginning or end.
 
 ### Test Organization Roadmap
 
@@ -348,6 +359,51 @@ def test_feature_c():
 - Tests divorced from implementation
 - Hard to maintain correspondence
 - Violates pedagogical principle
+
+### All Tests Grouped at End
+
+This is the most common failure mode: avoiding tests-before-implementation
+but overcorrecting by placing ALL tests in a `\section{Tests}` at the end.
+
+**BAD:**
+```noweb
+\section{Encryption}
+<<functions>>=
+def encrypt(text, key): ...
+@
+
+\section{Decryption}
+<<functions>>=
+def decrypt(text, key): ...
+@
+
+\section{Key Recovery}
+<<functions>>=
+def find_key(ciphertext): ...
+@
+
+\section{Tests}          % ← NEVER do this
+
+<<test functions>>=
+class TestEncrypt:
+    def test_basic(self): ...
+
+class TestDecrypt:
+    def test_roundtrip(self): ...
+
+class TestFindKey:
+    def test_known_key(self): ...
+@
+```
+
+**Problems:**
+- Tests divorced from implementation (same as grouping at beginning)
+- Reader finishes the document without seeing verification
+- Hard to maintain correspondence between code and its tests
+- Violates "explain → implement → verify" pedagogical flow
+
+**GOOD:** Each `<<test functions>>=` chunk appears immediately after the
+implementation it verifies (see [Distributed Test Organization](#distributed-test-organization)).
 
 ### Tests Without Context
 
