@@ -74,7 +74,10 @@ When reviewing, evaluate:
 1. **Narrative flow**: Coherent story? Pedagogical order?
 2. **Variation theory**: Contrasts used? "Whole, parts, whole" structure?
 3. **Chunk quality**: Meaningful names? Focused on single concepts?
-4. **Explanation quality**: Explains "why" not just "what"?
+4. **Explanation quality**: Explains "why" not just "what"?  Red flags:
+   prose that begins "We [verb] the [noun]" matching a function name;
+   prose that describes parameter types visible in the signature;
+   prose that restates conditionals without explaining why they matter.
 5. **Test organization**: Tests after implementation, not before?
 6. **Proper noweb syntax**: `[[code]]` notation? Valid chunk references?
 
@@ -123,7 +126,50 @@ Apply `variation-theory` skill when structuring explanations:
 3. **Use meaningful chunk names** - 2-5 word summary of purpose (like pseudocode)
 4. **Reference variables in chunk names** - when a chunk operates on a specific variable, use `[[variable]]` notation in the chunk name to make the connection explicit (e.g., `<<add graders to [[graders]] list>>`)
 5. **Decompose by concept, not syntax**
-6. **Explain the "why"** - don't just describe what the code does
+6. **Explain the "why"** - don't just describe what the code does.
+   Prose that merely restates the code in English teaches nothing.  Good
+   prose explains *why* a design choice was made: what alternative was
+   rejected, what would break without this approach, or what constraint
+   drives the implementation.
+
+   **Self-test:** If your prose could be mechanically generated from the
+   function signature, it's "what" not "why."  Ask yourself: *What design
+   decision does this paragraph justify?  What alternative did we reject
+   and why?*  If the paragraph doesn't answer either question, rewrite it.
+
+   **BAD** — prose restates code in English:
+   ```noweb
+   \subsection{Counting $n$-grams}
+
+   We count overlapping $n$-grams.
+   If $n$ is larger than the input, the result is empty.
+
+   <<functions>>=
+   def ngram_counts(text, *, n):
+       ...
+   @
+   ```
+
+   **GOOD** — prose explains *why* this design choice:
+   ```noweb
+   \subsection{Counting $n$-grams}
+
+   We use overlapping $n$-grams because they capture all positional
+   contexts---in \enquote{THE}, overlapping bigrams yield TH and HE,
+   whereas non-overlapping would only yield TH.  This matches the
+   standard definition used in cryptanalysis.
+
+   <<functions>>=
+   def ngram_counts(text, *, n):
+       ...
+   @
+   ```
+
+   **Red flags** that prose is "what" not "why":
+   - Begins "We [verb] the [noun]" where the verb matches a function name
+   - Describes parameter types or return values already in the signature
+   - Restates conditional logic ("If X, we do Y") without explaining
+     *why* X matters
 7. **Keep chunks focused — one function per `<<functions>>=` chunk with
    prose before it.** Each function (or small group of tightly related
    functions) gets its own `<<functions>>=` chunk preceded by explanatory
@@ -166,7 +212,59 @@ Apply `variation-theory` skill when structuring explanations:
    def index_of_coincidence(text): ...
    @
    ```
-8. **Use bucket chunks — distribute `<<constants>>=` near their relevant
+8. **Decompose long functions into named sub-chunks** — If a function has
+   more than ~25 lines and contains two or more distinct algorithmic
+   phases, decompose it into named sub-chunks.  Each sub-chunk name
+   should read like a step in an algorithm description.  The prose before
+   each sub-chunk explains *why* that phase works the way it does.  This
+   is the classic Knuth technique.
+
+   **BAD** — 80-line function with one line of prose:
+   ```noweb
+   We generate plaintext by concatenating sentences.
+
+   <<functions>>=
+   def generate_plaintext(size, *, sources, seed=None):
+       """..."""
+       if size <= 0:
+           raise ValueError(...)
+       paragraphs = extract_paragraphs(sources, ...)
+       ...  # 75 more lines
+       return normalize(prefix, options)
+   @
+   ```
+
+   **GOOD** — function body decomposed into named sub-chunks with prose:
+   ```noweb
+   <<functions>>=
+   def generate_plaintext(size, *, sources, seed=None):
+       """..."""
+       <<prepare filtered paragraphs>>
+       <<pick random starting point>>
+       <<collect sentences until target length>>
+       <<select closest sentence boundary>>
+   @
+
+   We extract paragraphs from the corpus, removing headings and ToC
+   entries.  Paragraphs lacking sentence-ending punctuation are
+   discarded---they are typically list items or table rows.
+
+   <<prepare filtered paragraphs>>=
+   if size <= 0:
+       raise ValueError("size must be positive")
+   ...
+   @
+
+   To avoid always starting at the beginning of the corpus, we
+   rotate to a random paragraph.
+
+   <<pick random starting point>>=
+   rng = random.Random(seed)
+   ...
+   @
+   ```
+
+9. **Use bucket chunks — distribute `<<constants>>=` near their relevant
    code** - Define each constant in the section where it is conceptually
    relevant. Never group all constants into a single `\subsection{Constants}`.
 
@@ -205,16 +303,16 @@ Apply `variation-theory` skill when structuring explanations:
    def extract_body(text): ...
    @
    ```
-9. **Define constants for magic numbers** - never hardcode values
-10. **Co-locate dependencies with features** - feature's imports in feature's section
-11. **Prefer public functions** - Default to making functions public with
+10. **Define constants for magic numbers** - never hardcode values
+11. **Co-locate dependencies with features** - feature's imports in feature's section
+12. **Prefer public functions** - Default to making functions public with
     docstrings. Only use `_`-prefixed private functions for true internal
     helpers tightly coupled to a single caller. Public utilities (e.g.,
     `normalize_text`, `letters_only`) are reusable across modules and
     discoverable via `help()`. Duplicated private helpers across modules
     (e.g., `_to_ascii` in both `vigenere.nw` and `plaintexts.nw`) are a
     sign the function should be public in a shared module.
-12. **Keep lines under 80 characters** - both prose and code
+13. **Keep lines under 80 characters** - both prose and code
 
 ### LaTeX Documentation Quality
 
@@ -247,6 +345,11 @@ all: Annotated[bool, all_opt] = False,
 ```
 
 Benefits: readable high-level structure, pedagogical ordering, maintainability.
+
+The same technique applies to **function bodies**: long functions can use
+`<<phase name>>` sub-chunks to present algorithmic steps in pedagogical
+order with prose between them (see Writing Guideline 8, "Decompose long
+functions").
 
 ## Chunk Concatenation Patterns
 
