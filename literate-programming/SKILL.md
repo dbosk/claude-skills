@@ -381,6 +381,52 @@ diff=diff,
 @
 ```
 
+## Chunk Dependency Hazards
+
+When a chunk references a variable defined in another chunk, there is an
+**implicit dependency** between them. Unlike function calls, noweb does not
+enforce that prerequisite chunks are included — the compiler only sees the
+tangled output. This makes it easy to reuse a chunk in a new code path
+while accidentally omitting the chunk that defines a variable it needs.
+
+**Rule: When reusing a chunk in a new code path, verify that all variables
+it references are defined by preceding chunks in that path.**
+
+**BAD** — chunk B depends on a variable set in chunk A, but a new path
+omits A:
+
+```noweb
+<<path one>>=
+<<chunk A>>
+<<chunk B>>
+@
+
+<<path two>>=
+<<chunk B>>      % ← UnboundLocalError: variable from A missing
+@
+```
+
+**GOOD** — either include the prerequisite or document the dependency:
+
+```noweb
+<<path two>>=
+<<chunk A>>
+<<chunk B>>
+@
+```
+
+**Tip**: If a chunk both defines variables AND performs side effects that
+are not always wanted, consider splitting it so the variable-defining part
+can be included independently.
+
+**Design rule**: Prefer extracting shared logic into a **function** rather
+than a reusable chunk when the logic is used across multiple code paths.
+Functions make dependencies explicit through parameters — a missing
+argument is a compile-time error, while a missing prerequisite chunk is
+only caught at runtime. Reserve chunks for pedagogical decomposition
+(presenting code in narrative order); use functions for operational
+decomposition (sharing logic between code paths).
+
 ## Test Organization
 
 **CRITICAL**: Tests MUST appear AFTER implementation, distributed throughout
