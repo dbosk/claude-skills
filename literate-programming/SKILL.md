@@ -79,7 +79,8 @@ When reviewing, evaluate:
    prose that describes parameter types visible in the signature;
    prose that restates conditionals without explaining why they matter.
 5. **Test organization**: Tests after implementation, not before?
-6. **Proper noweb syntax**: `[[code]]` notation? Valid chunk references?
+6. **Proper noweb syntax**: `[[code]]` notation in prose? Identifiers in
+   chunk titles escaped with `[[...]]`? Valid chunk references?
 
 ## Core Philosophy
 
@@ -124,7 +125,29 @@ Apply `variation-theory` skill when structuring explanations:
 1. **Start with the human story** - problem, approach, design decisions
 2. **Introduce concepts in pedagogical order** - not compiler order
 3. **Use meaningful chunk names** - 2-5 word summary of purpose (like pseudocode)
-4. **Reference variables in chunk names** - when a chunk operates on a specific variable, use `[[variable]]` notation in the chunk name to make the connection explicit (e.g., `<<add graders to [[graders]] list>>`)
+4. **Escape all identifiers in chunk names** — any identifier (variable,
+   function, parameter, attribute) that appears in a chunk title must be
+   wrapped in `[[...]]`.  This tells noweave to render it as code
+   (monospace) and prevents LaTeX errors from underscores.
+
+   **BAD** — bare identifier, underscore breaks LaTeX:
+   ```noweb
+   <<restrict to top-level when not show_tree>>=
+   if not show_tree:
+       ...
+   @
+   ```
+
+   **GOOD** — identifier escaped with `[[...]]`:
+   ```noweb
+   <<restrict to top-level when not [[show_tree]]>>=
+   if not show_tree:
+       ...
+   @
+   ```
+
+   Other examples: `<<add graders to [[graders]] list>>`,
+   `<<initialise [[default_username]]>>`.
 5. **Decompose by concept, not syntax**
 6. **Explain the "why"** - don't just describe what the code does.
    Prose that merely restates the code in English teaches nothing.  Good
