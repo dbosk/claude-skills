@@ -117,7 +117,9 @@ Apply `variation-theory` skill when structuring explanations:
 
 ### Syntax Rules
 
-- Quote code in documentation using `[[code]]` (escapes LaTeX special chars)
+- Quote code in documentation using `[[code]]` (escapes LaTeX special chars).
+  Never manually escape characters (e.g. `\_`) inside `[[...]]` — noweb
+  handles all escaping automatically.  Writing `[[\_]]` double-escapes.
 - Escape: `@<<` for literal `<<`, `@@` in column 1 for literal `@`
 
 ## Writing Guidelines
@@ -148,6 +150,11 @@ Apply `variation-theory` skill when structuring explanations:
 
    Other examples: `<<add graders to [[graders]] list>>`,
    `<<initialise [[default_username]]>>`.
+
+   **IMPORTANT**: Do not escape underscores or other special characters
+   *inside* `[[...]]`.  The brackets already tell noweb to escape
+   everything.  `[[__init__.py]]` is correct;
+   `[[\_\_init\_\_.py]]` is wrong and will double-escape.
 5. **Decompose by concept, not syntax**
 6. **Explain the "why"** - don't just describe what the code does.
    Prose that merely restates the code in English teaches nothing.  Good
