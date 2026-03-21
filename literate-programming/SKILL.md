@@ -287,7 +287,97 @@ Apply `variation-theory` skill when structuring explanations:
    @
    ```
 
-9. **Use bucket chunks — distribute `<<constants>>=` near their relevant
+9. **Decompose classes by method** — Introduce the class shell in one
+   chunk with a placeholder like `<<repo methods>>`, then define each
+   method in its own `\section` or `\subsection` with prose + method
+   chunk + tests.  This is the class-level analogue of guideline 7
+   (one function per chunk) and guideline 8 (decompose long functions).
+   The class shell gives the reader the whole picture; the method
+   sections fill in each part with full explanations and verification.
+
+   **BAD** — entire class in one chunk:
+   ```noweb
+   \section{The Repository}
+
+   <<classes>>=
+   class Repo:
+       def __init__(self, path):
+           ...
+
+       def save(self, data):
+           ...
+
+       def load(self, key):
+           ...
+   @
+
+   \section{Tests}
+   <<test functions>>=
+   def test_save(): ...
+   def test_load(): ...
+   @
+   ```
+
+   **GOOD** — class shell + one section per method, tests distributed:
+   ```noweb
+   \section{The Repository}
+
+   The class needs two operations: saving and loading.  We introduce
+   the class shell here and fill in each method in its own section.
+
+   <<classes>>=
+   class Repo:
+       def __init__(self, path):
+           self.path = pathlib.Path(path)
+
+       <<repo methods>>
+   @
+
+   \subsection{Saving data}
+
+   We serialise to JSON because students can inspect the files
+   manually, unlike a binary format.
+
+   <<repo methods>>=
+   def save(self, data):
+       """Persist ``data`` to disk as JSON."""
+       ...
+   @
+
+   Let's verify that saving round-trips correctly:
+
+   <<test functions>>=
+   def test_save_creates_file(tmp_path):
+       repo = Repo(tmp_path)
+       repo.save({"key": "value"})
+       assert (tmp_path / "data.json").exists()
+   @
+
+   \subsection{Loading data}
+
+   We return [[None]] for missing keys rather than raising, because
+   a missing key is a normal condition during first run.
+
+   <<repo methods>>=
+   def load(self, key):
+       """Load data for ``key``, or ``None`` if absent."""
+       ...
+   @
+
+   <<test functions>>=
+   def test_load_missing_returns_none(tmp_path):
+       repo = Repo(tmp_path)
+       assert repo.load("absent") is None
+   @
+   ```
+
+   The chunk name `<<repo methods>>` is a **bucket chunk** scoped to
+   the class: noweb concatenates all definitions, so each
+   `<<repo methods>>=` adds another method to the class body.  Choose
+   a name that reflects the class (e.g. `<<iolog methods>>`,
+   `<<stream capture methods>>`).
+
+10. **Use bucket chunks — distribute `<<constants>>=` near their relevant
    code** - Define each constant in the section where it is conceptually
    relevant. Never group all constants into a single `\subsection{Constants}`.
 
@@ -326,9 +416,9 @@ Apply `variation-theory` skill when structuring explanations:
    def extract_body(text): ...
    @
    ```
-10. **Define constants for magic numbers** - never hardcode values
-11. **Co-locate dependencies with features** - feature's imports in feature's section
-12. **Prefer public functions** - Default to making functions public with
+11. **Define constants for magic numbers** - never hardcode values
+12. **Co-locate dependencies with features** - feature's imports in feature's section
+13. **Prefer public functions** - Default to making functions public with
     docstrings. Only use `_`-prefixed private functions for true internal
     helpers tightly coupled to a single caller. Public utilities (e.g.,
     `normalize_text`, `letters_only`) are reusable across modules and
