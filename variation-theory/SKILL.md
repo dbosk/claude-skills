@@ -1,6 +1,6 @@
 ---
 name: variation-theory
-description: Apply variation theory of learning to structure instructional content using contrast, generalization, and fusion patterns. Variation must target the critical aspects of the learning objective. Use when writing educational materials, explanations, tutorials, literate programming documentation (.nw files), structuring lecture slides, designing exercises, or when user mentions variation theory, learning theory, pedagogy, or critical aspects of learning. Works alongside the literate-programming skill for .nw files.
+description: Apply variation theory of learning to structure content using contrast, generalization, and fusion patterns. Variation must target the critical aspects of the learning objective. Use proactively when (1) writing educational materials, explanations, tutorials, or lecture slides, (2) designing or reviewing examples in documentation, READMEs, or literate programs (.nw files), especially when multiple examples illustrate alternative approaches to the same task, (3) structuring code examples, CLI usage examples, or API examples where the reader should notice what differs between alternatives, (4) user mentions variation theory, learning theory, pedagogy, contrast, invariance, or critical aspects. Also activate when asked to elaborate, make concrete, or add examples to existing content. Works alongside literate-programming and didactic-notes skills.
 ---
 
 # Variation Theory of Learning
@@ -62,6 +62,79 @@ The principle "one thing at a time" applies to **dimensions** (aspects), NOT to 
 **Example**: Teaching "why files need open/close":
 - **Wrong**: Vary filename or content (not critical)
 - **Right**: Vary what happens when close() is/isn't called (critical aspect is resource management)
+
+## Applying Contrast in Documentation Examples
+
+Variation theory is not limited to classroom teaching — it applies
+whenever a reader must discern differences between alternatives.
+Documentation, READMEs, and literate programs routinely show multiple
+ways to achieve the same goal.  The contrast pattern ensures the
+reader's attention falls on the **method** (the critical aspect) rather
+than on incidental details.
+
+### Principle: Keep the Problem Invariant, Vary the Method
+
+When showing alternative approaches to the same task, use the **same
+concrete names, filenames, and identifiers** across all examples.  If
+the names change between examples, the reader must determine whether
+the name change is meaningful — this distracts from the actual
+difference (the method).
+
+### Example: CLI Documentation with Two Delivery Methods
+
+A tool offers two ways to share a log: push/clone via Git, or
+export/play via a bundle file.  The object of learning is "how to
+share a log"; the critical aspect is "which delivery method to use."
+
+**BAD** — names vary alongside the method, obscuring what actually
+changed:
+
+```
+# Method 1: push to remote
+learnlog set-remote git@gitlab.kth.se:dbosk/demo-log.git
+learnlog push
+
+# Method 2: export as bundle
+learnlog export -o lecture01.bundle
+learnlog play lecture01.bundle
+```
+
+The reader sees `demo-log` vs `lecture01` and wonders: does the name
+matter?  Is a bundle different from a repository?  The irrelevant
+variation in the name competes with the relevant variation in the
+method.
+
+**GOOD** — the name is invariant, only the method varies:
+
+```
+# Method 1: push to remote
+learnlog set-remote git@gitlab.kth.se:dbosk/lecture01.git
+learnlog push
+...
+learnlog clone git@gitlab.kth.se:dbosk/lecture01.git
+learnlog play
+
+# Method 2: export as bundle
+learnlog export -o lecture01.bundle
+...
+learnlog play lecture01.bundle
+```
+
+Now `lecture01` is invariant across both examples.  The only thing
+that changes is the delivery mechanism (push/clone vs export/play),
+which is exactly the critical aspect the reader should discern.
+
+### When to Apply This
+
+Activate this pattern whenever you encounter:
+- Multiple code examples showing alternative approaches
+- CLI usage sections with different flags or subcommands
+- API examples with different authentication methods
+- Configuration examples with different backends
+- Any documentation where "you can also do X instead of Y"
+
+**Self-test:** If two examples differ in more ways than the one
+dimension you intend to contrast, eliminate the incidental differences.
 
 ## The Three Patterns of Variation
 
