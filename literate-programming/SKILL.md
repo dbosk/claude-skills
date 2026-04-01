@@ -388,6 +388,33 @@ Apply `variation-theory` skill when structuring explanations:
    code** - Define each constant in the section where it is conceptually
    relevant. Never group all constants into a single `\subsection{Constants}`.
 
+   **IMPORTANT**: When a constant exists only to support one helper or one
+   small cluster of related helpers, place its `<<constants>>=` bucket
+   immediately adjacent to the bucket that contains those helpers.  Do not
+   hide configuration keys in one distant global block if the reader only
+   needs them to understand one local section.
+
+   **Preferred pattern** — prose, then helper bucket, then local constants
+   bucket for that helper family:
+   ```noweb
+   We read the debug flag from configuration rather than the process
+   environment so detached hooks and interactive commands see the same
+   value.
+
+   <<helper functions>>=
+   def track_debug_enabled():
+       return config.get(TRACK_DEBUG_CONFIG)
+   @
+
+   <<constants>>=
+   TRACK_DEBUG_CONFIG = "track.debug"
+   @
+   ```
+
+   This keeps the constant close enough to the narrative that readers meet
+   it when they need it, without forcing them to search a giant global
+   constants block.
+
    **BAD** — all constants dumped in one subsection:
    ```noweb
    \subsection{Constants}
@@ -425,14 +452,46 @@ Apply `variation-theory` skill when structuring explanations:
    ```
 11. **Define constants for magic numbers** - never hardcode values
 12. **Co-locate dependencies with features** - feature's imports in feature's section
-13. **Prefer public functions** - Default to making functions public with
+13. **Never leave prose inside an open code chunk** — When inserting local
+    `<<constants>>=` buckets or explanatory paragraphs, first close the
+    current code chunk with `@`.  Documentation between two function
+    sections must be outside code mode; otherwise noweb tangles the prose
+    into Python and produces syntax errors.
+
+    **BAD** — prose accidentally tangled as Python:
+    ```noweb
+    <<helper functions>>=
+    def get_default_daily_limit():
+        ...
+
+    This helper uses the daily-limit config key.
+
+    <<constants>>=
+    DEFAULT_DAILY_LIMIT_CONFIG = "track.daily_limit"
+    @
+    ```
+
+    **GOOD** — close the code chunk before prose, then reopen a bucket:
+    ```noweb
+    <<helper functions>>=
+    def get_default_daily_limit():
+        ...
+    @
+
+    This helper uses the daily-limit config key.
+
+    <<constants>>=
+    DEFAULT_DAILY_LIMIT_CONFIG = "track.daily_limit"
+    @
+    ```
+14. **Prefer public functions** - Default to making functions public with
     docstrings. Only use `_`-prefixed private functions for true internal
     helpers tightly coupled to a single caller. Public utilities (e.g.,
     `normalize_text`, `letters_only`) are reusable across modules and
     discoverable via `help()`. Duplicated private helpers across modules
     (e.g., `_to_ascii` in both `vigenere.nw` and `plaintexts.nw`) are a
     sign the function should be public in a shared module.
-13. **Keep lines under 80 characters** - both prose and code
+15. **Keep lines under 80 characters** - both prose and code
 
 ### LaTeX Documentation Quality
 
