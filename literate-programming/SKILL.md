@@ -391,6 +391,13 @@ Apply `variation-theory` skill when structuring explanations:
    a name that reflects the class (e.g. `<<iolog methods>>`,
    `<<stream capture methods>>`).
 
+   Apply the same pattern to test classes.  If `<<test functions>>=`
+   introduces `class Test...:`, put only the class shell there and
+   delegate the body to a class-specific bucket chunk such as
+   `<<feature a test methods>>`.  Do not concatenate indented test
+   methods directly into `<<test functions>>=`; nested scopes are
+   clearer and less error-prone when they use their own bucket chunk.
+
 10. **Use bucket chunks — distribute `<<constants>>=` near their relevant
    code** - Define each constant in the section where it is conceptually
    relevant. Never group all constants into a single `\subsection{Constants}`.
@@ -624,6 +631,9 @@ See `references/testing-patterns.md` for detailed patterns.
 Key rules:
 - Each implementation section is followed by its `<<test functions>>=` chunk
 - Use single `<<test functions>>` chunk name — noweb concatenates them
+- If `<<test functions>>=` introduces a test class, treat it as the class
+  shell and accumulate methods in a class-specific bucket chunk such as
+  `<<feature a test methods>>`
 - Use `from module import *` in the test file header
 - Frame tests pedagogically: "Let's verify this works..."
 
@@ -671,6 +681,12 @@ We can verify that decryption inverts encryption:
 def test_decrypt(): ...
 @
 ```
+
+If a test section needs a test class, introduce the class in
+`<<test functions>>=` and collect its methods in a class-specific
+bucket chunk rather than concatenating indented methods directly into
+`<<test functions>>=`.  See `references/testing-patterns.md` for a
+worked example and anti-pattern.
 
 ## Multi-Directory Projects
 
