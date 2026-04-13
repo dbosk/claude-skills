@@ -53,6 +53,7 @@ When making changes to a .nw file:
 1. **Read the existing file** to understand structure and narrative
 2. **Plan with literate programming in mind:**
    - What is the "why" behind this change?
+   - Why does this approach work, not just why was it chosen?
    - How does this fit into the existing narrative?
    - What new chunks are needed? What are their meaningful names?
    - Where in the pedagogical order should this be explained?
@@ -74,10 +75,13 @@ When reviewing, evaluate:
 1. **Narrative flow**: Coherent story? Pedagogical order?
 2. **Variation theory**: Contrasts used? "Whole, parts, whole" structure?
 3. **Chunk quality**: Meaningful names? Focused on single concepts?
-4. **Explanation quality**: Explains "why" not just "what"?  Red flags:
-   prose that begins "We [verb] the [noun]" matching a function name;
-   prose that describes parameter types visible in the signature;
-   prose that restates conditionals without explaining why they matter.
+4. **Explanation quality**: Explains "why" not just "what"?  The
+   explanation should also say why the chosen approach works.  Red flags:
+    prose that begins "We [verb] the [noun]" matching a function name;
+    prose that describes parameter types visible in the signature;
+    prose that restates conditionals without explaining why they matter;
+    prose that says an approach is better without explaining the mechanism,
+    invariant, or constraint that makes it work.
 5. **Test organization**: Tests after implementation, not before?
 6. **Proper noweb syntax**: `[[code]]` notation in prose? Identifiers in
    chunk titles escaped with `[[...]]`? Valid chunk references?
@@ -158,14 +162,16 @@ Apply `variation-theory` skill when structuring explanations:
 5. **Decompose by concept, not syntax**
 6. **Explain the "why"** - don't just describe what the code does.
    Prose that merely restates the code in English teaches nothing.  Good
-   prose explains *why* a design choice was made: what alternative was
-   rejected, what would break without this approach, or what constraint
+   prose explains *why* a design choice was made and *why this approach
+   works*: what alternative was rejected, what property makes the chosen
+   approach effective, what would break without it, or what constraint
    drives the implementation.
 
    **Self-test:** If your prose could be mechanically generated from the
    function signature, it's "what" not "why."  Ask yourself: *What design
    decision does this paragraph justify?  What alternative did we reject
-   and why?*  If the paragraph doesn't answer either question, rewrite it.
+   and why?  Why does the chosen approach work here?*  If the paragraph
+   doesn't answer those questions, rewrite it.
 
    **BAD** — prose restates code in English:
    ```noweb
@@ -246,8 +252,9 @@ Apply `variation-theory` skill when structuring explanations:
    more than ~25 lines and contains two or more distinct algorithmic
    phases, decompose it into named sub-chunks.  Each sub-chunk name
    should read like a step in an algorithm description.  The prose before
-   each sub-chunk explains *why* that phase works the way it does.  This
-   is the classic Knuth technique.
+   each sub-chunk explains *why* that phase works the way it does and
+   what property of the data or algorithm makes the approach succeed.
+   This is the classic Knuth technique.
 
    **BAD** — 80-line function with one line of prose:
    ```noweb
