@@ -53,6 +53,7 @@ When making changes to a .nw file:
 1. **Read the existing file** to understand structure and narrative
 2. **Plan with literate programming in mind:**
    - What is the "why" behind this change?
+   - Why does this approach work, not just why was it chosen?
    - How does this fit into the existing narrative?
    - What new chunks are needed? What are their meaningful names?
    - Where in the pedagogical order should this be explained?
@@ -74,12 +75,16 @@ When reviewing, evaluate:
 1. **Narrative flow**: Coherent story? Pedagogical order?
 2. **Variation theory**: Contrasts used? "Whole, parts, whole" structure?
 3. **Chunk quality**: Meaningful names? Focused on single concepts?
-4. **Explanation quality**: Explains "why" not just "what"?  Red flags:
-   prose that begins "We [verb] the [noun]" matching a function name;
-   prose that describes parameter types visible in the signature;
-   prose that restates conditionals without explaining why they matter.
+4. **Explanation quality**: Explains "why" not just "what"?  The
+   explanation should also say why the chosen approach works.  Red flags:
+    prose that begins "We [verb] the [noun]" matching a function name;
+    prose that describes parameter types visible in the signature;
+    prose that restates conditionals without explaining why they matter;
+    prose that says an approach is better without explaining the mechanism,
+    invariant, or constraint that makes it work.
 5. **Test organization**: Tests after implementation, not before?
-6. **Proper noweb syntax**: `[[code]]` notation? Valid chunk references?
+6. **Proper noweb syntax**: `[[code]]` notation in prose? Identifiers in
+   chunk titles escaped with `[[...]]`? Valid chunk references?
 
 ## Core Philosophy
 
@@ -116,7 +121,9 @@ Apply `variation-theory` skill when structuring explanations:
 
 ### Syntax Rules
 
-- Quote code in documentation using `[[code]]` (escapes LaTeX special chars)
+- Quote code in documentation using `[[code]]` (escapes LaTeX special chars).
+  Never manually escape characters (e.g. `\_`) inside `[[...]]` — noweb
+  handles all escaping automatically.  Writing `[[\_]]` double-escapes.
 - Escape: `@<<` for literal `<<`, `@@` in column 1 for literal `@`
 
 ## Writing Guidelines
@@ -124,18 +131,47 @@ Apply `variation-theory` skill when structuring explanations:
 1. **Start with the human story** - problem, approach, design decisions
 2. **Introduce concepts in pedagogical order** - not compiler order
 3. **Use meaningful chunk names** - 2-5 word summary of purpose (like pseudocode)
-4. **Reference variables in chunk names** - when a chunk operates on a specific variable, use `[[variable]]` notation in the chunk name to make the connection explicit (e.g., `<<add graders to [[graders]] list>>`)
+4. **Escape all identifiers in chunk names** — any identifier (variable,
+   function, parameter, attribute) that appears in a chunk title must be
+   wrapped in `[[...]]`.  This tells noweave to render it as code
+   (monospace) and prevents LaTeX errors from underscores.
+
+   **BAD** — bare identifier, underscore breaks LaTeX:
+   ```noweb
+   <<restrict to top-level when not show_tree>>=
+   if not show_tree:
+       ...
+   @
+   ```
+
+   **GOOD** — identifier escaped with `[[...]]`:
+   ```noweb
+   <<restrict to top-level when not [[show_tree]]>>=
+   if not show_tree:
+       ...
+   @
+   ```
+
+   Other examples: `<<add graders to [[graders]] list>>`,
+   `<<initialise [[default_username]]>>`.
+
+   **IMPORTANT**: Do not escape underscores or other special characters
+   *inside* `[[...]]`.  The brackets already tell noweb to escape
+   everything.  `[[__init__.py]]` is correct;
+   `[[\_\_init\_\_.py]]` is wrong and will double-escape.
 5. **Decompose by concept, not syntax**
 6. **Explain the "why"** - don't just describe what the code does.
    Prose that merely restates the code in English teaches nothing.  Good
-   prose explains *why* a design choice was made: what alternative was
-   rejected, what would break without this approach, or what constraint
+   prose explains *why* a design choice was made and *why this approach
+   works*: what alternative was rejected, what property makes the chosen
+   approach effective, what would break without it, or what constraint
    drives the implementation.
 
    **Self-test:** If your prose could be mechanically generated from the
    function signature, it's "what" not "why."  Ask yourself: *What design
    decision does this paragraph justify?  What alternative did we reject
-   and why?*  If the paragraph doesn't answer either question, rewrite it.
+   and why?  Why does the chosen approach work here?*  If the paragraph
+   doesn't answer those questions, rewrite it.
 
    **BAD** — prose restates code in English:
    ```noweb
@@ -216,8 +252,9 @@ Apply `variation-theory` skill when structuring explanations:
    more than ~25 lines and contains two or more distinct algorithmic
    phases, decompose it into named sub-chunks.  Each sub-chunk name
    should read like a step in an algorithm description.  The prose before
-   each sub-chunk explains *why* that phase works the way it does.  This
-   is the classic Knuth technique.
+   each sub-chunk explains *why* that phase works the way it does and
+   what property of the data or algorithm makes the approach succeed.
+   This is the classic Knuth technique.
 
    **BAD** — 80-line function with one line of prose:
    ```noweb
@@ -264,9 +301,133 @@ Apply `variation-theory` skill when structuring explanations:
    @
    ```
 
-9. **Use bucket chunks — distribute `<<constants>>=` near their relevant
+9. **Decompose classes by method** — Introduce the class shell in one
+   chunk with a placeholder like `<<repo methods>>`, then define each
+   method in its own `\section` or `\subsection` with prose + method
+   chunk + tests.  This is the class-level analogue of guideline 7
+   (one function per chunk) and guideline 8 (decompose long functions).
+   The class shell gives the reader the whole picture; the method
+   sections fill in each part with full explanations and verification.
+
+   **BAD** — entire class in one chunk:
+   ```noweb
+   \section{The Repository}
+
+   <<classes>>=
+   class Repo:
+       def __init__(self, path):
+           ...
+
+       def save(self, data):
+           ...
+
+       def load(self, key):
+           ...
+   @
+
+   \section{Tests}
+   <<test functions>>=
+   def test_save(): ...
+   def test_load(): ...
+   @
+   ```
+
+   **GOOD** — class shell + one section per method, tests distributed:
+   ```noweb
+   \section{The Repository}
+
+   The class needs two operations: saving and loading.  We introduce
+   the class shell here and fill in each method in its own section.
+
+   <<classes>>=
+   class Repo:
+       def __init__(self, path):
+           self.path = pathlib.Path(path)
+
+       <<repo methods>>
+   @
+
+   \subsection{Saving data}
+
+   We serialise to JSON because students can inspect the files
+   manually, unlike a binary format.
+
+   <<repo methods>>=
+   def save(self, data):
+       """Persist ``data`` to disk as JSON."""
+       ...
+   @
+
+   Let's verify that saving round-trips correctly:
+
+   <<test functions>>=
+   def test_save_creates_file(tmp_path):
+       repo = Repo(tmp_path)
+       repo.save({"key": "value"})
+       assert (tmp_path / "data.json").exists()
+   @
+
+   \subsection{Loading data}
+
+   We return [[None]] for missing keys rather than raising, because
+   a missing key is a normal condition during first run.
+
+   <<repo methods>>=
+   def load(self, key):
+       """Load data for ``key``, or ``None`` if absent."""
+       ...
+   @
+
+   <<test functions>>=
+   def test_load_missing_returns_none(tmp_path):
+       repo = Repo(tmp_path)
+       assert repo.load("absent") is None
+   @
+   ```
+
+   The chunk name `<<repo methods>>` is a **bucket chunk** scoped to
+   the class: noweb concatenates all definitions, so each
+   `<<repo methods>>=` adds another method to the class body.  Choose
+   a name that reflects the class (e.g. `<<iolog methods>>`,
+   `<<stream capture methods>>`).
+
+   Apply the same pattern to test classes.  If `<<test functions>>=`
+   introduces `class Test...:`, put only the class shell there and
+   delegate the body to a class-specific bucket chunk such as
+   `<<feature a test methods>>`.  Do not concatenate indented test
+   methods directly into `<<test functions>>=`; nested scopes are
+   clearer and less error-prone when they use their own bucket chunk.
+
+10. **Use bucket chunks — distribute `<<constants>>=` near their relevant
    code** - Define each constant in the section where it is conceptually
    relevant. Never group all constants into a single `\subsection{Constants}`.
+
+   **IMPORTANT**: When a constant exists only to support one helper or one
+   small cluster of related helpers, place its `<<constants>>=` bucket
+   immediately adjacent to the bucket that contains those helpers.  Do not
+   hide configuration keys in one distant global block if the reader only
+   needs them to understand one local section.
+
+   **Preferred pattern** — prose, then helper bucket, then local constants
+   bucket for that helper family:
+   ```noweb
+   We read the debug flag from configuration rather than the process
+   environment so detached hooks and interactive commands see the same
+   value.
+
+   <<helper functions>>=
+   def track_debug_enabled():
+       return config.get(TRACK_DEBUG_CONFIG)
+   @
+
+   <<constants>>=
+   TRACK_DEBUG_CONFIG = "track.debug"
+   @
+   ```
+
+   This keeps the constant close enough to the narrative that readers meet
+   it when they need it, without forcing them to search a giant global
+   constants block.
 
    **BAD** — all constants dumped in one subsection:
    ```noweb
@@ -303,16 +464,48 @@ Apply `variation-theory` skill when structuring explanations:
    def extract_body(text): ...
    @
    ```
-10. **Define constants for magic numbers** - never hardcode values
-11. **Co-locate dependencies with features** - feature's imports in feature's section
-12. **Prefer public functions** - Default to making functions public with
+11. **Define constants for magic numbers** - never hardcode values
+12. **Co-locate dependencies with features** - feature's imports in feature's section
+13. **Never leave prose inside an open code chunk** — When inserting local
+    `<<constants>>=` buckets or explanatory paragraphs, first close the
+    current code chunk with `@`.  Documentation between two function
+    sections must be outside code mode; otherwise noweb tangles the prose
+    into Python and produces syntax errors.
+
+    **BAD** — prose accidentally tangled as Python:
+    ```noweb
+    <<helper functions>>=
+    def get_default_daily_limit():
+        ...
+
+    This helper uses the daily-limit config key.
+
+    <<constants>>=
+    DEFAULT_DAILY_LIMIT_CONFIG = "track.daily_limit"
+    @
+    ```
+
+    **GOOD** — close the code chunk before prose, then reopen a bucket:
+    ```noweb
+    <<helper functions>>=
+    def get_default_daily_limit():
+        ...
+    @
+
+    This helper uses the daily-limit config key.
+
+    <<constants>>=
+    DEFAULT_DAILY_LIMIT_CONFIG = "track.daily_limit"
+    @
+    ```
+14. **Prefer public functions** - Default to making functions public with
     docstrings. Only use `_`-prefixed private functions for true internal
     helpers tightly coupled to a single caller. Public utilities (e.g.,
     `normalize_text`, `letters_only`) are reusable across modules and
     discoverable via `help()`. Duplicated private helpers across modules
     (e.g., `_to_ascii` in both `vigenere.nw` and `plaintexts.nw`) are a
     sign the function should be public in a shared module.
-13. **Keep lines under 80 characters** - both prose and code
+15. **Keep lines under 80 characters** - both prose and code
 
 ### LaTeX Documentation Quality
 
@@ -381,6 +574,52 @@ diff=diff,
 @
 ```
 
+## Chunk Dependency Hazards
+
+When a chunk references a variable defined in another chunk, there is an
+**implicit dependency** between them. Unlike function calls, noweb does not
+enforce that prerequisite chunks are included — the compiler only sees the
+tangled output. This makes it easy to reuse a chunk in a new code path
+while accidentally omitting the chunk that defines a variable it needs.
+
+**Rule: When reusing a chunk in a new code path, verify that all variables
+it references are defined by preceding chunks in that path.**
+
+**BAD** — chunk B depends on a variable set in chunk A, but a new path
+omits A:
+
+```noweb
+<<path one>>=
+<<chunk A>>
+<<chunk B>>
+@
+
+<<path two>>=
+<<chunk B>>      % ← UnboundLocalError: variable from A missing
+@
+```
+
+**GOOD** — either include the prerequisite or document the dependency:
+
+```noweb
+<<path two>>=
+<<chunk A>>
+<<chunk B>>
+@
+```
+
+**Tip**: If a chunk both defines variables AND performs side effects that
+are not always wanted, consider splitting it so the variable-defining part
+can be included independently.
+
+**Design rule**: Prefer extracting shared logic into a **function** rather
+than a reusable chunk when the logic is used across multiple code paths.
+Functions make dependencies explicit through parameters — a missing
+argument is a compile-time error, while a missing prerequisite chunk is
+only caught at runtime. Reserve chunks for pedagogical decomposition
+(presenting code in narrative order); use functions for operational
+decomposition (sharing logic between code paths).
+
 ## Test Organization
 
 **CRITICAL**: Tests MUST appear AFTER implementation, distributed throughout
@@ -392,6 +631,9 @@ See `references/testing-patterns.md` for detailed patterns.
 Key rules:
 - Each implementation section is followed by its `<<test functions>>=` chunk
 - Use single `<<test functions>>` chunk name — noweb concatenates them
+- If `<<test functions>>=` introduces a test class, treat it as the class
+  shell and accumulate methods in a class-specific bucket chunk such as
+  `<<feature a test methods>>`
 - Use `from module import *` in the test file header
 - Frame tests pedagogically: "Let's verify this works..."
 
@@ -439,6 +681,12 @@ We can verify that decryption inverts encryption:
 def test_decrypt(): ...
 @
 ```
+
+If a test section needs a test class, introduce the class in
+`<<test functions>>=` and collect its methods in a class-specific
+bucket chunk rather than concatenating indented methods directly into
+`<<test functions>>=`.  See `references/testing-patterns.md` for a
+worked example and anti-pattern.
 
 ## Multi-Directory Projects
 

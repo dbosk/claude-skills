@@ -119,8 +119,12 @@ def feature_a():
 
 <<test functions>>=
 class TestFeatureA:
-    def test_basic_case(self):
-        assert feature_a() == "a"
+    <<feature a test methods>>
+@
+
+<<feature a test methods>>=
+def test_basic_case(self):
+    assert feature_a() == "a"
 @
 
 \section{Feature B Implementation}
@@ -134,8 +138,12 @@ def feature_b():
 
 <<test functions>>=
 class TestFeatureB:
-    def test_another_case(self):
-        assert feature_b() == "b"
+    <<feature b test methods>>
+@
+
+<<feature b test methods>>=
+def test_another_case(self):
+    assert feature_b() == "b"
 @
 ```
 
@@ -146,13 +154,24 @@ references `<<test functions>>`. The **test function chunks**
 after each implementation section. Do not confuse these two: the header is
 a single structural element; the function chunks are scattered everywhere.
 
+When a `<<test functions>>=` chunk introduces a test class, treat that
+chunk as the class shell. Put only the `class Test...:` line and a
+class-specific bucket chunk inside it, then accumulate the methods in
+that inner bucket chunk: `<<feature a test methods>>`,
+`<<parser smoke test methods>>`, and so on. Avoid using
+`<<test functions>>=` itself to concatenate indented methods into a
+class body; the class-specific bucket reads better and is less
+indentation-fragile.
+
 ### Key Principles
 
 1. **Use `from module import *`** - Import everything from the module being tested. This allows freely adding to `<<test functions>>` without updating imports.
 
-2. **Single `<<test functions>>` chunk name** - All test chunks use the same name. Noweb concatenates them in order of appearance.
+2. **Single `<<test functions>>` chunk name** - Use `<<test functions>>` for top-level test accumulation. Noweb concatenates these chunks in order of appearance.
 
-3. **Tests MUST stay close to implementations** - Each `<<test functions>>=` chunk appears immediately after the implementation it verifies. NEVER collect them into a `\section{Tests}` at the beginning or end.
+3. **Use a class-specific bucket for test methods** - If a `<<test functions>>=` chunk introduces a test class, put only the class shell there and collect its methods in a more specific bucket chunk such as `<<feature a test methods>>`.
+
+4. **Tests MUST stay close to implementations** - Each `<<test functions>>=` chunk appears immediately after the implementation it verifies. NEVER collect them into a `\section{Tests}` at the beginning or end.
 
 ### Test Organization Roadmap
 
@@ -360,6 +379,28 @@ def test_feature_c():
 - Hard to maintain correspondence
 - Violates pedagogical principle
 
+### Indented Test Methods Concatenated Directly to `<<test functions>>`
+
+**BAD:**
+```noweb
+\section{Verifying Feature A}
+
+<<test functions>>=
+class TestFeatureA:
+    def test_basic_case(self):
+        assert feature_a() == "a"
+
+    def test_edge_case(self):
+        assert feature_a() == "a"
+@
+```
+
+**Problems:**
+- `<<test functions>>=` is doing two jobs: accumulating top-level tests and accumulating a class body
+- Every appended method is indentation-sensitive with respect to the surrounding class shell
+- Later additions must reopen the outer test bucket instead of the class-specific scope they belong to
+- A class-specific bucket such as `<<feature a test methods>>` reads better and is less error-prone
+
 ### All Tests Grouped at End
 
 This is the most common failure mode: avoiding tests-before-implementation
@@ -385,14 +426,9 @@ def find_key(ciphertext): ...
 \section{Tests}          % ← NEVER do this
 
 <<test functions>>=
-class TestEncrypt:
-    def test_basic(self): ...
-
-class TestDecrypt:
-    def test_roundtrip(self): ...
-
-class TestFindKey:
-    def test_known_key(self): ...
+def test_encrypt(): ...
+def test_decrypt(): ...
+def test_find_key(): ...
 @
 ```
 

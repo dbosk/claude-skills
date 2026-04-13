@@ -171,6 +171,38 @@ False choices must target **specific misconceptions**:
 Avoid obviously wrong distractors like "MPC can only compute simple
 functions."
 
+#### Worked Example: Scenario-Based Distractors
+
+The "Partial CSPRNG compromise" question from `INL1Quiz-randomness.json`
+illustrates targeted distractor design for an applied-level question:
+
+> **Stem**: *Assume a CSPRNG is partially compromised such that 96 bits of
+> the 128-bit internal state is leaked. Which of these is/are true:*
+>
+> 1. "The CSPRNG remains secure, due to the forward security inherent to
+>    all CSPRNGs." — **False.** Targets the misconception that CSPRNGs
+>    inherently provide forward security; forward security is about
+>    protecting *past* outputs after state compromise, not preventing
+>    current state exploitation.
+> 2. "The CSPRNG is immediately compromised." — **False.** Targets
+>    overreaction: 32 bits remain unknown, so the state is not *fully*
+>    determined — but it is brute-forceable.
+> 3. "The CSPRNG can be compromised by a brute force attack with
+>    O(2^32) operations." — **True.** 128 − 96 = 32 unknown bits.
+> 4. "The CSPRNG can be compromised by a brute force attack with
+>    O(2^96) operations." — **False.** Targets the most common student
+>    error: confusing the *leaked* bits (96) with the *remaining* bits
+>    (32).
+> 5. "None of the above." — **False.** Safety distractor forcing active
+>    evaluation of every option rather than pattern-matching.
+
+**Notes:**
+- This uses `multi-answer` with `scoring_data.value: [3]` (single correct
+  choice). This is valid — `multi-answer` + `AllOrNothing` works for both
+  single- and multiple-correct questions.
+- The "is/are" phrasing in the stem avoids revealing how many choices are
+  correct.
+
 ### True/False Ratio
 
 Aim for **55-75% true** choices per question (e.g., 5 true out of 8 choices).
