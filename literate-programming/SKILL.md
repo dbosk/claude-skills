@@ -124,6 +124,27 @@ Apply `variation-theory` skill when structuring explanations:
 - Quote code in documentation using `[[code]]` (escapes LaTeX special chars).
   Never manually escape characters (e.g. `\_`) inside `[[...]]` — noweb
   handles all escaping automatically.  Writing `[[\_]]` double-escapes.
+- `[[...]]` works inside `\item[...]` labels (and other moving arguments),
+  but separate the inner `]]` from the outer `]` with at least one
+  character — typically a space.  The failure mode is **three brackets in
+  a row** (`]]]`), where noweb's `]]` terminator and LaTeX's `]` argument
+  terminator collide and produce a `Runaway argument? ! Paragraph ended
+  before \@item was complete.` error.
+
+  **GOOD** — `]]` is followed by a space or by other text:
+  ```latex
+  \item[The [[--restart]] flag] explains the idempotence rule.
+  \item[ [[shell-basics $]] ] anchors on the nested shell prompt.
+  ```
+
+  **BAD** — `[[...]]` butts directly against the closing `]`:
+  ```latex
+  \item[The required pattern [[shell-basics $]]]   % Runaway argument
+  ```
+
+  The same rule applies to any other LaTeX macro argument that is
+  delimited with brackets (`\caption[...]`, `\section[...]` short forms,
+  etc.).  When in doubt, add a trailing space inside the outer brackets.
 - Escape: `@<<` for literal `<<`, `@@` in column 1 for literal `@`
 
 ## Writing Guidelines

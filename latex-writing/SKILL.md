@@ -172,7 +172,12 @@ The [[NOREFRESH_GRADES]] constant defines final grades.
 When reviewing .nw files, look for these anti-patterns:
 - `\texttt{..._...}` → Should use `[[...]]`
 - `\texttt{...__...}` → Should use `[[...]]`
-- `\item[SOME\_CONSTANT behavior]` → Should use better label + `[[SOME_CONSTANT]]` in text
+- `\item[SOME\_CONSTANT behavior]` → Either rephrase the label and put
+  `[[SOME_CONSTANT]]` in the body, or wrap the constant in `[[...]]`
+  inside the label — `\item[ [[SOME_CONSTANT]] behavior]`.  If you take
+  the second option, separate the `]]` from the closing `]` with at
+  least one character (usually a space) so you do not produce three
+  brackets in a row, which triggers a runaway-argument error.
 
 ### Examples from Real Code
 
