@@ -4,8 +4,8 @@ description: |
   Guide LaTeX document authoring following best practices and proper semantic 
   markup. Use proactively when: (1) writing or editing .tex files, (2) writing 
   or editing .nw literate programming files, (3) literate-programming skill is 
-  active and working with .nw files, (4) user mentions LaTeX, BibTeX, or 
-  document formatting, (5) reviewing LaTeX code quality. Ensures proper use of 
+  active and working with .nw files, (4) user mentions LaTeX, BibTeX, Mentipy,
+  interactive slide questions, or document formatting, (5) reviewing LaTeX code quality. Ensures proper use of 
   semantic environments (description vs itemize), csquotes (\enquote{} not 
   ``...''), and cleveref (\cref{} not \S\ref{}).
 ---
@@ -458,6 +458,15 @@ When creating Beamer presentations that also generate article versions, use `\mo
 
 Slides need **visual clarity** and **conciseness** (bullets, short phrases). Articles can provide **depth** and **explanation** (full sentences, paragraphs). Design content appropriate for each medium.
 
+### Interactive Questions with Mentipy
+
+For slide decks or educational articles that should embed live polls, use
+`mentipy.latex` from a PythonTeX block or another Python block.  Prefer
+`mc`, `open_text`, `scale`, and `word_cloud` for student-facing questions,
+then run `mentipy serve` to publish the poll and recompile after URL changes
+so refreshed QR codes are embedded.  Use `layout="slide"` for Beamer slides
+and `layout="article"` or `layout="article+qr"` for handouts.
+
 ## Standard Preamble
 
 For new LaTeX documents, use the standard preamble from `references/preamble.tex`. Copy it verbatim to your project's `doc/preamble.tex` and include it with `\input{preamble}` after `\documentclass`.
@@ -484,14 +493,10 @@ For new LaTeX documents, use the standard preamble from `references/preamble.tex
 ```
 
 **The standard preamble provides:**
-- Language support (babel with swedish, british)
-- Bibliography (biblatex with alphabetic style)
-- Code highlighting (minted, noweb)
-- Mathematics (amsmath, amssymb, mathtools, amsthm)
-- Cross-references (cleveref with custom labels)
-- Quotations (csquotes)
-- Tables (booktabs)
-- Various utilities (enumitem, acro, siunitx, etc.)
+- Language support, bibliography, mathematics, and quotations
+- Code highlighting and noweb support
+- Cross-references and tables
+- Common utilities such as `enumitem`, `acro`, and `siunitx`
 
 This ensures consistent formatting across all documents and projects.
 

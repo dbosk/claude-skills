@@ -126,6 +126,9 @@ pedagogical meta-commentary such as variation/invariance labels and
 sequencing rationale out of the visible narrative.  Put that reasoning in
 `\ltnote{...}` via the `didactic-notes` skill.
 
+If the `.nw` document generates slides or handouts with live questions, Mentipy
+is a suitable tool for embedding those prompts in the LaTeX output.
+
 **CRITICAL**: Show concrete examples FIRST, then state general principles. Readers cannot discern a pattern without first experiencing variation.
 
 ## Noweb File Format

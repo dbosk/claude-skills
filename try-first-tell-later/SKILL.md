@@ -1,6 +1,6 @@
 ---
 name: try-first-tell-later
-description: Structure educational content using try-first-tell-later pedagogy where students predict, attempt, or reflect before receiving explanations. Creates active learning through cognitive engagement and variation theory's contrast patterns. Use when writing educational materials, designing exercises, creating lecture notes, structuring tutorials, writing teaching examples with LaTeX/Beamer, developing problem sets, or when user mentions try-first, predict-first, productive failure, Socratic method, question-before-answer, exercise-driven learning, or inquiry-based teaching.
+description: Structure educational content using try-first-tell-later pedagogy where students predict, attempt, or reflect before receiving explanations. Creates active learning through cognitive engagement and variation theory's contrast patterns. Use when writing educational materials, designing exercises, creating lecture notes, structuring tutorials, writing teaching examples with LaTeX/Beamer or Mentipy, developing problem sets, or when user mentions try-first, predict-first, productive failure, Socratic method, question-before-answer, exercise-driven learning, inquiry-based teaching, polls, or interactive slide questions.
 ---
 
 # Try-First-Tell-Later Pedagogy
@@ -111,6 +111,15 @@ Use different prompt types to engage students before providing explanations:
 7. **Experimentation Prompts**: "Prova!" or "Write a program that..."
 
 **For detailed implementation guidance, examples, and LaTeX/Beamer templates, see `references/patterns.md`.**
+
+## Mentipy as a Delivery Mechanism
+
+Mentipy fits naturally when try-first prompts should be answered live in
+slides or handouts.  Use `mc` for constrained predictions, `scale` for quick
+self-assessment or confidence checks, `open_text` for short reflections, and
+`word_cloud` for brainstorming prior knowledge.  This works well for brief
+diagnostic questions before explanation, especially when the goal is to make
+student thinking visible without revealing the critical aspect too early.
 
 ## Typical Flow
 

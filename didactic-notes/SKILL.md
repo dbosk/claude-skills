@@ -158,7 +158,12 @@ Document:
 4. **Critical aspects students should discern**
 5. **Design trade-offs and decisions**
 6. **Assessment purposes**: "This question gauges prior knowledge"
-7. **Future improvements**: Notes for refining material
+7. **Mentipy question intent**: What a live poll, QR question, or open-text prompt should reveal
+8. **Future improvements**: Notes for refining material
+
+When using Mentipy in slides or handouts, document why that question appears
+at that moment, what responses are expected to reveal, and how the result will
+shape the explanation or discussion that follows.
 
 ## Writing Effective Notes
 

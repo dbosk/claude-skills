@@ -165,6 +165,14 @@ Activate this pattern whenever you encounter:
 **Self-test:** If two examples differ in more ways than the one
 dimension you intend to contrast, eliminate the incidental differences.
 
+### Mentipy for Live Variation
+
+Mentipy can operationalize variation patterns in live teaching.  Use a short
+sequence of `mc`, `scale`, `open_text`, or `word_cloud` questions to vary one
+critical aspect at a time while keeping the object of learning invariant.
+This is especially useful for diagnostic contrast before an explanation and
+for checking whether students now discern the critical aspect afterward.
+
 ## The Three Patterns of Variation
 
 ### 1. Contrast
