@@ -66,6 +66,38 @@ If using TikZ, remember to add `\usepackage{tikz}` to the project's
 `preamble.tex`. The shared skill reference preamble is only a template, not a
 guarantee that an existing project already loads TikZ.
 
+## Keep The Maps In Sync
+
+Treat overviews, intros, roadmap figures, and relevant `README.md` files as
+part of the implementation, not as optional polish.
+
+When a change affects structure, revisit the summaries that help a maintainer
+orient quickly. Stale map text is worse than missing map text because it sends
+the reader to the wrong place with high confidence.
+
+### Typical Triggers
+
+Refresh the overview layer when a change does any of the following:
+
+- renames, splits, merges, or reorders major chunks or sections
+- adds or removes a subsystem, stage, or major bucket
+- changes entry points, public surface, or dispatch flow
+- moves tests enough that the earlier roadmap is no longer true
+- changes which sections are the likely edit locations for future work
+
+### Artifacts To Revisit
+
+For structural changes, check each of these and update the ones that apply:
+
+- chapter or section overview near the top of the `.nw` file
+- local introductory prose before a substantial section
+- roadmap or structural diagram
+- relevant `README.md` in the affected area or project root
+- doc wrapper introduction, if the project uses a separate `doc/*.nw`
+
+The goal is not to repeat every detail. The goal is to keep the maintainer's
+map truthful.
+
 ## Overview Patterns
 
 ### Module Or Component Map

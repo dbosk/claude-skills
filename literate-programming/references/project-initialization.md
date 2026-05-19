@@ -225,6 +225,9 @@ shows how the generated module is assembled, and tells the maintainer where to
 look next. Expand or replace this starter text to match the real structure of
 the project; do not leave it as a generic placeholder.
 
+Keep the starter overview and the project's `README.md` aligned as the module
+structure evolves; both should point maintainers to the same major parts.
+
 **Chunk naming conventions:**
 - `<<[[__init__.py]]>>` — the output filename in double brackets
   (LaTeX-safe, avoids underscore issues)

@@ -57,6 +57,8 @@ When making changes to a .nw file:
    - Why does this approach work, not just why was it chosen?
    - How does this fit into the existing narrative?
    - Does the document need an early whole-picture overview before details?
+   - Which overview, intro, roadmap figure, or relevant `README.md`
+     summarizes this area, and does this change make it stale?
    - What new chunks are needed? What are their meaningful names?
    - Where in the pedagogical order should this be explained?
 3. **Design documentation BEFORE writing code:**
@@ -98,6 +100,10 @@ When reviewing, evaluate:
    this codebase?
 8. **Visual clarity**: When the structure is distributed, non-linear, or
    hard to track in prose, does the document add a roadmap or diagram?
+9. **Overview maintenance**: When structure, flow, chunk organization,
+   entry points, or likely edit locations changed, were the overview,
+   local intro prose, roadmap figures, and any relevant `README.md` kept in
+   sync?
 
 ## Core Philosophy
 
@@ -115,16 +121,16 @@ Apply `variation-theory` skill when structuring explanations:
 - **Generalization**: Show pattern across different contexts
 - **Fusion**: Integrate parts back into coherent whole
 
+When the literate document is student-facing educational LaTeX, keep
+pedagogical meta-commentary such as variation/invariance labels and
+sequencing rationale out of the visible narrative.  Put that reasoning in
+`\ltnote{...}` via the `didactic-notes` skill.
+
 **CRITICAL**: Show concrete examples FIRST, then state general principles. Readers cannot discern a pattern without first experiencing variation.
 
 ## Noweb File Format
 
 ### Documentation Chunks
-
-When the literate document is student-facing educational LaTeX, keep
-pedagogical meta-commentary such as variation/invariance labels and
-sequencing rationale out of the visible narrative.  Put that reasoning in
-`\ltnote{...}` via the `didactic-notes` skill.
 
 - Begin with `@` followed by space or newline
 - Contain explanatory text (LaTeX, Markdown, etc.)
@@ -812,7 +818,11 @@ Extract with: `notangle -R"[[module_name.py]]" file.nw > module_name.py`
        return text.lower().encode("ascii", "ignore").decode()
    @
    ```
-8. **Include table of contents** - add `\tableofcontents` in documentation
+8. **Keep the maps in sync** - When a change affects structure, flow, entry
+   points, chunk grouping, or likely edit locations, update the overview,
+   local intro prose, roadmap diagrams, and any relevant `README.md` in the
+   same change
+9. **Include table of contents** - add `\tableofcontents` in documentation
 
 ## Git Workflow
 
