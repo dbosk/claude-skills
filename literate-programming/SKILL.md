@@ -121,6 +121,11 @@ Apply `variation-theory` skill when structuring explanations:
 
 ### Documentation Chunks
 
+When the literate document is student-facing educational LaTeX, keep
+pedagogical meta-commentary such as variation/invariance labels and
+sequencing rationale out of the visible narrative.  Put that reasoning in
+`\ltnote{...}` via the `didactic-notes` skill.
+
 - Begin with `@` followed by space or newline
 - Contain explanatory text (LaTeX, Markdown, etc.)
 - Copied verbatim by noweave
