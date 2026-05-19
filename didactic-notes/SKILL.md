@@ -4,14 +4,16 @@ description: |
   Document pedagogical design decisions in educational materials using the
   didactic LaTeX package and \ltnote command. Use proactively when (1) writing
   or editing educational LaTeX materials with pedagogical content, (2) adding
-  variation theory labels or patterns to student-facing content, (3) explaining
-  design trade-offs or choices in educational materials, (4) documenting why
-  specific examples or exercises are sequenced in a particular way. Invoke when
-  user mentions didactic notes, \ltnote, pedagogical reasoning, learning theory
-  notes, educational design documentation, variation theory labels in student
-  content, or asks to move pedagogical reasoning to instructor notes. CRITICAL:
-  Pedagogical reasoning (variation/invariance labels, pattern names, design
-  rationale) should be in \ltnote{}, NOT in student-facing text.
+  or revising variation-theory annotations such as "What varies" or "What
+  stays invariant", (3) explaining design trade-offs or choices in educational
+  materials, (4) documenting why specific examples or exercises are sequenced
+  in a particular way, or (5) moving pedagogical reasoning out of
+  student-facing prose and into instructor notes. Invoke when user mentions
+  didactic notes, \ltnote, pedagogical reasoning, learning theory notes,
+  educational design documentation, or asks to move pedagogical reasoning to
+  instructor notes. CRITICAL: Pedagogical reasoning (variation/invariance
+  labels, pattern names, design rationale) should be in \ltnote{}, NOT in
+  student-facing text.
 ---
 
 # Didactic Notes: Literate Pedagogy
@@ -53,6 +55,30 @@ Just as literate programming makes code reasoning explicit, didactic notes make 
   Following try-first pedagogy, we ask students to predict before
   explaining. This creates contrast between their mental model and
   the actual behavior, helping them discern the critical aspect.
+}
+```
+
+### Anti-pattern: visible variation labels
+
+Pedagogical labels such as \enquote{What varies} and \enquote{What stays
+invariant} belong in notes, not in the student-facing body text.
+
+**Bad:**
+```latex
+These two examples form a deliberate contrast.
+
+\begin{description}
+\item[What varies] Whether [[base_url]] is passed explicitly.
+\item[What stays invariant] The helper, the question, and the layout.
+\end{description}
+```
+
+**Good:**
+```latex
+\ltnote{%
+  \textbf{Variation pattern}: Contrast
+  \textbf{What varies}: Whether [[base_url]] is passed explicitly.
+  \textbf{What stays invariant}: The helper, the question, and the layout.
 }
 ```
 

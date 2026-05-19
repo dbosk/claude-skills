@@ -179,7 +179,26 @@ directives, which aren't valid in Python).
 ```noweb
 \chapter{Overview}
 
-Brief description of the project and what it does.
+This literate module is the maintainer's map to the package. It introduces
+the generated Python entry point, the major chunk buckets that feed it, and
+where tests appear as the implementation is developed. A typical change will
+touch one of four areas: imports, constants, classes, or functions, then add
+or update the nearby tests that justify that change.
+
+\begin{description}
+\item[Generated module] The [[__init__.py]] chunk assembles the import,
+  constant, class, and function buckets into the final module.
+\item[Chunk buckets] Each bucket groups one kind of contribution so the
+  narrative can explain that concern before showing its code.
+\item[Test chunks] Tests stay near the implementation they verify rather than
+  being collected at the end.
+\end{description}
+
+The document starts with the code skeleton below, then expands each bucket in
+maintainer order: shared setup first, then core behavior, then tests.
+
+% If the structure becomes hard to explain in prose alone, add a small
+% roadmap figure here and remember to load tikz in preamble.tex.
 
 \section{Code overview}
 
@@ -200,6 +219,14 @@ from packagename import *
 <<test functions>>
 @
 ```
+
+**Why this pattern works:** The overview names the stable bucket structure,
+shows how the generated module is assembled, and tells the maintainer where to
+look next. Expand or replace this starter text to match the real structure of
+the project; do not leave it as a generic placeholder.
+
+Keep the starter overview and the project's `README.md` aligned as the module
+structure evolves; both should point maintainers to the same major parts.
 
 **Chunk naming conventions:**
 - `<<[[__init__.py]]>>` — the output filename in double brackets

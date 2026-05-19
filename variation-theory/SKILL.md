@@ -1,6 +1,6 @@
 ---
 name: variation-theory
-description: Apply variation theory of learning to structure content using contrast, generalization, and fusion patterns. Variation must target the critical aspects of the learning objective. Use proactively when (1) writing educational materials, explanations, tutorials, or lecture slides, (2) designing or reviewing examples in documentation, READMEs, or literate programs (.nw files), especially when multiple examples illustrate alternative approaches to the same task, (3) structuring code examples, CLI usage examples, or API examples where the reader should notice what differs between alternatives, (4) user mentions variation theory, learning theory, pedagogy, contrast, invariance, or critical aspects. Also activate when asked to elaborate, make concrete, or add examples to existing content. Works alongside literate-programming and didactic-notes skills.
+description: Apply variation theory of learning to structure content using contrast, generalization, and fusion patterns. Variation must target the critical aspects of the learning objective. Use proactively when (1) writing educational materials, explanations, tutorials, or lecture slides, (2) designing or reviewing examples in documentation, READMEs, or literate programs (.nw files), especially when multiple examples illustrate alternative approaches to the same task, (3) structuring code examples, CLI usage examples, or API examples where the reader should notice what differs between alternatives, (4) user mentions variation theory, learning theory, pedagogy, contrast, invariance, or critical aspects. Also activate when asked to elaborate, make concrete, or add examples to existing content. Works alongside literate-programming and didactic-notes skills; in educational LaTeX or .nw materials, keep variation-analysis labels in \ltnote{} rather than student-facing prose.
 ---
 
 # Variation Theory of Learning
@@ -79,6 +79,35 @@ concrete names, filenames, and identifiers** across all examples.  If
 the names change between examples, the reader must determine whether
 the name change is meaningful — this distracts from the actual
 difference (the method).
+
+### Put Variation Analysis in Notes
+
+When the material is student-facing and the document uses didactic notes,
+record pedagogical analysis such as \enquote{What varies},
+\enquote{What stays invariant}, and \enquote{What this reveals} in
+`\ltnote{...}` via the `didactic-notes` skill.  Keep the visible prose
+focused on the example itself and the feature the reader should use.
+
+**Bad** --- student-facing pedagogical meta-commentary:
+
+```latex
+These two examples form a deliberate contrast.
+
+\begin{description}
+\item[What varies] Whether [[show_url]] is set to [[False]].
+\item[What stays invariant] The helper, question, and environment.
+\end{description}
+```
+
+**Good** --- instructor-facing pedagogical annotation:
+
+```latex
+\ltnote{%
+  \textbf{Variation pattern}: Contrast
+  \textbf{What varies}: Whether [[show_url]] is set to [[False]].
+  \textbf{What stays invariant}: The helper, question, and environment.
+}
+```
 
 ### Example: CLI Documentation with Two Delivery Methods
 

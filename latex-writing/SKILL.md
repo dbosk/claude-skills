@@ -48,6 +48,14 @@ When you have labels followed by explanations, definitions, or descriptions, use
 - **Passes/Fails examples**: `\item[Passes] Correct implementation...`
 - **Feature descriptions**: `\item[Auto-save] Automatically saves every 5 minutes`
 
+### Exception: Pedagogical Meta-Commentary
+
+Do not use a visible `description` list for instructor-facing pedagogical
+annotations such as \enquote{What varies}, \enquote{What stays invariant},
+or sequencing rationale in educational materials.  Those belong in
+`\ltnote{...}` via the `didactic-notes` skill.  Use `description` only
+when the labeled content is part of the student-facing document itself.
+
 ### Use `itemize` for Simple Lists
 
 Use `itemize` when items are uniform list elements without labels:
@@ -172,7 +180,12 @@ The [[NOREFRESH_GRADES]] constant defines final grades.
 When reviewing .nw files, look for these anti-patterns:
 - `\texttt{..._...}` → Should use `[[...]]`
 - `\texttt{...__...}` → Should use `[[...]]`
-- `\item[SOME\_CONSTANT behavior]` → Should use better label + `[[SOME_CONSTANT]]` in text
+- `\item[SOME\_CONSTANT behavior]` → Either rephrase the label and put
+  `[[SOME_CONSTANT]]` in the body, or wrap the constant in `[[...]]`
+  inside the label — `\item[ [[SOME_CONSTANT]] behavior]`.  If you take
+  the second option, separate the `]]` from the closing `]` with at
+  least one character (usually a space) so you do not produce three
+  brackets in a row, which triggers a runaway-argument error.
 
 ### Examples from Real Code
 

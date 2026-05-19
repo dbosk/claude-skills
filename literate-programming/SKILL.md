@@ -17,6 +17,7 @@ This skill includes detailed references in `references/`:
 |------|---------|-----------------|
 | `noweb-commands.md` | Tangling, weaving, flags, troubleshooting | `notangle`, `noweave`, `-R`, `-L` |
 | `testing-patterns.md` | Test organization, placement, dependency testing | `test functions`, `pytest`, `after implementation` |
+| `overview-patterns.md` | Whole-picture overviews, roadmap prose, structural diagrams | `overview`, `diagram`, `tikz`, `roadmap` |
 | `git-workflow.md` | Version control, .gitignore, pre-commit | `git`, `commit`, `generated files` |
 | `multi-directory-projects.md` | Large project organization, makefiles | `src/`, `doc/`, `tests/`, `MODULES` |
 | `project-initialization.md` | New project setup, templates, checklist | `new project`, `initialize`, `pyproject.toml` |
@@ -55,11 +56,17 @@ When making changes to a .nw file:
    - What is the "why" behind this change?
    - Why does this approach work, not just why was it chosen?
    - How does this fit into the existing narrative?
+   - Does the document need an early whole-picture overview before details?
+   - Which overview, intro, roadmap figure, or relevant `README.md`
+     summarizes this area, and does this change make it stale?
    - What new chunks are needed? What are their meaningful names?
    - Where in the pedagogical order should this be explained?
 3. **Design documentation BEFORE writing code:**
    - Write prose explaining the problem and solution
    - Use subsections to structure complex explanations
+   - For substantial `.nw` files, give maintainers the whole before the
+     parts. If relationships are hard to hold in prose, add a structural
+     figure. See `references/overview-patterns.md`.
 4. **Decompose code into well-named chunks:**
    - Each chunk = one coherent concept
    - Names describe purpose, not syntax (like pseudocode)
@@ -74,6 +81,8 @@ When reviewing, evaluate:
 
 1. **Narrative flow**: Coherent story? Pedagogical order?
 2. **Variation theory**: Contrasts used? "Whole, parts, whole" structure?
+   Maintainer-facing `.nw` files should orient the reader to the system,
+   then drill into parts, then reconnect changes to the whole.
 3. **Chunk quality**: Meaningful names? Focused on single concepts?
 4. **Explanation quality**: Explains "why" not just "what"?  The
    explanation should also say why the chosen approach works.  Red flags:
@@ -85,6 +94,16 @@ When reviewing, evaluate:
 5. **Test organization**: Tests after implementation, not before?
 6. **Proper noweb syntax**: `[[code]]` notation in prose? Identifiers in
    chunk titles escaped with `[[...]]`? Valid chunk references?
+7. **Overview quality**: For non-trivial files, does the overview identify
+   the main parts, how they relate, and where the document will go next?
+   Is the level appropriate for a maintainer who knows the language but not
+   this codebase?
+8. **Visual clarity**: When the structure is distributed, non-linear, or
+   hard to track in prose, does the document add a roadmap or diagram?
+9. **Overview maintenance**: When structure, flow, chunk organization,
+   entry points, or likely edit locations changed, were the overview,
+   local intro prose, roadmap figures, and any relevant `README.md` kept in
+   sync?
 
 ## Core Philosophy
 
@@ -101,6 +120,11 @@ Apply `variation-theory` skill when structuring explanations:
 - **Separation**: Start with whole (module outline), then parts (chunks)
 - **Generalization**: Show pattern across different contexts
 - **Fusion**: Integrate parts back into coherent whole
+
+When the literate document is student-facing educational LaTeX, keep
+pedagogical meta-commentary such as variation/invariance labels and
+sequencing rationale out of the visible narrative.  Put that reasoning in
+`\ltnote{...}` via the `didactic-notes` skill.
 
 **CRITICAL**: Show concrete examples FIRST, then state general principles. Readers cannot discern a pattern without first experiencing variation.
 
@@ -124,14 +148,38 @@ Apply `variation-theory` skill when structuring explanations:
 - Quote code in documentation using `[[code]]` (escapes LaTeX special chars).
   Never manually escape characters (e.g. `\_`) inside `[[...]]` — noweb
   handles all escaping automatically.  Writing `[[\_]]` double-escapes.
+- `[[...]]` works inside `\item[...]` labels (and other moving arguments),
+  but separate the inner `]]` from the outer `]` with at least one
+  character — typically a space.  The failure mode is **three brackets in
+  a row** (`]]]`), where noweb's `]]` terminator and LaTeX's `]` argument
+  terminator collide and produce a `Runaway argument? ! Paragraph ended
+  before \@item was complete.` error.
+
+  **GOOD** — `]]` is followed by a space or by other text:
+  ```latex
+  \item[The [[--restart]] flag] explains the idempotence rule.
+  \item[ [[shell-basics $]] ] anchors on the nested shell prompt.
+  ```
+
+  **BAD** — `[[...]]` butts directly against the closing `]`:
+  ```latex
+  \item[The required pattern [[shell-basics $]]]   % Runaway argument
+  ```
+
+  The same rule applies to any other LaTeX macro argument that is
+  delimited with brackets (`\caption[...]`, `\section[...]` short forms,
+  etc.).  When in doubt, add a trailing space inside the outer brackets.
 - Escape: `@<<` for literal `<<`, `@@` in column 1 for literal `@`
 
 ## Writing Guidelines
 
 1. **Start with the human story** - problem, approach, design decisions
-2. **Introduce concepts in pedagogical order** - not compiler order
-3. **Use meaningful chunk names** - 2-5 word summary of purpose (like pseudocode)
-4. **Escape all identifiers in chunk names** — any identifier (variable,
+2. **Give the whole before the parts** - substantial maintainer-facing
+   documents should start with an overview of the moving pieces, their
+   relationships, and the route through the file
+3. **Introduce concepts in pedagogical order** - not compiler order
+4. **Use meaningful chunk names** - 2-5 word summary of purpose (like pseudocode)
+5. **Escape all identifiers in chunk names** — any identifier (variable,
    function, parameter, attribute) that appears in a chunk title must be
    wrapped in `[[...]]`.  This tells noweave to render it as code
    (monospace) and prevents LaTeX errors from underscores.
@@ -159,8 +207,8 @@ Apply `variation-theory` skill when structuring explanations:
    *inside* `[[...]]`.  The brackets already tell noweb to escape
    everything.  `[[__init__.py]]` is correct;
    `[[\_\_init\_\_.py]]` is wrong and will double-escape.
-5. **Decompose by concept, not syntax**
-6. **Explain the "why"** - don't just describe what the code does.
+6. **Decompose by concept, not syntax**
+7. **Explain the "why"** - don't just describe what the code does.
    Prose that merely restates the code in English teaches nothing.  Good
    prose explains *why* a design choice was made and *why this approach
    works*: what alternative was rejected, what property makes the chosen
@@ -519,6 +567,9 @@ Apply `latex-writing` skill. Most common anti-patterns in .nw files:
 
 **Manual cross-references**: Use `\cref{...}`, NOT `Section~\ref{...}`
 
+**TikZ without preamble support**: If a `.nw` file introduces a TikZ
+diagram, add `\usepackage{tikz}` to the project's `preamble.tex`.
+
 ## Progressive Disclosure Pattern
 
 When introducing high-level structure, use **abstract placeholder chunks** that defer specifics:
@@ -767,7 +818,11 @@ Extract with: `notangle -R"[[module_name.py]]" file.nw > module_name.py`
        return text.lower().encode("ascii", "ignore").decode()
    @
    ```
-8. **Include table of contents** - add `\tableofcontents` in documentation
+8. **Keep the maps in sync** - When a change affects structure, flow, entry
+   points, chunk grouping, or likely edit locations, update the overview,
+   local intro prose, roadmap diagrams, and any relevant `README.md` in the
+   same change
+9. **Include table of contents** - add `\tableofcontents` in documentation
 
 ## Git Workflow
 
