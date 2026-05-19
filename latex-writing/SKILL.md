@@ -48,6 +48,14 @@ When you have labels followed by explanations, definitions, or descriptions, use
 - **Passes/Fails examples**: `\item[Passes] Correct implementation...`
 - **Feature descriptions**: `\item[Auto-save] Automatically saves every 5 minutes`
 
+### Exception: Pedagogical Meta-Commentary
+
+Do not use a visible `description` list for instructor-facing pedagogical
+annotations such as \enquote{What varies}, \enquote{What stays invariant},
+or sequencing rationale in educational materials.  Those belong in
+`\ltnote{...}` via the `didactic-notes` skill.  Use `description` only
+when the labeled content is part of the student-facing document itself.
+
 ### Use `itemize` for Simple Lists
 
 Use `itemize` when items are uniform list elements without labels:
