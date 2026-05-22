@@ -83,7 +83,9 @@ When reviewing, evaluate:
 2. **Variation theory**: Contrasts used? "Whole, parts, whole" structure?
    Maintainer-facing `.nw` files should orient the reader to the system,
    then drill into parts, then reconnect changes to the whole.
-3. **Chunk quality**: Meaningful names? Focused on single concepts?
+3. **Chunk quality**: Meaningful names? Focused on single concepts?  Bucket
+   chunks named with nouns (`<<option completions>>`), not verb phrases
+   (`<<wire option completions>>`)?
 4. **Explanation quality**: Explains "why" not just "what"?  The
    explanation should also say why the chosen approach works.  Red flags:
     prose that begins "We [verb] the [noun]" matching a function name;
@@ -104,6 +106,11 @@ When reviewing, evaluate:
    entry points, or likely edit locations changed, were the overview,
    local intro prose, roadmap figures, and any relevant `README.md` kept in
    sync?
+10. **Co-location and consistency**: Are wiring chunks (attribute
+   assignments, register/install calls, decorator-style mutation) placed
+   next to the entities they mutate, not the helpers they call?  When the
+   same task is solved in multiple places in the file, do they share a
+   pattern — or does prose explain why a particular site diverges?
 
 ## Core Philosophy
 
@@ -181,7 +188,30 @@ is a suitable tool for embedding those prompts in the LaTeX output.
    documents should start with an overview of the moving pieces, their
    relationships, and the route through the file
 3. **Introduce concepts in pedagogical order** - not compiler order
-4. **Use meaningful chunk names** - 2-5 word summary of purpose (like pseudocode)
+4. **Use meaningful chunk names** - 2-5 word summary of purpose (like pseudocode).
+
+   **Bucket chunks are named with nouns; phase chunks may be imperative.**
+   A bucket chunk holds the same *kind* of content across many definitions
+   and is named as a category: `<<constants>>`, `<<functions>>`,
+   `<<imports>>`, `<<test functions>>`, `<<repo methods>>`,
+   `<<option completions>>`.  Phase sub-chunks (Guideline 8) are different —
+   they describe a step in an algorithm and read naturally as imperatives
+   (`<<pick random starting point>>`, `<<collect sentences until target
+   length>>`).
+
+   **BAD** — verb-phrase bucket name:
+   ```noweb
+   <<wire option completions>>=
+   LAYOUT_OPTION.autocompletion = _choice_completer(LAYOUT_CHOICES)
+   @
+   ```
+
+   **GOOD** — noun bucket name:
+   ```noweb
+   <<option completions>>=
+   LAYOUT_OPTION.autocompletion = _choice_completer(LAYOUT_CHOICES)
+   @
+   ```
 5. **Escape all identifiers in chunk names** — any identifier (variable,
    function, parameter, attribute) that appears in a chunk title must be
    wrapped in `[[...]]`.  This tells noweave to render it as code
@@ -515,9 +545,52 @@ is a suitable tool for embedding those prompts in the LaTeX output.
    def extract_body(text): ...
    @
    ```
-11. **Define constants for magic numbers** - never hardcode values
-12. **Co-locate dependencies with features** - feature's imports in feature's section
-13. **Never leave prose inside an open code chunk** — When inserting local
+11. **Co-locate wiring chunks with the entities they mutate, not the helpers
+   they call.**  A wiring chunk (attribute assignment, `register()`/`install()`
+   call, decorator-style mutation) has two natural neighbours: the helper
+   functions it *calls* and the objects it *mutates*.  Place it next to the
+   objects it mutates so a reader who lands on the option/class/registry
+   sees what is attached to it; the helper has its own section and does
+   not benefit from a trailing assignment block.  Chunk source order is
+   independent of tangle order, so co-locating the source costs nothing
+   at runtime.
+
+   **BAD** — wiring sits next to the helper it calls, far from the option
+   it mutates:
+   ```noweb
+   <<constants>>=
+   LAYOUT_OPTION = typer.Option("slide", "--layout", help=LAYOUT_HELP)
+   @
+
+   ...300 lines later...
+
+   <<functions>>=
+   def _choice_completer(values): ...
+   @
+
+   <<option completions>>=
+   LAYOUT_OPTION.autocompletion = _choice_completer(LAYOUT_CHOICES)
+   @
+   ```
+
+   **GOOD** — wiring sits next to the object it mutates; the helper moves
+   to live near the same neighbourhood:
+   ```noweb
+   <<constants>>=
+   LAYOUT_OPTION = typer.Option("slide", "--layout", help=LAYOUT_HELP)
+   @
+
+   <<functions>>=
+   def _choice_completer(values): ...
+   @
+
+   <<option completions>>=
+   LAYOUT_OPTION.autocompletion = _choice_completer(LAYOUT_CHOICES)
+   @
+   ```
+12. **Define constants for magic numbers** - never hardcode values
+13. **Co-locate dependencies with features** - feature's imports in feature's section
+14. **Never leave prose inside an open code chunk** — When inserting local
     `<<constants>>=` buckets or explanatory paragraphs, first close the
     current code chunk with `@`.  Documentation between two function
     sections must be outside code mode; otherwise noweb tangles the prose
@@ -549,14 +622,24 @@ is a suitable tool for embedding those prompts in the LaTeX output.
     DEFAULT_DAILY_LIMIT_CONFIG = "track.daily_limit"
     @
     ```
-14. **Prefer public functions** - Default to making functions public with
+15. **Prefer public functions** - Default to making functions public with
     docstrings. Only use `_`-prefixed private functions for true internal
     helpers tightly coupled to a single caller. Public utilities (e.g.,
     `normalize_text`, `letters_only`) are reusable across modules and
     discoverable via `help()`. Duplicated private helpers across modules
     (e.g., `_to_ascii` in both `vigenere.nw` and `plaintexts.nw`) are a
     sign the function should be public in a shared module.
-15. **Keep lines under 80 characters** - both prose and code
+16. **Keep lines under 80 characters** - both prose and code
+17. **Survey siblings before introducing a new pattern.**  Before reaching
+    for a new mechanism in a `.nw` file, grep the same file (and sibling
+    `.nw` files) for places that already solve the same task.  If three
+    command-local options already attach completion via `autocompletion=...`
+    at construction, the fourth option should match — *or* the prose must
+    explain why the divergence is necessary (forward-reference constraint,
+    chunk-tangle order, dependency on a later-defined symbol, etc.).  The
+    cost of this survey is one grep; the cost of skipping it is an
+    asymmetric file where readers cannot tell whether the new mechanism is
+    load-bearing or accidental.
 
 ### LaTeX Documentation Quality
 
