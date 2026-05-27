@@ -36,14 +36,16 @@ Embedded so the skill activates with zero tool calls. Re-verify with
 - **Key leaf folders** — encode the lifecycle of a message, not just
   routing:
   - `INBOX/` — **waiting / not yet processed**. Unread mail lives here
-    by definition; flagged mail here is *active work* (the flag was
-    set in INBOX and is still meaningful). **For triage, this is the
-    folder to target.**
+    by definition; flagged mail here is *active work*. **For triage,
+    this is the folder to target.**
   - `Processed/` — **done**. Messages the user has handled and moved
-    out of INBOX. A flag here is a stale historical artifact (the user
-    forgot to unflag before moving) — *do not* treat it as actionable.
+    out of INBOX. The user *intentionally keeps flags here* — a flag
+    in Processed means "I had to act on this", retained as a labeled
+    signal for tuning `~/.muttrc.scores` and spotting patterns. **Do
+    not** treat them as actionable triage items, but **do not** ignore
+    them as noise either — they're training data.
   - `Processed-archived/` — **archived, not interesting**. Older
-    Processed mail. Even less relevant than `Processed/`.
+    Processed mail. Even less relevant than `Processed/` for triage.
 - **Xapian DB**: `/home/dbosk/.cache/mu/xapian`
 - **Verified**: 2026-05-27
 
@@ -55,9 +57,17 @@ leaf for mutt.
 
 **Implication for triage queries:** unread mail = "waiting to be
 processed" (the user moves mail to `Processed/` when done; unread mail
-that's still in INBOX is therefore by-definition actionable). Old
-unread mail in INBOX is *stale* — never got around to it. Flagged
-mail in `Processed/` is *not* a triage target — it's done.
+still in INBOX is therefore by-definition actionable). Old unread mail
+in INBOX is *stale* — never got around to it. Flagged mail in
+`Processed/` is *not* a triage target — it's done — but it *is* a
+historical record of "things that needed action", deliberately
+retained for score-tuning. Use the user's flag-discipline to your
+advantage:
+
+- **Flag-cleared anywhere** = "I didn't have to act on this" (FYI/noise).
+- **Flagged in INBOX** = "this needs action, still pending".
+- **Flagged in Processed/** = "this needed action and is now done"
+  (labeled training point).
 
 **Lazy fallback — call `mu info` only if:**
 - a query returns unexpectedly zero results,
@@ -285,10 +295,11 @@ separately with `--fields i | wc -l`.
 **Folder lifecycle is asymmetric — flag in `Processed/` ≠ actionable.**
 Tempting reflex: query `flag:flagged` everywhere and assume each hit
 is a triage target. Wrong here. Flags in `Processed/` and
-`Processed-archived/` are *legacy* — the user moved mail out of INBOX
-without clearing the flag. The only triage-relevant folder is
-`INBOX/`. **Always constrain mu queries with `maildir:/INBOX`** when
-building todos for "what needs handling":
+`Processed-archived/` are *intentional* — the user keeps them as a
+labeled "had-to-act" signal for tuning `~/.muttrc.scores`. They are
+not noise to ignore, but they are not work-to-do either. The only
+triage-relevant folder is `INBOX/`. **Always constrain mu queries
+with `maildir:/INBOX`** when building todos for "what needs handling":
 
 ```
 mu find 'flag:unread AND maildir:/INBOX AND date:3m.. AND <category>'
@@ -315,6 +326,25 @@ done). Don't try to "rescue" Processed mail into a triage view.
 | Manually-marked important & waiting | `~F` | Subset of unread+read in INBOX |
 | Most-pressing | `~U ~F` | Important AND not yet opened |
 | Stale to-do (never finished) | `~U ~d ">3m"` or `~F ~d ">3m"` | Months in INBOX = forgotten |
+
+### Score-tuning queries (use Processed flagged mail)
+
+If the user asks "which senders/subjects keep needing action?" or
+wants to improve `~/.muttrc.scores`, that's exactly what flagged
+mail in `Processed/` is for — it's the user's hand-labeled corpus
+of "things that turned out to need action". Useful queries:
+
+```
+# Top senders of acted-on mail in the last year
+mu find 'flag:flagged AND maildir:/Processed AND date:1y..' --fields f \
+  | sort | uniq -c | sort -rn | head -20
+
+# Common subject tokens in acted-on mail
+mu find 'flag:flagged AND maildir:/Processed AND date:6m..' --fields s \
+  | tr ' ' '\n' | sort | uniq -c | sort -rn | head -30
+```
+
+Compare against `~/.muttrc.scores` to find under-scored senders/terms.
 
 **Form B is read-only.** Symlink renames stay in the linksdir; the real
 inbox is untouched. Use Form A whenever state must persist.
