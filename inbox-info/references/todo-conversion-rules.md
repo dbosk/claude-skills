@@ -65,7 +65,7 @@ one paste.
 ### Form A — mutt limit (DEFAULT, state changes persist)
 
 ```
-neomutt -f /home/dbosk/mail/kth \
+neomutt -f /home/dbosk/mail/kth/INBOX \
   -e 'push "<limit>~F ~s \"<regex>\"<enter>"'
 ```
 
@@ -75,7 +75,7 @@ body, `~f "regex"` from, space for AND, `|` for OR within a regex.
 
 **Worked example (missing grades):**
 ```
-neomutt -f /home/dbosk/mail/kth \
+neomutt -f /home/dbosk/mail/kth/INBOX \
   -e 'push "<limit>~F ~s \"betyg\\|ladok\\|grade\"<enter>"'
 ```
 

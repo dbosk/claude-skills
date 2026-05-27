@@ -31,9 +31,17 @@ commands, and let NeoMutt own flag/state changes.
 Embedded so the skill activates with zero tool calls. Re-verify with
 `mu info` only if a query misbehaves.
 
-- **Maildir root**: `/home/dbosk/mail/kth`
+- **Maildir+ account root** (use with `mu` — it indexes the whole tree):
+  `/home/dbosk/mail/kth`
+- **INBOX leaf mailbox** (use with `neomutt -f` — it opens a single folder):
+  `/home/dbosk/mail/kth/INBOX`
 - **Xapian DB**: `/home/dbosk/.cache/mu/xapian`
 - **Verified**: 2026-05-27
+
+The account root contains subfolders (`INBOX/`, `Sent/`, `Archive/`, etc.)
+but no `cur/new/tmp` of its own. Pointing `neomutt -f` at the root opens
+the folder browser, not messages — `~F ~s "..."` limits then filter an
+empty set. Always target `INBOX` (or the specific subfolder) for mutt.
 
 **Lazy fallback — call `mu info` only if:**
 - a query returns unexpectedly zero results,
@@ -142,9 +150,11 @@ query language for read-only browsing.
 (mark read, reply, unflag) persist to the real inbox:
 
 ```
-neomutt -f /home/dbosk/mail/kth \
+neomutt -f /home/dbosk/mail/kth/INBOX \
   -e 'push "<limit>~F ~s \"betyg\\|ladok\\|grade\"<enter>"'
 ```
+
+Note `INBOX`, not the account root — see "Known Setup" above.
 
 Mutt patterns: `~F` flagged, `~s "regex"` subject, `~b "regex"` body,
 `~f "regex"` from, `!~s "regex"` negation. Combine with space (AND) or `|` (OR
@@ -183,7 +193,7 @@ for `view`, put the executable command in `-c`.
 nytid todo add MAIL \
   -t "Resolve missing grades — 5 student emails" \
   --description "5 flagged emails about missing grades (Ladok/betyg)." \
-  -c "neomutt -f /home/dbosk/mail/kth -e 'push \"<limit>~F ~s \\\"betyg|ladok|grade\\\"<enter>\"'"
+  -c "neomutt -f /home/dbosk/mail/kth/INBOX -e 'push \"<limit>~F ~s \\\"betyg|ladok|grade\\\"<enter>\"'"
 ```
 
 **Escape ladder** (bash → nytid storage → shell on `start` → mutt `-e`
