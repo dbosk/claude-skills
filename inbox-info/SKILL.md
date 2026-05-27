@@ -147,7 +147,12 @@ neomutt -f /home/dbosk/mail/kth \
 ```
 
 Mutt patterns: `~F` flagged, `~s "regex"` subject, `~b "regex"` body,
-`~f "regex"` from, combine with space (AND) or `|` (OR).
+`~f "regex"` from, `!~s "regex"` negation. Combine with space (AND) or `|` (OR
+within a single regex). **Date filters**: `~d "<3m"` newer than 3 months ago
+(within last 3 months), `~d ">3m"` older than 3 months ago. Offsets: `d` day,
+`w` week, `m` month, `y` year. Absolute range: `~d "01/27/26-02/27/26"` (US
+`MM/DD/YY`). When embedding in a shell string, escape inner double quotes:
+`~d \"<3m\"`.
 
 **Form B — mu virtual maildir, READ-ONLY browsing only.** Use when a
 query can't be expressed as mutt patterns (cross-folder, mu's richer
@@ -169,18 +174,33 @@ so concurrent uses don't collide.
 
 ### Step 6: Suggest the todo (don't run it)
 
-Print the command for the user to run. Example for a missing-grades batch:
+Print the command for the user to run. **Prefer `--command` (`-c`)** over
+`--description` for the review command — that way `nytid todo start <id>`
+runs it directly, no copy-paste. Put context/rationale in `--description`
+for `view`, put the executable command in `-c`.
 
 ```
 nytid todo add MAIL \
   -t "Resolve missing grades — 5 student emails" \
-  --description "5 flagged emails about missing grades (Ladok/betyg). Review in neomutt: neomutt -f /home/dbosk/mail/kth -e 'push \"<limit>~F ~s \\\"betyg\\\\|ladok\\\\|grade\\\"<enter>\"'"
+  --description "5 flagged emails about missing grades (Ladok/betyg)." \
+  -c "neomutt -f /home/dbosk/mail/kth -e 'push \"<limit>~F ~s \\\"betyg|ladok|grade\\\"<enter>\"'"
 ```
+
+**Escape ladder** (bash → nytid storage → shell on `start` → mutt `-e`
+parser → mutt push string). Inside a bash double-quoted argument, use
+`\\\"` for every literal `"` that mutt's push-string parser must see — `\\`
+becomes `\` and `\"` becomes `"`, yielding the stored `\"` that mutt
+unescapes back to `"`. When you splice variables into the template, make
+sure they're *bare* (no quotes baked in) and let the template add the
+`\\\"` around them.
 
 For adding email context to an existing todo, suggest:
 `nytid todo note <ID> -m "Saw a follow-up email from <sender> on <date>"`.
 
-See the `nytid-todo` skill for broader todo-workflow details.
+See the `nytid-todo` skill for broader todo-workflow details, including
+auto-parenting behavior (a new `nytid todo add` without `--top-level`
+parents under the currently active todo — handy when the user has an
+"Clear inbox" todo in-progress and wants each bucket as a child).
 
 ## Quick Reference
 
@@ -226,6 +246,15 @@ and suggest they reindex.
 
 **Shell quoting.** Always single-quote `mu` queries: `'flag:flagged'`,
 `'from:foo AND date:1w..'`.
+
+**mu regex `/.../` is fragile.** Spaces and parentheses inside the slashes
+silently match zero results — e.g. `subject:/applied crypto/` and
+`subject:/(foo|bar)/` both return nothing instead of erroring. For
+multi-word terms or grouped alternations, use boolean OR of word terms:
+`(subject:applied OR subject:crypto)`, `(subject:foo OR subject:bar)`.
+Single-word alternations like `subject:/foo|bar|baz/` do work. When a
+count looks suspiciously low, sanity-check by running each clause
+separately with `--fields i | wc -l`.
 
 **Form B is read-only.** Symlink renames stay in the linksdir; the real
 inbox is untouched. Use Form A whenever state must persist.

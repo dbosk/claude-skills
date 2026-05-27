@@ -1,6 +1,6 @@
 ---
 name: nytid-todo
-description: >-
+description: |
   Manages work items via nytid todo subcommands as worker dan-claude. Relevant
   when the user asks to check, start, or complete tasks, view task details, add
   progress notes, create subtasks, reprioritize items, or import/sync GitHub
@@ -21,6 +21,17 @@ wrong person's tasks.
 Omitting or widening `--who` is acceptable when *reading* tasks to get context
 (see "Getting context from other assignees" below). **Never modify tasks that
 are not assigned to `dan-claude`.**
+
+### Exception: email-derived todos (user-owned work)
+
+When the `inbox-info` skill is active and the user is converting flagged
+emails into todos, **omit `--who`** entirely so the new todos default to the
+current user (`dbosk`). `dan-claude` is a delegated worker for code/tooling
+tasks, not a stand-in for the user in human communication — assigning email
+replies to `dan-claude` mis-routes work the user must do themselves. See
+`~/.claude/skills/inbox-info/references/todo-conversion-rules.md` for the
+full rationale. This exception applies only to email-derived todos; all
+other `nytid todo` work still uses `--who dan-claude`.
 
 ## Discovering options
 
@@ -78,10 +89,30 @@ for structural changes (reassignment, deadline shifts, re-parenting).
 
 ### Create subtasks
 
-Use `add` with `--parent` to break a task into smaller pieces. The priority
-system uses interactive binary-search comparison, so when adding tasks you will
-be asked to compare priorities. Use `--top-level` to override automatic
-parenting if needed.
+Use `add` to break a task into smaller pieces. **Auto-parenting**: if a task
+is already in-progress (visible via `status`) and you omit both `--parent`
+and `--top-level`, the new task auto-parents under the active todo. This is
+the most ergonomic way to add subtasks while working on something — just
+`nytid todo add ...` and the parent is inferred. Pass `--top-level` to opt
+out and add at the root, or `--parent <id>` to target a specific parent.
+
+**Priority assignment** defaults to interactive binary-search comparison
+against existing siblings (you'll be prompted to compare priorities). For
+non-interactive batch adds use one of:
+
+- `--append` — places the new task just below the lowest-priority sibling.
+  Safe even when the parent has no existing children (the first child gets
+  a sensible default). When batch-adding in priority order (highest first),
+  each `--append` slots one rung below the previous, encoding the order
+  without prompts.
+- `--skip-priority` — no numeric priority assigned; the task sorts by
+  deadline only. Use for "do whenever" buckets.
+
+**Default-command** (`-c`/`--command`): the value passed here becomes the
+command `nytid todo start <id>` runs (replacing the worker's default, which
+is `bash`). Useful for embedding a one-step action — opening a file in an
+editor, launching a query in NeoMutt, running a script — so the user goes
+from `start` to working with no copy-paste.
 
 ### Reprioritize
 
@@ -109,16 +140,16 @@ Always pass `--who dan-claude` when importing to ensure correct assignment.
 
 | Intent | Subcommand | Key flags to check |
 |--------|------------|--------------------|
-| List my tasks | `ls` | `--all`, `--status`, `--flat`, `-n` |
+| List my top-level tasks | `ls` | `--all`, `--status`, `--flat`, `-n` (positional args = label filters, **not** parent IDs) |
 | What am I working on? | `status` | — |
 | Start next task | `next` | `--headless` |
 | Start specific task | `start` | `--timeout`, tmux flags |
 | Pause current task | `stop` | — |
 | Complete current task | `done` | — |
-| View task details | `view` | — |
-| Edit task metadata | `edit` | `--edit` for editor |
+| View task + its sub-items | `view <id>` | shows description, notes, children — use this instead of `ls <id>` |
+| Edit task metadata | `edit` | `--edit` for editor, `-c` for default command |
 | Add progress note | `note` | `--message`, `--edit` |
-| Create subtask | `add` | `--parent`, `--here` |
+| Create subtask | `add` | `--parent`, `--top-level`, `--append`, `-c` (auto-parents to active todo by default) |
 | Change priority | `reprioritize` | — |
 | Import from GitHub | `import` | `--number`, `--type` |
 | Sync with GitHub | `sync` | `--repo` |
