@@ -33,13 +33,17 @@ Embedded so the skill activates with zero tool calls. Re-verify with
 
 - **Maildir+ account root** (use with `mu` — it indexes the whole tree):
   `/home/dbosk/mail/kth`
-- **Key leaf folders** (use with `neomutt -f` — one folder at a time):
-  - `INBOX/` — live, mostly unread or recently-flagged mail
-  - `Processed/` — Sieve-routed mail (auto-filed, mostly read); holds
-    ~64% of recent flagged emails and almost all auto-generated mail
-    (Cron, notifications, list mail, scheduling, IT-support)
-  - `Processed-archived/` — older Processed mail; holds the bulk of
-    the backlog tier
+- **Key leaf folders** — encode the lifecycle of a message, not just
+  routing:
+  - `INBOX/` — **waiting / not yet processed**. Unread mail lives here
+    by definition; flagged mail here is *active work* (the flag was
+    set in INBOX and is still meaningful). **For triage, this is the
+    folder to target.**
+  - `Processed/` — **done**. Messages the user has handled and moved
+    out of INBOX. A flag here is a stale historical artifact (the user
+    forgot to unflag before moving) — *do not* treat it as actionable.
+  - `Processed-archived/` — **archived, not interesting**. Older
+    Processed mail. Even less relevant than `Processed/`.
 - **Xapian DB**: `/home/dbosk/.cache/mu/xapian`
 - **Verified**: 2026-05-27
 
@@ -48,6 +52,12 @@ The account root contains subfolders (`INBOX/`, `Sent/`, `Archive/`,
 own. Pointing `neomutt -f` at the root opens the folder browser, not
 messages — limits then filter an empty set. Always target a specific
 leaf for mutt.
+
+**Implication for triage queries:** unread mail = "waiting to be
+processed" (the user moves mail to `Processed/` when done; unread mail
+that's still in INBOX is therefore by-definition actionable). Old
+unread mail in INBOX is *stale* — never got around to it. Flagged
+mail in `Processed/` is *not* a triage target — it's done.
 
 **Lazy fallback — call `mu info` only if:**
 - a query returns unexpectedly zero results,
@@ -272,13 +282,20 @@ Single-word alternations like `subject:/foo|bar|baz/` do work. When a
 count looks suspiciously low, sanity-check by running each clause
 separately with `--fields i | wc -l`.
 
-**Flag-vs-folder mismatch.** `~F + -f INBOX` is the obvious "show me
-flagged INBOX mail" pattern, but in this user's setup it misses most
-flagged mail — Sieve rules auto-route by content type, so flagged mail
-of a given category often clusters in `Processed/` or `Processed-archived/`,
-not `INBOX/`. Cron output is the extreme case: 1000+ flagged emails,
-zero in INBOX. **Before** building a mutt command for a category,
-run a folder-distribution check:
+**Folder lifecycle is asymmetric — flag in `Processed/` ≠ actionable.**
+Tempting reflex: query `flag:flagged` everywhere and assume each hit
+is a triage target. Wrong here. Flags in `Processed/` and
+`Processed-archived/` are *legacy* — the user moved mail out of INBOX
+without clearing the flag. The only triage-relevant folder is
+`INBOX/`. **Always constrain mu queries with `maildir:/INBOX`** when
+building todos for "what needs handling":
+
+```
+mu find 'flag:unread AND maildir:/INBOX AND date:3m.. AND <category>'
+```
+
+If a folder-distribution check is ever needed (e.g. to confirm a
+category really is empty in INBOX vs. just sitting in Processed):
 
 ```
 mu find '<query>' --fields l --maxnum 500 \
@@ -286,27 +303,18 @@ mu find '<query>' --fields l --maxnum 500 \
   | sort | uniq -c | sort -rn
 ```
 
-Then point `-f` at the dominant folder. Heuristic for this user:
+A bucket with zero unread/flagged in INBOX is *correctly empty* — the
+user has already processed it (the data is in Processed/, which is
+done). Don't try to "rescue" Processed mail into a triage view.
 
-- Recent human-conversation buckets (student, faculty, research):
-  mostly `Processed/`; some still in `INBOX/`.
-- Recent notification/auto buckets (Cron, ISP, Canvas, schedule, list
-  mail): almost entirely `Processed/` or auto-archived — and `~U` will
-  return zero because they're auto-marked-read.
-- Backlog (>3m flagged): ~68% in `Processed-archived/`.
+**Filter choice cheat-sheet** (all assume `maildir:/INBOX`):
 
-When a category truly spans two folders evenly, fall back to mu's
-virtual maildir (Form B) — read-only, but at least it surfaces all
-matches.
-
-**Filter choice cheat-sheet.** Pick the filter that matches the
-question, not just "flagged" by reflex:
-
-| Goal | Filter | Where it works |
+| Goal | Filter | Notes |
 |---|---|---|
-| Fresh, never-opened mail | `~U` | Human-written mail in `INBOX/` |
-| Manually-marked actionable | `~F` | Anywhere — but check folder! |
-| Anything in category | just `~s` (drop `~F`) | Wherever the mail clusters |
+| Waiting to be processed | `~U` | Canonical signal; INBOX-resident |
+| Manually-marked important & waiting | `~F` | Subset of unread+read in INBOX |
+| Most-pressing | `~U ~F` | Important AND not yet opened |
+| Stale to-do (never finished) | `~U ~d ">3m"` or `~F ~d ">3m"` | Months in INBOX = forgotten |
 
 **Form B is read-only.** Symlink renames stay in the linksdir; the real
 inbox is untouched. Use Form A whenever state must persist.
