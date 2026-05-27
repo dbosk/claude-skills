@@ -33,15 +33,21 @@ Embedded so the skill activates with zero tool calls. Re-verify with
 
 - **Maildir+ account root** (use with `mu` — it indexes the whole tree):
   `/home/dbosk/mail/kth`
-- **INBOX leaf mailbox** (use with `neomutt -f` — it opens a single folder):
-  `/home/dbosk/mail/kth/INBOX`
+- **Key leaf folders** (use with `neomutt -f` — one folder at a time):
+  - `INBOX/` — live, mostly unread or recently-flagged mail
+  - `Processed/` — Sieve-routed mail (auto-filed, mostly read); holds
+    ~64% of recent flagged emails and almost all auto-generated mail
+    (Cron, notifications, list mail, scheduling, IT-support)
+  - `Processed-archived/` — older Processed mail; holds the bulk of
+    the backlog tier
 - **Xapian DB**: `/home/dbosk/.cache/mu/xapian`
 - **Verified**: 2026-05-27
 
-The account root contains subfolders (`INBOX/`, `Sent/`, `Archive/`, etc.)
-but no `cur/new/tmp` of its own. Pointing `neomutt -f` at the root opens
-the folder browser, not messages — `~F ~s "..."` limits then filter an
-empty set. Always target `INBOX` (or the specific subfolder) for mutt.
+The account root contains subfolders (`INBOX/`, `Sent/`, `Archive/`,
+`Processed/`, `Processed-archived/`, etc.) but no `cur/new/tmp` of its
+own. Pointing `neomutt -f` at the root opens the folder browser, not
+messages — limits then filter an empty set. Always target a specific
+leaf for mutt.
 
 **Lazy fallback — call `mu info` only if:**
 - a query returns unexpectedly zero results,
@@ -265,6 +271,42 @@ multi-word terms or grouped alternations, use boolean OR of word terms:
 Single-word alternations like `subject:/foo|bar|baz/` do work. When a
 count looks suspiciously low, sanity-check by running each clause
 separately with `--fields i | wc -l`.
+
+**Flag-vs-folder mismatch.** `~F + -f INBOX` is the obvious "show me
+flagged INBOX mail" pattern, but in this user's setup it misses most
+flagged mail — Sieve rules auto-route by content type, so flagged mail
+of a given category often clusters in `Processed/` or `Processed-archived/`,
+not `INBOX/`. Cron output is the extreme case: 1000+ flagged emails,
+zero in INBOX. **Before** building a mutt command for a category,
+run a folder-distribution check:
+
+```
+mu find '<query>' --fields l --maxnum 500 \
+  | sed 's|^/home/dbosk/mail/kth/||; s|/cur/.*||; s|/new/.*||' \
+  | sort | uniq -c | sort -rn
+```
+
+Then point `-f` at the dominant folder. Heuristic for this user:
+
+- Recent human-conversation buckets (student, faculty, research):
+  mostly `Processed/`; some still in `INBOX/`.
+- Recent notification/auto buckets (Cron, ISP, Canvas, schedule, list
+  mail): almost entirely `Processed/` or auto-archived — and `~U` will
+  return zero because they're auto-marked-read.
+- Backlog (>3m flagged): ~68% in `Processed-archived/`.
+
+When a category truly spans two folders evenly, fall back to mu's
+virtual maildir (Form B) — read-only, but at least it surfaces all
+matches.
+
+**Filter choice cheat-sheet.** Pick the filter that matches the
+question, not just "flagged" by reflex:
+
+| Goal | Filter | Where it works |
+|---|---|---|
+| Fresh, never-opened mail | `~U` | Human-written mail in `INBOX/` |
+| Manually-marked actionable | `~F` | Anywhere — but check folder! |
+| Anything in category | just `~s` (drop `~F`) | Wherever the mail clusters |
 
 **Form B is read-only.** Symlink renames stay in the linksdir; the real
 inbox is untouched. Use Form A whenever state must persist.
