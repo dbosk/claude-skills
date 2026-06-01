@@ -879,7 +879,31 @@ Extract with: `notangle -R"[[module_name.py]]" file.nw > module_name.py`
    is for **maintainers** reading the literate source; docstrings are for
    **users** of the compiled `.py` who never see the `.nw` file. Both are
    needed. Private functions (prefixed `_`) may omit docstrings. Never use
-   `\cref` or other LaTeX commands inside docstrings.
+   `\cref` or other LaTeX commands inside docstrings — and never use noweb
+   `[[...]]` code-quoting there either. `[[...]]` is only interpreted by
+   noweave in *documentation* chunks; inside a docstring (a string in a code
+   chunk) it is copied verbatim, so it leaks into the generated `.py` and
+   `help()` output. Quote code in docstrings however your project's
+   docstrings already do (plain text, markdown `` `x` ``, or RST
+   `` ``x`` ``) — just not with `[[...]]`.
+
+   **BAD** — noweb `[[...]]` in a docstring leaks into `help()`:
+   ```noweb
+   <<functions>>=
+   def __setattr__(self, name, value):
+       """Keep [[labels]] a sorted, duplicate-free list."""
+       ...
+   @
+   ```
+
+   **GOOD** — quote code with the project's docstring convention:
+   ```noweb
+   <<functions>>=
+   def __setattr__(self, name, value):
+       """Keep `labels` a sorted, duplicate-free list."""
+       ...
+   @
+   ```
 
    **BAD** — function with prose but no docstring:
    ```noweb
