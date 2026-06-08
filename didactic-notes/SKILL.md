@@ -11,9 +11,11 @@ description: |
   student-facing prose and into instructor notes. Invoke when user mentions
   didactic notes, \ltnote, pedagogical reasoning, learning theory notes,
   educational design documentation, or asks to move pedagogical reasoning to
-  instructor notes. CRITICAL: Pedagogical reasoning (variation/invariance
-  labels, pattern names, design rationale) should be in \ltnote{}, NOT in
-  student-facing text.
+  instructor notes. CRITICAL: \ltnote captures reasoning about how the teaching
+  material itself is written and sequenced (variation/invariance labels, why
+  this example, what a question should reveal), NOT substantive content or
+  system/code design decisions, which belong in the body text even when they
+  cite research.
 ---
 
 # Didactic Notes: Literate Pedagogy
@@ -35,6 +37,49 @@ This skill includes detailed references in `references/`:
 **Document not just what you teach, but *why* you teach it that way.**
 
 Just as literate programming makes code reasoning explicit, didactic notes make pedagogical reasoning explicit using `\ltnote{...}` from the LaTeX `didactic` package.
+
+## Scope: `\ltnote` documents the *material's* design, not the subject
+
+`\ltnote` is meta-commentary about **how and why the teaching text itself is
+written** — which example was chosen, the order of presentation, a
+variation/invariance pattern, what a question is meant to reveal. It is the
+authorial reasoning that a reader of the finished material should not see, but a
+future *author* or *educator* should.
+
+It is **not** a place for substantive content about the subject being taught or
+the system being documented — including design decisions and the references that
+justify them. Those are part of the material and belong in the **body text**,
+even when the justification cites learning-science literature.
+
+**The test:** if the note explains a choice about *the writing*, it is an
+`\ltnote`. If it states *how the thing being described works* (or why it was
+built that way), it is body text.
+
+### Example: a literate program (`.nw`)
+
+A literate program's prose is maintainer-facing documentation of the **code**, so
+a design decision about the code — even one grounded in pedagogy research — is
+content, and it (with its citations) goes in the narrative:
+
+```latex
+% BODY TEXT (correct) — a design decision and the evidence for it:
+The map carries no subject; subject rides on the entities a room holds, so one
+labyrinth can interleave subjects rather than trap a learner in a single one.
+Interleaving aids retention by spacing repeated
+encounters~\autocite{taylor2010interleaved,cepeda2006distributed}.
+
+% \ltnote (correct) — reasoning about the writing itself:
+\ltnote{%
+  Introduced before the maze chapter so the reader meets ``no subject'' while
+  the data model is still fresh; the interleaving payoff is only sketched here
+  and developed where placement is implemented.
+}
+```
+
+Putting the citation-bearing design rationale *inside* the `\ltnote` is the
+common mistake: it is content, not a note about the writing. It is also fragile
+— `\ltnote` expands to a `\marginpar`, and biblatex `\autocite` inside a margin
+float can fail with ``Float(s) lost''. Keep substantive citations in the body.
 
 ## Quick Example
 
@@ -156,7 +201,9 @@ Document:
 2. **Pedagogical strategies**: "We use try-first pedagogy to activate prior knowledge"
 3. **Variation theory patterns**: Contrast, generalization, fusion
 4. **Critical aspects students should discern**
-5. **Design trade-offs and decisions**
+5. **Design trade-offs about the *material***: which example, what order, how to
+   phrase it — *not* design decisions about the system or subject being
+   documented, which belong in the body text (see Scope above)
 6. **Assessment purposes**: "This question gauges prior knowledge"
 7. **Mentipy question intent**: What a live poll, QR question, or open-text prompt should reveal
 8. **Future improvements**: Notes for refining material
@@ -227,11 +274,14 @@ Variation patterns must be tied to specific learning objectives:
 
 ## Citing Pedagogical Research
 
-Use biblatex commands instead of hardcoded references:
+Cite in an `\ltnote` only when the citation justifies an **authoring or teaching
+choice** — why this sequence, why try-first here. Use biblatex commands rather
+than hardcoded references:
 
 ```latex
 \ltnote{%
-  Following \textcite{MartonPang2006}, we vary the operation...
+  Following \textcite{MartonPang2006}, we vary the operation while holding the
+  pattern invariant, so learners can discern it.
 }
 ```
 
@@ -239,7 +289,14 @@ Common commands:
 - `\textcite{key}` → "Marton and Pang (2006)"
 - `\parencite{key}` → "(Marton and Pang 2006)"
 
-**Best practice**: Use separate `ltnotes.bib` for pedagogical references.
+If the citation instead supports a **claim in the material** or a **design
+decision about the subject/system** being documented, cite it in the **body
+text**, not the note (see Scope above). There is also a technical reason to keep
+heavy citations out of notes: `\ltnote` is a `\marginpar`, and biblatex
+`\autocite`/`\textcite` inside a margin float can fail with ``Float(s) lost''.
+
+**Best practice**: Use a separate `ltnotes.bib` for pedagogical references when
+the project keeps them apart; otherwise add them to the project's main `.bib`.
 
 ## Integration with Learning Theories
 
@@ -414,3 +471,5 @@ Wrap in `uncoverenv` (didactic environments don't support `<overlay>` directly):
 ## Summary
 
 **Key insight**: Literate programming explains code to humans; didactic notes explain *pedagogical design* to educators. Both make implicit reasoning explicit for future readers.
+
+But keep the line sharp: `\ltnote` documents the design of the *teaching text* — why it is written and sequenced as it is. Claims about the subject, and decisions about the system being documented (with their citations), stay in the body text. If the note would still make sense to a reader who only cares *how the thing works*, it is body text, not an `\ltnote`.
