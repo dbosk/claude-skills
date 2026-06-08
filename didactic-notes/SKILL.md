@@ -7,7 +7,9 @@ description: |
   or revising variation-theory annotations such as "What varies" or "What
   stays invariant", (3) explaining design trade-offs or choices in educational
   materials, (4) documenting why specific examples or exercises are sequenced
-  in a particular way, or (5) moving pedagogical reasoning out of
+  in a particular way (including the order in which a literate program
+  explains its parts, e.g. why function A is presented before function B),
+  or (5) moving pedagogical reasoning out of
   student-facing prose and into instructor notes. Invoke when user mentions
   didactic notes, \ltnote, pedagogical reasoning, learning theory notes,
   educational design documentation, or asks to move pedagogical reasoning to
@@ -57,9 +59,14 @@ built that way), it is body text.
 
 ### Example: a literate program (`.nw`)
 
-A literate program's prose is maintainer-facing documentation of the **code**, so
-a design decision about the code — even one grounded in pedagogy research — is
-content, and it (with its citations) goes in the narrative:
+A literate program's prose teaches the **code** to a maintainer, so `\ltnote`
+still applies — but to the *exposition*, not the code. A note about **why the
+narrative is ordered as it is** (why function A is explained before function B,
+why a concept is introduced in this chapter rather than a later one, why the
+whole is shown before the parts) is reasoning about the writing, so it belongs in
+an `\ltnote`. A design decision about the code itself — even one grounded in
+pedagogy research — is content, and it (with its citations) goes in the
+narrative:
 
 ```latex
 % BODY TEXT (correct) — a design decision and the evidence for it:

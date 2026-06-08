@@ -133,6 +133,18 @@ pedagogical meta-commentary such as variation/invariance labels and
 sequencing rationale out of the visible narrative.  Put that reasoning in
 `\ltnote{...}` via the `didactic-notes` skill.
 
+`\ltnote{...}` is also available in an ordinary (maintainer-facing) literate
+program, but scope it tightly: it is for reasoning about the **exposition**, not
+the code.  A note on *why the narrative is ordered as it is* — why function A is
+explained before function B, why a concept is introduced in this chapter rather
+than later, why the whole precedes the parts — is commentary about the writing
+and belongs in an `\ltnote`.  A design decision about the code itself (an
+architecture choice, why a data structure was picked, the rationale and any
+citations behind it) is *content*: it belongs in the visible body prose.  The
+test: if removing the note would lose information about the program, it is body
+text; if it would only lose information about how the explanation was authored,
+it is an `\ltnote`.  See the `didactic-notes` skill for details.
+
 If the `.nw` document generates slides or handouts with live questions, Mentipy
 is a suitable tool for embedding those prompts in the LaTeX output.
 
