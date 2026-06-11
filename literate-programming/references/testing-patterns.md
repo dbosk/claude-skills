@@ -120,8 +120,6 @@ def feature_a():
 <<test functions>>=
 class TestFeatureA:
     <<feature a test methods>>
-@
-
 <<feature a test methods>>=
 def test_basic_case(self):
     assert feature_a() == "a"
@@ -139,8 +137,6 @@ def feature_b():
 <<test functions>>=
 class TestFeatureB:
     <<feature b test methods>>
-@
-
 <<feature b test methods>>=
 def test_another_case(self):
     assert feature_b() == "b"

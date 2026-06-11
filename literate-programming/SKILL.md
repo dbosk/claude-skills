@@ -193,6 +193,44 @@ is a suitable tool for embedding those prompts in the LaTeX output.
   etc.).  When in doubt, add a trailing space inside the outer brackets.
 - Escape: `@<<` for literal `<<`, `@@` in column 1 for literal `@`
 
+### Don't Write `@` Between Adjacent Code Chunks
+
+`@` *starts* a documentation chunk; it is not a code-chunk terminator.  A code
+chunk already ends the moment *any* chunk begins — including another named code
+chunk.  So when one code chunk is immediately followed by another with no prose
+between them, **no `@` is needed**: the second chunk closes the first on its
+own.
+
+Worse, a stray `@` (followed by a blank line) opens an *empty documentation
+chunk*, which `noweave` renders as **unwanted vertical space** in the woven
+PDF.
+
+Rule of thumb: write `@` only when documentation prose follows the code.  This
+is the complement of Writing Guideline 14 (prose-follows ⇒ `@`; code-follows ⇒
+no `@`).
+
+**GOOD** — the second chunk ends the first; no `@`, no empty doc chunk:
+```noweb
+<<constants>>=
+CONST = 3.14
+<<functions>>=
+def area_of_circle(radius):
+    return CONST * radius ** 2
+@
+```
+
+**BAD** — redundant `@` opens an empty doc chunk → unwanted space in the PDF:
+```noweb
+<<constants>>=
+CONST = 3.14
+@
+
+<<functions>>=
+def area_of_circle(radius):
+    return CONST * radius ** 2
+@
+```
+
 ## Writing Guidelines
 
 1. **Start with the human story** - problem, approach, design decisions
@@ -511,8 +549,6 @@ is a suitable tool for embedding those prompts in the LaTeX output.
    <<helper functions>>=
    def track_debug_enabled():
        return config.get(TRACK_DEBUG_CONFIG)
-   @
-
    <<constants>>=
    TRACK_DEBUG_CONFIG = "track.debug"
    @
@@ -540,8 +576,6 @@ is a suitable tool for embedding those prompts in the LaTeX output.
 
    <<constants>>=
    DATA_DIR = Path(__file__).parent / "data"
-   @
-
    <<functions>>=
    def load_text(path): ...
    @
@@ -551,8 +585,6 @@ is a suitable tool for embedding those prompts in the LaTeX output.
    <<constants>>=
    GUTENBERG_START = "*** START OF"
    GUTENBERG_END = "*** END OF"
-   @
-
    <<functions>>=
    def extract_body(text): ...
    @
@@ -578,8 +610,6 @@ is a suitable tool for embedding those prompts in the LaTeX output.
 
    <<functions>>=
    def _choice_completer(values): ...
-   @
-
    <<option completions>>=
    LAYOUT_OPTION.autocompletion = _choice_completer(LAYOUT_CHOICES)
    @
@@ -590,12 +620,8 @@ is a suitable tool for embedding those prompts in the LaTeX output.
    ```noweb
    <<constants>>=
    LAYOUT_OPTION = typer.Option("slide", "--layout", help=LAYOUT_HELP)
-   @
-
    <<functions>>=
    def _choice_completer(values): ...
-   @
-
    <<option completions>>=
    LAYOUT_OPTION.autocompletion = _choice_completer(LAYOUT_CHOICES)
    @
@@ -634,6 +660,10 @@ is a suitable tool for embedding those prompts in the LaTeX output.
     DEFAULT_DAILY_LIMIT_CONFIG = "track.daily_limit"
     @
     ```
+
+    Conversely, when a code chunk is immediately followed by *another code
+    chunk* with no prose between them, omit the `@` — see "Don't Write `@`
+    Between Adjacent Code Chunks" above.
 15. **Prefer public functions** - Default to making functions public with
     docstrings. Only use `_`-prefixed private functions for true internal
     helpers tightly coupled to a single caller. Public utilities (e.g.,
