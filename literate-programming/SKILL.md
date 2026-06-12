@@ -1016,7 +1016,8 @@ notangle -t8 -R"[[Makefile]]" file.nw > Makefile  # -t8 keeps tabs
 noroots file.nw                              # List root chunks
 
 # Weaving (standard recipe: highlighted with minted, clean index)
-noweave -n -delay -autolang -autodefs python3 -index \
+noweave -n -delay -autolang -autodefs python3 -autodefs sh \
+    -autodefs make -index \
     -filter 'tominted -lexer noweb_lexer.py' file.nw > file.tex
 # compile with -shell-escape (pdflatex -shell-escape or latexmk option)
 
@@ -1030,6 +1031,20 @@ Pipeline rules baked into the standard recipe: `-autolang` always runs
 first no matter where it appears on the command line; `tominted` must
 be the *last* filter, after `-index`.  `tominted` is LaTeX-only —
 never combine it with `-html`.
+
+Stacking several `-autodefs` works because `-autolang`'s `@language`
+annotations gate each filter to its own chunks.  Available filters:
+`python3`, `sh`/`bash`, `make`, `haskell`, `rust`, `java`, `c` (also
+serves C++), plus the classic `icon`/`sml`/`tex`/`yacc`/etc. — run
+`noweave -showautodefs` for the installed list.  Budget: noweave has
+seven filter slots; `-autolang`, each `-autodefs` and `tominted` take
+one each, so the standard recipe uses five and leaves two spare.
+
+Never quote an *indexed* identifier with `[[...]]` inside a
+`\section{...}`/`\subsection{...}` heading: `-index` turns the quote
+into a hyperlinked identifier use, and hyperref breaks on links in
+moving arguments.  Use `\texttt{...}` in headings; keep `[[...]]` in
+body prose.
 
 ## When Literate Programming Is Valuable
 

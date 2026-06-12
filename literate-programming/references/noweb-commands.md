@@ -77,16 +77,19 @@ Weaving produces documentation from a literate program.
 ```bash
 # Standard recipe: minted-highlighted, language-aware index,
 # for inclusion in a master document
-noweave -n -delay -autolang -autodefs python3 -index \
+noweave -n -delay -autolang -autodefs python3 -autodefs sh \
+    -autodefs make -index \
     -filter 'tominted -lexer noweb_lexer.py' file.nw > file.tex
 
 # Same, standalone (noweave emits the LaTeX wrapper)
-noweave -delay -autolang -autodefs python3 -index \
+noweave -delay -autolang -autodefs python3 -autodefs sh \
+    -autodefs make -index \
     -filter 'tominted -lexer noweb_lexer.py' file.nw > file.tex
 
 # Classic rendering (no highlighting; identifier uses inside code
 # are hyperlinked — only this mode has those links)
-noweave -n -delay -autolang -autodefs python3 -index file.nw > file.tex
+noweave -n -delay -autolang -autodefs python3 -autodefs sh \
+    -autodefs make -index file.nw > file.tex
 
 # Minimal cross-references only
 noweave -latex -x file.nw > output.tex
@@ -126,7 +129,8 @@ the last filter, after `-index`.
 When weaving for inclusion in a master document, use `-n -delay`:
 
 ```bash
-noweave -n -delay -autolang -autodefs python3 -index \
+noweave -n -delay -autolang -autodefs python3 -autodefs sh \
+    -autodefs make -index \
     -filter 'tominted -lexer noweb_lexer.py' file.nw > file.tex
 ```
 
@@ -264,7 +268,7 @@ notangle -RMakefile file.nw > Makefile
     notangle -R$@ $< > $@
 
 %.tex: %.nw
-    noweave -n -delay -autolang -autodefs python3 -index \
+    noweave -n -delay -autolang -autodefs python3 -autodefs sh -autodefs make -index \
         -filter 'tominted -lexer noweb_lexer.py' $< > $@
 
 %.pdf: %.tex noweb_lexer.py

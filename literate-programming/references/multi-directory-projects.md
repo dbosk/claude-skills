@@ -127,7 +127,8 @@ The `noweb.mk` file provides suffix rules for tangling and weaving:
 # Weaving: .nw → .tex (minted-highlighted, language-aware index)
 NOWEAVE.tex?= noweave ${NOWEAVEFLAGS.tex} $< > $@
 NOWEAVEFLAGS.tex?= ${NOWEAVEFLAGS} -n -delay -t2 -autolang \
-    -autodefs python3 -index -filter 'tominted -lexer noweb_lexer.py'
+    -autodefs python3 -autodefs sh -autodefs make -index \
+    -filter 'tominted -lexer noweb_lexer.py'
 
 .SUFFIXES: .nw .tex
 .nw.tex:
