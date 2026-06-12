@@ -124,9 +124,10 @@ include ${INCLUDE_MAKEFILES}/subdir.mk
 The `noweb.mk` file provides suffix rules for tangling and weaving:
 
 ```makefile
-# Weaving: .nw → .tex
+# Weaving: .nw → .tex (minted-highlighted, language-aware index)
 NOWEAVE.tex?= noweave ${NOWEAVEFLAGS.tex} $< > $@
-NOWEAVEFLAGS.tex?= ${NOWEAVEFLAGS} -x -n -delay -t2
+NOWEAVEFLAGS.tex?= ${NOWEAVEFLAGS} -n -delay -t2 -autolang \
+    -autodefs python3 -index -filter 'tominted -lexer noweb_lexer.py'
 
 .SUFFIXES: .nw .tex
 .nw.tex:
@@ -142,6 +143,25 @@ NOWEB_PYCODEFMT?= black $@
 .nw.py:
     ${NOTANGLE.py}
 ```
+
+The `-lexer noweb_lexer.py` path is resolved where *LaTeX* runs (the
+`doc/` directory), not where noweave runs.  The custom lexer keeps
+chunk references hyperlinked even inside Python docstrings; it ships
+with noweb and must be copied next to the master document and
+whitelisted once per machine in latexminted's config (see
+`noweb-commands.md`, "Syntax Highlighting with tominted", and
+`project-initialization.md` for the one-time setup).
+
+```makefile
+# In doc/Makefile: copy tominted's custom lexer from noweb's lib dir
+packagename.pdf: noweb_lexer.py
+noweb_lexer.py:
+	cp "$$(sed -n 's/^LIB=//p' "$$(command -v noweave)" | head -1)"/$@ $@
+```
+
+The LaTeX build must run with `-shell-escape` (minted runs Pygments);
+the doc Makefiles below already do via
+`latexmk -xelatex -shell-escape` / `LATEXFLAGS += -shell-escape`.
 
 ### The subdir.mk Recursion Rules
 

@@ -909,6 +909,19 @@ def my_function():
 
 Extract with: `notangle -R"[[module_name.py]]" file.nw > module_name.py`
 
+### Filename Chunk Names Drive Language Inference
+
+Naming root chunks exactly like their output filenames is load-bearing,
+not just a convention: the `autolang` and `tominted` filters infer each
+chunk's language from filename-like names — Python for
+`<<[[fib.py]]>>`, Make for `<<[[Makefile]]>>` — and chunks whose names
+are not filenames (`<<functions>>`, `<<test functions>>`) inherit the
+language of the chunks that use them.  This is what lets one `.nw` file
+mix languages (a program plus its Makefile) while each chunk is
+highlighted by its own lexer and the identifier index stays free of
+foreign identifiers.  See `references/noweb-commands.md` for the
+inference rules and `.ext=lexer` / `name=lexer` mapping overrides.
+
 ## Best Practices Summary
 
 1. **Write documentation first** - then add code
@@ -928,6 +941,11 @@ Extract with: `notangle -R"[[module_name.py]]" file.nw > module_name.py`
    `help()` output. Quote code in docstrings however your project's
    docstrings already do (plain text, markdown `` `x` ``, or RST
    `` ``x`` ``) — just not with `[[...]]`.
+
+   Chunk *references* (`<<...>>`) inside docstrings are fine: the
+   standard weave's custom lexer (`tominted -lexer noweb_lexer.py`)
+   keeps them hyperlinked in the woven PDF even though they sit inside
+   a Python string literal.
 
    **BAD** — noweb `[[...]]` in a docstring leaks into `help()`:
    ```noweb
@@ -988,17 +1006,30 @@ See `references/git-workflow.md` for details.
 
 ## Noweb Commands Quick Reference
 
-See `references/noweb-commands.md` for details.
+See `references/noweb-commands.md` for details, including the one-time
+custom-lexer setup the standard weave below depends on.
 
 ```bash
 # Tangling
 notangle -R"[[module.py]]" file.nw > module.py
+notangle -t8 -R"[[Makefile]]" file.nw > Makefile  # -t8 keeps tabs
 noroots file.nw                              # List root chunks
 
-# Weaving
+# Weaving (standard recipe: highlighted with minted, clean index)
+noweave -n -delay -autolang -autodefs python3 -index \
+    -filter 'tominted -lexer noweb_lexer.py' file.nw > file.tex
+# compile with -shell-escape (pdflatex -shell-escape or latexmk option)
+
+# Classic fallback (no minted/patched noweb; identifier uses inside
+# code stay hyperlinked, at the price of no syntax highlighting)
 noweave -n -delay -x -t2 file.nw > file.tex  # For inclusion
 noweave -latex -x file.nw > file.tex         # Standalone
 ```
+
+Pipeline rules baked into the standard recipe: `-autolang` always runs
+first no matter where it appears on the command line; `tominted` must
+be the *last* filter, after `-index`.  `tominted` is LaTeX-only —
+never combine it with `-html`.
 
 ## When Literate Programming Is Valuable
 

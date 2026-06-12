@@ -19,14 +19,36 @@ programming project with Python packaging. It is based on the canonical
 
 - **git** — version control
 - **noweb** — literate programming system (`notangle`, `noweave`, `noroots`,
-  `cpif`)
+  `cpif`), built with the Icon tools and the `autolang`/`tominted`
+  filters (the dbosk fork) — the standard weave depends on
+  `-autolang`, `-autodefs python3` and `tominted`
 - **make** — GNU Make for build orchestration
 - **poetry** — Python packaging and dependency management
 - **black** — Python code formatter (applied automatically after tangling)
 - **xelatex** — LaTeX engine (via `latexmk`)
 - **latexmk** — LaTeX build automation
 - **biber** — BibLaTeX bibliography processor
-- **pygments** — syntax highlighting (required by `minted` LaTeX package)
+- **pygments** — syntax highlighting (required by `minted` LaTeX package
+  and by the `tominted` filter)
+
+### One-time machine setup: whitelist noweb's custom lexer
+
+The standard weave passes `-filter 'tominted -lexer noweb_lexer.py'`,
+which loads noweb's bundled Pygments lexer so chunk references stay
+hyperlinked even inside Python docstrings.  minted treats loading
+custom lexer files as arbitrary code execution, so latexminted requires
+the file to be whitelisted by SHA-256 hash, once per machine:
+
+```bash
+NOWEB_LIB=$(sed -n 's/^LIB=//p' "$(command -v noweave)" | head -1)
+mkdir -p ~/.config/latexminted
+printf '{"custom_lexers": {"noweb_lexer.py": "%s"}}\n' \
+    "$(sha256sum "$NOWEB_LIB/noweb_lexer.py" | cut -d' ' -f1)" \
+    > ~/.config/latexminted/.latexminted_config
+```
+
+Re-run this whenever the installed `noweb_lexer.py` changes (e.g. after
+a noweb upgrade) — a stale hash makes minted refuse the lexer.
 
 ### Required git submodules
 
@@ -322,6 +344,7 @@ clean:
 ```gitignore
 packagename.tex
 packagename.pdf
+noweb_lexer.py
 ltxobj/
 _minted*
 *.aux
@@ -345,8 +368,8 @@ _minted*
 *.vrb
 ```
 
-The first two lines are project-specific (the woven `.tex` and compiled
-`.pdf`). The rest are standard LaTeX temporaries.
+The first lines are project-specific (the woven `.tex`, compiled `.pdf`
+and the copied lexer). The rest are standard LaTeX temporaries.
 
 **`doc/Makefile`:**
 ```makefile
@@ -365,8 +388,14 @@ weave: packagename.tex
 packagename.pdf: packagename.tex ../src/packagename/packagename.tex
 packagename.pdf: bibliography.bib preamble.tex
 
+# tominted's custom lexer must sit where LaTeX runs; it ships with
+# noweb (whitelist it once per machine, see Prerequisites)
+packagename.pdf: noweb_lexer.py
+noweb_lexer.py:
+	cp "$$(sed -n 's/^LIB=//p' "$$(command -v noweave)" | head -1)"/$@ $@
+
 clean:
-	${RM} packagename.tex packagename.pdf
+	${RM} packagename.tex packagename.pdf noweb_lexer.py
 
 distclean:
 
@@ -561,10 +590,15 @@ When initializing a new project, verify:
    `<<test [[packagename.py]]>>` chunks
 5. **`tests/.gitignore`** contains `*.py`
 6. **`tests/Makefile`** uses `%20` encoding, `cpif`, and `unit/` subdirectory
-7. **`doc/.gitignore`** lists project-specific generated files + LaTeX temps
+7. **`doc/.gitignore`** lists project-specific generated files (including
+   `noweb_lexer.py`) + LaTeX temps
 8. **`doc/packagename.nw`** is a `.nw` file (not `.tex`) wrapping the
    document
 9. **`doc/preamble.tex`** is copied from skill references
-10. **Root `Makefile`** orchestrates compile → test → docs with `subdir.mk`
-11. **Git submodules** (`makefiles/`, `didactic/`) are initialized
-12. **No generated files** are tracked by git
+10. **`doc/Makefile`** copies `noweb_lexer.py` from the noweb lib dir and
+    makes the PDF depend on it; LaTeX runs with `-shell-escape`
+11. **latexminted whitelist** for `noweb_lexer.py` exists on this machine
+    (one-time setup, see Prerequisites)
+12. **Root `Makefile`** orchestrates compile → test → docs with `subdir.mk`
+13. **Git submodules** (`makefiles/`, `didactic/`) are initialized
+14. **No generated files** are tracked by git

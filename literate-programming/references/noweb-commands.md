@@ -6,9 +6,11 @@ This reference provides detailed documentation for noweb commands used in litera
 
 1. [Tangling (Extracting Code)](#tangling-extracting-code)
 2. [Weaving (Creating Documentation)](#weaving-creating-documentation)
-3. [Common Patterns](#common-patterns)
-4. [Language-Specific Notes](#language-specific-notes)
-5. [Troubleshooting](#troubleshooting)
+3. [Syntax Highlighting with tominted](#syntax-highlighting-with-tominted)
+4. [Mixed-Language Documents and autolang](#mixed-language-documents-and-autolang)
+5. [Common Patterns](#common-patterns)
+6. [Language-Specific Notes](#language-specific-notes)
+7. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -73,24 +75,29 @@ Weaving produces documentation from a literate program.
 ### Basic Usage
 
 ```bash
-# Generate LaTeX
-noweave -latex file.nw > output.tex
+# Standard recipe: minted-highlighted, language-aware index,
+# for inclusion in a master document
+noweave -n -delay -autolang -autodefs python3 -index \
+    -filter 'tominted -lexer noweb_lexer.py' file.nw > file.tex
 
-# Generate with cross-references
+# Same, standalone (noweave emits the LaTeX wrapper)
+noweave -delay -autolang -autodefs python3 -index \
+    -filter 'tominted -lexer noweb_lexer.py' file.nw > file.tex
+
+# Classic rendering (no highlighting; identifier uses inside code
+# are hyperlinked — only this mode has those links)
+noweave -n -delay -autolang -autodefs python3 -index file.nw > file.tex
+
+# Minimal cross-references only
 noweave -latex -x file.nw > output.tex
 
-# Generate with index and autodefs for language
-noweave -latex -index -autodefs lang file.nw > output.html
-
-# Generate HTML
+# Generate HTML (tominted is LaTeX-only; never combine with -html)
 noweave -html -index -autodefs lang file.nw > output.html
-
-# No wrapper (for inclusion in larger document)
-noweave -n -latex file.nw > output.tex
-
-# Delay preamble (for custom \documentclass)
-noweave -delay -latex file.nw > output.tex
 ```
+
+The standard recipe requires the one-time custom-lexer setup described
+under [Syntax Highlighting with tominted](#syntax-highlighting-with-tominted),
+and the woven document must be compiled with `-shell-escape`.
 
 ### Common Flags
 
@@ -104,17 +111,139 @@ noweave -delay -latex file.nw > output.tex
 | `-x` | Add cross-references and chunk definitions |
 | `-index` | Build identifier index |
 | `-autodefs lang` | Auto-detect definitions in language |
+| `-autolang` | Annotate chunks with their language; autodefs filters then skip foreign chunks |
+| `-filter cmd` | Insert filter into the pipeline (after the autodefs filters) |
 | `-t<n>` | Expand tabs to n columns |
+
+Pipeline ordering: `-autolang` places the annotator *first* in the
+pipeline no matter where the option appears on the command line, so the
+annotations exist before the autodefs filters read the stream.  A plain
+`-filter` always slots *after* the autodefs filters; give `tominted` as
+the last filter, after `-index`.
 
 ### Weaving for Inclusion
 
 When weaving for inclusion in a master document, use `-n -delay`:
 
 ```bash
-noweave -n -delay -x -t2 file.nw > file.tex
+noweave -n -delay -autolang -autodefs python3 -index \
+    -filter 'tominted -lexer noweb_lexer.py' file.nw > file.tex
 ```
 
 This produces .tex without `\documentclass`, suitable for `\input{...}`.
+
+Fallback without the patched noweb (no `autolang`/`tominted`):
+
+```bash
+noweave -n -delay -x -t2 file.nw > file.tex
+```
+
+---
+
+## Syntax Highlighting with tominted
+
+The `tominted` filter makes noweave's LaTeX output typeset every code
+chunk with the `minted` package, so each chunk is syntax-highlighted by
+a lexer chosen *per chunk*.
+
+### How the language is chosen
+
+- A chunk whose name looks like a filename gets that filename's
+  language: `<<[[fib.py]]>>` → Python, `<<[[Makefile]]>>` → Make.
+- Chunks with non-filename names (`<<functions>>`, `<<test functions>>`)
+  inherit the language of the chunks that *use* them.
+- An explicit `@language` annotation in the pipeline (see
+  [autolang](#mixed-language-documents-and-autolang)) overrides
+  inference.
+- Built-in tables cover the popular languages; filenames they miss are
+  matched against Pygments' own filename patterns, so any language
+  Pygments can highlight is recognized.  Chunks of unknown language
+  keep the standard noweb rendering.
+- Extend or override the tables with mapping arguments, each of the
+  form `.ext=lexer` or `name=lexer`:
+  `-filter 'tominted .jl=julia GNUmakefile=make'`.  The `autolang`
+  filter accepts the same mappings.
+
+### Requirements
+
+- noweb built with the `tominted`/`autolang` filters (dbosk fork) and
+  the Icon tools (for the autodefs filters).
+- Python 3 and Pygments where the filter and LaTeX run.
+- The document must load `minted` (the skill's `preamble.tex` already
+  does) and be compiled with `-shell-escape`:
+  `pdflatex -shell-escape file.tex`, or the corresponding latexmk
+  option.
+- Add `_minted*` to `.gitignore` (see `git-workflow.md`).
+- LaTeX only — never combine `tominted` with `-html`.
+
+### Trade-off versus the classic rendering
+
+With `tominted`, minted owns the code body: identifier *definitions*
+stay in the index and chunk references inside code remain hyperlinked,
+but identifier *uses* inside highlighted chunks are no longer
+hyperlinked.  If those use-links matter more than highlighting, drop
+the `-filter tominted ...` argument and weave the classic rendering.
+
+### One-time custom-lexer setup (standard recipe)
+
+Plain `tominted` shows a chunk reference *inside a Python string
+literal* (e.g. a docstring chunk) as literal `<<...>>` text, because
+Pygments' escape mechanism refuses to work inside string tokens.  The
+bundled custom lexer `noweb_lexer.py` lifts that limitation, keeping
+even in-docstring references hyperlinked — hence the standard recipe's
+`-filter 'tominted -lexer noweb_lexer.py'`.
+
+The lexer file must be readable from the directory where LaTeX runs.
+It is installed in noweb's library directory, discoverable from the
+`noweave` script:
+
+```bash
+NOWEB_LIB=$(sed -n 's/^LIB=//p' "$(command -v noweave)" | head -1)
+cp "$NOWEB_LIB/noweb_lexer.py" .
+```
+
+Because minted treats loading custom lexer files as arbitrary code
+execution, latexminted requires the file to be whitelisted by SHA-256
+hash (one-time per machine, repeated whenever the lexer file changes,
+e.g. after a noweb upgrade):
+
+```bash
+mkdir -p ~/.config/latexminted
+printf '{"custom_lexers": {"noweb_lexer.py": "%s"}}\n' \
+    "$(sha256sum noweb_lexer.py | cut -d' ' -f1)" \
+    > ~/.config/latexminted/.latexminted_config
+```
+
+The `-lexer` path is interpreted relative to the directory where LaTeX
+runs.
+
+---
+
+## Mixed-Language Documents and autolang
+
+`noweave -autolang` runs the `autolang` filter, which annotates every
+code chunk with the `@language` pipeline keyword using the same
+inference rules as `tominted` (filename-like names, inheritance through
+chunk uses; chunks whose language remains unknown are left
+unannotated).
+
+The autodefs filters then *skip* chunks written in languages they do
+not understand.  This is what keeps a mixed-language document's index
+clean: without it, `-autodefs python3` happily indexes `PYTHON = ...`
+and `COUNT = ...` from a Makefile chunk, because make's variable
+assignments match the Python assignment pattern.  With `-autolang`,
+only the Python chunks feed the Python filter.
+
+Notes:
+
+- Unannotated chunks are scanned by every autodefs filter, as before —
+  so a document without filename-like chunk names behaves exactly as
+  it always did.
+- Running `autolang` twice is harmless: already-annotated chunks are
+  left alone.
+- The annotations are consumed by `tominted` and ignored silently by
+  the standard backends, so `-autolang` is safe even without
+  `tominted`.
 
 ---
 
@@ -135,10 +264,15 @@ notangle -RMakefile file.nw > Makefile
     notangle -R$@ $< > $@
 
 %.tex: %.nw
-    noweave -n -latex $< > $@
+    noweave -n -delay -autolang -autodefs python3 -index \
+        -filter 'tominted -lexer noweb_lexer.py' $< > $@
 
-%.pdf: %.tex
-    pdflatex $<
+%.pdf: %.tex noweb_lexer.py
+    pdflatex -shell-escape $<
+
+# tominted's custom lexer must sit where LaTeX runs
+noweb_lexer.py:
+    cp "$$(sed -n 's/^LIB=//p' "$$(command -v noweave)" | head -1)"/$@ $@
 ```
 
 ### Documentation with Tests
@@ -170,7 +304,16 @@ assert sort([3,1,2]) == [1,2,3]
 
 ### Python
 
-- No special flags needed
+- No special flags needed for tangling
+- Weave with `-autodefs python3` for the identifier index.  It indexes
+  top-level `def` and `async def` functions, top-level classes, and
+  top-level simple assignments `NAME = value`.  With
+  `-filter 'autodefs.python3 -local'` it additionally indexes methods
+  and nested functions.  Function-local variables, tuple unpacking,
+  attribute assignments and annotated assignments are never indexed.
+- Combine with `-autolang` so Makefile or other foreign chunks don't
+  leak into the Python index (see
+  [Mixed-Language Documents](#mixed-language-documents-and-autolang))
 - Keep lines under 80 characters in .nw files
 - Consider using formatters on output: `notangle -Rfile.py file.nw | black - > file.py`
 - Note: Black may reformat to different line lengths
@@ -202,7 +345,11 @@ def func(x):
 
 ### Make
 
-- Use `-t2` to convert spaces to tabs: `notangle -t2 -RMakefile file.nw > Makefile`
+- Use `-t8` to preserve the tabs make needs:
+  `notangle -t8 -R'[[Makefile]]' file.nw > Makefile`
+  (by default notangle expands tabs to spaces, which breaks make)
+- The chunk name `<<[[Makefile]]>>` also tells `autolang`/`tominted`
+  to highlight the chunk as Make
 
 ### Shell Scripts
 
