@@ -1034,11 +1034,13 @@ never combine it with `-html`.
 
 Stacking several `-autodefs` works because `-autolang`'s `@language`
 annotations gate each filter to its own chunks.  Available filters:
-`python3`, `sh`/`bash`, `make`, `haskell`, `rust`, `java`, `c` (also
-serves C++), plus the classic `icon`/`sml`/`tex`/`yacc`/etc. — run
-`noweave -showautodefs` for the installed list.  Budget: noweave has
-seven filter slots; `-autolang`, each `-autodefs` and `tominted` take
-one each, so the standard recipe uses five and leaves two spare.
+`python3`, `sh`/`bash`, `make`, `haskell`, `rust`, `java`, `c`
+(ANSI C chunks only), `cpp` (C++ chunks: classes, templates,
+namespaces, qualified methods), plus the classic
+`icon`/`sml`/`tex`/`yacc`/etc. — run `noweave -showautodefs` for the
+installed list.  Budget: noweave has seven filter slots; `-autolang`,
+each `-autodefs` and `tominted` take one each, so the standard recipe
+uses five and leaves two spare.
 
 Never quote an *indexed* identifier with `[[...]]` inside a
 `\section{...}`/`\subsection{...}` heading: `-index` turns the quote
