@@ -1038,9 +1038,16 @@ annotations gate each filter to its own chunks.  Available filters:
 (ANSI C chunks only), `cpp` (C++ chunks: classes, templates,
 namespaces, qualified methods), plus the classic
 `icon`/`sml`/`tex`/`yacc`/etc. — run `noweave -showautodefs` for the
-installed list.  Budget: noweave has seven filter slots; `-autolang`,
-each `-autodefs` and `tominted` take one each, so the standard recipe
-uses five and leaves two spare.
+installed list.  Budget: noweave has seven filter slots, and `-index`
+itself consumes two (it inserts `finduses` and `noidx`), `-autolang`
+one, and `tominted` one.  A highlighted indexed weave therefore has
+room for only three `-autodefs` filters ($7-2-1-1$) and a classic
+indexed weave for four ($7-2-1$); the standard recipe
+(`python3 sh make` + `tominted`) fills all seven exactly.  Stacking
+more languages than that needs a second weave (see
+`noweave -showautodefs` and the `multilang` example in noweb's
+`examples/`).  This ceiling is a portability artifact of the
+array-less `/bin/sh` pipeline builder, not a fundamental limit.
 
 Never quote an *indexed* identifier with `[[...]]` inside a
 `\section{...}`/`\subsection{...}` heading: `-index` turns the quote
