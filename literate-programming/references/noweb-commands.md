@@ -81,10 +81,13 @@ noweave -n -delay -autolang -autodefs python3 -autodefs sh \
     -autodefs make -index \
     -filter 'tominted -lexer noweb_lexer.py' file.nw > file.tex
 
-# Same, standalone (noweave emits the LaTeX wrapper)
-noweave -delay -autolang -autodefs python3 -autodefs sh \
-    -autodefs make -index \
-    -filter 'tominted -lexer noweb_lexer.py' file.nw > file.tex
+# Same, standalone: noweave emits the wrapper, and -minted makes that
+# generated preamble load minted (it bundles -option minted with
+# -filter tominted).  Use -minted instead of -delay/-filter here.
+noweave -autolang -autodefs python3 -autodefs sh \
+    -autodefs make -index -minted file.nw > file.tex
+# -minted runs plain tominted; for the custom lexer in a standalone
+# weave, spell it out: -option minted -filter 'tominted -lexer noweb_lexer.py'
 
 # Classic rendering (no highlighting; identifier uses inside code
 # are hyperlinked — only this mode has those links)
@@ -101,6 +104,12 @@ noweave -html -index -autodefs lang file.nw > output.html
 The standard recipe requires the one-time custom-lexer setup described
 under [Syntax Highlighting with tominted](#syntax-highlighting-with-tominted),
 and the woven document must be compiled with `-shell-escape`.
+
+The document must also load the `minted` package.  The noweb package
+loads it on request, so there is no separate `\usepackage{minted}` to
+remember: write `\usepackage[minted]{noweb}` in a master document's
+preamble (the inclusion case), or pass `-minted` when noweave generates
+the preamble (the standalone case).
 
 ### Common Flags
 
@@ -122,7 +131,9 @@ Pipeline ordering: `-autolang` places the annotator *first* in the
 pipeline no matter where the option appears on the command line, so the
 annotations exist before the autodefs filters read the stream.  A plain
 `-filter` always slots *after* the autodefs filters; give `tominted` as
-the last filter, after `-index`.
+the last filter, after `-index`.  The dbosk fork's pipeline is
+unbounded, so any number of filters may be stacked (see the budget note
+under the standard weave in `SKILL.md`).
 
 ### Weaving for Inclusion
 
@@ -173,10 +184,12 @@ a lexer chosen *per chunk*.
 - noweb built with the `tominted`/`autolang` filters (dbosk fork) and
   the Icon tools (for the autodefs filters).
 - Python 3 and Pygments where the filter and LaTeX run.
-- The document must load `minted` (the skill's `preamble.tex` already
-  does) and be compiled with `-shell-escape`:
+- The document must load `minted` and be compiled with `-shell-escape`:
   `pdflatex -shell-escape file.tex`, or the corresponding latexmk
-  option.
+  option.  Load minted through the noweb package rather than by hand:
+  `\usepackage[minted]{noweb}` in the preamble, or `-minted` when
+  noweave generates the preamble (the skill's `preamble.tex` does the
+  former).
 - Add `_minted*` to `.gitignore` (see `git-workflow.md`).
 - LaTeX only — never combine `tominted` with `-html`.
 

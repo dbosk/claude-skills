@@ -1016,10 +1016,14 @@ notangle -t8 -R"[[Makefile]]" file.nw > Makefile  # -t8 keeps tabs
 noroots file.nw                              # List root chunks
 
 # Weaving (standard recipe: highlighted with minted, clean index)
+# For inclusion; the master preamble loads minted via \usepackage[minted]{noweb}
 noweave -n -delay -autolang -autodefs python3 -autodefs sh \
     -autodefs make -index \
     -filter 'tominted -lexer noweb_lexer.py' file.nw > file.tex
 # compile with -shell-escape (pdflatex -shell-escape or latexmk option)
+# Standalone (noweave writes the preamble): add -minted so it loads minted
+noweave -autolang -autodefs python3 -autodefs sh -autodefs make \
+    -index -minted file.nw > file.tex
 
 # Classic fallback (no minted/patched noweb; identifier uses inside
 # code stay hyperlinked, at the price of no syntax highlighting)
@@ -1038,16 +1042,17 @@ annotations gate each filter to its own chunks.  Available filters:
 (ANSI C chunks only), `cpp` (C++ chunks: classes, templates,
 namespaces, qualified methods), plus the classic
 `icon`/`sml`/`tex`/`yacc`/etc. — run `noweave -showautodefs` for the
-installed list.  Budget: noweave has seven filter slots, and `-index`
-itself consumes two (it inserts `finduses` and `noidx`), `-autolang`
-one, and `tominted` one.  A highlighted indexed weave therefore has
-room for only three `-autodefs` filters ($7-2-1-1$) and a classic
-indexed weave for four ($7-2-1$); the standard recipe
-(`python3 sh make` + `tominted`) fills all seven exactly.  Stacking
-more languages than that needs a second weave (see
-`noweave -showautodefs` and the `multilang` example in noweb's
-`examples/`).  This ceiling is a portability artifact of the
-array-less `/bin/sh` pipeline builder, not a fundamental limit.
+installed list.  Filter budget: the dbosk fork's pipeline is unbounded
+— it accumulates filters in a single variable and joins them with `|`,
+so any number of `-autodefs` filters can stack alongside `-autolang`,
+`-index` (which inserts two filters, `finduses` and `noidx`) and
+`tominted` in one weave.  A six-language document is one pass, not two.
+(Stock and pre-fork noweave enumerated only seven filter slots, a
+portability artifact of the array-less `/bin/sh` pipeline builder; that
+ceiling — three `-autodefs` for a highlighted indexed weave, four for a
+classic one — applies only if you run against an older noweave, in
+which case split the languages across a second weave; see the
+`multilang` example in noweb's `examples/`.)
 
 Never quote an *indexed* identifier with `[[...]]` inside a
 `\section{...}`/`\subsection{...}` heading: `-index` turns the quote
