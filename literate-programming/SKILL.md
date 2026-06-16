@@ -231,6 +231,63 @@ def area_of_circle(radius):
 @
 ```
 
+### Embedding Heredocs — Keep the Delimiter Pair in the Wrapper Chunk
+
+When a tangled script embeds a heredoc (a shell `<<EOF ... EOF`, an inline
+`python3 - <<EOF`, a `cat > file <<EOF`, etc.), **put both the opening
+`<<DELIM` and the closing `DELIM` in the same wrapper chunk, with a single
+chunk reference for the body in between.** Define the body in its own chunk
+that contains *only* the payload — never the delimiter.
+
+This matters because noweb chunk boundaries and the heredoc are two
+independent layers: noweb blindly concatenates every definition of the body
+chunk, and the shell only sees the tangled text. If the closing delimiter is
+written inside the body chunk (especially when the body is built from several
+concatenated definitions), the heredoc terminates after the *first* piece and
+everything after it tangles as code instead of data — a syntax error far from
+its cause.
+
+**GOOD** — delimiter pair together in the wrapper; body chunk holds only the
+payload (and may be split across several definitions safely):
+```noweb
+<<write the config>>=
+cat > "$file" <<'_EOF'
+<<config body>>
+_EOF
+@
+
+<<config body>>=
+first line of payload
+@
+
+<<config body>>=
+more payload, concatenated by noweb into the same heredoc
+@
+```
+
+**BAD** — the closing delimiter lives in the body chunk, so a second
+definition (or any following chunk) escapes the heredoc:
+```noweb
+<<write the config>>=
+cat > "$file" <<'_EOF'
+<<config body>>
+@
+
+<<config body>>=
+first line of payload
+_EOF
+@
+
+<<config body>>=
+this never reaches the heredoc — it tangles as shell
+@
+```
+
+Quote the opening delimiter (`<<'_EOF'`) when the payload must not undergo
+shell expansion — for example embedded Python or JSON containing `$`. A
+distinctive delimiter such as `_EOF` or `PYEOF` keeps it easy to see the pair
+at a glance.
+
 ## Writing Guidelines
 
 1. **Start with the human story** - problem, approach, design decisions
