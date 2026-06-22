@@ -1,34 +1,80 @@
-# Unicode Characters and Font Encoding (pdfLaTeX)
+# Unicode Characters and Font Encoding
 
-Reference for diagnosing and fixing two related build failures under
-**pdfLaTeX**: non-ASCII characters that are "not set up", and monospace/code
-text that silently renders in the wrong (proportional roman) font.
+Reference for diagnosing and fixing build failures caused by non-ASCII
+characters and monospace/code text that renders in the wrong font.  **The
+correct fix depends on the TeX engine** — pdfLaTeX (8-bit) and XeLaTeX/LuaLaTeX
+(Unicode) behave oppositely here, so identify the engine *before* applying any
+fix below.
 
-Both bite hardest in literate programs, where source bytes — test fixtures,
+These bite hardest in literate programs, where source bytes — test fixtures,
 Unicode normalization tables, ASCII-art diagrams — are woven *verbatim* into
 the `.tex` and must then be typeset by the engine.  See the
 `literate-programming` skill for the weaving angle.
 
 Search patterns: `DeclareUnicodeCharacter`, `fontenc`, `pdffonts`,
-`Unicode character`, `not set up`, `beramono`, `T1`.
+`Unicode character`, `not set up`, `iftex`, `newunicodechar`, `beramono`, `T1`.
 
 ---
 
-## Symptom 1: "Unicode character … not set up for use with LaTeX"
+## Know your engine first
+
+Run this before anything else — the same source needs different fixes per
+engine, and a build system can switch engines without you noticing:
+
+```bash
+grep -m1 'This is' doc/ltxobj/forcing.log
+#   "This is pdfTeX …"  → 8-bit engine  (Symptom 1 / Symptom 2 below apply)
+#   "This is XeTeX …" / "This is LuaHBTeX …" → Unicode engine (see that section)
+```
+
+| | pdfLaTeX (8-bit) | XeLaTeX / LuaLaTeX (Unicode) |
+|---|---|---|
+| Unmapped non-ASCII byte | **fatal** `Unicode character … not set up` | non-fatal `Missing character` warning (renders if the font has the glyph) |
+| `\DeclareUnicodeCharacter` | available (see below) | **undefined** — using it is an `Undefined control sequence` error |
+| `\usepackage[utf8]{inputenc}` | relevant (provides the declaration mechanism) | silently **ignored** (`inputenc package ignored with utf8 based engines`) |
+| Remap a code point | `\DeclareUnicodeCharacter{XXXX}{...}` | `\newunicodechar{<char>}{...}` (newunicodechar package) |
+| Glyph selection | OT1/T1 font encodings + `fontenc` | `fontspec` / `\setmonofont` etc. |
+
+**The build system decides the engine.** `latexmk -pdf` → pdfLaTeX;
+`latexmk -xelatex` / `-lualatex` → the Unicode engines.  In Makefile-driven
+literate projects the rule itself may be *tangled* from a `.nw` (e.g.
+`tex.mk`), so a submodule/`make` update can flip the engine — re-check the
+`.log` banner, never assume from a prior build.
+
+Make engine-specific preamble code robust with `iftex` (verified to build
+cleanly under both engines):
+
+```latex
+\usepackage{iftex}
+\ifpdftex
+  \usepackage[T1]{fontenc}     % so T1-only mono fonts (Bera Mono) select
+  \usepackage[utf8]{inputenc}  % provides \DeclareUnicodeCharacter portably
+  \DeclareUnicodeCharacter{2500}{-}\DeclareUnicodeCharacter{2502}{|}
+  % … more mappings …
+\fi
+% XeTeX/LuaTeX read UTF-8 natively: no mappings needed; the characters render
+% through the active font.  Use \newunicodechar here only to remap a glyph.
+```
+
+---
+
+## Symptom 1 (pdfLaTeX only): "Unicode character … not set up for use with LaTeX"
 
 ```
 ! LaTeX Error: Unicode character ┌ (U+250C) not set up for use with LaTeX.
 ! LaTeX Error: Unicode character ‛ (U+201B) not set up for use with LaTeX.
 ```
 
-**Cause.** pdfLaTeX (with the LaTeX kernel's UTF-8 support) only typesets code
-points that have a `\DeclareUnicodeCharacter` mapping.  Common Latin
-accents, en/em dashes, and curly quotes are predefined; exotic punctuation
-(reversed-9 quotes `U+201B`/`U+201F`, hyphen and dash variants
-`U+2010`–`U+2015`, `≈ U+2248`) and box-drawing glyphs (`U+2500`–`U+257F`) are
-not.  The error fires the first time such a byte reaches the typesetter — in a
-literate program, that is wherever the woven code chunk lands (the log shows
-the source line, e.g. `l.933`).
+This is an **8-bit-engine** error; under XeLaTeX/LuaLaTeX it does not occur
+(see the Unicode-engine section).
+
+**Cause.** pdfLaTeX only typesets code points that have a
+`\DeclareUnicodeCharacter` mapping.  Common Latin accents, en/em dashes, and
+curly quotes are predefined; exotic punctuation (reversed-9 quotes
+`U+201B`/`U+201F`, hyphen and dash variants `U+2010`–`U+2015`, `≈ U+2248`) and
+box-drawing glyphs (`U+2500`–`U+257F`) are not.  The error fires the first time
+such a byte reaches the typesetter — in a literate program, that is wherever
+the woven code chunk lands (the log shows the source line, e.g. `l.933`).
 
 ### Fix A — declare a printable mapping (preferred, minimal)
 
@@ -36,6 +82,7 @@ Add to the document preamble.  The replacement is normal LaTeX, so map each
 code point to a sensible ASCII or math rendering:
 
 ```latex
+\usepackage[utf8]{inputenc}   % see note below — load it before the mappings
 \DeclareUnicodeCharacter{2010}{-}      % hyphen
 \DeclareUnicodeCharacter{2012}{-{}-}   % figure dash (-{}- avoids a ligature)
 \DeclareUnicodeCharacter{2015}{-{}-{}-}% horizontal bar
@@ -47,10 +94,16 @@ code point to a sensible ASCII or math rendering:
 \DeclareUnicodeCharacter{2514}{+}\DeclareUnicodeCharacter{2518}{+}
 ```
 
-This needs no extra package — `\DeclareUnicodeCharacter` is provided by the
-modern LaTeX kernel even when `inputenc` is not loaded.  ASCII fallbacks also
-keep box-drawing art inside the monospace code font instead of shelling out to
-a special glyph font.
+**Load `\usepackage[utf8]{inputenc}` first.** `\DeclareUnicodeCharacter`
+originates in `inputenc`'s `utf8` support; the LaTeX kernel (≥ 2018) also
+exposes it, but relying on that breaks on older installations and in setups
+where it is not active — the failure is `! Undefined control sequence.
+\DeclareUnicodeCharacter`.  Loading `inputenc` makes it available portably and
+is harmless on modern pdfLaTeX.  (Do **not** add it for a Unicode engine, where
+`inputenc` is ignored and the command stays undefined — guard with `iftex`.)
+
+ASCII fallbacks also keep box-drawing art inside the monospace code font
+instead of shelling out to a special glyph font.
 
 ### Fix B — a purpose-built package
 
@@ -76,7 +129,11 @@ preamble; leave the *bytes* alone.
 
 ---
 
-## Symptom 2: code/monospace renders in a proportional roman font
+## Symptom 2 (pdfLaTeX): code/monospace renders in a proportional roman font
+
+This is an OT1/T1 font-encoding problem specific to the 8-bit engine.  Under
+XeLaTeX/LuaLaTeX, fonts are chosen with `fontspec`/`\setmonofont`, not
+`fontenc`.
 
 The giveaway in extracted text (`pdftotext`): an underscore comes out as `˙`
 and straight quotes become curly — e.g. `COMMENT_MARKER = "X"` extracts as
@@ -104,14 +161,43 @@ Unicode mappings in Symptom 1; a document with woven code typically needs both.
 
 ---
 
+## Under XeLaTeX / LuaLaTeX (Unicode engines)
+
+Neither symptom above applies, and the pdfLaTeX fixes actively break:
+
+- **No `\DeclareUnicodeCharacter`.** It is undefined on Unicode engines —
+  using it gives `! Undefined control sequence. \DeclareUnicodeCharacter`.
+  `\usepackage[utf8]{inputenc}` does **not** rescue it (the package is ignored,
+  emitting `inputenc package ignored with utf8 based engines`).  Guard any
+  `\DeclareUnicodeCharacter` block with `\ifpdftex … \fi` (see "Know your
+  engine first").
+- **No "not set up" error.** XeTeX/LuaTeX read UTF-8 natively, so a stray code
+  point is not fatal.  If the active font lacks the glyph you get a non-fatal
+  `Missing character: There is no <char> in font …` warning and a blank; if it
+  has the glyph, it just renders.  For a woven box-drawing test fixture, those
+  warnings are cosmetic and the build still succeeds.
+- **To remap a character**, use `\newunicodechar` (newunicodechar package),
+  the Unicode-engine analogue of `\DeclareUnicodeCharacter`:
+  ```latex
+  \usepackage{newunicodechar}
+  \newunicodechar{≈}{\ensuremath{\approx}}
+  ```
+- **To make a missing glyph appear** (rather than remap it), select a font
+  that contains it for that span, e.g. `\setmonofont` to a fuller mono face,
+  or wrap the span in a font that has box-drawing glyphs.
+
+---
+
 ## Diagnostics (run these before guessing)
 
 ```bash
-# Which engine? pdfTeX vs XeTeX/LuaTeX — decides whether Unicode is native.
-grep -m1 'This is' doc/ltxobj/forcing.log        # "This is pdfTeX …"
+# FIRST: which engine? pdfTeX vs XeTeX/LuaTeX — decides which fixes apply.
+grep -m1 'This is' doc/ltxobj/forcing.log        # "This is pdfTeX" / "XeTeX" …
 
-# Count remaining Unicode errors after a fix.
-grep -c 'Unicode character' doc/ltxobj/forcing.log
+# Count each failure class (don't grep only one — they mask each other).
+grep -c 'Unicode character'          doc/ltxobj/forcing.log  # pdfLaTeX not-set-up
+grep -c 'Undefined control sequence' doc/ltxobj/forcing.log  # e.g. DeclareUnicodeChar on XeTeX
+grep -c 'Missing character'          doc/ltxobj/forcing.log  # Unicode-engine, non-fatal
 
 # Per-page font list: is the expected monospace font actually embedded?
 pdffonts -f 6 -l 6 doc/forcing.pdf               # look for BeraSansMono / fvm
@@ -134,9 +220,11 @@ Authoritative test: `pdffonts` shows *which* fonts a page embeds, and
 
 ## Quick decision guide
 
-| Build symptom | Likely cause | Fix |
-|---|---|---|
-| `Unicode character … not set up` | undeclared code point reaches pdfLaTeX | `\DeclareUnicodeCharacter` (Fix A) |
-| many box-drawing errors at once | `U+2500` range in source | declare them, or `pmboxdraw` |
-| code looks serif; `_`→`˙` in extract | T1-only mono font, no T1 fontenc | `\usepackage[T1]{fontenc}` |
-| right font but a glyph is `□`/missing | glyph absent from font | different font, or map the char |
+| Build symptom | Engine | Likely cause | Fix |
+|---|---|---|---|
+| `Unicode character … not set up` | pdfLaTeX | undeclared code point | `\DeclareUnicodeCharacter` (Fix A), `inputenc` loaded |
+| many box-drawing errors at once | pdfLaTeX | `U+2500` range in source | declare them, or `pmboxdraw` |
+| `Undefined control sequence \DeclareUnicodeCharacter` | XeTeX/LuaTeX | pdfLaTeX-only macro on a Unicode engine | guard with `\ifpdftex`; use `\newunicodechar` if remapping |
+| `Missing character: … in font` | XeTeX/LuaTeX | font lacks the glyph | non-fatal; switch font for that span, or ignore |
+| code looks serif; `_`→`˙` in extract | pdfLaTeX | T1-only mono font, no T1 fontenc | `\usepackage[T1]{fontenc}` |
+| right font but a glyph is `□`/missing | any | glyph absent from font | different font, or map the char |

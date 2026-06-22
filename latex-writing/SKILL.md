@@ -372,24 +372,33 @@ The results in \cref{tab:benchmark} demonstrate...
 - Use `\verb` for inline code snippets
 - Never paste code as normal text
 
-### Encoding and Fonts (pdfLaTeX)
+### Encoding and Fonts (engine-dependent)
 
-Two recurring build failures under pdfLaTeX have dedicated guidance in
-`references/unicode-and-fonts.md` (search: `DeclareUnicodeCharacter`,
-`fontenc`, `pdffonts`):
+Unicode/font build failures have **opposite fixes on pdfLaTeX vs
+XeLaTeX/LuaLaTeX**, so identify the engine first (`grep 'This is' file.log`).
+Full guidance in `references/unicode-and-fonts.md` (search:
+`DeclareUnicodeCharacter`, `iftex`, `newunicodechar`, `fontenc`, `pdffonts`):
 
-- **`! LaTeX Error: Unicode character … (U+XXXX) not set up`** — a non-ASCII
-  byte reached the typesetter with no mapping (common with reversed quotes,
-  dash variants, `≈`, and box-drawing glyphs).  Fix in the **preamble** with
-  `\DeclareUnicodeCharacter{XXXX}{...}`, not by editing the source — the
-  tangled program may need the real byte at runtime.  This is most common in
-  `.nw` files, where code chunks weave verbatim into the `.tex`.
-- **Code/monospace renders as proportional serif** (underscores extract as
-  `˙`, straight quotes turn curly) — a T1-only monospace font (e.g. Bera Mono)
-  cannot select because `\usepackage[T1]{fontenc}` is missing.  Load it.
+- **pdfLaTeX — `! LaTeX Error: Unicode character … (U+XXXX) not set up`** — a
+  non-ASCII byte with no mapping (reversed quotes, dash variants, `≈`,
+  box-drawing).  Fix in the **preamble** with `\usepackage[utf8]{inputenc}`
+  *then* `\DeclareUnicodeCharacter{XXXX}{...}`, not by editing the source.
+  (`inputenc` is what defines `\DeclareUnicodeCharacter` portably; without it
+  you may get `Undefined control sequence`.)
+- **XeLaTeX/LuaLaTeX** — the "not set up" error does not occur (native UTF-8),
+  and `\DeclareUnicodeCharacter` is **undefined** there (`inputenc` is
+  ignored).  Guard pdfLaTeX-only mappings with `\ifpdftex … \fi` (iftex
+  package); remap a glyph with `\newunicodechar` instead.
+- **pdfLaTeX — code renders as proportional serif** (underscores extract as
+  `˙`, quotes turn curly) — a T1-only monospace font (e.g. Bera Mono) cannot
+  select without `\usepackage[T1]{fontenc}`.  Load it (inside the `\ifpdftex`
+  branch).
+- **Build systems switch engines.** `latexmk -pdf` vs `-xelatex`, and Makefile
+  rules may be tangled from a `.nw`, so a `make`/submodule update can flip the
+  engine — re-check the `.log` banner, don't assume.
 - **Diagnose, do not guess:** `pdffonts -f N -l N file.pdf` shows which fonts a
   page embeds; `pdftotext -f N -l N` reveals the encoding via glyph→Unicode
-  mapping; `grep 'This is' file.log` identifies the engine.
+  mapping.
 
 ### Paths
 - Always use forward slashes in paths: `figures/diagram.pdf` not `figures\diagram.pdf`
@@ -417,9 +426,12 @@ Check for these common issues:
 - [ ] Images without `figure` environment
 - [ ] Code without proper formatting (listings/verbatim)
 - [ ] Windows-style backslashes in paths
-- [ ] Non-ASCII characters reaching pdfLaTeX without a `\DeclareUnicodeCharacter`
-      mapping (see `references/unicode-and-fonts.md`)
-- [ ] Monospace/code rendering as proportional serif — missing
+- [ ] Engine-specific Unicode/font setup not guarded by `iftex` — e.g.
+      `\DeclareUnicodeCharacter` (pdfLaTeX-only) used unconditionally, which
+      errors under XeLaTeX/LuaLaTeX (see `references/unicode-and-fonts.md`)
+- [ ] pdfLaTeX: non-ASCII characters without a `\DeclareUnicodeCharacter`
+      mapping, or `\DeclareUnicodeCharacter` used without `\usepackage[utf8]{inputenc}`
+- [ ] pdfLaTeX: monospace/code rendering as proportional serif — missing
       `\usepackage[T1]{fontenc}` for a T1-only font such as Bera Mono
 
 **Additional checks for .nw literate programming files:**

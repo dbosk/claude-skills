@@ -758,18 +758,24 @@ diagram, add `\usepackage{tikz}` to the project's `preamble.tex`.
 **Non-ASCII bytes in code chunks weave into the `.tex`**: `noweave` copies
 code chunks *verbatim*, so any non-ASCII character inside a chunk — a
 box-drawing diagram in a test fixture, a Unicode normalization table, fancy
-quotes — lands in the woven LaTeX and must be typeset by the engine.  Under
-pdfLaTeX this breaks the build with `! LaTeX Error: Unicode character …
-(U+XXXX) not set up`, pointing at the woven line.
+quotes — lands in the woven LaTeX and must be typeset by the engine.  How that
+behaves is **engine-dependent**: under pdfLaTeX an unmapped byte is a fatal
+`! LaTeX Error: Unicode character … (U+XXXX) not set up` (at the woven line);
+under XeLaTeX/LuaLaTeX it is at worst a non-fatal `Missing character` warning.
+Check the build engine first — a literate project's build rules are often
+tangled from a `.nw` (e.g. `tex.mk`), so a `make`/submodule update can flip
+`latexmk -pdf` to `-xelatex` and change which fix is correct.
 
-Fix it in the project's `preamble.tex` (e.g. `\DeclareUnicodeCharacter`), **not**
-by deleting or escaping the byte in the `.nw` — the tangled program usually
-needs the real character at runtime (the test that asserts an ASCII-art figure
-is filtered, the table that maps real typographic punctuation).  Before
-touching any non-ASCII byte in a code chunk, confirm whether the generated
-code depends on it.  See the `latex-writing` skill's
-`references/unicode-and-fonts.md` for the preamble fixes (Unicode mappings,
-the T1-`fontenc` requirement for monospace fonts like Bera Mono) and the
+Fix it in the project's `preamble.tex`, **not** by deleting or escaping the
+byte in the `.nw` — the tangled program usually needs the real character at
+runtime (the test that asserts an ASCII-art figure is filtered, the table that
+maps real typographic punctuation).  Before touching any non-ASCII byte in a
+code chunk, confirm whether the generated code depends on it.  The preamble fix
+differs per engine (`\DeclareUnicodeCharacter` under pdfLaTeX —
+defined via `\usepackage[utf8]{inputenc}`; `\newunicodechar` under
+XeLaTeX/LuaLaTeX; guard with `iftex`).  See the `latex-writing` skill's
+`references/unicode-and-fonts.md` for the full engine matrix, the
+T1-`fontenc` requirement for pdfLaTeX monospace fonts like Bera Mono, and the
 `pdffonts`/`pdftotext` diagnostics.
 
 ## Progressive Disclosure Pattern
