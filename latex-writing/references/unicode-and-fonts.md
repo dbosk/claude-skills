@@ -51,10 +51,21 @@ cleanly under both engines):
   \usepackage[utf8]{inputenc}  % provides \DeclareUnicodeCharacter portably
   \DeclareUnicodeCharacter{2500}{-}\DeclareUnicodeCharacter{2502}{|}
   % … more mappings …
+\else
+  % XeTeX/LuaTeX read UTF-8 natively, so these never error -- but if the active
+  % font lacks a glyph you get a blank plus a "Missing character" warning.  The
+  % default mono font (Latin Modern Mono) has no box-drawing or exotic
+  % punctuation, so map the SAME code points here for parity with pdfLaTeX:
+  \usepackage{newunicodechar}
+  \newunicodechar{─}{-}\newunicodechar{│}{|}
+  % … same set, keyed by the literal character, not the hex code point …
 \fi
-% XeTeX/LuaTeX read UTF-8 natively: no mappings needed; the characters render
-% through the active font.  Use \newunicodechar here only to remap a glyph.
 ```
+
+`\newunicodechar` is keyed by the literal UTF-8 character (`\newunicodechar{─}{-}`),
+whereas `\DeclareUnicodeCharacter` is keyed by the hex code point
+(`\DeclareUnicodeCharacter{2500}{-}`).  Map both branches to the same fallback
+so the two engines render code fixtures identically.
 
 ---
 
