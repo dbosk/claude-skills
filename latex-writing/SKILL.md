@@ -372,6 +372,25 @@ The results in \cref{tab:benchmark} demonstrate...
 - Use `\verb` for inline code snippets
 - Never paste code as normal text
 
+### Encoding and Fonts (pdfLaTeX)
+
+Two recurring build failures under pdfLaTeX have dedicated guidance in
+`references/unicode-and-fonts.md` (search: `DeclareUnicodeCharacter`,
+`fontenc`, `pdffonts`):
+
+- **`! LaTeX Error: Unicode character … (U+XXXX) not set up`** — a non-ASCII
+  byte reached the typesetter with no mapping (common with reversed quotes,
+  dash variants, `≈`, and box-drawing glyphs).  Fix in the **preamble** with
+  `\DeclareUnicodeCharacter{XXXX}{...}`, not by editing the source — the
+  tangled program may need the real byte at runtime.  This is most common in
+  `.nw` files, where code chunks weave verbatim into the `.tex`.
+- **Code/monospace renders as proportional serif** (underscores extract as
+  `˙`, straight quotes turn curly) — a T1-only monospace font (e.g. Bera Mono)
+  cannot select because `\usepackage[T1]{fontenc}` is missing.  Load it.
+- **Diagnose, do not guess:** `pdffonts -f N -l N file.pdf` shows which fonts a
+  page embeds; `pdftotext -f N -l N` reveals the encoding via glyph→Unicode
+  mapping; `grep 'This is' file.log` identifies the engine.
+
 ### Paths
 - Always use forward slashes in paths: `figures/diagram.pdf` not `figures\diagram.pdf`
 - Use platform-independent path specifications
@@ -398,6 +417,10 @@ Check for these common issues:
 - [ ] Images without `figure` environment
 - [ ] Code without proper formatting (listings/verbatim)
 - [ ] Windows-style backslashes in paths
+- [ ] Non-ASCII characters reaching pdfLaTeX without a `\DeclareUnicodeCharacter`
+      mapping (see `references/unicode-and-fonts.md`)
+- [ ] Monospace/code rendering as proportional serif — missing
+      `\usepackage[T1]{fontenc}` for a T1-only font such as Bera Mono
 
 **Additional checks for .nw literate programming files:**
 - [ ] `\texttt{..._...}` or `\texttt{...__...}` → Should use `[[...]]` notation

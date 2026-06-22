@@ -755,6 +755,23 @@ Apply `latex-writing` skill. Most common anti-patterns in .nw files:
 **TikZ without preamble support**: If a `.nw` file introduces a TikZ
 diagram, add `\usepackage{tikz}` to the project's `preamble.tex`.
 
+**Non-ASCII bytes in code chunks weave into the `.tex`**: `noweave` copies
+code chunks *verbatim*, so any non-ASCII character inside a chunk — a
+box-drawing diagram in a test fixture, a Unicode normalization table, fancy
+quotes — lands in the woven LaTeX and must be typeset by the engine.  Under
+pdfLaTeX this breaks the build with `! LaTeX Error: Unicode character …
+(U+XXXX) not set up`, pointing at the woven line.
+
+Fix it in the project's `preamble.tex` (e.g. `\DeclareUnicodeCharacter`), **not**
+by deleting or escaping the byte in the `.nw` — the tangled program usually
+needs the real character at runtime (the test that asserts an ASCII-art figure
+is filtered, the table that maps real typographic punctuation).  Before
+touching any non-ASCII byte in a code chunk, confirm whether the generated
+code depends on it.  See the `latex-writing` skill's
+`references/unicode-and-fonts.md` for the preamble fixes (Unicode mappings,
+the T1-`fontenc` requirement for monospace fonts like Bera Mono) and the
+`pdffonts`/`pdftotext` diagnostics.
+
 ## Progressive Disclosure Pattern
 
 When introducing high-level structure, use **abstract placeholder chunks** that defer specifics:
