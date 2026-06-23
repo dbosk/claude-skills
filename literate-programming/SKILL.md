@@ -1134,11 +1134,58 @@ classic one — applies only if you run against an older noweave, in
 which case split the languages across a second weave; see the
 `multilang` example in noweb's `examples/`.)
 
-Never quote an *indexed* identifier with `[[...]]` inside a
-`\section{...}`/`\subsection{...}` heading: `-index` turns the quote
-into a hyperlinked identifier use, and hyperref breaks on links in
-moving arguments.  Use `\texttt{...}` in headings; keep `[[...]]` in
-body prose.
+### `[[code]]` in headings + hyperref (the `\hyper@@link` / `\Hy@reserved@a` error)
+
+A `[[identifier]]` quote inside a `\chapter`/`\section`/`\subsection` heading
+is a hazard when `-index` is active.  `-index` turns the quote into a
+*hyperlinked* identifier use (`\nwlinkedidentq` → `\nwhyperreference` →
+`\hyperlink`).  In a heading the title is **expanded into moving arguments** —
+the `.toc`, the running header, and the PDF bookmark — and hyperref breaks
+there.  Under newer TeX Live (≥2025) the symptom is a *fatal* error, typically:
+
+```
+! Undefined control sequence.
+\hyper@@link ->\let \Hy@reserved@a ...
+l.379 ...}}{NW4Ar8dO-3qo3Hb-8}\nwendquote} method}
+```
+
+(preceded by a cascade of `Token not allowed in a PDF string ... removing
+'\Hy@reserved@a'` warnings), or a stack overflow from noweb's
+*self-redefining* `\nwhyperreference` (its terminating `\global\let` only fires
+when the macro is **executed**, never when it is merely **expanded** into a
+moving argument).  This is a toolchain regression: the same document built
+cleanly under older hyperref/TeX Live, so a `make`/submodule update that bumps
+TeX Live can surface it with no source change.  Only headings whose quoted text
+is an *indexed* identifier (a name defined in a code chunk, e.g. a dunder like
+`__str__`) become links and fail; plain words like `[[command]]` weave to a
+non-linked `\Tt` and are harmless.
+
+**Preferred fix — keep the literate `[[...]]`-in-headings convention** by making
+the link robust *project-wide* in `preamble.tex` (after hyperref is loaded).
+This is two cooperating fixes; both are needed, and they fix every current and
+future heading at once instead of editing each `.nw`:
+
+```latex
+% (1) robust \nwhyperreference: written literally into moving arguments instead
+%     of expanding (and misfiring its self-\let) there, yet still links in body
+\DeclareRobustCommand\nwhyperreference[2]{\hyperlink{noweb.#1}{#2}}
+% (2) strip noweb's code-quote macros from PDF bookmark strings → clean bookmarks
+\pdfstringdefDisableCommands{%
+  \def\nwlinkedidentq#1#2{#1}%
+  \let\Tt\relax
+  \let\nwendquote\relax
+}
+```
+
+This block is in the shipped `references/preamble.tex`.  The narrower
+alternative — rewriting the heading to use `\texttt{...}` instead of `[[...]]` —
+also works but loses the cross-reference link and must be repeated per heading,
+so prefer the preamble fix.
+
+While debugging such a build, note `latexmk` can mask the real LaTeX error
+behind a later toolchain failure (e.g. `biber: malformed bcf` from a stale
+`aux`).  Run one bare `pdflatex -halt-on-error` pass to see the first genuine
+error before chasing bibliography/pythontex noise.
 
 ## When Literate Programming Is Valuable
 

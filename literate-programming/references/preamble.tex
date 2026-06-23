@@ -74,3 +74,25 @@
 }
 
 \usepackage[marginparmargin=right]{didactic}
+
+% Make noweb's hyperlinked identifiers safe in headings (chapter/section titles
+% that contain a [[code]] quote).  With -index, such a quote weaves into a
+% \nwlinkedidentq hyperlink; in a moving argument (the .toc, the running header,
+% the PDF bookmark) hyperref then fails fatally (under newer TeX Live with
+% errors like "Undefined control sequence \hyper@@link" / "\Hy@reserved@a", or a
+% stack overflow from noweb's self-redefining \nwhyperreference).  Two fixes,
+% both required, let the project keep [[...]] in headings instead of falling
+% back to \texttt{...}:
+%
+% (1) Replace \nwhyperreference with noweb's robust hyperref form so it is
+%     written literally into moving arguments instead of expanding (and
+%     misfiring its terminating \global\let) there, yet still links in the body.
+\DeclareRobustCommand\nwhyperreference[2]{\hyperlink{noweb.#1}{#2}}
+%
+% (2) Strip noweb's code-quote macros from PDF bookmark strings, so a [[code]]
+%     quote in a heading yields clean bookmark text without hyperref warnings.
+\pdfstringdefDisableCommands{%
+  \def\nwlinkedidentq#1#2{#1}%
+  \let\Tt\relax
+  \let\nwendquote\relax
+}

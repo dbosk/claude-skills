@@ -234,6 +234,25 @@ printf '{"custom_lexers": {"noweb_lexer.py": "%s"}}\n' \
 The `-lexer` path is interpreted relative to the directory where LaTeX
 runs.
 
+If the lexer is absent there, minted aborts the build with:
+
+```
+! Package minted Error: Custom lexer "noweb_lexer.py:..." was not found.
+```
+
+Make the lexer a **prerequisite of the PDF target** so the build copies it in
+before running LaTeX.  When the project uses the shared `noweb.mk` (which
+already defines the `noweb_lexer.py` copy rule and is `include`d by the
+`Makefile`), do *not* re-declare the rule — just add the dependency to the
+document's own prerequisite list, e.g. in `doc/Makefile`:
+
+```makefile
+canvaslms.pdf: noweb_lexer.py    # noweb.mk supplies the copy rule
+```
+
+and add `noweb_lexer.py` to that directory's `.gitignore` (it is a copied
+build artifact, not source).
+
 ---
 
 ## Mixed-Language Documents and autolang
