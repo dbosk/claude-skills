@@ -170,6 +170,19 @@ project's **shared** preamble enables it — a standalone document that inputs
 its own preamble can quietly miss it.  Loading `fontenc` is orthogonal to the
 Unicode mappings in Symptom 1; a document with woven code typically needs both.
 
+For a shared preamble copied verbatim across projects (some pdfLaTeX, some
+Lua/XeLaTeX), guard the load with `iftex` so it is a no-op on Unicode engines —
+this is what the `literate-programming` skill's `references/preamble.tex` does:
+
+```latex
+\usepackage{iftex}
+\ifpdftex
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+\fi
+```
+
 ---
 
 ## Under XeLaTeX / LuaLaTeX (Unicode engines)

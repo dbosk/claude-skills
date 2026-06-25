@@ -5,8 +5,19 @@
 % The main document (e.g., doc/main.tex) should \input{preamble} after
 % \documentclass but before \begin{document}.
 
-%\usepackage[utf8]{inputenc}
-%\usepackage[T1]{fontenc}
+% Font setup.  Under pdfLaTeX these are REQUIRED: without [T1]{fontenc} a
+% monospace [[code]] quote (or \texttt) cannot select a T1 typewriter shape and
+% silently falls back to the proportional OT1 roman font -- i.e. monospace
+% "disappears".  iftex guards them so this preamble stays safe when copied into
+% a LuaLaTeX/XeLaTeX project (which already use Unicode fonts and need neither).
+% Do NOT comment these out.  See latex-writing's references/unicode-and-fonts.md
+% ("Symptom 2").
+\usepackage{iftex}
+\ifpdftex
+  \usepackage[utf8]{inputenc}
+  \usepackage[T1]{fontenc}
+  \usepackage{lmodern}
+\fi
 \usepackage[swedish,british]{babel}
 \usepackage{booktabs}
 
@@ -38,7 +49,7 @@
 
 %\usepackage[outputdir=ltxobj]{minted}
 \usepackage{minted}
-\setminted{autogobble,linenos}
+\setminted{autogobble}
 
 \usepackage{pythontex}
 \setpythontexoutputdir{.}
