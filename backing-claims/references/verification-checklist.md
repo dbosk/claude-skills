@@ -41,7 +41,8 @@ Run each test against the candidate source and its supporting quote:
 
 6. **Retraction / correction.** Check the source is not retracted or corrected
    in a way that affects the claim (publisher page, Retraction Watch, Crossref
-   `update-to` metadata).
+   `update-to` metadata). For a whole session, `scholar verify "<session>"`
+   runs tests 5–6 via Crossref and flags retracted/corrected/superseded papers.
 
 7. **Venue credibility.** Is it a peer-reviewed venue or a reputable preprint
    with corroboration? Be wary of predatory journals and of preprints whose
@@ -77,6 +78,8 @@ overstate the source.
 
 - **Minimum:** the abstract or the specific passage was actually read (via
   `scholar enrich`, `scholar pdf open`, or WebFetch of the source page).
+  `scholar pdf quote "<url>" --claim "<claim>"` proposes candidate passages to
+  read — it does not verify; you still read and confirm entailment.
 - **For a precise quantitative or causal claim:** the relevant results section
   was read in full text, not just the abstract.
 - **Never acceptable:** title-only, snippet-only, or "the model recalls this

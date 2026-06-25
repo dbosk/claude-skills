@@ -11,7 +11,7 @@ reordering, and is invisible in the compiled document. The validator
 - [Field semantics](#field-semantics)
 - [Multi-line values](#multi-line-values)
 - [Worked examples](#worked-examples)
-- [Migrating a `scholar rq` session into `FOUND-VIA`](#migrating-a-scholar-rq-session-into-found-via)
+- [Generating the block instead of typing it](#generating-the-block-instead-of-typing-it)
 - [Validating](#validating)
 
 ## Schema
@@ -95,22 +95,33 @@ value.
 @article{HattieTimperley2007, ... }
 ```
 
-## Migrating a `scholar rq` session into `FOUND-VIA`
+## Generating the block instead of typing it
 
-`scholar rq` records the provider-specific queries it generated for
-reproducibility. Pull them into `FOUND-VIA` rather than paraphrasing:
+`scholar` builds the provenance skeleton for you, so `FOUND-VIA` and `DATE` are
+never hand-transcribed (the judgement fields stay yours):
 
 ```bash
-scholar sessions list
-scholar notes show "<paper title or id>"     # see recorded query/labels for a kept paper
+# Whole search, each entry pre-wrapped with FOUND-VIA + DATE filled in:
+scholar search "..." -p s2 -p dblp -f bibtex+prov
+
+# One paper's reproducible FOUND-VIA line, rebuilt from the saved session(s):
+scholar prov found-via "<doi-or-hash>"        # -f json for tooling
+
+# Sync blocks to/from scholar notes (authoritative store stays the .bib):
+scholar prov export refs.bib --in-place
+scholar prov import refs.bib
 ```
 
-Then write, e.g.:
+`scholar rq` records the provider-specific queries it generated; `prov found-via`
+surfaces them as a ready-to-paste line, e.g.:
 
 ```bibtex
 % FOUND-VIA: scholar rq "How do LLMs support novice programming?" -p openalex -p dblp
-%   (session "llm-novice-programming"; openalex query: "large language models" novice programming)
+%   (session "llm-novice-programming")
 ```
+
+See `scholar-cookbook.md` for the full `prov`, `verify`, and `pdf quote`
+recipes.
 
 ## Validating
 
@@ -121,3 +132,9 @@ scripts/check_provenance.py --quiet refs/*.bib  # print only files that fail
 
 Run it before committing a `.bib`, and consider it in a pre-commit hook for
 projects where every reference must be backed.
+
+The status gradient is deliberate: a missing provenance block **fails** (exit 1);
+a `-f bibtex+prov` stub whose `QUOTE` is still `TODO` passes with a **warning**
+(the fields exist but the quote is not yet verbatim); a completed block is
+**OK**. So a fresh `bibtex+prov` export won't break CI, but the warning keeps
+nagging until you paste the real supporting quote.

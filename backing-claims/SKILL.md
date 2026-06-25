@@ -39,11 +39,20 @@ it needs a **primary** source (an original finding/definition) or a **survey**
 
 `scholar` is preferred because it records the query for you and searches several
 databases at once. See `references/scholar-cookbook.md` for the non-interactive
-recipes (`search`, `rq`, `enrich`, `providers`, `syntax`, `notes`, `pdf`).
+recipes (`search`, `rq`, `enrich`, `verify`, `prov`, `providers`, `syntax`,
+`notes`, `pdf`).
 
 ```bash
 scholar search "authenticated encryption generic composition" -p s2 -p dblp -f bibtex
 scholar rq "How do LLMs support novice programming?" -p openalex -p dblp --count 20
+```
+
+To get the BibTeX **already wrapped in provenance blocks** with `FOUND-VIA`
+pre-filled from the query, use `-f bibtex+prov` (this is the easiest start —
+you then fill in `CLAIM`/`PICKED`/`QUOTE`/`VERIFIED`):
+
+```bash
+scholar search "authenticated encryption generic composition" -p s2 -p dblp -f bibtex+prov
 ```
 
 Any complementary source is allowed (Google Scholar, a publisher site, WebSearch
@@ -70,8 +79,14 @@ Read the **actual source**, not just the title:
 ```bash
 scholar enrich "<session>"            # fill in missing abstracts via DOI
 scholar pdf open "<pdf-url>"          # download + open full text
+scholar pdf quote "<pdf-url>" --claim "<the claim>"   # surface candidate QUOTE passages
+scholar verify "<session>"            # flag retracted/corrected/superseded papers
 # or WebFetch the publisher/arXiv page to read the relevant section
 ```
+
+`scholar pdf quote` proposes candidate supporting passages (with location) — the
+**judgement stays yours**; read the passage and confirm it entails the claim.
+`scholar verify` runs the currency/retraction test for you via Crossref.
 
 Extract a **verbatim** passage that supports the claim, and apply the tests in
 `references/verification-checklist.md` (scope/strength match, primary vs
@@ -99,7 +114,16 @@ write the citation in the project's style (defer to `writing-crypto` /
 ```
 
 Required fields: `CLAIM`, `FOUND-VIA`, `PICKED`, `QUOTE`, `VERIFIED`
-(`DATE` recommended). Validate any `.bib` you touch:
+(`DATE` recommended). You do not have to type the skeleton by hand:
+
+```bash
+scholar search "..." -f bibtex+prov     # entries pre-wrapped, FOUND-VIA + DATE filled
+scholar prov found-via "<paper-id>"     # reproducible FOUND-VIA line for one paper
+scholar prov export refs.bib --in-place # write notes' provenance blocks above entries
+scholar prov import refs.bib            # pull .bib provenance blocks back into notes
+```
+
+Validate any `.bib` you touch:
 
 ```bash
 scripts/check_provenance.py refs.bib        # exit 1 if any entry lacks provenance
@@ -121,8 +145,8 @@ scripts/check_provenance.py refs.bib        # exit 1 if any entry lacks provenan
 |------|---------|-----------------|
 | `references/provenance-format.md` | Full provenance schema, field semantics, worked examples, migrating a `scholar rq` session into `FOUND-VIA` | `FOUND-VIA`, `QUOTE`, `VERIFIED`, `multi-line` |
 | `references/verification-checklist.md` | Applicability tests for deciding whether a source really supports a claim | `scope`, `primary vs secondary`, `over-claim`, `retraction`, `venue` |
-| `references/scholar-cookbook.md` | Non-interactive `scholar` recipes + how to phrase `FOUND-VIA` for non-`scholar` sources | `search -f bibtex`, `rq`, `enrich`, `pdf open`, `WebFetch`, `Crossref` |
-| `references/scholar-enhancements.md` | Captured ideas for extending `scholar` (not built) — offer to file as issues | `enhancement`, `gh issue`, `provenance export` |
+| `references/scholar-cookbook.md` | Non-interactive `scholar` recipes (incl. `bibtex+prov`, `prov`, `verify`, `pdf quote`) + how to phrase `FOUND-VIA` for non-`scholar` sources | `bibtex+prov`, `prov found-via`, `pdf quote`, `verify`, `WebFetch`, `Crossref` |
+| `references/scholar-enhancements.md` | Record of shipped provenance support (#49–#53) and a place for future ideas | `shipped`, `gh issue`, `future ideas` |
 
 ## Workflow checklist
 
