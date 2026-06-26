@@ -381,12 +381,14 @@ The results in \cref{tab:benchmark} demonstrate...
   `\mintinline{...}{...}` calls, never inside one.
 
 ### Debugging `! LaTeX Error: Float(s) lost.`
-This fatal, location-less error (reported at `\end{document}`) is most often a
-footnote/`\footcite`/`\autocite` **inside a beamer `frame`** in a memoir build
-using didactic margin footnotes. Run a bare `pdflatex -halt-on-error` pass to
-see the real error past latexmk/biber noise. Full diagnosis and fixes:
-`references/minted-v3-and-floats.md` and the **didactic-notes** skill's
-`references/footnotes-and-citations.md`.
+This fatal, location-less error (reported at `\end{document}`) in a dual
+beamer/article didactic+memoir build is typically a citation/footnote inside a
+**slide-only `\begin{frame}<presentation>` frame** (margin footnote in the
+article gets orphaned) — *not* citations in ordinary frames, which are fine.
+Run a bare `pdflatex -halt-on-error` pass to see the real error past
+latexmk/biber noise, and diagnose by minimal reproduction. Full diagnosis and
+fixes (`\only<presentation>{...}`): `references/minted-v3-and-floats.md` and the
+**didactic-notes** skill's `references/footnotes-and-citations.md`.
 
 ### Encoding and Fonts (engine-dependent)
 

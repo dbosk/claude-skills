@@ -67,15 +67,19 @@ pdflatex -shell-escape -halt-on-error -interaction=nonstopmode \
 grep -n -A3 '^!' <outdir>/<doc>.log | head
 ```
 
-The most common cause in didactic/memoir educational documents is a **footnote
-(or `\footcite`/`\autocite`) inside a beamer `frame`** while memoir is in
-`\footnotesinmargin` mode: a margin footnote is a float and cannot be emitted
-from inside the frame box, so it is lost. See the **didactic-notes** skill's
-`references/footnotes-and-citations.md` for the full diagnosis and fixes (keep
-footnotes in prose, or `\AtBeginEnvironment{frame}{\footnotesatfoot}`). It is
-not a footnote-text problem, not a PythonTeX problem, and not page-count
-related — don't chase those.
+A common cause in didactic/memoir educational documents (which build both
+beamer slides and a memoir article from one source) is a citation/footnote
+inside a **slide-only `\begin{frame}<presentation>` frame** while memoir is in
+`\footnotesinmargin` mode: the article suppresses the frame's content but the
+citation still emits an orphaned margin float that is lost. Note: citations
+inside *ordinary* frames are fine — don't assume "footnote in any frame" is the
+problem. The fix is to filter the slide-only citation with
+`\only<presentation>{\autocite{...}}` (inline; not `\mode<presentation>{...}`).
+See the **didactic-notes** skill's `references/footnotes-and-citations.md` for
+the full diagnosis. It is not a footnote-text problem, not a PythonTeX problem,
+and not page-count related — don't chase those.
 
 Other classic triggers of "Float(s) lost": a `figure`/`table` nested inside
 another box (minipage, `\parbox`, another float), or a margin float emitted from
-any restricted-mode context.
+any restricted-mode context. Diagnose by minimal reproduction (does the
+construct alone lose a float?) and by bisecting the document file-by-file.
