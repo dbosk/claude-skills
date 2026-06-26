@@ -33,6 +33,19 @@ This skill includes detailed references in `references/`:
 | `latex-examples.md` | Restatable LOs, citations, complete examples | `restatable`, `\cref{}`, `biblatex` |
 | `beamer-patterns.md` | Mode splits, overlays, verbose environments | `\mode<article>`, `uncoverenv`, `\textbytext` |
 | `semantic-environments.md` | Environment selection, generalizations | `definition`, `remark`, `example`, `block` |
+| `footnotes-and-citations.md` | Margin footnotes & verbose margin references in dual beamer/article builds; the fatal "Float(s) lost" from a footnote/`\autocite` inside a frame; mode-adaptive citation commands (`\autocite`, verbose style) | `footnotesinmargin`, `Float(s) lost`, `\autocite`, `style=verbose`, `frame`, `\mode<presentation>` |
+
+**CRITICAL gotcha:** in a memoir article that also builds beamer slides, didactic
+puts footnotes (and `\autocite` verbose references) in the margin — but a
+footnote, `\footcite`, or `\autocite` **inside a beamer `frame`** cannot be a
+margin float and causes a fatal `! LaTeX Error: Float(s) lost.` at
+`\end{document}`. The fix is to **keep footnotes/citations in prose, not inside
+frames** (use `\mode<presentation>` for a slide-only citation and let the prose
+carry the article's `\autocite`). Do **not** force in-frame footnotes to the foot
+via `\AtBeginEnvironment{frame}{\footnotesatfoot}` — because the frame material
+is shared, that also drops the *article's* in-frame footnotes to the foot,
+breaking the consistent margin style. See `references/footnotes-and-citations.md`
+before debugging any "Float(s) lost" or designing citations for a dual build.
 
 ## Core Principle
 

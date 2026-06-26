@@ -22,6 +22,7 @@ This skill includes detailed references in `references/`:
 | `multi-directory-projects.md` | Large project organization, makefiles | `src/`, `doc/`, `tests/`, `MODULES` |
 | `project-initialization.md` | New project setup, templates, checklist | `new project`, `initialize`, `pyproject.toml` |
 | `preamble.tex` | Standard LaTeX preamble for documentation | `\usepackage`, `memoir` |
+| `build-pythontex-biber.md` | Build gotchas: minted v3, the `latexmkrc`/PythonTeX `mylatex` fudge (and that `latexmkrc` is tangled from `tex.mk.nw` → gitignore it), PythonTeX dirs writing outside the repo, biber-vs-bibtex `.bbl` routing under `-use-make`, regenerating `didactic.sty` from the submodule | `latexmkrc`, `pythontex`, `bibtexu`, `didactic.sty`, `-use-make` |
 
 ## When to Use This Skill
 

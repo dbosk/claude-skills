@@ -368,9 +368,25 @@ The results in \cref{tab:benchmark} demonstrate...
 **Never** hard-code references like "Figure 1", "Table 3.2", or use manual prefixes like `Figure~\ref{fig:label}`—let cleveref handle both numbering and prefixes automatically.
 
 ### Verbatim and Code
-- Use `listings` package for code with syntax highlighting
-- Use `\verb` for inline code snippets
+- Use `minted` (preferred, syntax-highlighted; needs `-shell-escape`) or
+  `listings` for code blocks
+- Use `\verb` or `\mintinline` for inline code snippets
 - Never paste code as normal text
+- **minted v3 (TeX Live 2024+) gotchas** — see
+  `references/minted-v3-and-floats.md` (search: `outputdir`, `Pygments lexer`):
+  the `[outputdir=...]` package option is removed (now an error; load plain
+  `\usepackage{minted}`), and a `minted`/`\mintinline` **language argument split
+  across a line break** fails with `Pygments lexer " python" is unknown`. Keep
+  each minted invocation's arguments on one line; wrap prose between
+  `\mintinline{...}{...}` calls, never inside one.
+
+### Debugging `! LaTeX Error: Float(s) lost.`
+This fatal, location-less error (reported at `\end{document}`) is most often a
+footnote/`\footcite`/`\autocite` **inside a beamer `frame`** in a memoir build
+using didactic margin footnotes. Run a bare `pdflatex -halt-on-error` pass to
+see the real error past latexmk/biber noise. Full diagnosis and fixes:
+`references/minted-v3-and-floats.md` and the **didactic-notes** skill's
+`references/footnotes-and-citations.md`.
 
 ### Encoding and Fonts (engine-dependent)
 
