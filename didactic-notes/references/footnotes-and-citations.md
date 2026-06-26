@@ -44,10 +44,35 @@ overflow, or "footnotes in frames in general" — **none of which are the cause*
 Verify by minimal reproduction: an `\autocite` in an *ordinary* frame builds; the
 same in a `\begin{frame}<presentation>` frame loses a float.
 
-### The fix: filter the citation with `\only<presentation>{...}`
+### Why `\begin{frame}<presentation>` leaks, and the fix
 
-Wrap the citation/footnote inside the `<presentation>` frame so it is truly
-excluded from the article (not merely visually suppressed):
+`\begin{frame}<presentation>` is **not a true exclusion** in article mode: it
+drops the frame's typeset *output* but still *executes* the body, so an
+`\autocite`/footnote inside runs and emits an orphaned margin float. `\mode<presentation>{...}`,
+by contrast, is a genuine mode gate — the wrapped tokens are not executed at all
+in the article.
+
+**Preferred fix — make the whole frame a true mode gate.** Wrap the entire
+slide-only frame in `\mode<presentation>{...}` instead of using
+`\begin{frame}<presentation>`; then plain `\autocite` inside is fine (nothing
+leaks):
+
+```latex
+\mode<presentation>{%
+\begin{frame}
+  \begin{block}{Variation theory~\autocite{VariationTheory}}
+    ...
+  \end{block}
+\end{frame}%
+}
+```
+
+`\mode`'s spurious-paragraph caveat only applies to *inline* use; wrapping a
+whole block-level frame is exactly what `\mode<presentation>{...}` is for.
+
+**Alternative — keep `\begin{frame}<presentation>` and filter each citation**
+with `\only<presentation>{...}` (inline, overlay/mode-aware — and *not*
+`\mode<presentation>{...}` inline, which inserts spurious paragraph breaks):
 
 ```latex
 \begin{frame}<presentation>
@@ -57,10 +82,8 @@ excluded from the article (not merely visually suppressed):
 \end{frame}
 ```
 
-Use **`\only<presentation>{...}`**, *not* `\mode<presentation>{...}`:
-`\only<...>{...}` is inline and overlay/mode-aware; `\mode<...>{...}` is a
-block-level switch that can insert spurious paragraph breaks (and, used around a
-declaration, scopes it to an empty group — a no-op).
+Prefer the whole-frame `\mode<presentation>` wrap: it fixes the root cause once
+per frame rather than per citation.
 
 ### Do NOT "fix" it with a frame foot-hook
 

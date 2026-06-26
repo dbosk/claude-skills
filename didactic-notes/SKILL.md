@@ -39,12 +39,15 @@ This skill includes detailed references in `references/`:
 puts footnotes (and `\autocite` verbose references) in the margin. Citations
 inside *ordinary* frames work fine (margin in article, slide-foot in beamer) —
 but a citation/footnote inside a slide-only `\begin{frame}<presentation>` frame
-causes a fatal `! LaTeX Error: Float(s) lost.` at `\end{document}`: the article
-suppresses the frame's content but the citation still emits an orphaned margin
-float. Fix it by filtering just that citation with `\only<presentation>{\autocite{...}}`
-(inline; **not** `\mode<presentation>{...}`, which inserts paragraph breaks). Do
-**not** reach for `\AtBeginEnvironment{frame}{\footnotesatfoot}` — it needlessly
-drops the article's in-frame margin footnotes to the foot. See
+causes a fatal `! LaTeX Error: Float(s) lost.` at `\end{document}`: `\begin{frame}<presentation>`
+suppresses the frame's *output* in the article but still *executes* the body, so
+the citation emits an orphaned margin float. Preferred fix: make the frame a true
+mode gate — wrap the whole slide-only frame in `\mode<presentation>{\begin{frame}...\end{frame}}`
+(plain `\autocite` inside is then fine). Alternatively keep `\begin{frame}<presentation>`
+and filter each citation with `\only<presentation>{\autocite{...}}` (inline; **not**
+inline `\mode<presentation>{...}`, which inserts paragraph breaks). Do **not**
+reach for `\AtBeginEnvironment{frame}{\footnotesatfoot}` — it needlessly drops the
+article's in-frame margin footnotes to the foot. See
 `references/footnotes-and-citations.md` before debugging any "Float(s) lost".
 
 ## Core Principle

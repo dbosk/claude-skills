@@ -70,13 +70,15 @@ grep -n -A3 '^!' <outdir>/<doc>.log | head
 A common cause in didactic/memoir educational documents (which build both
 beamer slides and a memoir article from one source) is a citation/footnote
 inside a **slide-only `\begin{frame}<presentation>` frame** while memoir is in
-`\footnotesinmargin` mode: the article suppresses the frame's content but the
-citation still emits an orphaned margin float that is lost. Note: citations
-inside *ordinary* frames are fine — don't assume "footnote in any frame" is the
-problem. The fix is to filter the slide-only citation with
-`\only<presentation>{\autocite{...}}` (inline; not `\mode<presentation>{...}`).
-See the **didactic-notes** skill's `references/footnotes-and-citations.md` for
-the full diagnosis. It is not a footnote-text problem, not a PythonTeX problem,
+`\footnotesinmargin` mode: `\begin{frame}<presentation>` suppresses the frame's
+*output* in the article but still *executes* the body, so the citation emits an
+orphaned margin float that is lost. Note: citations inside *ordinary* frames are
+fine — don't assume "footnote in any frame" is the problem. Preferred fix: wrap
+the whole slide-only frame in `\mode<presentation>{\begin{frame}...\end{frame}}`
+(a true mode gate; plain `\autocite` inside is then fine). Alternatively filter
+each citation with `\only<presentation>{\autocite{...}}` (inline; not inline
+`\mode<presentation>{...}`). See the **didactic-notes** skill's
+`references/footnotes-and-citations.md` for the full diagnosis. It is not a footnote-text problem, not a PythonTeX problem,
 and not page-count related — don't chase those.
 
 Other classic triggers of "Float(s) lost": a `figure`/`table` nested inside
