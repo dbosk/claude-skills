@@ -57,6 +57,16 @@ even when the justification cites learning-science literature.
 `\ltnote`. If it states *how the thing being described works* (or why it was
 built that way), it is body text.
 
+**Watch the case where the subject *is* pedagogy.** When the document's topic is
+a teaching design — a research paper or methods writeup analysing how to teach
+something, e.g. a variation-theory analysis of misconceptions — the pedagogical
+analysis (\enquote{what varies}, \enquote{what stays invariant}, why this
+contrast works) is *how the thing being described works*, so it is **body text**,
+not an `\ltnote`. Reflexively moving variation labels into notes here would hide
+the paper's own argument. In such a document `\ltnote` is reserved for decisions
+about the paper itself: section order, example choice, where a topic is placed.
+The `variation-theory` skill carries the worked LaTeX example.
+
 ### Example: a literate program (`.nw`)
 
 A literate program's prose teaches the **code** to a maintainer, so `\ltnote`

@@ -1,6 +1,6 @@
 ---
 name: variation-theory
-description: Apply variation theory of learning to structure content using contrast, generalization, and fusion patterns. Variation must target the critical aspects of the learning objective. Use proactively when (1) writing educational materials, explanations, tutorials, or lecture slides, (2) designing or reviewing examples in documentation, READMEs, or literate programs (.nw files), especially when multiple examples illustrate alternative approaches to the same task, (3) structuring code examples, CLI usage examples, or API examples where the reader should notice what differs between alternatives, (4) user mentions variation theory, learning theory, pedagogy, contrast, invariance, or critical aspects. Also activate when asked to elaborate, make concrete, or add examples to existing content. Works alongside literate-programming and didactic-notes skills; in educational LaTeX or .nw materials, keep variation-analysis labels in \ltnote{} rather than student-facing prose.
+description: Apply variation theory of learning to structure content using contrast, generalization, and fusion patterns. Variation must target the critical aspects of the learning objective. Use proactively when (1) writing educational materials, explanations, tutorials, or lecture slides, (2) designing or reviewing examples in documentation, READMEs, or literate programs (.nw files), especially when multiple examples illustrate alternative approaches to the same task, (3) structuring code examples, CLI usage examples, or API examples where the reader should notice what differs between alternatives, (4) user mentions variation theory, learning theory, pedagogy, contrast, invariance, or critical aspects. Also activate when asked to elaborate, make concrete, or add examples to existing content. Works alongside literate-programming and didactic-notes skills; in educational LaTeX or .nw materials, keep variation-analysis labels in \ltnote{} rather than student-facing prose, unless the document itself is about that design.
 ---
 
 # Variation Theory of Learning
@@ -80,13 +80,34 @@ the names change between examples, the reader must determine whether
 the name change is meaningful — this distracts from the actual
 difference (the method).
 
-### Put Variation Analysis in Notes
+### Where the variation analysis goes: notes vs. body
 
-When the material is student-facing and the document uses didactic notes,
-record pedagogical analysis such as \enquote{What varies},
-\enquote{What stays invariant}, and \enquote{What this reveals} in
-`\ltnote{...}` via the `didactic-notes` skill.  Keep the visible prose
-focused on the example itself and the feature the reader should use.
+**Decide with one question first: is the \enquote{what varies / what stays
+invariant} analysis commentary *about* the teaching, or is it the document's
+*subject matter*?** Getting this backwards is a common mistake — do not reach
+for `\ltnote` reflexively.
+
+- **The document teaches a subject** (a tutorial, lecture, README, literate
+  program, crypto notes). The reader is there to learn the subject, not the
+  pedagogy. The variation analysis is meta-commentary about how the material is
+  built, so it goes in `\ltnote{...}` (via the `didactic-notes` skill). Keep the
+  visible prose focused on the example itself and the feature the reader should
+  use. **This is the common case.**
+
+- **The teaching design *is* the subject** (a research paper, a methods or
+  pedagogy writeup, an article *analysing* how to teach against a misconception).
+  Here the variation analysis is the content — the very finding the document
+  reports — so it belongs in the **body prose**. Putting it in `\ltnote` hides
+  the document's own argument. `\ltnote` is then reserved for reasoning about the
+  *document's own construction*: why a section is ordered this way, why this
+  example was chosen, where a topic is placed.
+
+This is the same scope test the `didactic-notes` skill states: if the note would
+still make sense to a reader who only cares *how the thing being described
+works*, it is body text. When the thing being described *is* the teaching design,
+the variation analysis is body text.
+
+#### Common case — the document teaches a subject
 
 **Bad** --- student-facing pedagogical meta-commentary:
 
@@ -107,6 +128,26 @@ These two examples form a deliberate contrast.
   \textbf{What varies}: Whether [[show_url]] is set to [[False]].
   \textbf{What stays invariant}: The helper, question, and environment.
 }
+```
+
+#### Carve-out — the document is *about* the teaching design
+
+In a research paper whose subject is the variation-theory designs themselves,
+state the analysis in the body and keep `\ltnote` for authoring decisions only.
+
+**Good** --- the analysis is body prose (it is the finding):
+
+```latex
+We keep the program invariant and vary only the truth value of the condition,
+so the reader discerns that a false \mintinline{python}{if} does not terminate
+the program and the \mintinline{python}{else} does not also run.
+```
+
+**Good** --- `\ltnote` carries a decision about the *paper*, not the design:
+
+```latex
+\ltnote{Placed in the types chapter rather than functions/variables because
+students first meet it as a property of the string type.}
 ```
 
 ### Example: CLI Documentation with Two Delivery Methods
