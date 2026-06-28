@@ -81,6 +81,32 @@ each citation with `\only<presentation>{\autocite{...}}` (inline; not inline
 `references/footnotes-and-citations.md` for the full diagnosis. It is not a footnote-text problem, not a PythonTeX problem,
 and not page-count related — don't chase those.
 
+### Caveat: the `\mode<presentation>{...}` wrap breaks `[fragile]` frames
+
+The preferred fix above conflicts with `[fragile]`. A `fragile` frame writes its
+body verbatim to an external `.vrb` file and scans for `\end{frame}`; wrapping it
+in `\mode<presentation>{\begin{frame}[fragile]...\end{frame}%\n}` leaves the
+group's closing `}` *outside* that scan, so the **slides** build dies with:
+
+```
+! Extra }, or forgotten \endgroup.
+\endframe ->\egroup ...
+```
+
+So for a slide-only frame you cannot have both `\mode<presentation>{...}` and
+`[fragile]`. Resolve by checking whether `fragile` is actually needed:
+
+- **`fragile` is not needed** (the frame has no `verbatim`/`minted`/`listings`;
+  inline math `\(...\)`, `\alert<>`, `\pause`, `block`/`itemize` are all fine):
+  drop `[fragile]` and use `\mode<presentation>{\begin{frame}...\end{frame}}`.
+  This satisfies both outputs — the article never executes the body, the slides
+  wrap cleanly. This is the common case.
+- **`fragile` is genuinely needed** (verbatim-like content inside): keep
+  `\begin{frame}<presentation>[fragile]` (note: spec `<presentation>` goes
+  *before* the `[fragile]` option) and guard every citation/footnote in the body
+  with `\only<presentation>{\autocite{...}}` so it does not execute in the
+  article and orphan a margin float.
+
 Other classic triggers of "Float(s) lost": a `figure`/`table` nested inside
 another box (minipage, `\parbox`, another float), or a margin float emitted from
 any restricted-mode context. Diagnose by minimal reproduction (does the

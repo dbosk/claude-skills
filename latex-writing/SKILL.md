@@ -388,7 +388,14 @@ still executes the body, so the margin footnote gets orphaned) — *not* citatio
 in ordinary frames, which are fine. Run a bare `pdflatex -halt-on-error` pass to
 see the real error past latexmk/biber noise, and diagnose by minimal
 reproduction. Fix: wrap the slide-only frame in `\mode<presentation>{...}` (or
-filter the citation with `\only<presentation>{...}`). Full diagnosis:
+filter the citation with `\only<presentation>{...}`). **Caveat:** the
+`\mode<presentation>{...}` wrap cannot be used on a `[fragile]` frame — the
+group's closing `}` falls outside the verbatim `.vrb` scan and the *slides*
+build then fails with `! Extra }, or forgotten \endgroup`. For a fragile
+slide-only frame, drop `[fragile]` if it is not actually needed (no
+verbatim/minted/listings inside), otherwise keep
+`\begin{frame}<presentation>[fragile]` and guard each citation with
+`\only<presentation>{\autocite{...}}`. Full diagnosis:
 `references/minted-v3-and-floats.md` and the **didactic-notes** skill's
 `references/footnotes-and-citations.md`.
 
