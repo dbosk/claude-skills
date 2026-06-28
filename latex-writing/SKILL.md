@@ -270,34 +270,37 @@ Figure~\ref{fig:plot} demonstrates...
 
 **Why**: Manual quote marks don't adapt to language settings and can cause typographical inconsistencies. The csquotes package handles all quote styling correctly based on document language.
 
-#### Cited quotations: `\textcquote`/`\blockcquote`, not `\enquote` + separate cite
+#### Cited quotation vs. attributed paraphrase
 
-When the quoted text is **reproduced from a source**, use the *integrated*
-citation commands so the quotation carries its own reference:
+The command depends on whether the text is **verbatim** from the source:
 
-- `\textcquote[⟨prenote⟩][⟨postnote⟩]{key}{quoted text}` — inline cited quotation
-- `\blockcquote[⟨postnote⟩]{key}{quoted text}` — block cited quotation (long quotes)
-
-Do **not** write `\enquote{quoted text}` and attach the source with a separate
-`\cite`/`\autocite` — fold the citation into the quotation instead. Reserve plain
-`\enquote{...}` for quotes/words with **no** source: scare quotes, words-as-mention,
-and *back-references* to an already-cited quotation.
+- **Verbatim text reproduced from a source** → use the *integrated* cited-quotation
+  commands so the quotation carries its own reference; do **not** write
+  `\enquote{...}` plus a detached `\cite`/`\autocite`:
+  - `\textcquote[⟨prenote⟩][⟨postnote⟩]{key}{text}` — inline
+  - `\blockcquote[⟨postnote⟩]{key}{text}` — block (long quotes)
+- **Paraphrase, reconstructed dialogue, or a recounted example** → it is *not* a
+  quotation. Attribute it integrally with `\textcite`/`\autocite`, and keep any
+  reported words in plain `\enquote`.
+- **Plain `\enquote{...}`** otherwise: scare quotes, words-as-mention, and
+  back-references to an already-cited quotation.
 
 ```latex
-% INCORRECT — uncited quote command + detached citation
+% INCORRECT — verbatim source text as \enquote + detached citation
 The study reports \enquote{much higher (63\%)} results \autocite[p.~167]{NCOL}.
-
-% CORRECT — quotation carries its citation
+% CORRECT — verbatim quotation carries its own citation
 The study reports \textcquote[p.~167]{NCOL}{much higher (63\%)} results.
 
-% CORRECT — cite at first quotation; later repetitions are word-mentions
-The child answers \textcquote[p.~24]{NCOL}{five}; we then ask what \enquote{five}
-means to her.   % second "five" is a back-reference, so \enquote is right
+% CORRECT — a paraphrased/recounted example is attributed, NOT \textcquote'd
+\Textcite[pp.~24--25]{NCOL} reports a study in which a child answers
+\enquote{five} for one hand and \enquote{ten} for the other.
 ```
 
-**Caveat**: `\textcquote`/`\blockcquote` assert the text is *verbatim* from the
-source. Only wrap words you have verified appear in the source; paraphrase stays
-outside the braces. (See the **backing-claims** skill for verifying quotations.)
+**Crucial caveat**: `\textcquote`/`\blockcquote` assert the braced text is
+*verbatim* from the source. Verify the words actually appear there before
+wrapping them; do not use these commands for paraphrase, reconstructed dialogue,
+or words-as-mention — attribute those with `\textcite`/`\autocite` instead. (See
+the **backing-claims** skill — read the source and verify before you cite.)
 
 ### Emphasis
 - **Never** use ALL CAPITALS for emphasis in running text
@@ -479,7 +482,7 @@ Check for these common issues:
 - [ ] Manual cross-reference prefixes (`\S\ref`, `Section~\ref`, `Figure~\ref`) instead of `\cref`
 - [ ] Manual citation formatting instead of `\cite` commands
 - [ ] Manual quotes (`"..."`, `'...'`, `` `...` ``) instead of `\enquote{...}`
-- [ ] Cited quotation written as `\enquote{...}` + a detached `\cite`/`\autocite` instead of `\textcquote`/`\blockcquote`
+- [ ] *Verbatim* source text written as `\enquote{...}` + a detached `\cite`/`\autocite` instead of `\textcquote`/`\blockcquote` (and, conversely, `\textcquote`/`\blockcquote` wrapping paraphrase that is not verbatim)
 - [ ] Images without `figure` environment
 - [ ] Code without proper formatting (listings/verbatim)
 - [ ] Windows-style backslashes in paths
