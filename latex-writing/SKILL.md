@@ -270,6 +270,35 @@ Figure~\ref{fig:plot} demonstrates...
 
 **Why**: Manual quote marks don't adapt to language settings and can cause typographical inconsistencies. The csquotes package handles all quote styling correctly based on document language.
 
+#### Cited quotations: `\textcquote`/`\blockcquote`, not `\enquote` + separate cite
+
+When the quoted text is **reproduced from a source**, use the *integrated*
+citation commands so the quotation carries its own reference:
+
+- `\textcquote[⟨prenote⟩][⟨postnote⟩]{key}{quoted text}` — inline cited quotation
+- `\blockcquote[⟨postnote⟩]{key}{quoted text}` — block cited quotation (long quotes)
+
+Do **not** write `\enquote{quoted text}` and attach the source with a separate
+`\cite`/`\autocite` — fold the citation into the quotation instead. Reserve plain
+`\enquote{...}` for quotes/words with **no** source: scare quotes, words-as-mention,
+and *back-references* to an already-cited quotation.
+
+```latex
+% INCORRECT — uncited quote command + detached citation
+The study reports \enquote{much higher (63\%)} results \autocite[p.~167]{NCOL}.
+
+% CORRECT — quotation carries its citation
+The study reports \textcquote[p.~167]{NCOL}{much higher (63\%)} results.
+
+% CORRECT — cite at first quotation; later repetitions are word-mentions
+The child answers \textcquote[p.~24]{NCOL}{five}; we then ask what \enquote{five}
+means to her.   % second "five" is a back-reference, so \enquote is right
+```
+
+**Caveat**: `\textcquote`/`\blockcquote` assert the text is *verbatim* from the
+source. Only wrap words you have verified appear in the source; paraphrase stays
+outside the braces. (See the **backing-claims** skill for verifying quotations.)
+
 ### Emphasis
 - **Never** use ALL CAPITALS for emphasis in running text
 - Use `\emph{...}` to emphasize words or phrases
@@ -450,6 +479,7 @@ Check for these common issues:
 - [ ] Manual cross-reference prefixes (`\S\ref`, `Section~\ref`, `Figure~\ref`) instead of `\cref`
 - [ ] Manual citation formatting instead of `\cite` commands
 - [ ] Manual quotes (`"..."`, `'...'`, `` `...` ``) instead of `\enquote{...}`
+- [ ] Cited quotation written as `\enquote{...}` + a detached `\cite`/`\autocite` instead of `\textcquote`/`\blockcquote`
 - [ ] Images without `figure` environment
 - [ ] Code without proper formatting (listings/verbatim)
 - [ ] Windows-style backslashes in paths
