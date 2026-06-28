@@ -5,14 +5,13 @@
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
-| #279 | 11:20 AM | 🔵 | Skills architecture and authoring patterns comprehensively documented | ~503 |
-| #260 | 11:17 AM | 🔵 | Literate-programming skill demonstrates comprehensive reference organization | ~412 |
+| #285 | 11:21 AM | 🔵 | Didactic-notes skill demonstrates pedagogical documentation pattern | ~374 |
 | #254 | 11:16 AM | 🔵 | Skills structure pattern identified | ~254 |
 
 ### Jun 24, 2026
 
 | ID | Time | T | Title | Read |
 |----|------|---|-------|------|
+| #1079 | 4:13 PM | 🔵 | Citation ecosystem analysis reveals greenfield opportunity for reference verification | ~637 |
 | #1078 | 4:11 PM | 🔵 | Skill structure conventions analyzed for citation skill development | ~635 |
-| #1055 | 10:38 AM | ✅ | literate-programming skill: document anti-pattern for @ between adjacent code chunks | ~550 |
 </claude-mem-context>
