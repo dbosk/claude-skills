@@ -1,7 +1,7 @@
 ---
 name: backing-claims
 description: |
-  Back factual and empirical claims with scientific literature that has been verified to actually support the claim, and record the provenance of each citation (how it was found, why it was picked, and the verbatim quote that supports the claim). Use proactively when: (1) adding a citation to a factual, empirical, or theoretical claim in prose, .tex, .nw, or notes, (2) the user asks to "find a reference for", "back this up", "cite this", "is this citation correct", or to verify that a citation actually applies, (3) writing a related-work, background, or claims section, (4) the user mentions scholar/scholarcli, BibTeX, DOI, Semantic Scholar, arXiv, OpenAlex, Crossref, or a literature search, (5) reviewing a .bib file for unsupported or undocumented references. Complements (does not replace) the writing-crypto and latex-writing skills, which own the citation markup; this skill owns finding, verifying, and justifying the reference.
+  Back factual and empirical claims with literature you have verified actually supports the claim, and record each citation's provenance (how found, why picked, quote). Use proactively when: (1) adding OR reusing a citation, page number, or attribution for a factual/empirical claim in prose, .tex, .nw, or notes — including a cite carried over from slides, notes, a draft, or the existing .bib (an inherited citation is NOT pre-verified), (2) writing prose that attributes a claim to a source or recounts an example ("X reports/found that…", a paraphrase, or a page locator), (3) the user asks to "find a reference", "cite this", or "is this citation correct", (4) writing a related-work, background, or claims section, (5) the user mentions scholar, BibTeX, DOI, arXiv, OpenAlex, Crossref, or a literature search, (6) reviewing a .bib for unsupported references. Trigger BEFORE writing the citation. Complements writing-crypto and latex-writing (citation markup); this skill owns finding/verifying/justifying the reference.
 ---
 
 # Backing Claims with Verified References
@@ -21,6 +21,15 @@ specific claim, at the claim's scope and strength.
 Corollary: **the search tool is free, the documentation is not.** Use any source
 you like — `scholar`, Google Scholar, a publisher database, WebSearch, a
 colleague's tip — but every reference must carry a reproducible `FOUND-VIA`.
+
+Corollary: **an inherited citation is not a verified one.** A key that already
+exists in the `.bib`, or one carried over from slides, notes, a draft, or an
+earlier version, asserts support you have not personally checked. Verify it
+against the source the first time you commit it to prose — and re-verify every
+**page number** and every **"X reports/found/shows that…"** attribution you
+write, since those are fresh claims even when the citation key is old. "The
+cite was already there" is not evidence that it is correct. Trigger this skill
+*while writing the sentence*, not only when a reviewer later asks.
 
 This skill owns *find → verify → record*. It hands the citation **markup** off to
 `writing-crypto` (biblatex `\autocite`/`\ac`) and `latex-writing` (`\cite`
