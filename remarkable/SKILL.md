@@ -97,8 +97,33 @@ Get exact schemas at runtime with `tools/list` (see the script below).
    fit, so the overlaid mark can land in the wrong place. Also `remarkable_read`
    `content_type=annotations`/`include_ocr` returns **no handwriting text** (only
    the printed PDF text layer). Practical rule: render the ink to read *what* the
-   mark is (letter/digit/symbol), but for *where* it is, ask the user rather than
-   trusting a local overlay.
+   mark is (letter/digit/symbol), but for *where* it is on the page, use the
+   native email export below rather than trusting a local overlay.
+
+## Reading an annotation at its correct position (v6 / Paper Pro)
+
+For a v6 document (reMarkable OS 3.x, Paper Pro) there is **no coordinate-correct
+merge available programmatically**: this server's `render_merged` returns ink
+only (gotcha 6), `rmapi geta` is one-pen-basic and only experimental on the new
+sync, and the open-source compositors (`rmrl`, `remarks`) are v5-only while the
+v6 renderers (`rmscene`/`rmc`) draw strokes onto a blank page, not the source
+PDF. The reliable path is **reMarkable's own on-device export**, which flattens
+annotations at their exact positions (in colour on Paper Pro).
+
+Loop — one tap on the tablet, the rest here:
+
+1. On the tablet: open the document → **Page overview** → long-press the page →
+   **⋯ (More)** → **Send by email** → format **PDF** (or **PNG** for a single
+   flat page image) → send to the user's own address.
+2. Retrieve and read it in place. If a Gmail/mail MCP is connected (check with
+   `claude mcp list`), search the mailbox for the reMarkable export and pull the
+   PDF/PNG attachment; otherwise ask the user to share the exported file. Then
+   Read the PDF/PNG — positions are exact because reMarkable rendered it.
+
+You **cannot** trigger this export headlessly — the native v6 render is initiated
+from the tablet UI, and there is no cloud endpoint to invoke it. So the division
+of labour is: the user taps export-to-email once; you find, download, and read
+it. (A PNG export is the least work to read; a PDF preserves multiple pages.)
 
 ## Driving the server directly (in-session fallback)
 
