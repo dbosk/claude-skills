@@ -82,7 +82,23 @@ Get exact schemas at runtime with `tools/list` (see the script below).
    `resource.blob` (or type `image` with `data`). Save those bytes to a `.png`
    and Read it. Do **not** rely on `resources/read` of the `remarkableimg:///…`
    URI — spaces/parentheses in document names break it ("unbalanced
-   parenthesis"); use the inline blob from `tools/call` instead.
+   parenthesis"); use the inline blob from `tools/call` instead. Note some modes
+   (`compatibility=true`) return the PNG as a `data:image/png;base64,…` string in
+   a `data_uri` JSON field instead — handle that shape too.
+
+6. **You can read the annotation's SHAPE but not its POSITION on the page.** For
+   an annotated PDF, `remarkable_image render_merged=true` returns the **ink layer
+   only** (tightly cropped to the strokes, in the tablet's device-screen space,
+   e.g. 1404×1872 for an rM2), while the page render is in PDF-page space
+   (e.g. 1449×2048). The server does **not** composite ink onto the PDF page, and
+   `render_merged` with a `background`/`compatibility` value does not fix this
+   (`background` is a colour string, not "pdf"). Compositing the two locally is
+   only approximate — the reMarkable's PDF↔annotation transform is not a simple
+   fit, so the overlaid mark can land in the wrong place. Also `remarkable_read`
+   `content_type=annotations`/`include_ocr` returns **no handwriting text** (only
+   the printed PDF text layer). Practical rule: render the ink to read *what* the
+   mark is (letter/digit/symbol), but for *where* it is, ask the user rather than
+   trusting a local overlay.
 
 ## Driving the server directly (in-session fallback)
 
@@ -103,12 +119,14 @@ scripts/rm_mcp.py call remarkable_recent '{"limit":5}'
 scripts/rm_mcp.py call remarkable_upload \
   '{"file_path":"/abs/path/article.pdf","document_name":"My Paper (draft)"}'
 
-# render page 1 with ink merged, saving the PNG to read back an annotation
+# render page 1's ink layer to a PNG to read back an annotation's shape
 scripts/rm_mcp.py render "/My Paper (draft)" 1 out.png
 ```
 
-Then Read the saved PNG to view the page/annotation visually. The script is
-small and provider-agnostic; read it before extending.
+Then Read the saved PNG to see the annotation. This shows the **ink layer** (the
+mark's shape), not the mark composited at its true position on the page — see
+gotcha 6; ask the user where it is. The script is small and provider-agnostic;
+read it before extending.
 
 ## Verify an upload
 
