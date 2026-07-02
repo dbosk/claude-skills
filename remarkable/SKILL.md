@@ -1,6 +1,6 @@
 ---
 name: remarkable
-description: Work with a reMarkable tablet through the remarkable-mcp MCP server — upload PDFs/EPUBs, browse/search the cloud, render pages as images, read page text/OCR, and read back handwritten annotations. Use when: (1) the user asks to send/upload a document, paper, or PDF to their reMarkable ("put this on my reMarkable", "upload to remarkable"), (2) the user asks to read, render, or check an annotation/note they made on the tablet, (3) the user mentions reMarkable, remarkable-mcp, rmapi, or their tablet, (4) setting up or troubleshooting the remarkable MCP server. Covers registration/auth, the tool inventory, and the non-obvious gotchas (path-not-uuid addressing, 1-based pages, mid-session MCP loading, and the annotation-sync trap).
+description: Work with a reMarkable tablet through the remarkable-mcp MCP server — upload PDFs/EPUBs, browse/search the cloud, render pages (optionally compositing annotations onto the PDF), read page text/OCR, extract highlighted text, and list which pages carry notes/highlights. Use when: (1) the user asks to send/upload a document, paper, or PDF to their reMarkable ("put this on my reMarkable", "upload to remarkable"), (2) the user asks to read/render/check an annotation, note, or highlight they made on the tablet, or to find/extract only the annotated pages, (3) the user mentions reMarkable, remarkable-mcp, rmapi, or their tablet, (4) setting up or troubleshooting the remarkable MCP server. Covers registration/auth, the tool inventory, the merged/annotation-extraction capabilities, and the non-obvious gotchas (path-not-uuid addressing, 1-based pages, mid-session MCP loading, the annotation-sync trap, and the render_merged version dependency).
 ---
 
 # Working with the reMarkable via remarkable-mcp
@@ -41,13 +41,53 @@ Write tools (upload/mkdir/move/rename/delete) are **on by default**; pass
 | `remarkable_browse` | list a folder / filter | `path`, `query`, `tags` |
 | `remarkable_recent` | most recently modified docs | `limit`, `include_preview` |
 | `remarkable_search` | find a doc; returns `path` + page OCR text | `query`, `grep`, `limit`, `include_ocr` |
-| `remarkable_read` | page text / OCR of a doc | `document`, `page`, `include_ocr` |
-| `remarkable_image` | render a page to PNG (optionally with ink) | `document`, `page`, `render_merged`, `output_format` |
+| `remarkable_read` | page text / OCR; `content_type=annotations` lists annotated pages + highlighted text | `document`, `page`, `content_type`, `include_ocr` |
+| `remarkable_image` | render a page to PNG; `render_merged=true` composites PDF + strokes + highlights | `document`, `page`, `render_merged`, `output_format` |
 | `remarkable_canvas` | interactive canvas render of a page | `document`, `page` |
 | `remarkable_upload` | upload a local file | `file_path` (req), `parent_folder`, `document_name` |
 | `remarkable_mkdir` / `move` / `rename` / `delete` | manage docs/folders | see schema |
 
 Get exact schemas at runtime with `tools/list` (see the script below).
+
+## Reading annotations: merged render + highlight/notes extraction
+
+**Requires the patched build** — the fixes below live on the
+`fix/render-merged-imported-pdfs` branch of `~/devel/remarkable-mcp`, installed
+editable via `uv tool install --editable ~/devel/remarkable-mcp --force`. The
+PyPI `remarkable-mcp` (≤ 1.0.0) still has the bugs listed under "Unpatched
+release" — check with `uv tool list` (a `file://` / local version = patched).
+
+With the patched build:
+
+- **Composite an annotated page:** `remarkable_image(document, page,
+  render_merged=True)` returns one PNG with the **PDF page + pen strokes + text
+  highlights** at correct positions (PNG only; the page needs a PDF underlay).
+  Save the blob and Read it (see the resource-blob gotcha).
+- **Find/extract annotations without scanning every page:**
+  `remarkable_read(document, content_type="annotations")` returns an **"Annotated
+  pages"** section — only the pages that carry annotations, each showing whether
+  it has handwritten notes and its **highlighted text**. The underlying
+  extraction result also exposes `highlights` (flat list) and `annotated_pages`
+  (`[{page, page_id, has_handwriting, highlights}]`, 1-based page numbers).
+
+Highlight text is the reMarkable's stored text selection: great for *locating*
+annotated passages, but occasionally glitchy (a dropped letter, or a sentence
+split across entries) — treat it as a finder, not a verbatim transcript.
+
+### Unpatched release (PyPI ≤ 1.0.0): use the native email export
+On the release build, `render_merged` is broken for imported PDFs
+(formatVersion-1 docs render annotation-only; the coordinate transform
+mis-places ink — single strokes off-position, multi-stroke pages fill solid
+black), text highlights never render, and `content_type=annotations` returns no
+highlights. For correct output there, use reMarkable's **own on-device export**:
+
+1. Tablet: open the document → **Page overview** → long-press the page → **⋯
+   (More)** → **Send by email** → **PDF** (or **PNG**) → send to the user's own
+   address.
+2. Retrieve it via a connected Gmail/mail MCP (`claude mcp list` to check) — pull
+   the attachment — or ask the user to share the file. Then Read it; positions
+   are exact because reMarkable rendered it. You **cannot** trigger this export
+   headlessly (no cloud endpoint); the user taps once, you fetch and read.
 
 ## Gotchas (learned the hard way — read before using)
 
@@ -59,23 +99,19 @@ Get exact schemas at runtime with `tools/list` (see the script below).
 
 2. **Pages are 1-based.** `page=0` → `page_out_of_range` ("use page=1 to N").
 
-3. **Mid-session `claude mcp add` does not load the tools into the current
-   session.** `claude mcp list` shows `✔ Connected`, but the `mcp__remarkable__*`
-   tools are only registered at session start, so `ToolSearch` won't find them
-   until a **new** session. To act immediately in the same session, drive the
-   stdio server directly with `scripts/rm_mcp.py` (a JSON-RPC client).
+3. **Mid-session `claude mcp add` (or reinstalling the tool) does not reach the
+   current session.** `claude mcp list` shows `✔ Connected`, but the
+   `mcp__remarkable__*` tools — and any freshly-installed build — are only picked
+   up at session start, so `ToolSearch` won't find the tools until a **new**
+   session. To act immediately in the same session, drive the stdio server
+   directly with `scripts/rm_mcp.py` (a JSON-RPC client).
 
-4. **Annotations only exist in the cloud once the tablet has synced.** A
-   handwritten layer made on the device is invisible to the cloud API until the
-   tablet syncs up. Symptoms of an un-synced annotation:
-   - the document's `modified` time still equals the upload time;
-   - `remarkable_image` with `render_merged=true` falls back to the tablet's
-     native PDF export and notes *"local stroke render unavailable"* — the ink
-     is missing;
-   - `remarkable_read` with `include_ocr=true` returns only the **printed** PDF
-     text, never the un-synced handwriting.
-   If the ink is missing, do not conclude there is no annotation — ask the user
-   to sync the tablet (Wi-Fi, wake the device / manual sync), then re-render.
+4. **Annotations only exist in the cloud once the tablet has synced.** A layer
+   made on the device is invisible to the cloud API until the tablet syncs up.
+   Signs it hasn't: the document's `modified` time still equals the upload time;
+   `render_merged`/`content_type=annotations` show no ink or highlights. Do not
+   conclude there is no annotation — ask the user to sync (Wi-Fi, wake the device
+   / manual sync), then retry.
 
 5. **Image results come back as an MCP resource blob.** In the `tools/call`
    result, `content[]` holds an item of type `resource` with base64 in
@@ -85,45 +121,6 @@ Get exact schemas at runtime with `tools/list` (see the script below).
    parenthesis"); use the inline blob from `tools/call` instead. Note some modes
    (`compatibility=true`) return the PNG as a `data:image/png;base64,…` string in
    a `data_uri` JSON field instead — handle that shape too.
-
-6. **You can read the annotation's SHAPE but not its POSITION on the page.** For
-   an annotated PDF, `remarkable_image render_merged=true` returns the **ink layer
-   only** (tightly cropped to the strokes, in the tablet's device-screen space,
-   e.g. 1404×1872 for an rM2), while the page render is in PDF-page space
-   (e.g. 1449×2048). The server does **not** composite ink onto the PDF page, and
-   `render_merged` with a `background`/`compatibility` value does not fix this
-   (`background` is a colour string, not "pdf"). Compositing the two locally is
-   only approximate — the reMarkable's PDF↔annotation transform is not a simple
-   fit, so the overlaid mark can land in the wrong place. Also `remarkable_read`
-   `content_type=annotations`/`include_ocr` returns **no handwriting text** (only
-   the printed PDF text layer). Practical rule: render the ink to read *what* the
-   mark is (letter/digit/symbol), but for *where* it is on the page, use the
-   native email export below rather than trusting a local overlay.
-
-## Reading an annotation at its correct position (v6 / Paper Pro)
-
-For a v6 document (reMarkable OS 3.x, Paper Pro) there is **no coordinate-correct
-merge available programmatically**: this server's `render_merged` returns ink
-only (gotcha 6), `rmapi geta` is one-pen-basic and only experimental on the new
-sync, and the open-source compositors (`rmrl`, `remarks`) are v5-only while the
-v6 renderers (`rmscene`/`rmc`) draw strokes onto a blank page, not the source
-PDF. The reliable path is **reMarkable's own on-device export**, which flattens
-annotations at their exact positions (in colour on Paper Pro).
-
-Loop — one tap on the tablet, the rest here:
-
-1. On the tablet: open the document → **Page overview** → long-press the page →
-   **⋯ (More)** → **Send by email** → format **PDF** (or **PNG** for a single
-   flat page image) → send to the user's own address.
-2. Retrieve and read it in place. If a Gmail/mail MCP is connected (check with
-   `claude mcp list`), search the mailbox for the reMarkable export and pull the
-   PDF/PNG attachment; otherwise ask the user to share the exported file. Then
-   Read the PDF/PNG — positions are exact because reMarkable rendered it.
-
-You **cannot** trigger this export headlessly — the native v6 render is initiated
-from the tablet UI, and there is no cloud endpoint to invoke it. So the division
-of labour is: the user taps export-to-email once; you find, download, and read
-it. (A PNG export is the least work to read; a PDF preserves multiple pages.)
 
 ## Driving the server directly (in-session fallback)
 
@@ -144,14 +141,18 @@ scripts/rm_mcp.py call remarkable_recent '{"limit":5}'
 scripts/rm_mcp.py call remarkable_upload \
   '{"file_path":"/abs/path/article.pdf","document_name":"My Paper (draft)"}'
 
-# render page 1's ink layer to a PNG to read back an annotation's shape
+# render page 1 with annotations composited onto the PDF (patched build)
 scripts/rm_mcp.py render "/My Paper (draft)" 1 out.png
+
+# list annotated pages + highlighted text
+scripts/rm_mcp.py call remarkable_read \
+  '{"document":"/My Paper (draft)","content_type":"annotations"}'
 ```
 
-Then Read the saved PNG to see the annotation. This shows the **ink layer** (the
-mark's shape), not the mark composited at its true position on the page — see
-gotcha 6; ask the user where it is. The script is small and provider-agnostic;
-read it before extending.
+Then Read the saved PNG. On the patched build `render` composites the page + ink
++ highlights at correct positions; on the unpatched release it returns only the
+(cropped, possibly mis-placed) ink layer — see the version note above. The script
+is small and provider-agnostic; read it before extending.
 
 ## Verify an upload
 
