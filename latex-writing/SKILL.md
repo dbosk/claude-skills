@@ -431,6 +431,29 @@ verbatim/minted/listings inside), otherwise keep
 `references/minted-v3-and-floats.md` and the **didactic-notes** skill's
 `references/footnotes-and-citations.md`.
 
+### Dual beamer/article builds (one source, two outputs)
+
+For papers compiled twice from the same content files (memoir +
+`beamerarticle` article AND a beamer slide deck, content files starting with
+`\mode*`), follow `references/dual-beamer-article.md` (search: `pyblock
+frame`, `ProvideSemanticEnv`, `restatable`, `biber root`). The four rules,
+in brief:
+
+- **Every PythonTeX `pyblock` goes inside a `\begin{frame}[fragile]`** that
+  renders in both modes — out-of-frame pyblocks are skipped by the slides
+  job, desynchronising the shared PythonTeX session data (symptoms: swapped
+  outputs, `?? PythonTeX ??`).
+- **Research questions and hypotheses** go in semantic, cleveref-labelled
+  environments (didactic's `question`; declare e.g. `hypothesis` via
+  `\ProvideSemanticEnv` after `\DeclareTranslation`) with their text in
+  preamble macros so they can be restated; reference via `\cref{rq:*}`,
+  never literal "RQ1"/"H2".
+- **Slide-only frames**: `\mode<presentation>{...}` wrap (fragile caveat
+  above); article-only prose sits outside frames; don't let slide bullet
+  lists duplicate adjacent article prose.
+- **Biber reruns** happen from the project root (`biber ltxobj/<jobname>`),
+  never from inside the output directory.
+
 ### Encoding and Fonts (engine-dependent)
 
 Unicode/font build failures have **opposite fixes on pdfLaTeX vs
@@ -493,6 +516,11 @@ Check for these common issues:
       mapping, or `\DeclareUnicodeCharacter` used without `\usepackage[utf8]{inputenc}`
 - [ ] pdfLaTeX: monospace/code rendering as proportional serif — missing
       `\usepackage[T1]{fontenc}` for a T1-only font such as Bera Mono
+- [ ] Dual beamer/article build: `pyblock` outside a both-modes
+      `\begin{frame}[fragile]` (desynchronises PythonTeX sessions), or
+      literal "RQ1"/"H2" in prose instead of `\cref` to a semantic
+      question/hypothesis environment (see
+      `references/dual-beamer-article.md`)
 
 **Additional checks for .nw literate programming files:**
 - [ ] `\texttt{..._...}` or `\texttt{...__...}` → Should use `[[...]]` notation

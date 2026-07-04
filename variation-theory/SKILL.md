@@ -252,6 +252,22 @@ Research suggests using patterns in this order:
 
 **Important**: Within each pattern, contrast multiple **values** together. "One at a time" applies to **dimensions/aspects**, not values.
 
+**Why contrast must come first** (verified in Marton, *Necessary Conditions
+of Learning*, 2014, pp. 45–47 — cite these pages when writing this claim):
+
+- Generalization before contrast is *induction*, and induction cannot open a
+  dimension the learner has never discerned: "if you cannot see the greenness
+  of any of three green, though otherwise different, things, you cannot see
+  what they have in common, either" (p. 46).
+- Of two teachers juxtaposing sets of objects to make greenness discernible,
+  "[o]ne is betting on induction, the other on contrast. The latter wins"
+  (p. 47).
+- Discernment comes from "the simultaneous experience of things that differ
+  in color but are the same otherwise" (p. 46) — so juxtapose the contrasting
+  instances side by side (in one figure, one code listing pair, one slide).
+  Instances presented apart must be juxtaposed in the learner's memory
+  instead: a cognitive-load argument for contrast-first, side-by-side design.
+
 ## Temporal Sequencing: Examples Before Generalizations
 
 **CRITICAL**: Examples must precede generalizations. Students need concrete instances creating necessary variation before abstract principles become meaningful.
