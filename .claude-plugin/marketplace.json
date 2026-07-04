@@ -1,0 +1,14 @@
+{
+  "name": "dbosk-skills",
+  "owner": {
+    "name": "Daniel Bosk",
+    "email": "daniel@bosk.se"
+  },
+  "plugins": [
+    {
+      "name": "dbosk-skills",
+      "source": "./",
+      "description": "Daniel Bosk's skills: literate programming, LaTeX writing, teaching, and review"
+    }
+  ]
+}

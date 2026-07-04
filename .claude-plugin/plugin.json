@@ -1,0 +1,6 @@
+{
+  "name": "dbosk-skills",
+  "description": "Daniel Bosk's skills: literate programming, LaTeX writing, teaching, and review",
+  "version": "1.0.0",
+  "skills": ["./"]
+}
