@@ -62,32 +62,57 @@ fetches them at declaration time in article mode:
   {hypothesis}{hypotheses}{Hypothesis}{Hypotheses}
 ```
 
-Put the full text of each question/hypothesis in a macro, and wrap the
-macro in the environment where it is first stated:
+Use thmtools' `restatable` (load `\usepackage{thmtools,thm-restate}` in the
+document preamble — do NOT add it to didactic; the package itself uses
+nothing from it). State once, restate with the starred tag command, which
+repeats the original number:
 
 ```latex
-% in preamble.tex
-\newcommand{\rqpatterns}{Which patterns of variation, if any, ...?}
-\newcommand{\hdeep}{Students with a stronger deep approach ...}
-
 % at first statement (inside a frame, so it appears in both outputs)
-\begin{question}\label{rq:patterns}
-  \rqpatterns
-\end{question}
-\begin{hypothesis}\label{h:deep}
-  \hdeep
-\end{hypothesis}
+\begin{restatable}{question}{rqpatterns}\label{rq:patterns}
+  Which patterns of variation, if any, ...?
+\end{restatable}
+
+% restated later (e.g. the method overview), same number, labels gobbled
+\rqpatterns*
 ```
+
+thm-restate assumes theorem environments with counters, which the semantic
+environments only are in the *article* build; in the slides they are
+counterless beamer blocks. Add this shim to the shared preamble (it is a
+no-op for the article job):
+
+```latex
+% AFTER \usepackage{didactic}
+\makeatletter
+\@ifclassloaded{beamer}{%
+  \DeclareDocumentEnvironment{restatable}{o m m}{%
+    \expandafter\ProvideDocumentCommand\csname #3\endcsname{s}{\relax}%
+    \IfValueTF{#1}{\begin{#2}[#1]}{\begin{#2}}%
+  }{%
+    \end{#2}%
+  }%
+}{\relax}
+\makeatother
+```
+
+The wrapper typesets the wrapped environment transparently and defines the
+tag command as a star-tolerant no-op, so restatements are simply dropped in
+the slides (they belong in article-mode prose, which `\mode*` skips
+anyway). Reference implementations: vt-debug's `preamble.tex`,
+literate-programming's `src/abstract.tex` (learning objectives).
 
 Consequences:
 - **Never write literal `RQ1`/`H2` in prose** — reference with
   `\cref{rq:patterns}`/`\cref{h:deep}` (cleveref renders "question 1",
   "Questions 1 and 4"; `\Cref` at sentence start). Numbers then survive
   reordering.
-- Restate anywhere by using the macro, e.g.
-  `For \cref{rq:experts} --- \enquote{\rqexperts} --- we expect ...`.
-- In description lists of results per hypothesis, use
-  `\item[\Cref{h:patterns}]` rather than `\item[H1]`.
+- A restatement is a full theorem block, not inline text; for an inline
+  mention use `\cref`, don't try to quote the statement mid-sentence.
+- Verify after building: each statement should appear exactly twice with
+  the same number, and later theorems' numbers must be undisturbed
+  (`pdftotext file.pdf - | grep -oE "(Question|Hypothesis) [0-9]+\." |
+  sort | uniq -c`).
 - In beamer the environments render as (unnumbered) coloured blocks —
   that is fine; the numbering matters in the article.
 

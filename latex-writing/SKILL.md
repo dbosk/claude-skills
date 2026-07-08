@@ -445,9 +445,10 @@ in brief:
   outputs, `?? PythonTeX ??`).
 - **Research questions and hypotheses** go in semantic, cleveref-labelled
   environments (didactic's `question`; declare e.g. `hypothesis` via
-  `\ProvideSemanticEnv` after `\DeclareTranslation`) with their text in
-  preamble macros so they can be restated; reference via `\cref{rq:*}`,
-  never literal "RQ1"/"H2".
+  `\ProvideSemanticEnv` after `\DeclareTranslation`), stated inside
+  `\begin{restatable}{question}{tag}` (thm-restate) and restated with
+  `\tag*` — with a beamer shim in the shared preamble; reference via
+  `\cref{rq:*}`, never literal "RQ1"/"H2".
 - **Slide-only frames**: `\mode<presentation>{...}` wrap (fragile caveat
   above); article-only prose sits outside frames; don't let slide bullet
   lists duplicate adjacent article prose.
