@@ -79,6 +79,32 @@ Use `enumerate` when order matters:
 \end{enumerate}
 ```
 
+### Interleave Commentary Between Numbered Items (enumitem `resume`)
+
+When enumerated items (survey/quiz questions, requirements, exam tasks) each
+need explanatory commentary, keep the `\item` text bare and put the
+commentary as prose *between* single-item environments, resuming the
+numbering with enumitem:
+
+```latex
+\begin{enumerate}
+  \item \enquote{Have you programmed before this course?}
+\end{enumerate}
+Commentary motivating the question, referencing what it serves.
+\begin{enumerate}[resume]
+  \item \enquote{How do you plan to study in this course?}
+\end{enumerate}
+More commentary...
+```
+
+- Items sharing the same commentary share one environment.
+- Requires `\usepackage{enumitem}`; in dual beamer/article builds load it in
+  the **article driver only** (enumitem conflicts with beamer's list
+  internals) and keep such lists in article-mode prose, which `\mode*`
+  skips in the slides job.
+- Anti-pattern: appending the commentary inside the `\item` after the
+  question text — the question and its rationale then blur together.
+
 ## Recognition Patterns
 
 When reviewing or writing LaTeX, look for these patterns that indicate `description` should be used:
