@@ -138,6 +138,19 @@ Validate any `.bib` you touch:
 scripts/check_provenance.py refs.bib        # exit 1 if any entry lacks provenance
 ```
 
+## Mirror the searches into a paper appendix
+
+When the citations belong to a paper, the FOUND-VIA records must also
+surface as a **search-and-verification protocol appendix** in the paper
+itself (like vt-prog-misconceptions' `literature-protocol.tex` and
+vt-debug's `search-protocol.tex`): one paragraph or list per search
+episode, with the **verbatim queries**, the date, the source/API used, what
+was retained, and — equally important — what was **discarded as
+unverifiable** or substituted. State the find→verify→record protocol once
+at the top and point to the per-reference provenance blocks in the `.bib`.
+Update the appendix in the same commit as the search; a search that is only
+recorded in bib comments is not yet documented.
+
 ## Anti-patterns
 
 | ✗ Wrong | ✓ Right |
