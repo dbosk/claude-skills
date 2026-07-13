@@ -137,3 +137,34 @@ biber manually **from the project root**: `biber ltxobj/<jobname>`.
 Never `cd ltxobj && biber <jobname>` — the `.bib` paths in the `.bcf` are
 relative to the project root, so biber errors with "Cannot find X.bib"
 (and a stray latexmk failure can then leave the aux tree half-cleaned).
+
+## Literate-program appendices (noweb) in a dual-output paper
+
+To include appendix chapters that are literate programs (woven prose +
+tangled runnable files) in the article but not the slides:
+
+- Write each appendix as a `.nw` file whose top level matches the paper's
+  content files (`\section` when the article remaps `\section`→`\chapter`).
+  No `\mode*` needed — only the article inputs the woven `.tex`.
+- Load noweb support in **article.tex only** (`\usepackage{noweb}` +
+  `\noweboptions{breakcode,longchunks}`), never in the shared preamble:
+  the slides never see woven output and beamer doesn't need the package.
+- Build with the makefiles submodule: `include makefiles/noweb.mk`
+  (replaces the `tex.mk` include — noweb.mk includes it itself). The
+  `%.tex: %.nw` weave rule is automatic; add any non-default suffix
+  (`NOWEB_SUFFIXES += .json`) **before** the include, or its
+  `NOTANGLE.<suffix>` never gets defined.
+- Root chunks are named `<<[[filename]]>>=` (matches noweb.mk's
+  `-R"[[$(notdir $@)]]"`). When the tangled filename differs from the
+  `.nw` stem (several files from one source), the pattern rules do NOT
+  apply — write explicit recipes, as in learnlog:
+  `analyze_quiz.py: quiz.nw` + tab + `${NOTANGLE.py}`.
+- `NOTANGLE.py` pipes through `black`; gitignore the woven `.tex`, the
+  tangled outputs, and `__pycache__/` (a `py_compile` syntax check
+  creates it — easy to commit by accident).
+- JSON as a tangled artifact works well for optional parts: make the
+  optional chunk empty and have the preceding items end without a
+  trailing comma, documenting that added items must start with one.
+- Cross-reference freely between the woven appendix and the paper's
+  sections (`\cref` both ways) — they are one document, and this is the
+  main payoff over a separate tool repo.
