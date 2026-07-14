@@ -106,6 +106,20 @@ A draft iterates in review rounds; each round is one atomic unit:
 - Mark open decisions with `% XXX` and deferred work with `% TODO` in the
   source, stating the alternatives and what resolves them; resolve or
   carry them forward consciously each round — never silently drop one.
+- **Mirror them as GitHub issues** whenever the paper repository has a
+  GitHub remote (`git remote -v`). This is standing authorisation: create
+  the issues with `gh issue create` without asking. Conventions:
+  - One issue per XXX/TODO item; the title states the decision or task,
+    the body gives the file and section, the context, the alternatives,
+    and what resolves it.
+  - Annotate the source comment with the issue number — `% TODO(#12): ...`
+    — so source and tracker stay linked.
+  - Per round: new XXX/TODO items get new issues; items resolved in the
+    round get their issues closed (`gh issue close N --comment ...`) in
+    the same round, referencing the commit.
+  - An item tracked elsewhere too (e.g. a `nytid todo` for work the
+    author must do personally) still gets the issue; note the cross-link
+    in both.
 - Anonymise course/institution details before submission (keep a `% TODO`
   at the top of the method section until done).
 
@@ -119,4 +133,6 @@ A draft iterates in review rounds; each round is one atomic unit:
 - [ ] Questionnaires and analyses exist as literate appendix programs;
       tangled artifacts validated
 - [ ] New citations verified and searches documented (backing-claims)
+- [ ] XXX/TODO items mirrored as GitHub issues (new ones opened, resolved
+      ones closed) when the repo is on GitHub
 - [ ] Both outputs build clean; committed as one round; new draft uploaded
