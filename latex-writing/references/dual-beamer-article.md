@@ -146,9 +146,19 @@ tangled runnable files) in the article but not the slides:
 - Write each appendix as a `.nw` file whose top level matches the paper's
   content files (`\section` when the article remaps `\section`→`\chapter`).
   No `\mode*` needed — only the article inputs the woven `.tex`.
-- Load noweb support in **article.tex only** (`\usepackage{noweb}` +
-  `\noweboptions{breakcode,longchunks}`), never in the shared preamble:
+- Load noweb support in **article.tex only** (`\usepackage[minted]{noweb}`
+  + `\noweboptions{breakcode,longchunks}`), never in the shared preamble:
   the slides never see woven output and beamer doesn't need the package.
+- **Weave highlighted** (the literate-programming skill's standard
+  tominted recipe — see it for the one-time lexer whitelist setup):
+  override the flags before the include,
+  `NOWEAVEFLAGS.tex = -n -delay -autolang -autodefs python3 -index
+  -filter 'tominted -lexer noweb_lexer.py'`, add a rule copying
+  `noweb_lexer.py` from noweb's lib dir into the project root (where
+  LaTeX runs; gitignore it) and make `article.pdf` depend on it. With
+  `\setminted{...,breaklines}` overlong code lines *wrap in the PDF* —
+  the fix for unbreakable long strings (JSON!) whose format forbids
+  literal line breaks: break at the presentation layer, not in the file.
 - Build with the makefiles submodule: `include makefiles/noweb.mk`
   (replaces the `tex.mk` include — noweb.mk includes it itself). The
   `%.tex: %.nw` weave rule is automatic; add any non-default suffix

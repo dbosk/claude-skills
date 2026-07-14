@@ -78,11 +78,28 @@ analysis script).
 - Cross-reference both ways: the method section points to the appendix
   program, the appendix points back to the sections that motivate each
   piece.
+- **End-to-end automation, both directions.** The programs reach into
+  the platform themselves: they *create* the instruments (e.g.
+  `canvaslms quizzes create`) and they *fetch* the results back (e.g.
+  the student-analysis report via the platform CLI's own importable
+  machinery) — course names and instrument titles are known constants,
+  so nothing is clicked or downloaded by hand. Where a fetch cannot be
+  automated yet, mark it XXX with a tracking issue rather than settling
+  for a manual step silently.
+- **LLM-assisted coding, human-verified.** For open-text answers that
+  need qualitative coding, the analysis program pre-codes them with an
+  LLM (the `llm` package; prompt states the coding scheme, answers in
+  JSON) and writes the suggestions into columns *separate from* the
+  human coder's verified codes — the sheet always shows which is which,
+  and the human's codes are the data.
 - Build mechanics (article-only noweb.sty, Makefile rules, tangle
-  recipes): latex-writing's `references/dual-beamer-article.md`, section
-  "Literate-program appendices".
+  recipes, the syntax-highlighted weave): latex-writing's
+  `references/dual-beamer-article.md` section "Literate-program
+  appendices", and the literate-programming skill for the standard
+  tominted recipe.
 - Validate tangled artifacts in the round that creates them (JSON parses,
-  Python compiles, quiz validators pass).
+  Python compiles, quiz validators pass) — and test instrument creation
+  end to end against a sandbox course before the real one.
 
 ## Review rounds
 
