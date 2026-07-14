@@ -1,0 +1,122 @@
+---
+name: scientific-writing
+description: Structure and workflow conventions for research papers. Use proactively when (1) writing or revising a paper draft, its introduction, method, results or conclusions, (2) adding research questions, hypotheses, contributions, questionnaires or analyses to a paper, (3) processing a review round on a draft, or (4) starting a new paper repository. Covers question-hypothesis-contribution traceability, substantive vs methodological research questions, literate-program appendices for instruments and analyses, method-section chronology, and the review-round loop.
+---
+
+# Scientific Writing
+
+Conventions for structuring research papers and for the drafting workflow.
+This skill owns the paper's *structure and process*; it delegates:
+
+- citation finding/verification and the search-protocol appendix to
+  **backing-claims**,
+- LaTeX mechanics (semantic environments, restatable theorems, dual
+  article/slides builds, noweb appendices) to **latex-writing**,
+- reading and uploading annotated drafts to **remarkable**.
+
+## Questions, hypotheses, contributions: full traceability
+
+The skeleton of the paper is the mapping between contributions, research
+questions and hypotheses. Enforce all of these:
+
+1. **Two kinds of research questions, separately numbered.**
+   *Substantive* questions ask about the world; *methodological* questions
+   ask whether the study's own instruments work (do independent
+   classifications agree? does coding from logs match coding from
+   think-aloud?). Methodological questions get their own environment and
+   counter, so they never renumber the substantive ones. See
+   `references/question-structure.md` for the LaTeX pattern.
+2. **Every contribution is held to account by a research question.**
+   The introduction has a Contributions subsection; each listed
+   contribution names the question that tests it. A methodological
+   contribution (an instrument, a coding scheme, a triangulation) gets a
+   methodological question. If a contribution has no question, either add
+   the question or drop the claim.
+3. **Hypotheses are predicted answers.** Each hypothesis answers exactly
+   one question; descriptive/exploratory questions have no hypothesis and
+   say so. If an overarching claim is not directly falsified but supported
+   by inference to the best explanation, state that explicitly in the
+   method overview.
+4. **State once, restate twice.** Each question and hypothesis is stated
+   once (introduction/theory) in a restatable environment, restated in
+   the method overview together with *how* it will be answered, and
+   restated in the conclusions together with its answer so far. Reference
+   by `\cref`, never literal "RQ1"/"H2".
+
+## Method section
+
+- **Overview before details**: open by restating every question and
+  hypothesis with its mode of answer (which data, which test, which
+  section), then give the details in subsections.
+- **Data collection in chronological order** of the study, and motivate
+  each instrument *at the point in time it is used*: if an instrument is
+  administered at start and end, the start section motivates only the
+  start administration and a separate end-of-course section motivates the
+  re-administration.
+- **Validated instruments stay verbatim.** Do not reword items of a
+  validated questionnaire, even where wording fits the setting poorly;
+  note the tension in prose instead. Search for and cite published
+  criticisms of the instrument, and derive robustness checks from them
+  (e.g. scoring a subscale separately).
+- **Guard against circularity**: a classification must never be derived
+  from the same data it is later correlated with; say explicitly which
+  sources each classification uses.
+
+## Literate-program appendices
+
+Every questionnaire/quiz/survey the study administers, and every
+quantitative analysis it runs, is a **literate program in the paper's
+appendix**: one noweb source that weaves into the appendix chapter and
+tangles into the runnable artifacts (e.g. the platform's quiz JSON, the
+analysis script).
+
+- The prose documents the data-file schemas; this doubles as the study's
+  code book.
+- Instrument definitions and their analysis share constants (e.g. item
+  titles as result-file column keys) so they cannot drift apart —
+  ideally in the same source file, side by side.
+- Cross-reference both ways: the method section points to the appendix
+  program, the appendix points back to the sections that motivate each
+  piece.
+- Build mechanics (article-only noweb.sty, Makefile rules, tangle
+  recipes): latex-writing's `references/dual-beamer-article.md`, section
+  "Literate-program appendices".
+- Validate tangled artifacts in the round that creates them (JSON parses,
+  Python compiles, quiz validators pass).
+
+## Review rounds
+
+A draft iterates in review rounds; each round is one atomic unit:
+
+1. Read all annotated pages (remarkable skill: `content_type=annotations`
+   to list the pages, `render_merged` images to read the handwriting).
+2. Interpret every comment; apply all edits of the round.
+3. New literature needs discovered in a round go through backing-claims
+   (find, verify, provenance block) and into the search-protocol appendix
+   **in the same commit**.
+4. Rebuild all outputs; verify: zero errors, no unresolved references,
+   restatement counts unchanged where expected.
+5. **One commit per round**, without asking; the commit message lists the
+   round's changes.
+6. Upload the new draft as `"<Title> (draft YYYY-MM-DD, vN)"` with N
+   incremented.
+
+## Open questions and pending decisions
+
+- Mark open decisions with `% XXX` and deferred work with `% TODO` in the
+  source, stating the alternatives and what resolves them; resolve or
+  carry them forward consciously each round — never silently drop one.
+- Anonymise course/institution details before submission (keep a `% TODO`
+  at the top of the method section until done).
+
+## Checklist (per round)
+
+- [ ] Every contribution names its research question
+- [ ] Methodological questions separate from substantive ones
+- [ ] Each question restated in method overview (with mode of answer) and
+      in conclusions (with answer)
+- [ ] Instruments motivated at their chronological place
+- [ ] Questionnaires and analyses exist as literate appendix programs;
+      tangled artifacts validated
+- [ ] New citations verified and searches documented (backing-claims)
+- [ ] Both outputs build clean; committed as one round; new draft uploaded
