@@ -114,7 +114,10 @@ A draft iterates in review rounds; each round is one atomic unit:
 4. Rebuild all outputs; verify: zero errors, no unresolved references,
    restatement counts unchanged where expected.
 5. **One commit per round**, without asking; the commit message lists the
-   round's changes.
+   round's changes. **Push after committing** — the paper repo and, when
+   skills changed, the skills repo (mind that the first push of a fresh
+   repo needs `git push -u origin <branch>`; a GitHub repo that only ever
+   received issues counts as fresh).
 6. Upload the new draft as `"<Title> (draft YYYY-MM-DD, vN)"` with N
    incremented.
 
