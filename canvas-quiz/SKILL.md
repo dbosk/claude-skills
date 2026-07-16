@@ -220,6 +220,36 @@ Include choice pairs differing in one critical aspect:
 
 The critical aspect: privacy is *relative to the output*, not absolute.
 
+### Stems Must Not Point Out the Critical Aspect (Variation Theory)
+
+When the quiz measures whether students *discern* an aspect, the stem must
+not name that aspect — the assessment principle of variation theory
+(Marton, *Necessary Conditions of Learning*, ch. 4: "the questions should
+not point out the relevant aspects of the problem to be solved, as this is
+exactly what the students are supposed to find out (discern)", p. 91; see
+also p. 89).
+
+- **BAD stem**: "In the program below, the same five lines appear three
+  times — once per room. What is the best improvement?" (the stem discerns
+  the repetition for the student, who then only acts on it)
+- **GOOD stem**: "What is the best improvement of the program below?"
+  (seeing the repetition is the task)
+
+In practice:
+
+- Present phenomena and behaviours — a printout to predict, a crash to
+  explain, wrong output where something else was expected — never the
+  cause or the aspect behind them.
+- Choices necessarily name aspects; there the student's task becomes
+  judging the named claims against the code. Prefer distractors that
+  *mistake the aspect* (comment the repeated blocks, rename variables per
+  block) over transparently silly ones — this composes with the
+  misconception rule under Distractor Design: the stem hides the aspect,
+  each distractor embodies a wrong discernment of it.
+- Watch for leaks via helpful phrasing: "which line is clearest *for the
+  user*" names the usability aspect; "which line is the best option" does
+  not.
+
 ### Matching Distractors
 
 Matching questions can include extra answers that don't match any term. Add
