@@ -53,6 +53,15 @@ questions and hypotheses. Enforce all of these:
   administered at start and end, the start section motivates only the
   start administration and a separate end-of-course section motivates the
   re-administration.
+- **Do not duplicate a companion study's instrument.** When a companion
+  paper collects data in the same setting (same course, same cohort),
+  use its measurements instead of writing a parallel instrument, and
+  let this study's own instruments test only what the companion's do
+  not cover. State the division of labour in the method (which scores
+  come from where), keep the instruments' platform titles
+  distinguishable for participants and analysis alike, and discuss
+  alternatives (e.g. established inventories) against the *combined*
+  design.
 - **Validated instruments stay verbatim.** Do not reword items of a
   validated questionnaire, even where wording fits the setting poorly;
   note the tension in prose instead. Search for and cite published
