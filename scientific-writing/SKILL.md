@@ -112,10 +112,16 @@ analysis script).
 
 ## Review rounds
 
-A draft iterates in review rounds; each round is one atomic unit:
+A draft iterates in review rounds; each round is one atomic unit and lives
+on **its own branch with its own PR** (branch `review-round-N`, PR to the
+default branch titled `"Review round N: draft vN (YYYY-MM-DD)"`):
 
-1. Read all annotated pages (remarkable skill: `content_type=annotations`
-   to list the pages, `render_merged` images to read the handwriting).
+0. Open the round: branch `review-round-N` off the default branch. The
+   round's work happens here; the PR opens when the round's draft is
+   uploaded.
+1. Read all annotated pages of the previous draft (remarkable skill:
+   `content_type=annotations` to list the pages, `render_merged` images to
+   read the handwriting).
 2. Interpret every comment; apply all edits of the round.
 3. New literature needs discovered in a round go through backing-claims
    (find, verify, provenance block) and into the search-protocol appendix
@@ -123,12 +129,20 @@ A draft iterates in review rounds; each round is one atomic unit:
 4. Rebuild all outputs; verify: zero errors, no unresolved references,
    restatement counts unchanged where expected.
 5. **One commit per round**, without asking; the commit message lists the
-   round's changes. **Push after committing** — the paper repo and, when
-   skills changed, the skills repo (mind that the first push of a fresh
-   repo needs `git push -u origin <branch>`; a GitHub repo that only ever
-   received issues counts as fresh).
+   round's changes and names the draft version it produces (`"This commit
+   is the version uploaded to reMarkable as draft YYYY-MM-DD, vN"`), so
+   every uploaded draft maps to exactly one commit. **Commit at upload
+   time** — never upload a draft whose source is uncommitted. **Push after
+   committing** — the paper repo and, when skills changed, the skills repo
+   (mind that the first push of a fresh repo needs `git push -u origin
+   <branch>`; a GitHub repo that only ever received issues counts as
+   fresh).
 6. Upload the new draft as `"<Title> (draft YYYY-MM-DD, vN)"` with N
    incremented.
+7. Open the PR (`gh pr create`), listing the round's changes; use
+   `closes #N` for issues the round resolved, so merging closes them.
+   Merging the PR ends the round; the next round starts at step 0 with a
+   new branch and PR.
 
 ## Open questions and pending decisions
 
