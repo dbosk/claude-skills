@@ -136,7 +136,16 @@ Validate any `.bib` you touch:
 
 ```bash
 scripts/check_provenance.py refs.bib        # exit 1 if any entry lacks provenance
+scripts/check_metadata.py refs.bib [...]    # cross-check every DOI entry's
+                                            # title/authors/year against Crossref
 ```
+
+**Self- and companion-references are references too.** Author names and
+metadata for the user's own or companion papers are copied from the source
+repo's `\author{}` block, never written from memory — a fabricated
+co-author name is the canonical failure here. After any bib work, run
+`check_metadata.py` over the touched files; treat diacritic and subtitle
+differences as benign, investigate everything else.
 
 ## Mirror the searches into a paper appendix
 
