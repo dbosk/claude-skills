@@ -10,7 +10,9 @@ subcommands from an agent.
 
 > **Version note:** `-f bibtex+prov`, `pdf quote`, and `verify` ship in
 > `scholar` ≥ 1.20; the `prov` command group (`found-via`, `import`, `export`)
-> landed shortly after. If `scholar prov` reports "No such command", upgrade:
+> landed shortly after. Non-interactive **named sessions** (`search -n`
+> persisting without `--review`) and headless decisions (`sessions decide`)
+> ship in ≥ 1.25 (dbosk/scholar#66). If a command is missing, upgrade:
 > `pipx upgrade scholarcli` (or reinstall from `~/devel/scholar`).
 
 ## Table of contents
@@ -70,7 +72,16 @@ scholar search "cognitive load theory" -p s2 -p openalex -l 50 -f bibtex
 
 # JSON/CSV for programmatic screening
 scholar search "federated learning privacy" -p s2 -f json
+
+# Named session: -n persists every search (query, provider, filters, limit,
+# results) to the session, interactive or not; repeat the same -n across
+# searches to build one session per review/paper
+scholar search 'TS=("command line" AND novice*)' -p wos -n vt-terminal-systematic -f json
 ```
+
+For a systematic round, run **every** query of the round under one `-n`
+session per paper: the session becomes the reproducible record that
+`sessions export` turns into the protocol-appendix artifacts.
 
 `bibtex+prov` is the fastest honest start: it fills the reproducible `FOUND-VIA`
 line (including `--limit`) and `DATE`, and leaves the fields that require human
@@ -144,7 +155,22 @@ are a synced secondary copy.
 
 ## Notes and sessions
 
+The full review loop runs headlessly: search with `-n`, decide with
+`sessions decide`, export with `sessions export` — no TUI needed.
+
 ```bash
+# Record screening decisions non-interactively; discarding REQUIRES a --tag
+# stating the motivation; a selector matching nothing saves no changes.
+scholar sessions decide vt-terminal-systematic --keep \
+    --doi 10.1145/3502718.3524753 -t shell-teaching-intervention
+scholar sessions decide vt-terminal-systematic --discard \
+    --doi 10.1109/ISED67359.2025.11405208 -t "LLM tutoring tool, no learner findings"
+
+# Export a session's audit trail (bib + csv + latex report) into the paper
+# repo, e.g. literature-review/ (the vt-* papers' layout)
+scholar sessions export vt-terminal-systematic -f all \
+    -o literature-review/vt-terminal-systematic
+
 scholar sessions list                  # saved review sessions
 scholar notes list                     # papers that have notes (and their IDs)
 scholar notes show "<doi-or-hash>"     # notes for one paper
@@ -172,6 +198,8 @@ Patterns by source:
 FOUND-VIA: scholar search "authenticated encryption" -p s2 -p dblp
 FOUND-VIA: scholar rq "How do LLMs support novice programming?" -p openalex
              (session "llm-novice-programming")
+FOUND-VIA: scholar search 'TS=("command line" AND novice*)' -p wos
+             (session "vt-terminal-systematic")   # prefer naming the session
 
 # Google Scholar (manual)
 FOUND-VIA: Google Scholar "power of feedback meta-analysis", picked result #1

@@ -157,6 +157,11 @@ episode, with the **verbatim queries**, the date, the source/API used, what
 was retained, and — equally important — what was **discarded as
 unverifiable** or substituted. State the find→verify→record protocol once
 at the top and point to the per-reference provenance blocks in the `.bib`.
+Run each round's searches under one named `scholar` session per paper
+(`search -n`, decisions via `sessions decide`) and commit the session's
+`sessions export` output (bib/csv/latex) to the paper repo (e.g.
+`literature-review/`) — the exported session *is* the appendix's audit
+record.
 Update the appendix in the same commit as the search; a search that is only
 recorded in bib comments is not yet documented.
 
