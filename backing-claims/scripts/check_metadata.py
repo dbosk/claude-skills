@@ -22,8 +22,9 @@ def fetch(url):
 def norm(s):
     s = unicodedata.normalize("NFKD", s)
     s = "".join(c for c in s if not unicodedata.combining(c))
-    s = re.sub(r"\\[a-zA-Z]+\s*", "", s)     # TeX accent macros: {\v n} -> n
-    s = re.sub(r"[{}~\\]", "", s)
+    s = re.sub(r"\\[a-zA-Z]+\s*", "", s)     # letter macros: {\v n} -> n
+    s = re.sub(r"\\[^a-zA-Z]", "", s)         # symbol accents: {\'e} -> e
+    s = re.sub(r"[{}~]", "", s)
     s = re.sub(r"[^a-z0-9 ]", " ", s.lower())
     return re.sub(r"\s+", " ", s).strip()
 
