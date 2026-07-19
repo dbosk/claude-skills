@@ -40,6 +40,16 @@ scholar syntax          # per-provider query operators (AND/OR/NOT, phrases, fie
 | IEEE Xplore | `ieee` | required |
 | Scopus | `scopus` | required |
 
+**Use all configured providers, not just the keyless ones.** On this
+machine the WoS, Scopus, IEEE and S2 keys are set (check with
+`env | grep -E '^(WOS|SCOPUS|IEEE|S2)'`) — "key required" in the table
+means *a key*, not *no access*. Gap/negative-result claims are only as
+strong as the databases searched: WoS and Scopus index the education
+venues the CS-specific indexes miss. Their relevance ranking is poor for
+natural-language queries — prefer their field-tagged syntax (see
+`scholar syntax`). The S2 key may be expired; S2 still works keyless at
+a lower rate limit.
+
 Query syntax differs per provider (run `scholar syntax`): e.g. OpenAlex/WoS need
 UPPERCASE boolean operators; DBLP treats space as implicit AND and disables NOT;
 arXiv uses `ANDNOT`. s2/openalex support `"phrase"` search; dblp supports
