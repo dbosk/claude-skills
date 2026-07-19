@@ -22,7 +22,8 @@ def fetch(url):
 def norm(s):
     s = unicodedata.normalize("NFKD", s)
     s = "".join(c for c in s if not unicodedata.combining(c))
-    s = re.sub(r"\\.|[{}~]", "", s)          # strip TeX escapes/braces
+    s = re.sub(r"\\[a-zA-Z]+\s*", "", s)     # TeX accent macros: {\v n} -> n
+    s = re.sub(r"[{}~\\]", "", s)
     s = re.sub(r"[^a-z0-9 ]", " ", s.lower())
     return re.sub(r"\s+", " ", s).strip()
 
@@ -68,6 +69,9 @@ for path in sys.argv[1:]:
         # title
         c_title = meta.get("title")
         if isinstance(c_title, list): c_title = c_title[0] if c_title else ""
+        sub = meta.get("subtitle")
+        if isinstance(sub, list) and sub:      # Crossref splits title/subtitle
+            c_title = f"{c_title}: {sub[0]}"
         ratio = SequenceMatcher(None, norm(f.get("title", "")),
                                 norm(c_title or "")).ratio()
         if ratio < 0.8:
