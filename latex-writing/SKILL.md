@@ -107,6 +107,48 @@ multiple, parallel, enumerable items. In dual beamer/article decks this
 matters doubly: a lone bullet is ugly on the slide and breaks the prose
 flow of the notes (see the didactic-notes skill).
 
+### Never *start* an environment with a list or code block — lead with prose
+
+Even a genuine multi-item list must not be the *first* thing inside a
+semantic environment (`example`, `exercise`, `remark`, `definition`,
+`block`). Opening straight into `\begin{enumerate}`, `\begin{itemize}`, or
+`\inputminted`/`\begin{minted}` collides with the environment's inline
+label: the first list item (or the first code line) is set on the same line
+as \enquote{Example 1.}, and they overprint. Always precede the list or
+code with at least a short lead-in sentence.
+
+```latex
+% BAD — enumerate/minted butts against the "Exempel 1." label
+\begin{example}[Att göra pannkakssmet]
+  \begin{enumerate}
+    \item Knäck tre ägg i en bunke.
+    ...
+  \end{enumerate}
+\end{example}
+
+\begin{example}[Hela programmet]
+  \inputminted{python}{examples/pannkakor.py}
+\end{example}
+
+% GOOD — a lead-in sentence puts the list/code on its own line
+\begin{example}[Att göra pannkakssmet]
+  Följ stegen:
+  \begin{enumerate}
+    \item Knäck tre ägg i en bunke.
+    ...
+  \end{enumerate}
+\end{example}
+
+\begin{example}[Hela programmet]
+  Det ser ut så här:
+  \inputminted{python}{examples/pannkakor.py}
+\end{example}
+```
+
+So the rule is not \enquote{no bullets} — bullets and code are fine once a
+prose sentence leads into them. The prohibition is on a list or code block
+being the environment's opening token.
+
 ### Interleave Commentary Between Numbered Items (enumitem `resume`)
 
 When enumerated items (survey/quiz questions, requirements, exam tasks) each

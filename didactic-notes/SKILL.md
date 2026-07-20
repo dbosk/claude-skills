@@ -430,18 +430,26 @@ Concretely, while authoring each frame:
    it to what came before, state the point the frame only gestures at. The
    files deck (`modules/files/slides/contents.tex`) is the reference model
    — every frame sits in a bed of prose.
-2. **Never let a semantic environment be a single lone bullet.** Inside
-   `exercise`, `definition`, `remark`, `example`, write the content as
-   prose sentences, not `\begin{itemize}\item …\end{itemize}` with one
-   item. A one-item list renders as an orphan bullet in both jobs. See the
-   latex-writing skill's single-item-list anti-pattern. Keep `itemize`/
-   `enumerate` only for genuinely enumerable multi-item content (a numbered
-   algorithm, a list of options), and even then frame it with prose before
-   and after.
-3. **For verbose environments that want bullets on the slide but prose in
-   the notes,** split with `\mode<presentation>{…bullets…}` /
-   `\mode<article>{…prose…}` (see `references/beamer-patterns.md`). Reserve
-   this for genuinely verbose content; short exercises and one-line remarks
+2. **Never open a semantic environment with a list or code block — lead
+   with a prose sentence.** Inside `exercise`, `definition`, `remark`,
+   `example`, `block`, a list or `\inputminted`/`minted` placed as the
+   environment's first token collides with the inline label (\enquote{Example
+   1.}) and overprints the first item or code line. Precede it with at least
+   a short lead-in (\enquote{Följ stegen:}, \enquote{Det ser ut så här:}).
+   And never wrap a single sentence in a one-item `itemize` — write it as
+   prose. Bullets and code are fine *after* a lead-in; the prohibition is on
+   a list/code block being the opening token. Keep `itemize`/`enumerate`
+   only for genuinely enumerable multi-item content, and frame it with prose
+   before and after. See the latex-writing skill's
+   \enquote{Never start an environment with a list or code block} and
+   single-item-list anti-patterns.
+3. **For environments that want bullets on the slide but prose in the
+   notes,** split with `\only<presentation>{…bullets…}` /
+   `\only<article>{…prose…}` — **not** `\mode<…>`, which is a block switch
+   that inserts a paragraph break and leaves a stray gap where the
+   inactive-mode block was. `\only` is inline and fragile-safe (see
+   `references/beamer-patterns.md`). Reserve this for content that is
+   genuinely bulleted on the slide; short exercises and one-line remarks
    just become prose in both modes.
 
 Self-test before moving on: *read the article with the frames removed — do
@@ -479,22 +487,24 @@ the notes are slidey and need prose now, not in a later pass.
 
 ### Verbose Environments
 
-Split verbose content between presentation and article modes:
+Split verbose content between presentation and article modes with `\only`
+(inline, no stray paragraph break — see the note above; `\mode<…>` would
+leave a gap where the inactive block was):
 
 ```latex
-\mode<presentation>{%
+\only<presentation>{%
   \begin{remark}[Title]
     \begin{itemize}
       \item Concise point 1
       \item Concise point 2
     \end{itemize}
-  \end{remark}
-}
-\mode<article>{%
+  \end{remark}%
+}%
+\only<article>{%
   \begin{remark}[Title]
     Full explanatory text with detailed reasoning...
-  \end{remark}
-}
+  \end{remark}%
+}%
 ```
 
 ### Overlays with Didactic Environments

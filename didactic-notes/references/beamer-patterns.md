@@ -160,52 +160,72 @@ Semantic environments (definition, remark, example, block) can become too verbos
 
 ### Solution
 
-Use `\mode<presentation>` and `\mode<article>` to provide concise versions for slides and full explanations for articles.
+Provide a concise, bulleted version for the slides and a full prose
+version for the article. **Split with `\only<presentation>{…}` /
+`\only<article>{…}`, not `\mode<presentation>{…}` / `\mode<article>{…}`.**
+`\mode<…>{…}` is a *block* switch: it inserts a paragraph break, so the
+empty other-mode block leaves stray vertical space (a gap on the slide
+where the article prose was, and vice versa). `\only<…>{…}` is inline and
+adds nothing when its mode is inactive. (This is the same reason the
+citation guidance uses `\only<presentation>{\autocite{…}}` and never inline
+`\mode`.) Reserve `\mode<…>` for genuinely block-level structural switches
+(e.g. a whole `\textbytext` layout); for swapping one environment's body
+between bullets and prose, use `\only`.
+
+Both `\only<presentation>{…}` and `\only<article>{…}` accept block content
+(itemize, a full `definition`/`remark`/`example`, even a `\footnote`), and
+work inside `[fragile]` frames as long as the braces sit *within* the frame
+and after any verbatim/noweb chunk — so this is also the fragile-safe way
+to make one environment slide-only.
 
 **When to split:**
-- **Verbose prose**: More than 2-3 lines of running text in an environment
-- **Multiple paragraphs**: Any environment with 2+ paragraphs
-- **Complex examples**: Scenarios with extensive context that can be summarized
+- **Slidey bullets**: a `remark`/`definition`/`example` whose body is a
+  bulleted list of prose points — bullets on the slide, prose in the notes
+- **Verbose prose**: more than 2-3 lines of running text in an environment
+- **Multiple paragraphs**: any environment with 2+ paragraphs
 
 ### Pattern
 
 ```latex
 \begin{frame}
-  \mode<presentation>{%
+  \only<presentation>{%
     \begin{remark}[Title]
       \begin{itemize}
         \item Concise bullet point 1
         \item Concise bullet point 2
         \item Concise bullet point 3
       \end{itemize}
-    \end{remark}
-  }
-  \mode<article>{%
+    \end{remark}%
+  }%
+  \only<article>{%
     \begin{remark}[Title]
       Full explanatory text with multiple sentences providing
       detailed context and reasoning.
 
       Additional paragraphs can explain nuances that would
       overwhelm a slide but are valuable in written form.
-    \end{remark}
-  }
+    \end{remark}%
+  }%
 \end{frame}
 ```
+
+The trailing `%` after each `}` suppresses the space the line break would
+otherwise add between the two `\only` blocks.
 
 ### Example: Verbose Remark Becomes Bullets
 
 ```latex
 \begin{frame}
-  \mode<presentation>{%
+  \only<presentation>{%
     \begin{remark}[Kontrastpunkten: Garanterad resurshantering]
       \begin{itemize}
         \item \mintinline{python}{with}: Filen stängs alltid, även vid exception
         \item Manuell hantering: Risk att filen lämnas öppen vid fel
         \item Automatisk cleanup när blocket lämnas
       \end{itemize}
-    \end{remark}
-  }
-  \mode<article>{%
+    \end{remark}%
+  }%
+  \only<article>{%
     \begin{remark}[Kontrastpunkten: Garanterad resurshantering]
       Båda metoderna fungerar när allt går som planerat. Men
       with-satsen har en avgörande fördel: den garanterar att
@@ -215,31 +235,31 @@ Use `\mode<presentation>` and `\mode<article>` to provide concise versions for s
       om något går fel. With-satsen implementerar
       kontexthanterare-protokollet och anropar close()
       automatiskt när blocket lämnas.
-    \end{remark}
-  }
-\end{frame>
+    \end{remark}%
+  }%
+\end{frame}
 ```
 
 ### Example: Long Example Becomes Concise
 
 ```latex
 \begin{frame}
-  \mode<presentation>{%
+  \only<presentation>{%
     \begin{example}[Spara spelets progress]
       Spel måste minnas poäng och achievements mellan
       sessioner—löses genom att spara data i fil.
-    \end{example}
-  }
-  \mode<article>{%
+    \end{example}%
+  }%
+  \only<article>{%
     \begin{example}[Spara spelets progress]
       Ett spel behöver komma ihåg spelarens poäng, nivå,
       och upplåsta achievements mellan olika spelsessioner.
       När spelaren stänger ner programmet och startar det
       igen nästa dag ska all progress finnas kvar. Detta
       löses genom att spara data i en fil på hårddisken.
-    \end{example}
-  }
-\end{frame>
+    \end{example}%
+  }%
+\end{frame}
 ```
 
 **Key principle:** Slides need visual clarity and conciseness; articles can provide depth and explanation. Design for both audiences.
