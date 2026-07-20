@@ -173,27 +173,45 @@ uploads naturally accumulate; embrace that instead of fighting it.
 
 The workflow, unless the user says otherwise:
 
-1. **First send:** upload with a clear review name, e.g.
-   `document_name="<Title> — notes (review)"`.
-2. **Each revision:** rebuild, upload again, then **rename the new upload
-   with a version suffix** — `<Title> — notes (review) v2`, then `v3`, … —
-   and **leave the earlier versions in place**. The tablet then holds the
-   whole review history, each version distinguishable by suffix, so the
-   user can compare against their earlier annotations. Do **not** delete or
-   overwrite prior versions unless the user asks.
-3. **Read annotations from the latest version** (the highest suffix) when
-   the user says they have reviewed.
+1. **Bake the version into the name at upload time** — every upload gets a
+   unique `document_name` with date and version, e.g.
+   `"<Title> (draft YYYY-MM-DD, vN)"` (the vt-debug paper's convention;
+   `"<Title> (review vN)"` works for non-drafts). Because no two uploads
+   share a name, there is **no rename step and no name-collision
+   ambiguity** — every later tool call addresses the document by its
+   unique name. Never upload under a bare base name planning to rename
+   afterwards.
+2. **Leave the earlier versions in place.** The tablet then holds the
+   whole review history, each version distinguishable at a glance, and
+   the user can compare against their earlier annotations. Do **not**
+   delete or overwrite prior versions unless the user asks (a version
+   superseded within minutes, before the user opened it, is fair to offer
+   to delete — still ask).
+3. **Pick N by incrementing the last uploaded version** — from the
+   conversation, the repo's commit messages (pairing each upload with its
+   commit, message noting "uploaded as draft YYYY-MM-DD, vN", keeps this
+   trail in git), or by `remarkable_search`-ing the title and taking the
+   highest existing suffix. Version numbers are cheap: a same-day
+   follow-up change gets vN+1, never a silent re-upload of vN.
+4. **Read annotations from the version the user reviewed** — usually the
+   latest, but if they name an older draft, read that one. Before
+   concluding a version has no annotations, remember the sync trap
+   (gotcha 4): ask the user to sync rather than report "no comments".
 
-**Renaming the just-uploaded copy — the name-collision trap.** Rename by
-path/name, never the upload UUID (gotcha 1 — the UUID lookup fails). But
-right after step 2 there are *two* documents with the base name, so a
-rename by that bare name is ambiguous. `remarkable_browse`/`_recent` lists
+**If you did end up with two documents sharing a name** (e.g. an upload
+that was meant to replace): rename by path/name, never the upload UUID
+(gotcha 1 — the UUID lookup fails). `remarkable_browse`/`_recent` lists
 the **most recently modified first**, so the fresh upload is the first
 match and rename-by-name targets it — but **verify afterward**: re-browse
-and check that the `v<N>` suffix landed on the entry whose `modified` time
-is the newest (the upload), not on an older version.
+and check that the new name landed on the entry whose `modified` time is
+the newest, not on an older version.
 
 If the user instead wants a single evolving document (no history), the
 add-only cloud API can't update in place — delete the prior version after a
 successful new upload (ask first; deletion is destructive), or keep one
 name and let them tell versions apart by modified date.
+
+For research papers, the surrounding loop (read all annotated pages, apply
+the round, rebuild, one commit per round named after the draft, push,
+upload the next version) is owned by the **scientific-writing** skill;
+this section owns only the tablet mechanics.
