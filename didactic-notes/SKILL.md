@@ -111,8 +111,10 @@ encounters~\autocite{taylor2010interleaved,cepeda2006distributed}.
 
 Putting the citation-bearing design rationale *inside* the `\ltnote` is the
 common mistake: it is content, not a note about the writing. It is also fragile
-— `\ltnote` expands to a `\marginpar`, and biblatex `\autocite` inside a margin
-float can fail with ``Float(s) lost''. Keep substantive citations in the body.
+— `\ltnote` expands to a `\marginpar`, and under verbose citation styles
+`\autocite`/`\textcite` inside a margin float emit footnotes that fail fatally
+with ``Float(s) lost''. Keep substantive citations in the body; when a note
+itself must cite, use `\parencite` (see Citing Pedagogical Research below).
 
 ## Quick Example
 
@@ -309,24 +311,28 @@ Variation patterns must be tied to specific learning objectives:
 
 Cite in an `\ltnote` only when the citation justifies an **authoring or teaching
 choice** — why this sequence, why try-first here. Use biblatex commands rather
-than hardcoded references:
+than hardcoded references, and **inside `\ltnote` always cite with
+`\parencite`**:
 
 ```latex
 \ltnote{%
-  Following \textcite{MartonPang2006}, we vary the operation while holding the
-  pattern invariant, so learners can discern it.
+  We vary the operation while holding the pattern invariant, so learners
+  can discern it \parencite{MartonPang2006}.
 }
 ```
 
-Common commands:
-- `\textcite{key}` → "Marton and Pang (2006)"
-- `\parencite{key}` → "(Marton and Pang 2006)"
+**Why `\parencite` and nothing else**: `\ltnote` is a `\marginpar`, and under
+the standard ltnotes setup (`style=verbose,citestyle=verbose`) both
+`\autocite` and `\textcite` emit *footnotes* — a footnote inside a margin
+float is orphaned and the article/memoir job dies with the fatal,
+location-less `! LaTeX Error: Float(s) lost.` `\parencite` prints the full
+reference inline, which is exactly right in a margin note. `\textcite`/
+`\autocite` remain correct in **body text**. Details and the diagnosis:
+`references/footnotes-and-citations.md`.
 
 If the citation instead supports a **claim in the material** or a **design
 decision about the subject/system** being documented, cite it in the **body
-text**, not the note (see Scope above). There is also a technical reason to keep
-heavy citations out of notes: `\ltnote` is a `\marginpar`, and biblatex
-`\autocite`/`\textcite` inside a margin float can fail with ``Float(s) lost''.
+text**, not the note (see Scope above).
 
 **Best practice**: Use a separate `ltnotes.bib` for pedagogical references when
 the project keeps them apart; otherwise add them to the project's main `.bib`.

@@ -123,11 +123,23 @@ repeats), configure biblatex with the verbose style:
 Then drive citations with `\autocite`. Caveats:
 
 - Under `verbose`, the *inline* forms print the full reference inline, so
-  `\parencite` becomes a long inline citation — **convert parenthetical
-  references to `\autocite`** to move them to the margin.
+  `\parencite` becomes a long inline citation — **in body text, convert
+  parenthetical references to `\autocite`** to move them to the margin.
 - **Keep `\textcite`** for sentence-integrated citations ("According to
   \textcite{X}, …"); don't convert those to `\autocite` (it breaks the
   sentence). `\textcite` stays textual in the running text.
+- **Inside `\ltnote` (or any other `\marginpar`), use `\parencite` — never
+  `\autocite`.** Under `verbose`, `\autocite` is a footnote, and a footnote
+  emitted inside a margin float is orphaned: the article/memoir job dies
+  with the fatal, location-less `! LaTeX Error: Float(s) lost.` at
+  `\end{document}`. `\parencite`'s long inline citation is exactly right
+  for a margin note — the full reference lands in the margin, no footnote
+  involved. `\textcite` also carries a footnote under `citestyle=verbose`,
+  so prefer rephrasing the note to end in `\parencite[pages]{key}`.
+  (Diagnosed 2026-07-20 in intropy's computational-thinking deck: two
+  `\textcite` + one `\autocite` inside `\ltnote`s → Float(s) lost;
+  replacing all three with `\parencite` fixed it. The files deck's ltnotes
+  use `\parencite` throughout for the same reason.)
 
 ## Loading didactic (recap)
 
