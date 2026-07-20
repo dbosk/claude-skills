@@ -448,9 +448,11 @@ Concretely, while authoring each frame:
    `\only<article>{…prose…}` — **not** `\mode<…>`, which is a block switch
    that inserts a paragraph break and leaves a stray gap where the
    inactive-mode block was. `\only` is inline and fragile-safe (see
-   `references/beamer-patterns.md`). Reserve this for content that is
-   genuinely bulleted on the slide; short exercises and one-line remarks
-   just become prose in both modes.
+   `references/beamer-patterns.md`). This governs splits *inside* frames;
+   slide-only *frames* still get wrapped in `\mode<presentation>{…}` per
+   the latex-writing skill's Float(s)-lost guidance. Reserve the split for
+   content that is genuinely bulleted on the slide; short exercises and
+   one-line remarks just become prose in both modes.
 
 Self-test before moving on: *read the article with the frames removed — do
 the surviving paragraphs still tell a coherent story?* If nothing survives,

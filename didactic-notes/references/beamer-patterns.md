@@ -170,7 +170,11 @@ adds nothing when its mode is inactive. (This is the same reason the
 citation guidance uses `\only<presentation>{\autocite{…}}` and never inline
 `\mode`.) Reserve `\mode<…>` for genuinely block-level structural switches
 (e.g. a whole `\textbytext` layout); for swapping one environment's body
-between bullets and prose, use `\only`.
+between bullets and prose, use `\only`. Slide-only **frames** are the
+other legitimate `\mode` use: keep wrapping those in
+`\mode<presentation>{ \begin{frame} … }` per the latex-writing skill's
+Float(s)-lost guidance — the `\only` rule here governs splits *inside*
+frames that render in both modes, not frame wrappers.
 
 Both `\only<presentation>{…}` and `\only<article>{…}` accept block content
 (itemize, a full `definition`/`remark`/`example`, even a `\footnote`), and

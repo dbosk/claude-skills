@@ -84,6 +84,15 @@ analysis script).
 - Instrument definitions and their analysis share constants (e.g. item
   titles as result-file column keys) so they cannot drift apart —
   ideally in the same source file, side by side.
+- **Uniform instruments are generated, not hand-written.** When the
+  items share one form (a validated questionnaire: twenty items, the
+  same five responses), do not tangle the platform's JSON directly:
+  state the instrument once — titles, items, response anchors,
+  instructions — in a constants chunk, tangle a small generator that
+  unfolds it into the platform files, and have the analysis program
+  include the *same* constants chunk (titles find the reports, anchor
+  texts map answers back to scores). Reference: vt-debug's `rspq.nw`
+  (`make_rspq.py` + `analyze_rspq.py`).
 - Cross-reference both ways: the method section points to the appendix
   program, the appendix points back to the sections that motivate each
   piece.
@@ -113,10 +122,14 @@ analysis script).
 ## Review rounds
 
 A draft iterates in review rounds; each round is one atomic unit and lives
-on **its own branch with its own PR** (branch `review-round-N`, PR to the
-default branch titled `"Review round N: draft vN (YYYY-MM-DD)"`):
+on **its own branch with its own PR**. Name both after the draft version
+the round *produces* — branch `review-round-vN`, PR to the default branch
+titled `"Review round: draft vN (YYYY-MM-DD)"` — so branch, PR, commit
+message and reMarkable name all carry one identifier (the round that
+processes v48's comments and uploads v49 is `review-round-v49`; round
+counts and draft versions diverge, so never number by round):
 
-0. Open the round: branch `review-round-N` off the default branch. The
+0. Open the round: branch `review-round-vN` off the default branch. The
    round's work happens here; the PR opens when the round's draft is
    uploaded.
 1. Read all annotated pages of the previous draft (remarkable skill:
