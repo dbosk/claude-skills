@@ -90,6 +90,45 @@ scholar search "authenticated encryption composition insecure attacks" -p s2 -p 
 scholar rq "How do LLMs support novice programming?" -p openalex -p dblp --count 20
 ```
 
+**Query several providers, and check they are actually alive.** `scholar`
+exposes `s2`, `openalex`, `dblp`, `wos`, `ieee`, `scopus`, `arxiv`. Do not
+settle for one or two — a claim "not found" under a narrow or *silently
+degraded* provider set is not a real negative. Run **`scholar providers
+check`** first and note any provider reporting `key rejected` / not `ok`: a
+dead key (e.g. an expired `S2_API_KEY` returning HTTP 403) silently drops
+that database's coverage with only a warning, so you can spend a whole
+session blind to Semantic Scholar without realizing it. For a claim that
+matters, query at least s2 + openalex + dblp, and add wos/scopus (strong for
+older and non-CS/education literature) when keys are configured.
+
+**Keyword search is for discovery; use field/DOI retrieval for a known
+item.** Relevance-ranked keyword search buries older and grey-literature
+works under recent hits — the same paper you *know* exists can sit off the
+first page on every provider. When you already know the title or DOI, retrieve
+it directly instead:
+
+```bash
+# by DOI (works even when keyword ranking buried it)
+curl -s "https://api.openalex.org/works/doi:10.2190/689T-1R2A-X4W4-29J2"   # OpenAlex
+curl -s "https://api.crossref.org/works/10.2190/689T-1R2A-X4W4-29J2"       # Crossref
+# by exact title, via provider field-search syntax (see `scholar syntax`)
+scholar search 'TI=(language-independent conceptual bugs)' -p wos            # WoS: TI= TS= AU=
+scholar search 'TITLE("Language-Independent Conceptual Bugs")' -p scopus     # Scopus: TITLE() AUTH()
+scholar search 'ti:"visual program simulation"' -p arxiv                     # arXiv: ti: au:
+```
+
+**Grey literature may be in none of them.** Conference papers without a DOI
+(e.g. AERA/education proceedings), dissertations, and tech reports are often
+absent from OpenAlex, DBLP, WoS *and* Scopus — a `TI=`/`TITLE()` field search
+returning empty on all of them means "not indexed here", not "does not
+exist". Reach those via **Google Scholar** (WebSearch/`scholarly`), **citation
+chaining** (find a paper you already have that cites the target and walk its
+reference list — the most reliable route to a specific known work, but only
+through a provider that indexes the target), or the **author's/publisher's
+own copy**. Record such a retrieval honestly in `FOUND-VIA` (e.g. "not
+returned by provider search; retrieved from author copy") — do not imply it
+came from a database that does not hold it.
+
 To get the BibTeX **already wrapped in provenance blocks** with `FOUND-VIA`
 pre-filled from the query, use `-f bibtex+prov` (this is the easiest start —
 you then fill in `CLAIM`/`PICKED`/`QUOTE`/`VERIFIED`):
@@ -224,6 +263,8 @@ recorded in bib comments is not yet documented.
 | Search only for confirmation (one agreeable source, then stop). | Small review both ways: support-search **and** counter-search; sort into supports/refutes/qualifies; record `COUNTER`. |
 | Discover literature by querying expected author names. | Discover topic-driven (by concept); use names only to *retrieve* already-identified works. |
 | Refuting/qualifying work found but not mentioned. | Soften or narrow the claim, or cite both sides — never state a claim over known counter-evidence. |
+| Search one or two providers; trust a "not found". | Query several (`s2 openalex dblp wos scopus`); run `scholar providers check` first — a dead key (S2 403) silently drops a database. |
+| Keyword-search for a paper whose title/DOI you already know. | Retrieve known items by DOI (OpenAlex `works/doi:`, Crossref) or field search (WoS `TI=`, Scopus `TITLE()`); Google Scholar / citation-chain / author copy for grey lit. |
 
 ## Reference files
 
@@ -238,6 +279,7 @@ recorded in bib comments is not yet documented.
 
 - [ ] Claim stated with scope and strength
 - [ ] Found via recorded, reproducible, **topic-driven** queries (names only for retrieval)
+- [ ] Several providers queried and their **health checked** (`scholar providers check`); known items retrieved by DOI/field search, not buried keyword ranking
 - [ ] **Counter-search run** and its outcome recorded (`COUNTER`): refuting/qualifying work handled, or "none found"
 - [ ] Results screened into supports / refutes / qualifies; claim adjusted if needed
 - [ ] Picked with a written rationale among alternatives
