@@ -159,3 +159,41 @@ is small and provider-agnostic; read it before extending.
 `remarkable_upload` returns `"uploaded": true` with a uuid; confirm it landed
 with `remarkable_recent`/`remarkable_search` (the cloud may take a moment to
 index). It syncs to the physical device when the tablet is online.
+
+## Versioned review workflow (send a draft, iterate, keep history)
+
+The common loop is: send a document to the tablet, the user reviews and
+annotates it there, you read the annotations, revise the source, and send
+the revised build back. Do it as a **versioned trail**, not an overwrite.
+
+**Why this matters:** `remarkable_upload` to the cloud is **add-only — it
+never replaces**. Re-uploading a revised PDF under the same name creates a
+*second* document with that same name, not a new revision of the first. So
+uploads naturally accumulate; embrace that instead of fighting it.
+
+The workflow, unless the user says otherwise:
+
+1. **First send:** upload with a clear review name, e.g.
+   `document_name="<Title> — notes (review)"`.
+2. **Each revision:** rebuild, upload again, then **rename the new upload
+   with a version suffix** — `<Title> — notes (review) v2`, then `v3`, … —
+   and **leave the earlier versions in place**. The tablet then holds the
+   whole review history, each version distinguishable by suffix, so the
+   user can compare against their earlier annotations. Do **not** delete or
+   overwrite prior versions unless the user asks.
+3. **Read annotations from the latest version** (the highest suffix) when
+   the user says they have reviewed.
+
+**Renaming the just-uploaded copy — the name-collision trap.** Rename by
+path/name, never the upload UUID (gotcha 1 — the UUID lookup fails). But
+right after step 2 there are *two* documents with the base name, so a
+rename by that bare name is ambiguous. `remarkable_browse`/`_recent` lists
+the **most recently modified first**, so the fresh upload is the first
+match and rename-by-name targets it — but **verify afterward**: re-browse
+and check that the `v<N>` suffix landed on the entry whose `modified` time
+is the newest (the upload), not on an older version.
+
+If the user instead wants a single evolving document (no history), the
+add-only cloud API can't update in place — delete the prior version after a
+successful new upload (ask first; deletion is destructive), or keep one
+name and let them tell versions apart by modified date.
