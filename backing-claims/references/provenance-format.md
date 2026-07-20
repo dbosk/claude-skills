@@ -23,12 +23,15 @@ reordering, and is invisible in the compiled document. The validator
 % PICKED: <why this source among the results>
 % QUOTE (<location>): "<verbatim passage that supports CLAIM>"
 % VERIFIED: <abstract | full-text> ; applies because <one line>
+% COUNTER: <counter-search query> -- <refuting/qualifying work found and how
+%   the claim was adjusted or the other side cited | none found>
 % DATE: <YYYY-MM-DD>
 @<type>{<bibkey>, ... }
 ```
 
 Required: `CLAIM`, `FOUND-VIA`, `PICKED`, `QUOTE`, `VERIFIED`.
-Recommended: `DATE` (warning if missing). The header line
+Recommended: `DATE` (warning if missing); `COUNTER` for load-bearing claims
+(the two-sided-review record — see SKILL.md step 2). The header line
 `% === provenance: <bibkey> ===` is recommended and should match the entry key.
 
 ## Field semantics

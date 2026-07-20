@@ -1,7 +1,7 @@
 ---
 name: backing-claims
 description: |
-  Back factual and empirical claims with literature you have verified actually supports the claim, and record each citation's provenance (how found, why picked, quote). Use proactively when: (1) adding OR reusing a citation, page number, or attribution for a factual/empirical claim in prose, .tex, .nw, or notes — including a cite carried over from slides, notes, a draft, or the existing .bib (an inherited citation is NOT pre-verified), (2) writing prose that attributes a claim to a source or recounts an example ("X reports/found that…", a paraphrase, or a page locator), (3) the user asks to "find a reference", "cite this", or "is this citation correct", (4) writing a related-work, background, or claims section, (5) the user mentions scholar, BibTeX, DOI, arXiv, OpenAlex, Crossref, or a literature search, (6) reviewing a .bib for unsupported references. Trigger BEFORE writing the citation. Complements writing-crypto and latex-writing (citation markup); this skill owns finding/verifying/justifying the reference.
+  Back factual and empirical claims with a small two-sided literature review — topic-driven searches for literature that supports AND refutes/qualifies the claim (counter-search recorded as COUNTER) — verify sources in full text, and record each citation's provenance (how found, why picked, quote, counter-search outcome). Use proactively when: (1) adding OR reusing a citation, page number, or attribution for a factual/empirical claim in prose, .tex, .nw, or notes — including a cite carried over from slides, notes, a draft, or the existing .bib (an inherited citation is NOT pre-verified), (2) writing prose that attributes a claim to a source or recounts an example ("X reports/found that…", a paraphrase, or a page locator), (3) the user asks to "find a reference", "cite this", or "is this citation correct", (4) writing a related-work, background, or claims section, (5) the user mentions scholar, BibTeX, DOI, arXiv, OpenAlex, Crossref, or a literature search, (6) reviewing a .bib for unsupported references. Trigger BEFORE writing the citation. Complements writing-crypto and latex-writing (citation markup); this skill owns finding/verifying/justifying the reference.
 ---
 
 # Backing Claims with Verified References
@@ -10,6 +10,13 @@ Back every claim with scientific literature you have **read and verified**, and
 **record how you got there**. A citation is a load-bearing claim: it asserts that
 a specific source supports a specific statement. This skill makes that assertion
 auditable.
+
+Backing a claim is a **small literature review, in both directions**: search
+for literature that *supports* the claim **and** for literature that *refutes
+or qualifies* it. One agreeable source is not backing — it is confirmation.
+The claim earns its citation only after the counter-search: refuting work is
+cited or the claim softened; qualifying work narrows the scope; an empty
+counter-search is recorded as such.
 
 ## Core principle
 
@@ -44,15 +51,42 @@ Write the claim as one sentence and note its **scope** (population, domain),
 it needs a **primary** source (an original finding/definition) or a **survey**
 (an established consensus). The reference must match all three.
 
-### 2. Find — prefer `scholar`, but any source counts
+### 2. Find — a small review in both directions, not a single confirming hit
+
+Backing a claim is a **miniature literature review**, not a hunt for one
+agreeable source. That means two things:
+
+**Search topic-driven, not author-anchored.** Query by *concept*, screen what
+surfaces, and only then verify. Starting from a list of expected names (the
+"usual suspects") is confirmation bias in search form: it finds what you
+already believed and misses the systematic review or the competing strand
+sitting one query away. Author-anchored *retrieval* is fine once discovery is
+done (fetching a known paper's full text); author-anchored *discovery* is not.
+
+**Search both directions.** For every load-bearing claim, run at least one
+**counter-search** — a query phrased to surface literature that *refutes,
+contradicts, or qualifies* the claim ("criticism of X", "X does not hold",
+"limitations of X", the rival theory's terms). Three outcomes, all recorded:
+
+- *Refuting work found* → do not bury it. Soften the claim to what survives,
+  or cite both sides ("X reports…, though Y found…"). A claim stated over
+  known counter-evidence is worse than an uncited claim.
+- *Qualifying work found* (holds only in a subpopulation, era, or method) →
+  narrow the claim's scope to match.
+- *Nothing found* → record the counter-query and its emptiness. Absence of
+  refutation after a real search is itself part of the claim's backing;
+  an unrun counter-search is not.
 
 `scholar` is preferred because it records the query for you and searches several
 databases at once. See `references/scholar-cookbook.md` for the non-interactive
 recipes (`search`, `rq`, `enrich`, `verify`, `prov`, `providers`, `syntax`,
-`notes`, `pdf`).
+`notes`, `pdf`). Run each claim's (or claim-cluster's) searches under a named
+session (`search -n <claim-slug>`) so support- and counter-queries land in one
+auditable record.
 
 ```bash
 scholar search "authenticated encryption generic composition" -p s2 -p dblp -f bibtex
+scholar search "authenticated encryption composition insecure attacks" -p s2 -p dblp -f bibtex   # counter-search
 scholar rq "How do LLMs support novice programming?" -p openalex -p dblp --count 20
 ```
 
@@ -74,12 +108,19 @@ source's `FOUND-VIA` line.
 interactive TUIs — **do not** drive them from an agent; use the non-interactive
 subcommands instead.
 
-### 3. Screen and pick
+### 3. Screen into supporting / refuting / qualifying, then pick
 
-Compare the top results and record **why this one**: primary source vs survey,
-canonical/most-cited, reputable venue, appropriate year, closest match to the
-claim's scope. When the choice is non-obvious, note the alternatives you
-rejected and why — that reasoning is the `PICKED` field.
+Sort the combined results of the support- and counter-searches into three
+piles — **supports**, **refutes/contradicts**, **qualifies** — before picking
+anything. This sorted screen *is* the small literature review; it decides
+whether the claim survives as stated, gets narrowed, or gets a two-sided
+citation. Only then pick which source(s) to cite, and record **why this one**:
+primary source vs survey, canonical/most-cited, reputable venue, appropriate
+year, closest match to the claim's scope. When the choice is non-obvious, note
+the alternatives you rejected and why — that reasoning is the `PICKED` field.
+When several independent strands (different subfields, different query
+framings) converge on the same answer, say so — convergence across strands
+backs a claim more strongly than any single source.
 
 ### 4. Verify applicability (the double-check)
 
@@ -118,12 +159,18 @@ write the citation in the project's style (defer to `writing-crypto` /
 % PICKED: canonical, most-cited primary source that defines the notion (not a survey).
 % QUOTE (§1): "an authenticated encryption scheme ... provides both privacy and authenticity"
 % VERIFIED: full-text PDF read; applies because it defines AE as exactly C+I.
+% COUNTER: scholar search "authenticated encryption composition insecure
+%   attacks" -p s2 -p dblp -- surfaced attacks on *specific compositions*
+%   (E&M with weak MACs), none refuting the definition itself; claim stands.
 % DATE: 2026-06-24
 @inproceedings{BellareNamprempre2000, ... }
 ```
 
 Required fields: `CLAIM`, `FOUND-VIA`, `PICKED`, `QUOTE`, `VERIFIED`
-(`DATE` recommended). You do not have to type the skeleton by hand:
+(`DATE` recommended). For load-bearing claims also record `COUNTER`: the
+counter-search query and its outcome — refuting/qualifying work found (and
+how the claim was adjusted or the other side cited), or explicitly
+"none found". You do not have to type the skeleton by hand:
 
 ```bash
 scholar search "..." -f bibtex+prov     # entries pre-wrapped, FOUND-VIA + DATE filled
@@ -174,6 +221,9 @@ recorded in bib comments is not yet documented.
 | `QUOTE` is on-topic but doesn't entail the claim. | `QUOTE` matches the claim's scope **and** strength, or pick a better source. |
 | No record of how the paper was found. | `FOUND-VIA` records the exact, reproducible query/source. |
 | Over-claim beyond what the source shows. | Match the claim's strength to the evidence, or soften the prose. |
+| Search only for confirmation (one agreeable source, then stop). | Small review both ways: support-search **and** counter-search; sort into supports/refutes/qualifies; record `COUNTER`. |
+| Discover literature by querying expected author names. | Discover topic-driven (by concept); use names only to *retrieve* already-identified works. |
+| Refuting/qualifying work found but not mentioned. | Soften or narrow the claim, or cite both sides — never state a claim over known counter-evidence. |
 
 ## Reference files
 
@@ -187,7 +237,9 @@ recorded in bib comments is not yet documented.
 ## Workflow checklist
 
 - [ ] Claim stated with scope and strength
-- [ ] Found via a recorded, reproducible query/source
+- [ ] Found via recorded, reproducible, **topic-driven** queries (names only for retrieval)
+- [ ] **Counter-search run** and its outcome recorded (`COUNTER`): refuting/qualifying work handled, or "none found"
+- [ ] Results screened into supports / refutes / qualifies; claim adjusted if needed
 - [ ] Picked with a written rationale among alternatives
 - [ ] Source actually read (abstract or full text), not just the title
 - [ ] Verbatim supporting quote captured, entails the claim
