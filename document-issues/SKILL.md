@@ -1,6 +1,6 @@
 ---
 name: document-issues
-description: "Captures unrelated follow-up issues discovered during repository work and records them for later. Use proactively when: (1) working inside a git repository, (2) an out-of-scope bug, cleanup item, missing test or documentation, or tech-debt task is discovered, (3) the user mentions filing an issue, follow-up, backlog item, or nytid import. Prefer gh issue, ask before creating anything unless autonomous issue capture is enabled, and optionally import created GitHub issues into nytid todo."
+description: "IMPORTANT: load this skill the moment you notice an out-of-scope follow-up while working, and BEFORE filing any GitHub issue or importing to nytid todo. Captures unrelated follow-up issues discovered during repository work and records them for later. Use proactively when: (1) working inside a git repository and you spot a bug, cleanup, missing test/doc, or tech-debt item that is NOT part of the current task (even one you only mention in a comment, memory, or summary — capture it here instead); (2) the user mentions filing an issue, follow-up, backlog item, or nytid import. Prefer gh issue; ask before creating anything unless autonomous issue capture is enabled; optionally import created GitHub issues into nytid todo."
 ---
 
 # Documenting follow-up issues
