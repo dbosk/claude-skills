@@ -33,6 +33,73 @@ When producing both slides and an article/notes version:
 - Prefer `\only` inside frames to deduplicate content: keep a single frame with a shared structure (e.g., a `definition` title) and switch only the body between slide bullets and article prose.
 - Avoid overusing `\mode<article>` / `\mode<presentation>`; reserve it for structural switches.
 
+### Write the prose from the start, not in a second pass
+
+The failure mode this prevents: a converted or freshly-drafted deck that is
+a **bare sequence of frames**. Each frame renders inline in the article, so
+the notes become a wall of terse bullets with no connective prose — a
+"slidey article". It technically builds and the slides look fine, which is
+why it slips through; but the notes are unreadable as standalone material.
+
+Author each frame together with the prose that surrounds it:
+
+```latex
+Att programmera är att beskriva för en dator hur ett problem ska lösas,
+steg för steg.  Vi börjar i köket, med något de flesta har en känsla för.
+
+\begin{frame}
+  \begin{example}[Att göra pannkakssmet]
+    \begin{enumerate}
+      \item Knäck tre ägg i en bunke.
+      ...
+    \end{enumerate}
+  \end{example}
+\end{frame}
+
+Receptet är en typisk stegvis beskrivning: en följd av instruktioner som
+utförs i tur och ordning.  Det vi har skrivit --- en ändlig följd av
+entydiga steg som löser en uppgift --- är just vad som kallas en
+\emph{algoritm}.
+
+\begin{frame}[fragile]
+  \begin{definition}[Algoritm]
+    ...
+  \end{definition}
+\end{frame}
+```
+
+The paragraphs before and after each frame are article-only and carry the
+narrative; the frames stay terse for the projector. **Verify** by checking
+that the slide job's page count does **not** grow when you add prose (proof
+it is article-only) and that the notes read as continuous prose.
+
+### One-item lists inside environments are prose, not bullets
+
+A semantic environment whose entire body is a single `\item` renders as a
+lone orphan bullet — in both the article and the slides. Write it as prose.
+This is especially common with `exercise` (a single question) and short
+`remark`/`definition` bodies.
+
+```latex
+% BAD — lone bullet in both jobs
+\begin{exercise}
+  \begin{itemize}
+    \item Vad varierar i exemplet med pannkakssmet?
+  \end{itemize}
+\end{exercise}
+
+% GOOD — prose; reads well as slide question and as notes
+\begin{exercise}
+  Vad varierar i exemplet med pannkakssmet?
+\end{exercise}
+```
+
+Keep `itemize`/`enumerate` only for genuinely enumerable multi-item content
+(a numbered recipe, a set of sub-questions), and frame even those with
+prose. Two short sentences dressed as two bullets are usually better as
+prose too. See the latex-writing skill for the general single-item-list
+anti-pattern.
+
 ---
 
 ## Overlay Specifications

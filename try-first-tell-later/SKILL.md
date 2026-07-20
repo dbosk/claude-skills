@@ -299,6 +299,30 @@ Multiple questions can build on each other to scaffold discovery:
 - Students construct understanding progressively
 - Mirrors expert problem-solving process
 
+### Write exercises as prose, not bullets
+
+An `exercise`/`activity` body is prose — the question stated as sentences.
+Do **not** wrap a single question in `\begin{itemize}\item …\end{itemize}`;
+that renders as a lone orphan bullet (ugly on a slide, and it breaks the
+prose flow of the notes in a dual beamer/article deck). Use a real list
+only for genuinely multiple sub-questions, and frame it with prose. See the
+latex-writing and didactic-notes skills for the single-item-list
+anti-pattern and article-prose guidance.
+
+```latex
+% BAD — lone bullet
+\begin{exercise}
+  \begin{itemize}
+    \item What varies in the pancake-batter example?
+  \end{itemize}
+\end{exercise}
+
+% GOOD — prose
+\begin{exercise}
+  What varies in the pancake-batter example?
+\end{exercise}
+```
+
 ### exercise vs activity Environments
 
 **exercise environment**: Short conceptual questions requiring thought but not code execution

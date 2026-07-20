@@ -412,6 +412,42 @@ See `references/beamer-patterns.md` for details.
 - Use `\only<article>` / `\only<presentation>` for mixed content
 - `\textbytext*` does NOT work inside frames—use mode splits
 
+### The notes must read as prose FROM THE START
+
+A dual beamer/article deck builds one source into slides *and* standalone
+lecture notes. The single most common failure is a **slidey article**: a
+bare sequence of frames (bullet lists, terse fragments) rendered inline,
+with no connective tissue. The notes then read like slides with the
+projector turned off. Fixing this after the fact is a whole second pass —
+so write the prose *as you write the frames*, not later.
+
+Concretely, while authoring each frame:
+
+1. **Precede every frame (or small group of frames) with a narrative
+   paragraph placed OUTSIDE the frame.** Out-of-frame prose is article-only
+   (Beamer discards it in presentation mode), so it costs the slides
+   nothing. This prose carries the story: motivate what comes next, connect
+   it to what came before, state the point the frame only gestures at. The
+   files deck (`modules/files/slides/contents.tex`) is the reference model
+   — every frame sits in a bed of prose.
+2. **Never let a semantic environment be a single lone bullet.** Inside
+   `exercise`, `definition`, `remark`, `example`, write the content as
+   prose sentences, not `\begin{itemize}\item …\end{itemize}` with one
+   item. A one-item list renders as an orphan bullet in both jobs. See the
+   latex-writing skill's single-item-list anti-pattern. Keep `itemize`/
+   `enumerate` only for genuinely enumerable multi-item content (a numbered
+   algorithm, a list of options), and even then frame it with prose before
+   and after.
+3. **For verbose environments that want bullets on the slide but prose in
+   the notes,** split with `\mode<presentation>{…bullets…}` /
+   `\mode<article>{…prose…}` (see `references/beamer-patterns.md`). Reserve
+   this for genuinely verbose content; short exercises and one-line remarks
+   just become prose in both modes.
+
+Self-test before moving on: *read the article with the frames removed — do
+the surviving paragraphs still tell a coherent story?* If nothing survives,
+the notes are slidey and need prose now, not in a later pass.
+
 ### Side-by-Side Contrast (Beamer-compatible)
 
 ```latex

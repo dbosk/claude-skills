@@ -79,6 +79,34 @@ Use `enumerate` when order matters:
 \end{enumerate}
 ```
 
+### A single-item list is prose, not a list
+
+A list with exactly one `\item` is never correct: it renders as an orphan
+bullet with no siblings to enumerate. Write the content as a prose
+sentence. This is rampant inside semantic environments (`exercise`,
+`definition`, `remark`, `example`, `block`) where a single question or
+one-line statement gets needlessly wrapped in `itemize`.
+
+```latex
+% BAD — one bullet, nothing to list
+\begin{exercise}
+  \begin{itemize}
+    \item Describe your algorithm for sorting laundry.
+  \end{itemize}
+\end{exercise}
+
+% GOOD — prose
+\begin{exercise}
+  Describe your algorithm for sorting laundry.
+\end{exercise}
+```
+
+Two short sentences dressed as two bullets are usually also better as
+prose. Reach for `itemize`/`enumerate` only when there are genuinely
+multiple, parallel, enumerable items. In dual beamer/article decks this
+matters doubly: a lone bullet is ugly on the slide and breaks the prose
+flow of the notes (see the didactic-notes skill).
+
 ### Interleave Commentary Between Numbered Items (enumitem `resume`)
 
 When enumerated items (survey/quiz questions, requirements, exam tasks) each
