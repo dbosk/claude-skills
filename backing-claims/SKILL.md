@@ -161,6 +161,17 @@ When several independent strands (different subfields, different query
 framings) converge on the same answer, say so — convergence across strands
 backs a claim more strongly than any single source.
 
+**Relevance is about bearing on the claim, not novelty.** A source that makes
+the *same* point as one you already cite is **corroboration**: additional
+support strengthens the claim, it does not weaken it. Never discard a source
+from the "supports" pile because it is "redundant" or "already covered" —
+that quietly biases the review toward under-citing agreement. Cite the
+strongest/most-central source(s) for economy, and record the rest as
+**supporting** (corroborating), not as excluded. This matters most when the
+supporting pile is large and you are tempted to prune it: prune for *economy*
+(cite the canonical one), and label the remainder honestly as corroboration in
+the appendix — do not relabel corroboration as a reason for exclusion.
+
 ### 4. Verify applicability (the double-check)
 
 Read the **actual source**, not just the title:
@@ -251,6 +262,20 @@ record.
 Update the appendix in the same commit as the search; a search that is only
 recorded in bib comments is not yet documented.
 
+**Screen the full hit-list by reading, not by guessing from titles.** When the
+appendix lists *every* candidate with an in/exclusion reason, ground those
+reasons in each paper's content: `scholar enrich <session>` fills abstracts;
+`scholar llm context <session> "<research question + what makes a paper
+relevant>"` then `scholar llm classify <session> --no-examples` (add
+`--full-text` for borderline cases) classifies each pending paper against that
+context and records a confidence. Read the low-confidence and clearly-wrong
+calls yourself and override them — the model is a first pass, the judgement
+stays yours. Show the model's confidence in the appendix so the screening is
+auditable. Pick exclusion categories that describe *why the paper does not bear
+on the claim* (another field / a different question within the field), and a
+**separate** category for corroborating sources that *do* bear on it
+("supports the claim") — never an exclusion category that means "redundant".
+
 ## Anti-patterns
 
 | ✗ Wrong | ✓ Right |
@@ -263,6 +288,8 @@ recorded in bib comments is not yet documented.
 | Search only for confirmation (one agreeable source, then stop). | Small review both ways: support-search **and** counter-search; sort into supports/refutes/qualifies; record `COUNTER`. |
 | Discover literature by querying expected author names. | Discover topic-driven (by concept); use names only to *retrieve* already-identified works. |
 | Refuting/qualifying work found but not mentioned. | Soften or narrow the claim, or cite both sides — never state a claim over known counter-evidence. |
+| Drop a source as "redundant" because it agrees with one already cited. | Keep it as corroboration — convergent support strengthens the claim; cite the strongest for economy and list the rest as "supports the claim". |
+| Screen the full hit-list from titles alone. | Enrich abstracts, classify against a stated research context (`scholar llm classify`) with confidence, then override the model's weak/wrong calls by reading. |
 | Search one or two providers; trust a "not found". | Query several (`s2 openalex dblp wos scopus`); run `scholar providers check` first — a dead key (S2 403) silently drops a database. |
 | Keyword-search for a paper whose title/DOI you already know. | Retrieve known items by DOI (OpenAlex `works/doi:`, Crossref) or field search (WoS `TI=`, Scopus `TITLE()`); Google Scholar / citation-chain / author copy for grey lit. |
 
