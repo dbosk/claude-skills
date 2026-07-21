@@ -249,11 +249,26 @@ differences as benign, investigate everything else.
 When the citations belong to a paper, the FOUND-VIA records must also
 surface as a **search-and-verification protocol appendix** in the paper
 itself (like vt-prog-misconceptions' `literature-protocol.tex` and
-vt-debug's `search-protocol.tex`): one paragraph or list per search
-episode, with the **verbatim queries**, the date, the source/API used, what
-was retained, and — equally important — what was **discarded as
-unverifiable** or substituted. State the find→verify→record protocol once
-at the top and point to the per-reference provenance blocks in the `.bib`.
+vt-debug's `search-protocol.tex`), with the **verbatim queries**, the date,
+the source/API used, what was retained, and — equally important — what was
+**discarded as unverifiable** or substituted. State the find→verify→record
+protocol once at the top and point to the per-reference provenance blocks in
+the `.bib`.
+
+**Organize the appendix by *claim*, not by search episode — one chapter (or
+section) per backed claim, each readable as a standalone article.** Each
+chapter opens by stating *the claim itself* as its research question ("Is X
+true, and does the cited source establish it?"), then gives the backing for
+exactly that claim. This makes the *strength* of each backing legible, not
+just its existence: a substantive/contested claim earns a full multi-query,
+multi-provider search sweep (with the hit-list screen below); a claim that
+merely attributes an established method or notation to its originator earns a
+lighter **known-item verification** (state the claim, how the source was found
+and why it was picked over reprints, and the verbatim quote that entails the
+claim — no broad sweep, and say so). The reader should be able to open any one
+chapter and see: what is claimed, how it was backed, and how convincingly.
+Don't bury several distinct claims under one method-organized "search
+protocol" — the reader then cannot tell which evidence backs which claim.
 Run each round's searches under one named `scholar` session per paper
 (`search -n`, decisions via `sessions decide`) and commit the session's
 `sessions export` output (bib/csv/latex) to the paper repo (e.g.
@@ -290,6 +305,7 @@ on the claim* (another field / a different question within the field), and a
 | Refuting/qualifying work found but not mentioned. | Soften or narrow the claim, or cite both sides — never state a claim over known counter-evidence. |
 | Drop a source as "redundant" because it agrees with one already cited. | Keep it as corroboration — convergent support strengthens the claim; cite the strongest for economy and list the rest as "supports the claim". |
 | Screen the full hit-list from titles alone. | Enrich abstracts, classify against a stated research context (`scholar llm classify`) with confidence, then override the model's weak/wrong calls by reading. |
+| Bury several claims under one method-organized "search protocol" appendix. | One appendix chapter per claim, each stating the claim as its research question and standalone; depth scales (full sweep vs known-item verification). |
 | Search one or two providers; trust a "not found". | Query several (`s2 openalex dblp wos scopus`); run `scholar providers check` first — a dead key (S2 403) silently drops a database. |
 | Keyword-search for a paper whose title/DOI you already know. | Retrieve known items by DOI (OpenAlex `works/doi:`, Crossref) or field search (WoS `TI=`, Scopus `TITLE()`); Google Scholar / citation-chain / author copy for grey lit. |
 
