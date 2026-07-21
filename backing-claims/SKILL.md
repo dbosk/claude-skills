@@ -257,9 +257,15 @@ the `.bib`.
 
 **Organize the appendix by *claim*, not by search episode — one chapter (or
 section) per backed claim, each readable as a standalone article.** Each
-chapter opens by stating *the claim itself* as its research question ("Is X
-true, and does the cited source establish it?"), then gives the backing for
-exactly that claim. This makes the *strength* of each backing legible, not
+chapter opens by stating *the factual claim itself* as its research question —
+about the claim's truth and how strongly the literature supports it ("Is X
+true? How well-established is X?"). Frame it as the factual question, **not** as
+a question about a reference ("does source Y establish X?"): the object being
+backed is the strength of the factual claim, and the reference is the evidence
+for it, not the subject of the question. (Attribution/origin — "and does X come
+from author A?" — is itself a factual, historical claim and may be part of the
+question; "does paper P adequately establish X?" is not.) Then give the backing
+for exactly that claim. This makes the *strength* of each backing legible, not
 just its existence: a substantive/contested claim earns a full multi-query,
 multi-provider search sweep (with the hit-list screen below); a claim that
 merely attributes an established method or notation to its originator earns a
