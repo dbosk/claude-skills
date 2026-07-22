@@ -267,12 +267,25 @@ from author A?" — is itself a factual, historical claim and may be part of the
 question; "does paper P adequately establish X?" is not.) Then give the backing
 for exactly that claim. This makes the *strength* of each backing legible, not
 just its existence: a substantive/contested claim earns a full multi-query,
-multi-provider search sweep (with the hit-list screen below); a claim that
-merely attributes an established method or notation to its originator earns a
-lighter **known-item verification** (state the claim, how the source was found
-and why it was picked over reprints, and the verbatim quote that entails the
-claim — no broad sweep, and say so). The reader should be able to open any one
-chapter and see: what is claimed, how it was backed, and how convincingly.
+multi-provider search sweep (with the hit-list screen below). A **pure
+attribution or definition** ("method M originates with author A"; "the notation
+is N") earns a lighter **known-item verification** — state the claim, how the
+source was found and why it was picked over reprints, and the verbatim quote
+that entails it; no broad sweep, and say so.
+
+**But watch the word "established".** "M is an *established* / *standard* /
+*widely-used* method" is not an attribution — it is an empirical claim about M's
+*status in the field*, and the originator's paper cannot back it (that paper
+shows M was *proposed*, not *adopted*). Backing "M is established" needs (a)
+evidence of establishment — later formalization, textbooks, adoption, reviews,
+living descendants — **and** (b) a counter-search for criticism/qualification: a
+real two-sided review, never a lone seminal quote. So split a mixed claim: known
+-item verification for the *origin*, two-sided review for the *establishment*.
+When you catch yourself writing "the belief is a known-item verification, not a
+sweep" for anything containing "established/standard/proven", stop — that is the
+tell that you are backing the reference instead of investigating the fact. The
+reader should be able to open any one chapter and see: what is claimed, how it
+was backed, and how convincingly.
 Don't bury several distinct claims under one method-organized "search
 protocol" — the reader then cannot tell which evidence backs which claim.
 Run each round's searches under one named `scholar` session per paper
@@ -312,6 +325,7 @@ on the claim* (another field / a different question within the field), and a
 | Drop a source as "redundant" because it agrees with one already cited. | Keep it as corroboration — convergent support strengthens the claim; cite the strongest for economy and list the rest as "supports the claim". |
 | Screen the full hit-list from titles alone. | Enrich abstracts, classify against a stated research context (`scholar llm classify`) with confidence, then override the model's weak/wrong calls by reading. |
 | Bury several claims under one method-organized "search protocol" appendix. | One appendix chapter per claim, each stating the claim as its research question and standalone; depth scales (full sweep vs known-item verification). |
+| Back "X is an *established* method" with a quote from X's originator. | The originator shows X was *proposed*, not *adopted*; investigate establishment (formalization, textbooks, adoption, descendants) AND counter-search for criticism — a two-sided review. |
 | Search one or two providers; trust a "not found". | Query several (`s2 openalex dblp wos scopus`); run `scholar providers check` first — a dead key (S2 403) silently drops a database. |
 | Keyword-search for a paper whose title/DOI you already know. | Retrieve known items by DOI (OpenAlex `works/doi:`, Crossref) or field search (WoS `TI=`, Scopus `TITLE()`); Google Scholar / citation-chain / author copy for grey lit. |
 
