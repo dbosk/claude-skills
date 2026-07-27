@@ -45,12 +45,54 @@ prose. Override:
 Now "Repetera \cref{mjöl,vispa-mjöl}" renders "Repetera steg 5 och 6" — and a
 bare hand-written "Repetera 5 och 6" (no type word at all) is avoided too.
 
-**Scope caveat**: the override is per-type and document-wide, so it is only
-safe when every `\cref`'d instance of that type is the same kind of thing
-(above: all referenced `enumi` items are algorithm steps). If one document
-mixes kinds — some enumerated lists are steps, others are survey questions —
-prefer a dedicated counter/environment/type for one of them instead of
-renaming the shared type.
+**Scope caveat**: a `\crefname` override is per-type and document-wide, so it
+is only the whole answer when every `\cref`'d instance of that type is the
+same kind of thing (above: all referenced `enumi` items are algorithm steps).
+
+## Several kinds at the same time
+
+When one document mixes kinds — some enumerated lists are steps, others
+survey questions — two mechanisms give each its own reference name (verified
+to coexist in one document, with hyperref loaded):
+
+**Per-label type override — cleveref's `\label[⟨type⟩]{⟨key⟩}`.** Declare the
+extra type's name once, then tag individual labels with it; untagged labels
+keep the counter's default type:
+
+```latex
+\crefname{step}{step}{steps}   % a type that exists only via \label[...]
+...
+\begin{enumerate}
+  \item \label[step]{whisk} …   % \cref{whisk}  -> "step 2"
+  \item \label{other} …         % \cref{other}  -> "item 3" (default)
+\end{enumerate}
+```
+
+Works anywhere `\label` works — including beamer frames, where the enumitem
+route below is unavailable. Best when the kinds are interleaved or the
+exception is rare.
+
+**A dedicated list environment — enumitem's `\newlist`.** `\newlist` creates
+a *distinct counter per list* (list name + level: `steps` at depth 1 counts
+with `stepsi`), and cleveref attaches names to counters — so each environment
+gets its own reference name with plain `\label`:
+
+```latex
+\newlist{steps}{enumerate}{1}
+\setlist[steps,1]{label=\arabic*., ref=\arabic*}  % ref= strips the label dot
+\crefname{stepsi}{step}{steps}                    % counter = listname + i
+...
+\begin{steps}
+  \item \label{whisk} …   % \cref{whisk} -> "step 2"
+\end{steps}
+```
+
+(Without `ref=`, `\cref` inherits the label's formatting dot: "step 2.".)
+Best when a kind is systematic enough to deserve its own environment — the
+semantic-markup answer. **But not in beamer**: enumitem conflicts with
+beamer's list internals (see the dual-build rules in SKILL.md — load it in
+the article driver only), so in slide decks and dual beamer/article sources
+use the `\label[type]` route inside frames instead.
 
 ## Overriding a shipped name: \AtBeginDocument, registered after cleveref's
 

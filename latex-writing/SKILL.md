@@ -345,8 +345,11 @@ render "item 5" (override with `\crefname`, in an `\AtBeginDocument` hook
 registered after cleveref so a language option's own hook doesn't silently
 overwrite it). In non-English documents, cleveref additionally takes its
 language from its own package options or the global class options, **not**
-from babel. Full guidance in `references/cleveref-type-names.md` (search:
-`crefname`, `terminology`, `AtBeginDocument`, `swedish`, `enumi`, `appendix`).
+from babel. Several kinds in one document are handled per label
+(`\label[type]{...}`) or per environment (enumitem `\newlist`, one counter
+per list — not in beamer). Full guidance in
+`references/cleveref-type-names.md` (search: `crefname`, `terminology`,
+`AtBeginDocument`, `label[type]`, `newlist`, `swedish`, `enumi`, `appendix`).
 
 ### Citations
 - Use proper citation commands (`\cite`, `\citep`, `\citet`) not manual references
