@@ -339,12 +339,14 @@ Figure~\ref{fig:plot} demonstrates...
 
 **Why**: The cleveref package automatically adds the correct prefix (Section, Figure, etc.) and handles pluralization, ranges, and language-specific formatting.
 
-**Non-English documents**: cleveref reads its language from its own package
-options or the global class options, **not** from babel — and its printed type
-names must match the words the prose itself uses (override with `\crefname` in
-an `\AtBeginDocument` hook registered after cleveref, or they are silently
-overwritten). Full guidance in `references/cleveref-localization.md` (search:
-`swedish`, `crefname`, `AtBeginDocument`, `enumi`, `appendix`).
+**Reference-type names**: the names `\cref` prints must match the words the
+prose itself uses, in any language — a document that says "steps" must not
+render "item 5" (override with `\crefname`, in an `\AtBeginDocument` hook
+registered after cleveref so a language option's own hook doesn't silently
+overwrite it). In non-English documents, cleveref additionally takes its
+language from its own package options or the global class options, **not**
+from babel. Full guidance in `references/cleveref-type-names.md` (search:
+`crefname`, `terminology`, `AtBeginDocument`, `swedish`, `enumi`, `appendix`).
 
 ### Citations
 - Use proper citation commands (`\cite`, `\citep`, `\citet`) not manual references
