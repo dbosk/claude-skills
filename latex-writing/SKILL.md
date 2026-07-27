@@ -548,6 +548,12 @@ in brief:
 - **Slide-only frames**: `\mode<presentation>{...}` wrap (fragile caveat
   above); article-only prose sits outside frames; don't let slide bullet
   lists duplicate adjacent article prose.
+- **Attribution travels with the quote, inside the frame.** A verbatim
+  quote shown on a slide must carry its source there (footnote/`\footcite`
+  on the quote itself): if the attribution sits in the article-only prose
+  after the frame, the slides show the quote unattributed. Attached to the
+  quote it renders at the slide's foot in beamer and as a margin/footnote
+  in the article — both jobs covered by one source.
 - **Biber reruns** happen from the project root (`biber ltxobj/<jobname>`),
   never from inside the output directory.
 

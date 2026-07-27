@@ -288,6 +288,28 @@ reader should be able to open any one chapter and see: what is claimed, how it
 was backed, and how convincingly.
 Don't bury several distinct claims under one method-organized "search
 protocol" — the reader then cannot tell which evidence backs which claim.
+
+**Write each claim chapter as a mini-paper.** Its skeleton:
+
+1. *Intro* — a few sentences: point (`\cref`) to the main-text passage that
+   makes the claim, state the claim, pose the research question, and (if the
+   chapter has several sections) give a one-sentence roadmap.
+2. *Method* — reproducible from the appendix text alone: the verbatim queries,
+   providers, search date, session name, and where the session export and the
+   per-reference provenance blocks live. Report limitations honestly: if the
+   topic-driven queries returned only false hits and the cited sources came
+   via known-item queries, say so — the committed export shows it anyway.
+3. *Results* — what each search found, what was retained, deferred, or
+   rejected (for a two-sided review: origin, establishment, criticism).
+4. *Conclusion* — answer the research question in the first sentence ("Yes on
+   both counts, with one caveat: …"), then the caveats. The full hit-list
+   tables belong *after* the conclusion, framed as audit data — the chapter's
+   argument must not peter out into raw tables with the answer buried
+   mid-chapter.
+
+A short chapter (known-item verification plus a light counter-search) keeps
+the same skeleton as `\paragraph`s; a long one uses `\section`s.
+
 Run each round's searches under one named `scholar` session per paper
 (`search -n`, decisions via `sessions decide`) and commit the session's
 `sessions export` output (bib/csv/latex) to the paper repo (e.g.
@@ -326,6 +348,8 @@ on the claim* (another field / a different question within the field), and a
 | Screen the full hit-list from titles alone. | Enrich abstracts, classify against a stated research context (`scholar llm classify`) with confidence, then override the model's weak/wrong calls by reading. |
 | Bury several claims under one method-organized "search protocol" appendix. | One appendix chapter per claim, each stating the claim as its research question and standalone; depth scales (full sweep vs known-item verification). |
 | Back "X is an *established* method" with a quote from X's originator. | The originator shows X was *proposed*, not *adopted*; investigate establishment (formalization, textbooks, adoption, descendants) AND counter-search for criticism — a two-sided review. |
+| "Document" a counter-search by naming its session in passing. | A Method paragraph with the verbatim queries, providers, date, and export path — reproducible from the appendix text alone. |
+| Chapter's answer buried mid-chapter; it ends on raw hit-list tables. | A Conclusion answers the research question explicitly; the tables follow it as audit data. |
 | Search one or two providers; trust a "not found". | Query several (`s2 openalex dblp wos scopus`); run `scholar providers check` first — a dead key (S2 403) silently drops a database. |
 | Keyword-search for a paper whose title/DOI you already know. | Retrieve known items by DOI (OpenAlex `works/doi:`, Crossref) or field search (WoS `TI=`, Scopus `TITLE()`); Google Scholar / citation-chain / author copy for grey lit. |
 
