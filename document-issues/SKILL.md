@@ -140,6 +140,26 @@ before importing.
 
 Do not modify todo items assigned to other workers.
 
+## Closing the loop: reference issues from PRs and commits
+
+Filing is half the lifecycle; the other half is making sure fixes close their
+issues automatically.
+
+When creating a PR (or commit) that addresses a filed issue, include a
+closing keyword in the PR body: `Fixes #N` (also `Closes #N` / `Resolves #N`).
+GitHub then closes the issue when the PR merges. Before opening any fix PR,
+check the tracker for an issue it resolves — the search from step 3 works in
+this direction too. A fix derived from an internal finding that was never
+filed as an issue needs no keyword; do not file an issue just to close it.
+
+When a PR only *partially* addresses an issue or adds evidence to it, use a
+plain reference (`#N`, or "part of #N") instead of a closing keyword, and
+leave the issue open.
+
+Watch for the stale case: an already-merged PR that implemented an open issue
+without referencing it. When noticed, close the issue manually with a comment
+naming the PR (`gh issue close N --comment "Implemented by PR #M ..."`).
+
 ## Communication
 
 When proposing or reporting a captured issue, include:

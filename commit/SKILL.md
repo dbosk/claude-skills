@@ -70,6 +70,23 @@ models and OpenCode for OpenAI models. Specify the model used.
 - Be specific: "Fix timestamp mismatch in terminal grading" not "Fix bug"
 - Stay under 50 characters when possible
 
+### Reference the Issues the Commit Addresses
+
+If the change addresses a filed issue, say so in the commit message body
+with a closing keyword — `Fixes #N` (or `Closes #N` / `Resolves #N`) — so
+the issue closes automatically when the commit reaches the default branch
+(or its PR merges). Check the tracker before committing a fix: an issue may
+already exist for it. Guidelines:
+
+- One issue per line in the body: `Fixes #123`
+- Partial progress or added evidence: plain reference (`Part of #123`),
+  which links without closing
+- No issue exists for the fix: no keyword — do not file an issue just to
+  close it
+- When the commit will travel via a PR, the closing keyword can go in the
+  PR body instead; putting it in the commit also works and survives
+  cherry-picks
+
 ### Literate Programming Projects
 
 **CRITICAL**: In projects with .nw files, NEVER commit generated files.

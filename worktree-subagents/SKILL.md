@@ -119,3 +119,10 @@ fix. Every item below cost an agent real time at least once.
 - Search the tracker before filing follow-ups: parallel reviewers
   rediscover known issues, and a planned fix may already have an issue
   to reference instead of a duplicate.
+- **Close the loop with `Fixes #N`.** When a fix branch addresses a filed
+  issue, the PR body must carry the closing keyword so the merge closes
+  the issue. Campaign PRs fixing *internal* findings need none — but the
+  check runs both ways: before opening each PR, search the tracker for an
+  issue it resolves, and watch for the stale case where an already-merged
+  PR implemented an open issue without referencing it (close manually,
+  naming the PR).
