@@ -111,6 +111,15 @@ fix. Every item below cost an agent real time at least once.
   <maintainer>" may be your own relay. When checking for new review
   feedback, read PR reviews, issue comments, and inline comments
   separately, in timestamp order.
+- **A PR's feedback lives under THREE different API endpoints — sweep
+  all of them, by endpoint, not via `gh pr view`:**
+  `repos/O/R/issues/N/comments` (ordinary discussion comments — the kind
+  a maintainer leaves outside any review; missing this one cost a full
+  review round in the campaign), `repos/O/R/pulls/N/comments` (inline
+  code comments), and `repos/O/R/pulls/N/reviews` (review verdicts and
+  bodies). A review in state PENDING hides its inline comments from the
+  normal listing until submitted — but since `gh` authenticates as the
+  author, `pulls/N/reviews/<id>/comments` reads the drafts.
 - **Route review fixes through the original agent when the change is a
   redesign** (it has the file context; resume it with the maintainer's
   comment verbatim). Apply small mechanical review fixes (naming,
