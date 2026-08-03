@@ -1077,7 +1077,10 @@ inference rules and `.ext=lexer` / `name=lexer` mapping overrides.
 
 ## Git Workflow
 
-See `references/git-workflow.md` for details.
+See `references/git-workflow.md` for details — including the mandatory
+post-merge-conflict checks (`noroots` + re-tangle + grep a known symbol):
+a resolution that glues prose onto a `<<name>>=` line makes notangle
+silently emit an empty file.
 
 **Core rules:**
 - Only commit .nw files to git

@@ -80,3 +80,33 @@ fix. Every item below cost an agent real time at least once.
   subagent as "read the whole diff line by line", not as a verdict.
 - Persist orchestration state (plan file with per-branch status, follow-up
   issue list) outside the conversation after every batch — sessions die.
+
+## After the PRs: review rounds and live verification
+
+- **Unit tests inherit the author's assumptions.** An agent (and the
+  orchestrator's diff review) approved a branch whose regression test
+  asserted the *absence* of an API field — because the agent believed
+  omission selected a sensible default. The live API rejected the call.
+  A test asserting the implementation's own assumption is no protection
+  when the assumption is wrong; for code that talks to an external
+  system, smoke-test each fixed path against the real system (a sandbox)
+  before declaring the fix verified.
+- **Verify writes past the tool's own cache.** If the tool updates a
+  local cache on write, a read-back can show the cache, not the server —
+  a server-side no-op looks fixed. Use the tool's cache-bypass flag
+  (`--no-cache` or equivalent) for the verification read.
+- **Never live-test broadcast/fan-out paths.** A "create in all
+  contexts" branch verified live would spam every real context; pin it
+  with a unit test and say so explicitly in the PR.
+- **`gh` posts as the maintainer's account**, so "latest comment by
+  <maintainer>" may be your own relay. When checking for new review
+  feedback, read PR reviews, issue comments, and inline comments
+  separately, in timestamp order.
+- **Route review fixes through the original agent when the change is a
+  redesign** (it has the file context; resume it with the maintainer's
+  comment verbatim). Apply small mechanical review fixes (naming,
+  formatting, labels) yourself directly — a resume costs more than the
+  edit.
+- Search the tracker before filing follow-ups: parallel reviewers
+  rediscover known issues, and a planned fix may already have an issue
+  to reference instead of a duplicate.

@@ -329,3 +329,35 @@ Review `.nw` files for both:
 - **Explanation quality**: Is the documentation clear?
 
 Generated files should never appear in pull requests.
+
+### Merge Conflicts in `.nw` Files
+
+Resolving a conflict in a `.nw` file is higher-stakes than in ordinary
+source, because noweb's chunk syntax is position-sensitive and a broken
+chunk fails *silently*:
+
+- `<<name>>=` defines a chunk **only at column 1 on its own line**. A
+  resolution that glues prose onto it (`...end of sentence.<<name>>=`)
+  demotes the definition to documentation text — and `notangle` then
+  produces an empty (yet syntactically valid) output file with no error.
+  This happened in practice: a merged calendar module tangled to an empty
+  `.py` and the only symptom was a missing function at import time.
+- Prose conflicts are common: two branches restructuring the same section
+  both "replace the same original region". Splice both narratives in
+  reading order; drop duplicated intro sentences rather than keeping both.
+- Code-chunk conflicts are rarer than they look — check whether git
+  auto-merged the chunk *body* and only the surrounding prose conflicts.
+
+**Mandatory checks after resolving any `.nw` conflict** (each is one
+command; skipping them cost a debugging session in practice):
+
+1. `grep -c '<<<<<<<' file.nw` — no markers left.
+2. `noroots file.nw` — exactly the expected root chunks, no orphans, and
+   heed the `unescaped << in documentation chunk` warning: it often
+   points at a glued chunk definition.
+3. Re-tangle and grep the generated file for a symbol that must exist
+   (e.g. `def add_command`). Do not trust that "the text looks right".
+4. Run the full test suite on the *rebuilt* artifacts — stale tangles
+   from before the merge can mask or fake failures; `make` may consider
+   a half-broken generated file up to date, so force-remove it if in
+   doubt.
