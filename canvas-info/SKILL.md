@@ -142,3 +142,16 @@ GOOD: canvaslms discussions list -c 12345 -t discussion
 This skill is **read-only** — it retrieves and presents course information.
 It does not create, modify, or delete any Canvas content. To create quiz
 content, use the `canvas-quiz` skill instead.
+
+## Testing Write Commands
+
+When a task legitimately requires testing canvaslms *write* commands
+(outside this skill's scope), the course **"Sandbox dbosk"** (Canvas
+course id 24725) is available for that: create assignments, pages,
+calendar events, etc. there as needed, or use existing ones. Match it
+with an anchored regex (`-c "^Sandbox dbosk$"`) — several other Sandbox
+courses exist. Name throwaway artifacts recognizably (e.g. a
+`canvaslms-test-DELETE-ME` prefix) and delete them afterwards; verify
+writes with `--no-cache`, since the CLI updates its local cache on
+write and a cached read can mask a server-side no-op. Never write-test
+fan-out paths (e.g. create-in-all-courses) against the real server.
