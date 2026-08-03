@@ -17,7 +17,7 @@ Lessons from a real campaign: 7 review agents + dozens of fix agents, each in
 its own worktree of a literate-programming (noweb) repo, one branch and PR per
 fix. Every item below cost an agent real time at least once.
 
-## The three worktree traps (put these in every agent prompt)
+## The four worktree traps (put these in every agent prompt)
 
 1. **Submodules are not initialized in a fresh worktree.** Any `make` that
    needs them fails cryptically. Prompt the agent to run
@@ -41,6 +41,15 @@ fix. Every item below cost an agent real time at least once.
      back to main-repo modules per-package, silently,
    - **verify**: `python -c "import pkg.mod; print(pkg.mod.__file__)"` must
      print a worktree path. Make agents report this check.
+
+4. **The stash stack is SHARED across all worktrees.** `git stash` writes to
+   the repo-level `refs/stash`, so concurrent agents pop *each other's*
+   stashes — in the campaign one agent's `stash pop` applied another agent's
+   changes into its worktree and dropped that agent's stash entry (recovered
+   from the dangling stash commit, but only barely). Forbid `git stash` in
+   agent prompts; for temporarily reverting a fix (e.g. to prove a test is
+   load-bearing) use `git checkout <commit> -- <file>`, edit the generated
+   artifact directly, or keep a scratch copy in /tmp.
 
 ## Prompt-engineering the fix agents
 
