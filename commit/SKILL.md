@@ -1,4 +1,5 @@
 ---
+name: commit
 description: Create atomic git commits following best practices
 user-invocable: true
 license: MIT
