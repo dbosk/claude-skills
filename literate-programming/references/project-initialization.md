@@ -33,11 +33,13 @@ programming project with Python packaging. It is based on the canonical
 
 ### One-time machine setup: whitelist noweb's custom lexer
 
-The standard weave passes `-filter 'tominted -lexer noweb_lexer.py'`,
-which loads noweb's bundled Pygments lexer so chunk references stay
+The standard weave's `tominted` filter loads noweb's bundled Pygments
+lexer by default (resolving the installed `noweb_lexer.py` next to its
+own script and embedding the absolute path), so chunk references stay
 hyperlinked even inside Python docstrings.  minted treats loading
 custom lexer files as arbitrary code execution, so latexminted requires
-the file to be whitelisted by SHA-256 hash, once per machine:
+the file to be whitelisted by SHA-256 hash, once per machine (the key
+is the file's name and hash, not its path):
 
 ```bash
 NOWEB_LIB=$(sed -n 's/^LIB=//p' "$(command -v noweave)" | head -1)
@@ -344,7 +346,6 @@ clean:
 ```gitignore
 packagename.tex
 packagename.pdf
-noweb_lexer.py
 ltxobj/
 _minted*
 *.aux
@@ -387,15 +388,11 @@ weave: packagename.tex
 
 packagename.pdf: packagename.tex ../src/packagename/packagename.tex
 packagename.pdf: bibliography.bib preamble.tex
-
-# tominted's custom lexer must sit where LaTeX runs; it ships with
-# noweb (whitelist it once per machine, see Prerequisites)
-packagename.pdf: noweb_lexer.py
-noweb_lexer.py:
-	cp "$$(sed -n 's/^LIB=//p' "$$(command -v noweave)" | head -1)"/$@ $@
+# tominted finds its custom lexer next to the installed filter itself;
+# whitelist it once per machine, see Prerequisites
 
 clean:
-	${RM} packagename.tex packagename.pdf noweb_lexer.py
+	${RM} packagename.tex packagename.pdf
 
 distclean:
 
@@ -590,13 +587,14 @@ When initializing a new project, verify:
    `<<test [[packagename.py]]>>` chunks
 5. **`tests/.gitignore`** contains `*.py`
 6. **`tests/Makefile`** uses `%20` encoding, `cpif`, and `unit/` subdirectory
-7. **`doc/.gitignore`** lists project-specific generated files (including
-   `noweb_lexer.py`) + LaTeX temps
+7. **`doc/.gitignore`** lists project-specific generated files + LaTeX
+   temps
 8. **`doc/packagename.nw`** is a `.nw` file (not `.tex`) wrapping the
    document
 9. **`doc/preamble.tex`** is copied from skill references
-10. **`doc/Makefile`** copies `noweb_lexer.py` from the noweb lib dir and
-    makes the PDF depend on it; LaTeX runs with `-shell-escape`
+10. **`doc/Makefile`** runs LaTeX with `-shell-escape` (no
+    `noweb_lexer.py` copy rule — tominted finds the installed lexer
+    itself)
 11. **latexminted whitelist** for `noweb_lexer.py` exists on this machine
     (one-time setup, see Prerequisites)
 12. **Root `Makefile`** orchestrates compile → test → docs with `subdir.mk`

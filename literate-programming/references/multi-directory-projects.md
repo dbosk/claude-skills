@@ -128,7 +128,7 @@ The `noweb.mk` file provides suffix rules for tangling and weaving:
 NOWEAVE.tex?= noweave ${NOWEAVEFLAGS.tex} $< > $@
 NOWEAVEFLAGS.tex?= ${NOWEAVEFLAGS} -n -delay -t2 -autolang \
     -autodefs python3 -autodefs sh -autodefs make -index \
-    -filter 'tominted -lexer noweb_lexer.py'
+    -filter tominted
 
 .SUFFIXES: .nw .tex
 .nw.tex:
@@ -145,20 +145,16 @@ NOWEB_PYCODEFMT?= black $@
     ${NOTANGLE.py}
 ```
 
-The `-lexer noweb_lexer.py` path is resolved where *LaTeX* runs (the
-`doc/` directory), not where noweave runs.  The custom lexer keeps
-chunk references hyperlinked even inside Python docstrings; it ships
-with noweb and must be copied next to the master document and
-whitelisted once per machine in latexminted's config (see
-`noweb-commands.md`, "Syntax Highlighting with tominted", and
-`project-initialization.md` for the one-time setup).
-
-```makefile
-# In doc/Makefile: copy tominted's custom lexer from noweb's lib dir
-packagename.pdf: noweb_lexer.py
-noweb_lexer.py:
-	cp "$$(sed -n 's/^LIB=//p' "$$(command -v noweave)" | head -1)"/$@ $@
-```
+`tominted` uses its bundled custom lexer by default: it resolves the
+installed `noweb_lexer.py` next to its own script and embeds the
+absolute path into the woven `.tex`, so no copy in `doc/` is needed.
+The custom lexer keeps chunk references hyperlinked even inside
+Python docstrings; it must be whitelisted once per machine in
+latexminted's config (see `noweb-commands.md`, "Syntax Highlighting
+with tominted", and `project-initialization.md` for the one-time
+setup).  Older projects may still carry a `noweb_lexer.py` copy rule
+and PDF prerequisite from before the default — both are obsolete and
+can be dropped.
 
 The LaTeX build must run with `-shell-escape` (minted runs Pygments);
 the doc Makefiles below already do via

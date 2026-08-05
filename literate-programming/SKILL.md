@@ -1024,9 +1024,8 @@ inference rules and `.ext=lexer` / `name=lexer` mapping overrides.
    `` ``x`` ``) — just not with `[[...]]`.
 
    Chunk *references* (`<<...>>`) inside docstrings are fine: the
-   standard weave's custom lexer (`tominted -lexer noweb_lexer.py`)
-   keeps them hyperlinked in the woven PDF even though they sit inside
-   a Python string literal.
+   custom lexer `tominted` uses by default keeps them hyperlinked in
+   the woven PDF even though they sit inside a Python string literal.
 
    **BAD** — noweb `[[...]]` in a docstring leaks into `help()`:
    ```noweb
@@ -1101,9 +1100,10 @@ noroots file.nw                              # List root chunks
 
 # Weaving (standard recipe: highlighted with minted, clean index)
 # For inclusion; the master preamble loads minted via \usepackage[minted]{noweb}
+# tominted finds its bundled custom lexer itself (installed next to
+# the filter); no -lexer argument or local noweb_lexer.py copy needed.
 noweave -n -delay -autolang -autodefs python3 -autodefs sh \
-    -autodefs make -index \
-    -filter 'tominted -lexer noweb_lexer.py' file.nw > file.tex
+    -autodefs make -index -filter tominted file.nw > file.tex
 # compile with -shell-escape (pdflatex -shell-escape or latexmk option)
 # Standalone (noweave writes the preamble): add -minted so it loads minted
 noweave -autolang -autodefs python3 -autodefs sh -autodefs make \

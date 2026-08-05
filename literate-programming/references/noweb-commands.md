@@ -76,18 +76,24 @@ Weaving produces documentation from a literate program.
 
 ```bash
 # Standard recipe: minted-highlighted, language-aware index,
-# for inclusion in a master document
+# for inclusion in a master document.  tominted uses its bundled
+# custom lexer by default (it resolves the installed noweb_lexer.py
+# next to its own script and embeds the absolute path), so no -lexer
+# argument and no local lexer copy are needed.
 noweave -n -delay -autolang -autodefs python3 -autodefs sh \
-    -autodefs make -index \
-    -filter 'tominted -lexer noweb_lexer.py' file.nw > file.tex
+    -autodefs make -index -filter tominted file.nw > file.tex
 
 # Same, standalone: noweave emits the wrapper, and -minted makes that
 # generated preamble load minted (it bundles -option minted with
-# -filter tominted).  Use -minted instead of -delay/-filter here.
+# -filter tominted, custom lexer included).  Use -minted instead of
+# -delay/-filter here.
 noweave -autolang -autodefs python3 -autodefs sh \
     -autodefs make -index -minted file.nw > file.tex
-# -minted runs plain tominted; for the custom lexer in a standalone
-# weave, spell it out: -option minted -filter 'tominted -lexer noweb_lexer.py'
+
+# Opt out of the custom lexer (no latexminted whitelist needed;
+# chunk references inside strings degrade to literal <<...>> text)
+noweave -n -delay -autolang -index -filter 'tominted -nolexer' \
+    file.nw > file.tex
 
 # Classic rendering (no highlighting; identifier uses inside code
 # are hyperlinked — only this mode has those links)
@@ -141,8 +147,7 @@ When weaving for inclusion in a master document, use `-n -delay`:
 
 ```bash
 noweave -n -delay -autolang -autodefs python3 -autodefs sh \
-    -autodefs make -index \
-    -filter 'tominted -lexer noweb_lexer.py' file.nw > file.tex
+    -autodefs make -index -filter tominted file.nw > file.tex
 ```
 
 This produces .tex without `\documentclass`, suitable for `\input{...}`.
@@ -203,55 +208,41 @@ the `-filter tominted ...` argument and weave the classic rendering.
 
 ### One-time custom-lexer setup (standard recipe)
 
-Plain `tominted` shows a chunk reference *inside a Python string
-literal* (e.g. a docstring chunk) as literal `<<...>>` text, because
-Pygments' escape mechanism refuses to work inside string tokens.  The
-bundled custom lexer `noweb_lexer.py` lifts that limitation, keeping
-even in-docstring references hyperlinked — hence the standard recipe's
-`-filter 'tominted -lexer noweb_lexer.py'`.
-
-The lexer file must be readable from the directory where LaTeX runs.
-It is installed in noweb's library directory, discoverable from the
-`noweave` script:
-
-```bash
-NOWEB_LIB=$(sed -n 's/^LIB=//p' "$(command -v noweave)" | head -1)
-cp "$NOWEB_LIB/noweb_lexer.py" .
-```
+Pygments' escape mechanism refuses to work inside string tokens, so a
+chunk reference *inside a Python string literal* (e.g. a docstring
+chunk) would render as literal `<<...>>` text.  The bundled custom
+lexer `noweb_lexer.py` lifts that limitation, keeping even
+in-docstring references hyperlinked — and `tominted` uses it **by
+default**: the filter locates the installed lexer file next to its
+own script and embeds the absolute path into the woven document, so
+no copy next to the LaTeX sources is needed.  (`-lexer path`
+substitutes another lexer file, verbatim; `-nolexer` disables the
+mechanism and needs no setup at all.)
 
 Because minted treats loading custom lexer files as arbitrary code
 execution, latexminted requires the file to be whitelisted by SHA-256
 hash (one-time per machine, repeated whenever the lexer file changes,
-e.g. after a noweb upgrade):
+e.g. after a noweb upgrade).  The whitelist is keyed by the file's
+*name and hash*, not its path, so one entry covers the installed file
+wherever it lives:
 
 ```bash
+NOWEB_LIB=$(sed -n 's/^LIB=//p' "$(command -v noweave)" | head -1)
 mkdir -p ~/.config/latexminted
 printf '{"custom_lexers": {"noweb_lexer.py": "%s"}}\n' \
-    "$(sha256sum noweb_lexer.py | cut -d' ' -f1)" \
+    "$(sha256sum "$NOWEB_LIB/noweb_lexer.py" | cut -d' ' -f1)" \
     > ~/.config/latexminted/.latexminted_config
 ```
 
-The `-lexer` path is interpreted relative to the directory where LaTeX
-runs.
+Without the whitelist entry, minted aborts the build with a custom
+lexer error at pdflatex time; either add the entry or weave with
+`-filter 'tominted -nolexer'`.
 
-If the lexer is absent there, minted aborts the build with:
-
-```
-! Package minted Error: Custom lexer "noweb_lexer.py:..." was not found.
-```
-
-Make the lexer a **prerequisite of the PDF target** so the build copies it in
-before running LaTeX.  When the project uses the shared `noweb.mk` (which
-already defines the `noweb_lexer.py` copy rule and is `include`d by the
-`Makefile`), do *not* re-declare the rule — just add the dependency to the
-document's own prerequisite list, e.g. in `doc/Makefile`:
-
-```makefile
-canvaslms.pdf: noweb_lexer.py    # noweb.mk supplies the copy rule
-```
-
-and add `noweb_lexer.py` to that directory's `.gitignore` (it is a copied
-build artifact, not source).
+Older projects may still carry the pre-default workaround: a
+`noweb_lexer.py` **copy rule** (e.g. in a shared `noweb.mk`), PDF
+prerequisites on the copied file, and a `.gitignore` entry for it.
+All three are obsolete — the copied file is simply unused — and can
+be removed when touching such a Makefile.
 
 ---
 
@@ -301,14 +292,10 @@ notangle -RMakefile file.nw > Makefile
 
 %.tex: %.nw
     noweave -n -delay -autolang -autodefs python3 -autodefs sh -autodefs make -index \
-        -filter 'tominted -lexer noweb_lexer.py' $< > $@
+        -filter tominted $< > $@
 
-%.pdf: %.tex noweb_lexer.py
+%.pdf: %.tex
     pdflatex -shell-escape $<
-
-# tominted's custom lexer must sit where LaTeX runs
-noweb_lexer.py:
-    cp "$$(sed -n 's/^LIB=//p' "$$(command -v noweave)" | head -1)"/$@ $@
 ```
 
 ### Documentation with Tests
