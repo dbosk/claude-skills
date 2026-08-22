@@ -134,8 +134,16 @@ work, and what can go wrong: `references/nytid.md`.
 1. `nytid schedule show` → find the event and the rooms booked for it.
 2. `scripts/kth_room.py <rooms…>` → seats per room.
 3. Course register → expected students per programme.
-4. Fit programmes to rooms (keep a split programme in adjacent rooms),
-   leave a margin, and list the mapping as `room: seats, PROGRAMME(S)`.
-5. Publish the student-facing mapping in Canvas (`canvaslms pages edit`,
-   test in the sandbox first); keep staff-only details (which TA goes where)
-   out of Canvas.
+4. Fit programmes to rooms (keep a split programme in adjacent rooms or at
+   least the same building; B-huset and Q-huset are ~200 m apart, V-huset
+   floors share stairs), leave a margin, and list the mapping as
+   `room: seats, PROGRAMME`. With little slack a perfect fit is often
+   impossible — prefer a small deficit with "overflow to Zoom" over a
+   programme spread across three floors or a room shared by many
+   programmes. Honour lecturer constraints first (who sits with which
+   programme, who is online).
+5. Publish the student-facing mapping in Canvas (`canvaslms pages edit`; if
+   the course keeps its pages as files in a repo, edit the file and push it
+   from there so the file stays the source of truth). Keep staff-only
+   details (which TA runs which room) out of Canvas: put them in the course
+   Zulip — draft the message for the user to post unless told otherwise.
