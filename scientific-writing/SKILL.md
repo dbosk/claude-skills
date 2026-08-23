@@ -157,6 +157,21 @@ counts and draft versions diverge, so never number by round):
    Merging the PR ends the round; the next round starts at step 0 with a
    new branch and PR.
 
+## Cite the principle wherever the argument is made
+
+When a passage argues from a theoretical principle the paper rests on — the
+design rationale of an instrument item ("a test of discernment must not
+point out the aspect"), the wording of a stem, a coding or analysis choice —
+cite the principle's source *in that passage* (e.g. `\autocite[p.~91]{NCOL}`),
+not only where the principle was first introduced. The citation is the
+support for the argument: a reader of an appendix paragraph does not carry
+the introduction's citation with them, and a reviewer sees an unsupported
+claim. This holds for every instance — each item rationale that invokes the
+principle, each stem redesign in a review round. "Already cited earlier in
+the paper" is not a reason to omit it; repeating the same key and page is
+correct, not redundant. (Verification per backing-claims happens at the
+first use; later uses of the same verified claim reuse the key and page.)
+
 ## Open questions and pending decisions
 
 - Mark open decisions with `% XXX` and deferred work with `% TODO` in the
@@ -189,6 +204,8 @@ counts and draft versions diverge, so never number by round):
 - [ ] Questionnaires and analyses exist as literate appendix programs;
       tangled artifacts validated
 - [ ] New citations verified and searches documented (backing-claims)
+- [ ] Every argument from a theoretical principle cites its source where
+      the argument is made, not only at first mention
 - [ ] XXX/TODO items mirrored as GitHub issues (new ones opened, resolved
       ones closed) when the repo is on GitHub
 - [ ] Both outputs build clean; committed as one round; new draft uploaded
