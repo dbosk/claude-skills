@@ -171,6 +171,10 @@ is a suitable tool for embedding those prompts in the LaTeX output.
 - Quote code in documentation using `[[code]]` (escapes LaTeX special chars).
   Never manually escape characters (e.g. `\_`) inside `[[...]]` — noweb
   handles all escaping automatically.  Writing `[[\_]]` double-escapes.
+- Mention a chunk by name in prose as `[[<<chunk name>>]]` — the outer
+  `[[...]]` typesets the reference as code.  A bare `<<chunk name>>` in
+  prose is not the convention; conversely, when reviewing, do not flag
+  `[[<<...>>]]` as redundant.
 - `[[...]]` works inside `\item[...]` labels (and other moving arguments),
   but separate the inner `]]` from the outer `]` with at least one
   character — typically a space.  The failure mode is **three brackets in
@@ -896,6 +900,12 @@ Key rules:
   `<<feature a test methods>>`
 - Use `from module import *` in the test file header
 - Frame tests pedagogically: "Let's verify this works..."
+- Test files tangle with bare `notangle` (no black pass), so the `.nw`
+  indentation lands verbatim in `tests/test_*.py`.  Indent new test
+  chunks 2 spaces per level; when extending an existing chunk, match its
+  indentation instead of mixing styles (module chunks differ: black
+  reformats them, so their `.nw` indentation is cosmetic).  See
+  `references/testing-patterns.md`.
 
 **BAD** — all tests collected at the end:
 ```noweb
@@ -1019,9 +1029,10 @@ inference rules and `.ext=lexer` / `name=lexer` mapping overrides.
    `[[...]]` code-quoting there either. `[[...]]` is only interpreted by
    noweave in *documentation* chunks; inside a docstring (a string in a code
    chunk) it is copied verbatim, so it leaks into the generated `.py` and
-   `help()` output. Quote code in docstrings however your project's
-   docstrings already do (plain text, markdown `` `x` ``, or RST
-   `` ``x`` ``) — just not with `[[...]]`.
+   `help()` output. Quote code in docstrings with markdown single
+   backticks (`` `x` ``) — not RST double-backticks, and never `[[...]]`.
+   (Only deviate when a project's existing docstrings consistently use
+   another style.)
 
    Chunk *references* (`<<...>>`) inside docstrings are fine: the
    custom lexer `tominted` uses by default keeps them hyperlinked in

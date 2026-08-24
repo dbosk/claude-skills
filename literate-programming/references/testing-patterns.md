@@ -38,6 +38,24 @@ create a `\section{Tests}` or `\section{Unit Tests}` that groups all tests
 at the beginning or end of the file — this is the most common anti-pattern
 and defeats the purpose of literate programming.
 
+### Test Chunk Indentation Is Load-Bearing
+
+Test files are tangled with bare `notangle` — no black formatting pass —
+so the indentation written in the `.nw` chunk is exactly what lands in
+`tests/test_*.py`. (Module chunks are different: the build pipes them
+through black, which normalizes to 4 spaces, so their `.nw` indentation
+is cosmetic.)
+
+Rules:
+
+- Indent **new** test chunks 2 spaces per level.
+- When **extending** an existing test chunk that uses 4 spaces (older
+  chunks in some files do), match that chunk's style — never mix
+  indentation widths inside one tangled file region, and check the
+  surrounding chunks before writing.
+- This applies to `<<test functions>>=`, `<<integration tests>>=`, and
+  any class-specific test-method bucket chunks.
+
 ---
 
 ## Test Placement: After Implementation
