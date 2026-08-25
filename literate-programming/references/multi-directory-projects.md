@@ -463,6 +463,67 @@ The `\input` pulls in the woven `.tex` from `/src`.
 
 See `references/project-initialization.md` for the full document setup.
 
+### Registering a New Module (Checklist)
+
+A new `.nw` module must be wired into **several** places; missing one
+fails **silently** (the module simply never appears in the PDF, and no
+build error points at it). Real failure case: a `microsoft.nw` module
+was added to a project with full code, tests, and prose — but the PDF
+documentation lacked it entirely for months because steps 2–3 below
+were skipped.
+
+When creating `src/package/newmodule.nw`, register it in ALL of:
+
+1. **`src/package/Makefile`** — add `MODULES+= newmodule.py` so the
+   module tangles with `make all`.
+2. **`doc/Makefile`** — add the woven `.tex` as a PDF prerequisite:
+   `main.pdf: ../src/package/newmodule.tex`
+3. **The master document** (`doc/main.tex`, `doc/contents.tex`, or the
+   doc wrapper `.nw`) — add
+   `\input{../src/package/newmodule.tex}` in the right narrative
+   position.
+4. **Tests** — usually automatic: `tests/Makefile` discovers
+   `<<test [[newmodule.py]]>>` chunks by grepping `/src` (verify the
+   test file actually appears after `make -C tests`).
+5. **Packaging** (`pyproject.toml`) — only if the packaging lists
+   modules explicitly rather than by directory.
+
+**Verification**: after `make -C doc`, confirm the module is in the
+PDF, e.g. `pdftotext doc/main.pdf - | grep -c newmodule`. A count of
+0 means a registration step is missing.
+
+**Review heuristic**: when reviewing a change that adds a `.nw` file,
+grep the doc directory for the module's name; if it appears nowhere,
+the documentation wiring is missing.
+
+### Cross-Directory .tex Dependencies Go Stale Silently
+
+The doc Makefile must declare the `.nw` behind each cross-directory
+`.tex` prerequisite. A generic recursion rule like
+
+```makefile
+../%::
+	${MAKE} -C $(dir $@) $(notdir $@)
+```
+
+is a **terminal pattern rule without prerequisites**: GNU make runs it
+only when the target file is *missing*. An existing-but-stale `.tex`
+counts as up to date, so the PDF silently builds from old weaves after
+`.nw` edits. (The `all` target in `/src` typically only tangles the
+`.py` modules, so nothing else re-weaves either.)
+
+Fix by declaring the true dependency so make recurses when the source
+is newer:
+
+```makefile
+../src/package/%.tex: ../src/package/%.nw
+	${MAKE} -C ../src/package $*.tex
+```
+
+**Symptom to recognize**: the doc build exits 0 but new content is
+missing from the PDF; `stat` shows the woven `.tex` older than its
+`.nw`.
+
 ---
 
 ## Test Organization

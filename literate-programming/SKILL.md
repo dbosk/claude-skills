@@ -987,6 +987,29 @@ See `references/project-initialization.md` for full details. Quick checklist:
 6. Create `doc/packagename.nw` wrapper, `doc/Makefile`, `doc/preamble.tex`
 7. Create root `Makefile` orchestrating compile → test → docs
 
+### Adding a New Module to an Existing Project
+
+**CRITICAL**: a new `.nw` module must be registered in several places,
+and a missed step fails *silently* — the module builds and tests fine
+but never appears in the PDF documentation. When creating
+`src/package/newmodule.nw`, register it in ALL of:
+
+1. `src/package/Makefile` — `MODULES+= newmodule.py`
+2. `doc/Makefile` — `main.pdf: ../src/package/newmodule.tex`
+3. The master document (`doc/main.tex` / `contents.tex` / doc wrapper
+   `.nw`) — `\input{../src/package/newmodule.tex}`
+4. Verify tests were auto-discovered (`make -C tests`)
+
+Then build the docs and **verify the module is actually in the PDF**
+(`pdftotext doc/main.pdf - | grep -c newmodule` — a count of 0 means
+a step was missed). Apply the same check when *reviewing* a change
+that adds a `.nw` file. Also ensure the doc Makefile declares the
+`.nw` behind each cross-directory `.tex` prerequisite — a generic
+`../%::` recursion rule never re-weaves an existing stale `.tex`.
+See "Registering a New Module" in
+`references/multi-directory-projects.md` for details and the
+stale-weave failure mode.
+
 ### LaTeX-Safe Chunk Names
 
 Use `[[...]]` notation for Python chunks with underscores:
