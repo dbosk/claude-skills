@@ -17,7 +17,23 @@ Lessons from a real campaign: 7 review agents + dozens of fix agents, each in
 its own worktree of a literate-programming (noweb) repo, one branch and PR per
 fix. Every item below cost an agent real time at least once.
 
-## The four worktree traps (put these in every agent prompt)
+## The five worktree traps (put these in every agent prompt)
+
+0. **The auto-created worktree may be based on the DEFAULT branch, not the
+   branch you are on.** Agent-tool worktree isolation has been observed to
+   check out the repo's main/default branch even when the orchestrator's
+   session is on a feature branch — and agents then implement fixes against
+   the wrong code state while *reporting* the base they were told to expect
+   (in one campaign, three of four agents were mis-based and only one
+   noticed; another agent asserted "branched from <feature-tip>" in its
+   report while its merge-base said otherwise). Prompt every agent to run
+   `git log --oneline -1` FIRST, compare against the intended base SHA
+   (name the SHA explicitly in the prompt), and `git reset --hard <sha>` /
+   fast-forward before doing anything. As orchestrator, verify each
+   returned branch with `git merge-base <intended-base> <branch>` before
+   evaluating the diff — a diff against the wrong base shows phantom
+   changes (reverts of the feature branch's own commits) and hides real
+   conflicts until merge time.
 
 1. **Submodules are not initialized in a fresh worktree.** Any `make` that
    needs them fails cryptically. Prompt the agent to run
@@ -53,7 +69,7 @@ fix. Every item below cost an agent real time at least once.
 
 ## Prompt-engineering the fix agents
 
-- Include a SETUP preamble with the three traps above. Agents without it each
+- Include a SETUP preamble with the five traps above. Agents without it each
   lose ~15 minutes rediscovering the venv trap; agents with it don't.
 - When several agents edit the same file on different branches, assign each an
   explicit region ("keep your diff to function X; branches A/B own areas Y/Z")
