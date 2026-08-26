@@ -17,7 +17,7 @@ Lessons from a real campaign: 7 review agents + dozens of fix agents, each in
 its own worktree of a literate-programming (noweb) repo, one branch and PR per
 fix. Every item below cost an agent real time at least once.
 
-## The five worktree traps (put these in every agent prompt)
+## The seven worktree traps (put these in every agent prompt)
 
 0. **The auto-created worktree may be based on the DEFAULT branch, not the
    branch you are on.** Agent-tool worktree isolation has been observed to
@@ -67,9 +67,30 @@ fix. Every item below cost an agent real time at least once.
    load-bearing) use `git checkout <commit> -- <file>`, edit the generated
    artifact directly, or keep a scratch copy in /tmp.
 
+5. **`git reset --hard` breaks worktrees that have submodules.** Observed:
+   it half-initializes a not-yet-inited submodule — creating
+   `<submodule>/.git` plus an empty
+   `.git/worktrees/<wt>/modules/<submodule>/` holding only `config` — after
+   which *every* `git status` fails with `fatal: not a git repository:
+   <submodule>/../../../.git/worktrees/.../modules/<submodule>` (HEAD does
+   not move). Recovery, verified:
+   `rm -f <submodule>/.git && rm -rf .git/worktrees/<wt>/modules/<submodule-parent-dir>`.
+   Tell agents to avoid `git reset --hard` in worktrees; to revert files use
+   `git checkout <sha> -- <path>`.
+
+6. **Partial builds of a namespace-package tree test the WRONG repo.** The
+   specific Python variant of trap 3 that cost four agents in one campaign:
+   building only a subpackage (`make -C src/pkg/sub all`) leaves the
+   worktree's top-level `src/pkg/` without `__init__.py`, making it a
+   PEP 420 namespace-package *portion* — which loses to the main repo's
+   regular package on `sys.path`, so `PYTHONPATH=$PWD/src` + pytest silently
+   runs the MAIN repo's code with green results. Build the package ROOT and
+   every subpackage before testing, and require the `__file__`/`__path__`
+   verification of trap 3 (it is the only thing that catches this).
+
 ## Prompt-engineering the fix agents
 
-- Include a SETUP preamble with the five traps above. Agents without it each
+- Include a SETUP preamble with the seven traps above. Agents without it each
   lose ~15 minutes rediscovering the venv trap; agents with it don't.
 - When several agents edit the same file on different branches, assign each an
   explicit region ("keep your diff to function X; branches A/B own areas Y/Z")
@@ -78,7 +99,14 @@ fix. Every item below cost an agent real time at least once.
 - Slow doc-weaving/`all` targets exceed the 120 s Bash timeout; tell agents to
   build narrow targets (`make module.py`) when iterating.
 - Shared scratchpad directories collide between parallel agents — require
-  uniquely named scratch files, kept out of the repo and cleaned up.
+  scratch and log filenames prefixed with the agent's branch name, kept out
+  of the repo and cleaned up. Observed twice in one campaign: `/tmp/b1.log`
+  and `scratchpad/probe.py` overwritten by siblings mid-task, making one
+  agent's build look further along than it was.
+- Include the seven traps' SETUP preamble verbatim; in one round the
+  preamble said "build the dirs you touch" instead of "build ALL" and four
+  agents independently lost ~20 minutes to trap 6 before their import-path
+  check caught it.
 - Demand a structured final report: branch, commit, files, chunks/areas
   touched, what/why, full-suite result, deviations. The report is raw data for
   the orchestrator, not prose.
