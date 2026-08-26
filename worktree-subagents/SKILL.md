@@ -118,7 +118,7 @@ fix. Every item below cost an agent real time at least once.
   of the repo and cleaned up. Observed twice in one campaign: `/tmp/b1.log`
   and `scratchpad/probe.py` overwritten by siblings mid-task, making one
   agent's build look further along than it was.
-- Include the seven traps' SETUP preamble verbatim; in one round the
+- Include the eight traps' SETUP preamble verbatim; in one round the
   preamble said "build the dirs you touch" instead of "build ALL" and four
   agents independently lost ~20 minutes to trap 6 before their import-path
   check caught it.
