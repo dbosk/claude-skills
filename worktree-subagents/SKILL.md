@@ -17,7 +17,7 @@ Lessons from a real campaign: 7 review agents + dozens of fix agents, each in
 its own worktree of a literate-programming (noweb) repo, one branch and PR per
 fix. Every item below cost an agent real time at least once.
 
-## The seven worktree traps (put these in every agent prompt)
+## The eight worktree traps (put these in every agent prompt)
 
 0. **The auto-created worktree may be based on the DEFAULT branch, not the
    branch you are on.** Agent-tool worktree isolation has been observed to
@@ -88,9 +88,24 @@ fix. Every item below cost an agent real time at least once.
    every subpackage before testing, and require the `__file__`/`__path__`
    verification of trap 3 (it is the only thing that catches this).
 
+7. **Worktree creation follows the ORCHESTRATOR's cwd repo — a shell parked
+   inside a submodule spawns submodule worktrees.** Observed: the
+   orchestrator ran a check with `cd <repo>/makefiles && ...`, the cwd
+   persisted, and all three agents launched in the next tool call received
+   worktrees of the *submodule* repo (no project sources, wrong history,
+   base SHA unresolvable). The agents' isolation guard then blocks them
+   from reaching the real repo, so they cannot self-repair — only a
+   relaunch helps (agents whose task IS the submodule can be told to
+   continue with adjusted gates). Prevention: immediately before any
+   worktree-isolated Agent call, verify `pwd` and
+   `git rev-parse --show-toplevel` name the intended repo root; and give
+   every agent a step-0a check that `git rev-parse --show-toplevel` /
+   `git remote get-url origin` name the expected repo, with orders to STOP
+   and report rather than improvise if not.
+
 ## Prompt-engineering the fix agents
 
-- Include a SETUP preamble with the seven traps above. Agents without it each
+- Include a SETUP preamble with the eight traps above. Agents without it each
   lose ~15 minutes rediscovering the venv trap; agents with it don't.
 - When several agents edit the same file on different branches, assign each an
   explicit region ("keep your diff to function X; branches A/B own areas Y/Z")
