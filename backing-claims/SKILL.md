@@ -1,7 +1,7 @@
 ---
 name: backing-claims
 description: |
-  Back factual and empirical claims with a small two-sided literature review — topic-driven searches for literature that supports AND refutes/qualifies the claim (counter-search recorded as COUNTER) — verify sources in full text, and record each citation's provenance (how found, why picked, quote, counter-search outcome). Use proactively when: (1) adding OR reusing a citation, page number, or attribution for a factual/empirical claim in prose, .tex, .nw, or notes — including a cite carried over from slides, notes, a draft, or the existing .bib (an inherited citation is NOT pre-verified), (2) writing prose that attributes a claim to a source or recounts an example ("X reports/found that…", a paraphrase, or a page locator), (3) the user asks to "find a reference", "cite this", or "is this citation correct", (4) writing a related-work, background, or claims section, (5) the user mentions scholar, BibTeX, DOI, arXiv, OpenAlex, Crossref, or a literature search, (6) reviewing a .bib for unsupported references. Trigger BEFORE writing the citation. Complements writing-crypto and latex-writing (citation markup); this skill owns finding/verifying/justifying the reference.
+  Back factual and empirical claims with a small two-sided literature review — searches for literature that supports AND refutes/qualifies the claim (COUNTER) — verify sources in full text, and record provenance (how found, why picked, quote, counter-search outcome). Format-independent: papers, reports, memos, evidence logs, survey answers — any output resting on a factual claim, not just TeX. Use proactively when: (1) adding OR reusing a citation, page number, or attribution for a factual/empirical claim (inherited citations are NOT pre-verified), (2) attributing a claim to a source ("X found that…"), (3) the user asks to find a reference or check a citation — or wants an answer or decision backed by evidence, research, or literature, (4) writing related-work, background, or claims sections, (5) mentions of scholar, BibTeX, DOI, arXiv, OpenAlex, Crossref, or a literature search. Trigger BEFORE citing; this skill owns finding/verifying/justifying the reference (markup: writing-crypto/latex-writing).
 ---
 
 # Backing Claims with Verified References
@@ -10,6 +10,13 @@ Back every claim with scientific literature you have **read and verified**, and
 **record how you got there**. A citation is a load-bearing claim: it asserts that
 a specific source supports a specific statement. This skill makes that assertion
 auditable.
+
+The protocol is **format-independent**: it applies wherever a claim rests on a
+source — a paper, a report or memo, an evidence log, a survey or questionnaire
+answer, a recommendation given in conversation. The find → verify → record core
+is always the same; only the *recording surface* differs (BibTeX provenance
+blocks for papers, the deliverable's own evidence log or notes otherwise), and
+the paper-appendix section at the end applies only when the output is a paper.
 
 Backing a claim is a **small literature review, in both directions**: search
 for literature that *supports* the claim **and** for literature that *refutes
@@ -143,6 +150,13 @@ claims). Whatever you use, **capture the query/source verbatim** so `FOUND-VIA`
 can be reproduced. `references/scholar-cookbook.md` shows how to phrase each
 source's `FOUND-VIA` line.
 
+**No `scholar` in the environment?** The protocol does not depend on it. Run the
+same two-sided searches with WebSearch, and verify existence and content with
+direct API/page retrieval — `api.crossref.org/works/<doi>`,
+`api.openalex.org/works/doi:<doi>`, or WebFetch of the publisher's or issuing
+organization's own page. A source whose existence cannot be verified this way is
+**dropped and recorded as dropped**, never cited.
+
 `scholar snowball`, `scholar tuxedo`, and `scholar search --review` are
 interactive TUIs — **do not** drive them from an agent; use the non-interactive
 subcommands instead.
@@ -197,10 +211,14 @@ quote to fit. Escalate hard or contested claims to the `deep-research` skill.
 
 ### 5. Record provenance, then emit the citation
 
-Write the provenance comment block **immediately above** the BibTeX entry, then
-write the citation in the project's style (defer to `writing-crypto` /
-`latex-writing`). Full schema and worked examples:
-`references/provenance-format.md`.
+The provenance fields — `CLAIM`, `FOUND-VIA`, `PICKED`, `QUOTE`, `VERIFIED`,
+`COUNTER`, `DATE` — are format-independent; only where they live depends on the
+deliverable. In a paper, write them as a comment block **immediately above** the
+BibTeX entry, then write the citation in the project's style (defer to
+`writing-crypto` / `latex-writing`). In any other deliverable (a report, memo,
+evidence log, or answer), record the same fields per source in the deliverable's
+own log or notes — a citation without them is unbacked regardless of format.
+Full schema and worked examples: `references/provenance-format.md`.
 
 ```bibtex
 % === provenance: BellareNamprempre2000 ===
