@@ -129,10 +129,11 @@ Apply `variation-theory` skill when structuring explanations:
 - **Generalization**: Show pattern across different contexts
 - **Fusion**: Integrate parts back into coherent whole
 
-When the literate document is student-facing educational LaTeX, keep
-pedagogical meta-commentary such as variation/invariance labels and
-sequencing rationale out of the visible narrative.  Put that reasoning in
-`\ltnote{...}` via the `didactic-notes` skill.
+When the literate document is student-facing educational LaTeX — the
+students read the *woven* output — keep pedagogical meta-commentary such as
+variation/invariance labels and sequencing rationale out of the visible
+narrative.  Put that reasoning in `\ltnote{...}` via the `didactic-notes`
+skill.
 
 `\ltnote{...}` is also available in an ordinary (maintainer-facing) literate
 program, but scope it tightly: it is for reasoning about the **exposition**, not
@@ -145,6 +146,23 @@ citations behind it) is *content*: it belongs in the visible body prose.  The
 test: if removing the note would lose information about the program, it is body
 text; if it would only lose information about how the explanation was authored,
 it is an `\ltnote`.  See the `didactic-notes` skill for details.
+
+**When the tangled artifact is itself teaching material** — a `.nw` that
+tangles to a student-facing tutorial (e.g. a pytorial `.md`) and weaves to a
+maintainer/educator chapter — apply the maintainer-facing rule with the
+tutorial in the role of the program.  Each layer teaches the layer below it,
+so each has its own object of learning: the tangled tutorial teaches the
+*student* the subject; the woven prose teaches the *teacher* (the
+educator/maintainer) the tutorial's design — how the tutorial teaches; an
+`\ltnote` teaches the *future author* how the prose targets the teacher's
+learning.  Pedagogical rationale about the tutorial (why this step order,
+what varies, the critical aspects) is therefore the woven chapter's own
+object of learning and belongs in the visible **body prose**, not in
+`\ltnote` — even though it is variation-theory commentary.  `\ltnote` sits
+one level above the document's own object of learning: reserve it for how
+the woven exposition itself is authored.  The test carries over: removing it
+loses information about the tutorial → body text; it loses only information
+about how the chapter's prose was authored → `\ltnote`.
 
 If the `.nw` document generates slides or handouts with live questions, Mentipy
 is a suitable tool for embedding those prompts in the LaTeX output.

@@ -1,6 +1,6 @@
 ---
 name: variation-theory
-description: Apply variation theory of learning to structure content using contrast, generalization, and fusion patterns. Variation must target the critical aspects of the learning objective. Use proactively when (1) writing educational materials, explanations, tutorials, or lecture slides, (2) designing or reviewing examples in documentation, READMEs, or literate programs (.nw files), especially when multiple examples illustrate alternative approaches to the same task, (3) structuring code examples, CLI usage examples, or API examples where the reader should notice what differs between alternatives, (4) user mentions variation theory, learning theory, pedagogy, contrast, invariance, or critical aspects. Also activate when asked to elaborate, make concrete, or add examples to existing content. Works alongside literate-programming and didactic-notes skills; in educational LaTeX or .nw materials, keep variation-analysis labels in \ltnote{} rather than student-facing prose, unless the document itself is about that design.
+description: Apply variation theory of learning to structure content using contrast, generalization, and fusion patterns. Variation must target the critical aspects of the learning objective. Use proactively when (1) writing educational materials, explanations, tutorials, or lecture slides, (2) designing or reviewing examples in documentation, READMEs, or literate programs (.nw files), especially when multiple examples illustrate alternative approaches to the same task, (3) structuring code examples, CLI usage examples, or API examples where the reader should notice what differs between alternatives, (4) user mentions variation theory, pedagogy, contrast, invariance, or critical aspects. Also activate when asked to elaborate or add examples. Works alongside literate-programming and didactic-notes skills; in educational LaTeX or .nw materials, keep variation-analysis labels in \ltnote{} rather than student-facing prose, unless the design is the document's subject (e.g. prose documenting a tangled learner-facing tutorial).
 ---
 
 # Variation Theory of Learning
@@ -83,24 +83,33 @@ difference (the method).
 ### Where the variation analysis goes: notes vs. body
 
 **Decide with one question first: is the \enquote{what varies / what stays
-invariant} analysis commentary *about* the teaching, or is it the document's
-*subject matter*?** Getting this backwards is a common mistake — do not reach
-for `\ltnote` reflexively.
+invariant} analysis part of the object of learning for *this document's*
+reader, or commentary on how the document pursues that object of learning?**
+Getting this backwards is a common mistake — do not reach for `\ltnote`
+reflexively.
 
-- **The document teaches a subject** (a tutorial, lecture, README, literate
-  program, crypto notes). The reader is there to learn the subject, not the
-  pedagogy. The variation analysis is meta-commentary about how the material is
-  built, so it goes in `\ltnote{...}` (via the `didactic-notes` skill). Keep the
-  visible prose focused on the example itself and the feature the reader should
-  use. **This is the common case.**
+- **The document teaches a subject** (a tutorial the reader works through, a
+  lecture, README, literate program, crypto notes). The reader's object of
+  learning is the subject, not the pedagogy. The variation analysis is
+  meta-commentary about how the material is built, so it goes in
+  `\ltnote{...}` (via the `didactic-notes` skill). Keep the visible prose
+  focused on the example itself and the feature the reader should use.
+  **This is the common case.**
 
 - **The teaching design *is* the subject** (a research paper, a methods or
-  pedagogy writeup, an article *analysing* how to teach against a misconception).
-  Here the variation analysis is the content — the very finding the document
-  reports — so it belongs in the **body prose**. Putting it in `\ltnote` hides
-  the document's own argument. `\ltnote` is then reserved for reasoning about the
-  *document's own construction*: why a section is ordered this way, why this
-  example was chosen, where a topic is placed.
+  pedagogy writeup, an article *analysing* how to teach against a misconception
+  — or a literate source whose *tangled* output is the learner-facing tutorial,
+  so the woven prose documents that tutorial for educators/maintainers).
+  Here the reader's object of learning is the teaching design itself, and the
+  variation analysis is the content — the very finding or rationale the
+  document reports — so it belongs in the **body prose**. Putting it in
+  `\ltnote` hides the document's own argument. `\ltnote` is then reserved for
+  reasoning about the *document's own construction*: why a section is ordered
+  this way, why this example was chosen, where a topic is placed. In the
+  literate-tutorial case the layers form a chain — the tangled tutorial
+  teaches the student, the woven prose teaches the teacher the tutorial's
+  design, and `\ltnote` teaches the future author how the prose targets the
+  teacher's learning.
 
 This is the same scope test the `didactic-notes` skill states: if the note would
 still make sense to a reader who only cares *how the thing being described

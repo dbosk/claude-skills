@@ -83,6 +83,19 @@ the paper's own argument. In such a document `\ltnote` is reserved for decisions
 about the paper itself: section order, example choice, where a topic is placed.
 The `variation-theory` skill carries the worked LaTeX example.
 
+The same holds when the pedagogical design is a **tangled artifact** of a
+literate source: a `.nw` file that tangles to student-facing teaching material
+(e.g. a tutorial `.md`) and weaves to a maintainer/educator chapter.  The
+students never see the woven prose, so the prose is not the teaching text —
+it is the document *about* the teaching text, and its reader's object of
+learning is the tutorial's design.  Each layer teaches the layer below it:
+the tangled tutorial teaches the *student* the subject; the woven prose
+teaches the *teacher* how the tutorial teaches; an `\ltnote` teaches the
+*future author* how the prose targets the teacher's learning.  So the
+tutorial's variation patterns, critical aspects, and sequencing rationale are
+**body text** in the woven chapter, and `\ltnote` is reserved for the
+chapter's own construction.  See the worked example below.
+
 ### Example: a literate program (`.nw`)
 
 A literate program's prose teaches the **code** to a maintainer, so `\ltnote`
@@ -115,6 +128,35 @@ common mistake: it is content, not a note about the writing. It is also fragile
 `\autocite`/`\textcite` inside a margin float emit footnotes that fail fatally
 with ``Float(s) lost''. Keep substantive citations in the body; when a note
 itself must cite, use `\parencite` (see Citing Pedagogical Research below).
+
+### Example: a literate tutorial (`.nw` tangling to teaching material)
+
+When the `.nw` tangles to a student-facing tutorial, the woven chapter's
+object of learning *is* the tutorial's design, so the variation analysis is
+body prose there — the reverse of the reflex trained by ordinary educational
+LaTeX:
+
+```latex
+% BAD — the chapter's own subject matter hidden in a note:
+This tutorial covers playback and tagging.
+\ltnote{%
+  We use contrast on the starting point of playback: first the whole
+  log, then playback from a tag, holding the recorded project invariant.
+}
+
+% BODY TEXT (correct) — the tutorial's design is what the chapter teaches:
+The tutorial varies the starting point of playback — first the whole
+log, then playback from a tag — while the recorded project stays
+invariant, so the learner discerns that tags are navigation anchors
+into the existing history, not metadata on the side.
+
+% \ltnote (correct) — how the chapter describes the tutorial:
+\ltnote{%
+  The chapter walks the steps in the tutorial's own order rather than
+  grouping them by CLI command, so a teacher can read it side by side
+  with a student's session.
+}
+```
 
 ## Quick Example
 
