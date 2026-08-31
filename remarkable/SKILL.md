@@ -173,10 +173,21 @@ uploads naturally accumulate; embrace that instead of fighting it.
 
 The workflow, unless the user says otherwise:
 
-1. **Bake the version into the name at upload time** — every upload gets a
-   unique `document_name` with date and version, e.g.
-   `"<Title> (draft YYYY-MM-DD, vN)"` (the vt-debug paper's convention;
-   `"<Title> (review vN)"` works for non-drafts). Because no two uploads
+1. **Bake the version — and the branch — into the name at upload time.**
+   Every upload gets a unique `document_name` with date and version:
+   `"<Title> (draft YYYY-MM-DD, vN)"` on the default branch (the vt-debug
+   paper's convention; `"<Title> (review vN)"` works for non-drafts), and
+   `"<Title> (<branch>, draft YYYY-MM-DD, vN)"` when the build comes from a
+   feature branch or worktree — e.g. `learnlog (metrics, draft 2026-08-31,
+   v8)`. Take `<branch>` from `git branch --show-current`, dropping a
+   `worktree-` prefix, so the user can tell on the tablet which line of
+   work a draft belongs to and two branches' drafts do not interleave
+   silently in one version sequence. `<Title>` is the **existing document
+   family's name** — before the first upload in a session, run
+   `remarkable_browse(query="<title word>")` and reuse the family name and
+   its highest vN; inventing a new family (`"learnlog documentation
+   (metrics, …, v1)"` beside an existing `"learnlog (draft …, v7)"`)
+   breaks the version trail and costs a rename. Because no two uploads
    share a name, there is **no rename step and no name-collision
    ambiguity** — every later tool call addresses the document by its
    unique name. Never upload under a bare base name planning to rename
@@ -191,8 +202,10 @@ The workflow, unless the user says otherwise:
    conversation, the repo's commit messages (pairing each upload with its
    commit, message noting "uploaded as draft YYYY-MM-DD, vN", keeps this
    trail in git), or by `remarkable_search`-ing the title and taking the
-   highest existing suffix. Version numbers are cheap: a same-day
-   follow-up change gets vN+1, never a silent re-upload of vN.
+   highest existing suffix **across all branches** (one counter per
+   document family, not per branch, so v8 on a feature branch follows v7
+   from main and a later main build is v9). Version numbers are cheap: a
+   same-day follow-up change gets vN+1, never a silent re-upload of vN.
 4. **Read annotations from the version the user reviewed** — usually the
    latest, but if they name an older draft, read that one. Before
    concluding a version has no annotations, remember the sync trap
