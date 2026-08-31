@@ -92,8 +92,15 @@ for path in sys.argv[1:]:
         years = set()
         for k in ("issued", "published-print", "published-online",
                   "created"):
-            try: years.add(meta[k]["date-parts"][0][0])
-            except Exception: pass
+            try:
+                year = meta[k]["date-parts"][0][0]
+            except Exception:
+                continue
+            # Crossref stores null date parts for some records (e.g.
+            # older IEEE proceedings); a None in the set would make
+            # the sorted() below raise.
+            if isinstance(year, int):
+                years.add(year)
         if (y := f.get("year")) and years and int(y) not in years:
             problems.append(f"{short}:{key}: YEAR mismatch bib={y} "
                             f"crossref={sorted(years)}")

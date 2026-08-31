@@ -1,7 +1,7 @@
 ---
 name: backing-claims
 description: |
-  Back factual and empirical claims with a small two-sided literature review — searches for literature that supports AND refutes/qualifies the claim (COUNTER) — verify sources in full text, and record provenance (how found, why picked, quote, counter-search outcome). Format-independent: papers, reports, memos, evidence logs, survey answers — any output resting on a factual claim, not just TeX. Use proactively when: (1) adding OR reusing a citation, page number, or attribution for a factual/empirical claim (inherited citations are NOT pre-verified), (2) attributing a claim to a source ("X found that…"), (3) the user asks to find a reference or check a citation — or wants an answer or decision backed by evidence, research, or literature, (4) writing related-work, background, or claims sections, (5) mentions of scholar, BibTeX, DOI, arXiv, OpenAlex, Crossref, or a literature search. Trigger BEFORE citing; this skill owns finding/verifying/justifying the reference (markup: writing-crypto/latex-writing).
+  Back factual and empirical claims with a small two-sided literature review — searches for literature that supports AND refutes/qualifies the claim (COUNTER) — verify sources in full text, and record provenance (how found, why picked, quote, counter-search outcome). Format-independent: papers, reports, memos, evidence logs, survey answers — any output resting on a factual claim, not just TeX. Use proactively when: (1) adding OR reusing a citation, page number, or attribution for a factual/empirical claim (inherited citations are NOT pre-verified), (2) attributing a claim to a source ("X found that…"), (3) the user asks to find a reference or check a citation — or wants an answer or decision backed by evidence, research, or literature, (4) writing related-work, background, or claims sections, (5) mentions of scholar, BibTeX, DOI, arXiv, OpenAlex, Crossref, or a literature search. (6) DELEGATING literature research to a subagent or teammate — the subagent prompt must tell it to load this skill, run every search under a named scholar session, and document alphaXiv/WebSearch complements in the appendix (see "Delegating research to subagents"). Trigger BEFORE citing; this skill owns finding/verifying/justifying the reference (markup: writing-crypto/latex-writing).
 ---
 
 # Backing Claims with Verified References
@@ -144,11 +144,26 @@ you then fill in `CLAIM`/`PICKED`/`QUOTE`/`VERIFIED`):
 scholar search "authenticated encryption generic composition" -p s2 -p dblp -f bibtex+prov
 ```
 
-Any complementary source is allowed (Google Scholar, a publisher site, WebSearch
-+ WebFetch, Crossref/DOI lookup, the `deep-research` skill for hard/contested
-claims). Whatever you use, **capture the query/source verbatim** so `FOUND-VIA`
-can be reproduced. `references/scholar-cookbook.md` shows how to phrase each
+**Complementary sources are allowed — and every one of them is documented.**
+Google Scholar, a publisher site, alphaXiv, WebSearch + WebFetch, Crossref/
+OpenAlex/DataCite REST lookups, the `deep-research` skill for hard/contested
+claims: use them whenever `scholar` is down, rate-limited, or does not index
+the venue (grey literature, ACM proceedings when `s2` is dead). The rule is
+not *which* tool but *what is recorded*: **capture the tool and the query/URL
+verbatim** in `FOUND-VIA`/`COUNTER`, **and** list every non-`scholar` search
+(tool, verbatim query, date, retained/dropped) in the search-protocol
+appendix or the deliverable's evidence log. A complement that is not written
+down did not happen; a complement that is written down is as good as a
+`scholar` session. `references/scholar-cookbook.md` shows how to phrase each
 source's `FOUND-VIA` line.
+
+Two operational notes from real sessions: run **`scholar providers check`**
+before searching and record its output (a rejected `s2` key or a 429-throttled
+`openalex` silently drops coverage); and phrase **counter-searches with field
+syntax** (WoS `TS=("cyclomatic complexity" AND (critique OR criticism))`,
+Scopus `TITLE-ABS-KEY(...)`) — natural-language counter-queries such as
+"maintainability index criticism limitations" returned only off-topic hits
+on WoS/OpenAlex, so a "nothing found" from them is not a real negative.
 
 **No `scholar` in the environment?** The protocol does not depend on it. Run the
 same two-sided searches with WebSearch, and verify existence and content with
@@ -350,6 +365,47 @@ on the claim* (another field / a different question within the field), and a
 **separate** category for corroborating sources that *do* bear on it
 ("supports the claim") — never an exclusion category that means "redundant".
 
+## Delegating research to subagents
+
+A literature search delegated to a subagent (Agent tool, Workflow script,
+teammate) is still bound by this protocol, and the subagent does not inherit
+it: it inherits only its prompt. Delegating without saying so produced, in one
+session, three agents that cited from WebSearch snippets with no `scholar`
+session to audit — and had to be redirected mid-run. So the **orchestrator
+loads this skill first** and puts the protocol in the prompt. Start the
+subagent prompt with this preamble (adapt the slug and paths):
+
+```
+Load the `backing-claims` skill (Skill tool: skill="backing-claims") and
+follow it. Run `scholar providers check` first and record which providers
+are alive. Run EVERY search under one named session:
+  scholar search "<topic query>" -n <claim-slug> -p dblp -p wos -p ieee
+    -p openalex -f bibtex+prov
+Search topic-driven (by concept), not by author name; retrieve known items
+by DOI (curl https://api.crossref.org/works/<doi>) or field search
+(scholar search 'TI=(...)' -p wos). For every claim run at least one
+COUNTER-search (field syntax, e.g. TS=("<term>" AND (critique OR
+limitation OR replication))). Verify each source by opening it (scholar
+pdf quote / WebFetch of the publisher or an OA copy) and capture a
+VERBATIM quote. alphaXiv, WebSearch and WebFetch MAY complement scholar,
+but every such query must be recorded verbatim (tool, query, outcome) in
+FOUND-VIA/COUNTER and in a "Search protocol" section of your report.
+Write a .bib with a provenance block (CLAIM / FOUND-VIA / PICKED / QUOTE /
+VERIFIED / COUNTER / DATE) above every entry to <scratchpad>/<slug>.bib
+and run <skill>/scripts/check_provenance.py on it. Sources you cannot
+verify are listed as DROPPED, never cited. Write the COMPLETE report to
+<scratchpad>/<slug>-report.md (agent replies are truncated at ~4 KB) and
+reply with a one-paragraph summary plus the paths.
+```
+
+Then, when the reports arrive: read the `.bib` files rather than the
+summaries, merge them into the deliverable's bibliography (deduplicating
+keys — the same work often surfaces in two agents' sessions under different
+keys), and build the appendix from the reports' search-protocol sections.
+Papers the agents could not obtain are the user's to fetch: hand them over
+as todos (the `nytid-todo` skill has the pattern), ordered load-bearing
+first.
+
 ## Anti-patterns
 
 | ✗ Wrong | ✓ Right |
@@ -369,6 +425,8 @@ on the claim* (another field / a different question within the field), and a
 | "Document" a counter-search by naming its session in passing. | A Method paragraph with the verbatim queries, providers, date, and export path — reproducible from the appendix text alone. |
 | Chapter's answer buried mid-chapter; it ends on raw hit-list tables. | A Conclusion answers the research question explicitly; the tables follow it as audit data. |
 | Search one or two providers; trust a "not found". | Query several (`s2 openalex dblp wos scopus`); run `scholar providers check` first — a dead key (S2 403) silently drops a database. |
+| Delegate a literature search with "use WebSearch/alphaXiv" and no protocol. | Load this skill first; the subagent prompt carries the preamble above (named `scholar` session, counter-searches, provenance `.bib`, documented complements, report to a file). |
+| Use alphaXiv/WebSearch and mention it in passing. | Record the tool and verbatim query in `FOUND-VIA`/`COUNTER` **and** in the search-protocol appendix — undocumented complements are unbacked. |
 | Keyword-search for a paper whose title/DOI you already know. | Retrieve known items by DOI (OpenAlex `works/doi:`, Crossref) or field search (WoS `TI=`, Scopus `TITLE()`); Google Scholar / citation-chain / author copy for grey lit. |
 
 ## Reference files
