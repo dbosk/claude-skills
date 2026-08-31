@@ -459,6 +459,11 @@ include ${INCLUDE_MAKEFILES}/noweb.mk
 rules can process it. The document `\input`s the woven `.tex` from `src/`.
 
 **`doc/preamble.tex`:** Copy from the skill's `references/preamble.tex`.
+Its biblatex options are `style=verbose,citestyle=verbose` because the
+template pairs memoir with didactic, which places `\autocite` footnotes in
+the margin — verbose is what puts the full reference there.  Keep it as is
+when the project cites; only a project without memoir+didactic should
+switch to `alphabetic`/`authoryear`.
 
 **`doc/abstract.tex`:**
 ```latex

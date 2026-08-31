@@ -170,9 +170,16 @@ For more concise notes, use the starred command `\LabelName*` which expands to t
 
 **Best practice**: Use a separate `.bib` file for pedagogical and learning theory references (e.g., `ltnotes.bib`), distinct from domain-specific references.
 
-**In your preamble:**
+**In your preamble** (the verbose style goes with memoir + didactic, which
+turns `\autocite` into a margin footnote carrying the full reference; see
+`footnotes-and-citations.md`, and note that inside an `\ltnote` only
+`\parencite` is safe):
 ```latex
-\usepackage[natbib,style=alphabetic,maxbibnames=99]{biblatex}
+\usepackage[
+  natbib, backend=biber,
+  style=verbose, citestyle=verbose,
+  singletitle=false, maxbibnames=99,
+]{biblatex}
 \addbibresource{bibliography.bib}  % Domain references
 \addbibresource{ltnotes.bib}        % Pedagogical references
 ```
