@@ -6,7 +6,10 @@ description: |
   progress notes, create subtasks, reprioritize items, or import/sync GitHub
   issues. Also triggered by "what should I work on next?", "show my tasks",
   "mark that done", "what's in progress?", or mentions of nytid, todo, or work
-  items.
+  items. Also use when handing the user a batch of follow-ups from a session
+  ("add todos to my nytid", papers to download, things only the user can do)
+  and when a todo should resume the current Claude session (`claude --resume`)
+  in a given working directory.
 ---
 
 # Managing work with `nytid todo`
@@ -22,16 +25,21 @@ Omitting or widening `--who` is acceptable when *reading* tasks to get context
 (see "Getting context from other assignees" below). **Never modify tasks that
 are not assigned to `dan-claude`.**
 
-### Exception: email-derived todos (user-owned work)
+### Exception: user-owned work (omit `--who`)
 
-When the `inbox-info` skill is active and the user is converting flagged
-emails into todos, **omit `--who`** entirely so the new todos default to the
-current user (`dbosk`). `dan-claude` is a delegated worker for code/tooling
-tasks, not a stand-in for the user in human communication — assigning email
-replies to `dan-claude` mis-routes work the user must do themselves. See
-`~/.claude/skills/inbox-info/references/todo-conversion-rules.md` for the
-full rationale. This exception applies only to email-derived todos; all
-other `nytid todo` work still uses `--who dan-claude`.
+`dan-claude` is a delegated worker for code/tooling tasks, not a stand-in
+for the user. When the todo is something **only the user can do**, **omit
+`--who`** entirely so it defaults to the current user (`dbosk`):
+
+- **Email-derived todos** — when the `inbox-info` skill is active and the
+  user is converting flagged emails into todos. Assigning email replies to
+  `dan-claude` mis-routes human communication. See
+  `~/.claude/skills/inbox-info/references/todo-conversion-rules.md`.
+- **Batches of follow-ups the user asked to have "in my nytid"** — e.g.
+  papers to fetch through the library proxy, credentials to obtain, people
+  to contact. See "Handing the user follow-ups from a session" below.
+
+All other `nytid todo` work still uses `--who dan-claude`.
 
 ## Discovering options
 
@@ -118,6 +126,41 @@ from `start` to working with no copy-paste.
 
 Use `reprioritize` (alias `reprio`) to rerun the binary-search priority
 comparison for a task whose importance has changed.
+
+## Handing the user follow-ups from a session
+
+When a session produces a batch of items the user must do personally (e.g.
+"the papers that couldn't be downloaded: add todos so I try to fetch them"),
+build **one parent todo that resumes the session, with one subtask per
+item**, all assigned to the user (omit `--who`):
+
+1. **Parent** — top-level, `--append` (no interactive priority prompt), a
+   description saying where the session's artefacts live (scratchpad paths,
+   scholar sessions, plan file), and a default command that lands the user
+   back in *this* session in the right directory:
+
+   ```
+   nytid todo add <labels> --top-level --append -t "<what and why>" \
+     --description "<artefact locations; ordering rule for subtasks>" \
+     -C <working directory of the session> \
+     -c "claude --resume <session-id>"
+   ```
+
+   The session id is the UUID in the session's scratchpad path
+   (`…/<project>/<session-id>/scratchpad`); the working directory is the
+   session's primary working directory (a worktree path when working in
+   one). `-C` and `-c` can also be set afterwards with `edit`.
+2. **Subtasks** — `--parent <parent-id> --append`, added in priority order
+   (most load-bearing first, so `--append` encodes the order), each with a
+   one-step default command (`-c "xdg-open https://doi.org/<doi>"` for a
+   paper, an editor or URL otherwise) and a description stating **what to
+   check once the item is obtained** (e.g. "verify the 13/3/÷16 parameters
+   attributed to it"), so the user does not have to reconstruct the context.
+3. Report the parent id and the few subtasks that matter most; the rest
+   are visible via `view <parent-id>`.
+
+Batch the subtask adds in one shell loop; each `add` prints `Added todo
+#<id>`, so capture the parent's id from its own output before the loop.
 
 ## Getting context from other assignees
 
