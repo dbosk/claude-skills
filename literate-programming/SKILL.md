@@ -1216,27 +1216,44 @@ is an *indexed* identifier (a name defined in a code chunk, e.g. a dunder like
 `__str__`) become links and fail; plain words like `[[command]]` weave to a
 non-linked `\Tt` and are harmless.
 
-**Preferred fix — keep the literate `[[...]]`-in-headings convention** by making
-the link robust *project-wide* in `preamble.tex` (after hyperref is loaded).
-This is two cooperating fixes; both are needed, and they fix every current and
-future heading at once instead of editing each `.nw`:
+**Preferred fix — keep the literate `[[...]]`-in-headings convention.**
+`noweb.sty` from the dbosk fork (`integration` branch, Aug 2026 onwards) fixes
+this itself: `\nwhyperreference` is declared robust and the bookmark rules
+below are registered at `\begin{document}`, so with that `noweb.sty` installed
+no preamble change is needed.  For a *stock* `noweb.sty`, the shipped
+`references/preamble.tex` applies the same two cooperating fixes project-wide
+(after hyperref is loaded), guarded so they take effect only when the loaded
+`noweb.sty` lacks them:
 
 ```latex
-% (1) robust \nwhyperreference: written literally into moving arguments instead
-%     of expanding (and misfiring its self-\let) there, yet still links in body
-\DeclareRobustCommand\nwhyperreference[2]{\hyperlink{noweb.#1}{#2}}
-% (2) strip noweb's code-quote macros from PDF bookmark strings → clean bookmarks
-\pdfstringdefDisableCommands{%
-  \def\nwlinkedidentq#1#2{#1}%
-  \let\Tt\relax
-  \let\nwendquote\relax
-}
+\ifcsname nwhyperreference \endcsname\else   % already robust (fork)? skip
+  % (1) robust \nwhyperreference: written literally into moving arguments
+  %     instead of expanding (and misfiring its self-\let) there
+  \DeclareRobustCommand\nwhyperreference[2]{\hyperlink{noweb.#1}{#2}\relax}
+  % (2) strip noweb's code-quote macros from PDF bookmark strings
+  \pdfstringdefDisableCommands{%
+    \def\nwlinkedidentq#1#2{#1}%
+    \def\nwlinkedidentc#1#2{#1}%
+    \let\Tt\relax
+    \let\nwendquote\relax
+  }
+\fi
 ```
 
-This block is in the shipped `references/preamble.tex`.  The narrower
-alternative — rewriting the heading to use `\texttt{...}` instead of `[[...]]` —
-also works but loses the cross-reference link and must be repeated per heading,
-so prefer the preamble fix.
+Two details matter when hand-copying this block.  *The guard*:
+`\DeclareRobustCommand` stores the real macro under the name with a trailing
+space, which stock `noweb.sty` never defines, so the test tells a fixed
+`noweb.sty` from a stock one.  *The trailing `\relax`*: `beamerarticle`
+redefines `\hyperlink` to accept an overlay specification *after* its
+arguments, and in a code chunk a linked identifier is followed by the rest of
+the line — `close<enter>` weaves to `\hyperlink{noweb.X}{close}<enter>`, and
+without the `\relax` beamer takes `<enter>` as an overlay and drops both the
+identifier and the `<enter>` (dbosk/noweb#11).  An unguarded override without
+`\relax` reintroduces that bug on top of a fixed `noweb.sty`.
+
+The narrower alternative — rewriting the heading to use `\texttt{...}` instead
+of `[[...]]` — also works but loses the cross-reference link and must be
+repeated per heading, so prefer the preamble fix.
 
 While debugging such a build, note `latexmk` can mask the real LaTeX error
 behind a later toolchain failure (e.g. `biber: malformed bcf` from a stale

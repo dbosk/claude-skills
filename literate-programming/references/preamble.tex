@@ -104,21 +104,32 @@
 % Make noweb's hyperlinked identifiers safe in headings (chapter/section titles
 % that contain a [[code]] quote).  With -index, such a quote weaves into a
 % \nwlinkedidentq hyperlink; in a moving argument (the .toc, the running header,
-% the PDF bookmark) hyperref then fails fatally (under newer TeX Live with
-% errors like "Undefined control sequence \hyper@@link" / "\Hy@reserved@a", or a
-% stack overflow from noweb's self-redefining \nwhyperreference).  Two fixes,
-% both required, let the project keep [[...]] in headings instead of falling
-% back to \texttt{...}:
+% the PDF bookmark) stock noweb.sty's self-redefining \nwhyperreference fails
+% fatally under newer TeX Live ("Undefined control sequence \hyper@@link" /
+% "\Hy@reserved@a", or a stack overflow).
 %
-% (1) Replace \nwhyperreference with noweb's robust hyperref form so it is
-%     written literally into moving arguments instead of expanding (and
-%     misfiring its terminating \global\let) there, yet still links in the body.
-\DeclareRobustCommand\nwhyperreference[2]{\hyperlink{noweb.#1}{#2}}
+% noweb.sty from the dbosk fork (integration branch, Aug 2026 onwards) already
+% declares \nwhyperreference robust and registers the \pdfstringdef rules
+% below itself, so the workaround is applied only when the loaded noweb.sty is
+% a stock one.  Detection: \DeclareRobustCommand stores the real macro under
+% the name with a trailing space, which stock noweb.sty never defines.
 %
-% (2) Strip noweb's code-quote macros from PDF bookmark strings, so a [[code]]
-%     quote in a heading yields clean bookmark text without hyperref warnings.
-\pdfstringdefDisableCommands{%
-  \def\nwlinkedidentq#1#2{#1}%
-  \let\Tt\relax
-  \let\nwendquote\relax
-}
+% Never override unconditionally: the fork's version also ends its \hyperlink
+% in \relax so that beamerarticle cannot take a following <...> in a code
+% chunk (e.g. "close<enter>" in a muttrc) as an overlay specification, which
+% would drop both the identifier and the <...> (dbosk/noweb#11).  The fallback
+% below carries the same \relax.
+\ifcsname nwhyperreference \endcsname\else
+  % (1) Robust \nwhyperreference: written literally into moving arguments
+  %     instead of expanding (and misfiring its \global\let) there, yet still
+  %     links in the body.
+  \DeclareRobustCommand\nwhyperreference[2]{\hyperlink{noweb.#1}{#2}\relax}
+  % (2) Strip noweb's code-quote macros from PDF bookmark strings, so a
+  %     [[code]] quote in a heading yields clean bookmark text.
+  \pdfstringdefDisableCommands{%
+    \def\nwlinkedidentq#1#2{#1}%
+    \def\nwlinkedidentc#1#2{#1}%
+    \let\Tt\relax
+    \let\nwendquote\relax
+  }
+\fi
