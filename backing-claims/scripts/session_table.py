@@ -94,6 +94,15 @@ STRINGS = {
                     "Xplore (IEEE), Web of Science (WoS), Scopus."),
         "pendcap": ", %d ej klassade",
         "othcap": ", %d dubbletter eller andra versioner av citerade källor",
+        "bearing": ("Träffar som rör påståendet, %(track)s: %(cit)d citerade, "
+                    "%(sup)d som stöder påståendet och %(qual)d som "
+                    "kvalificerar eller motsäger det, av %(n)d unika poster; "
+                    "de %(adj)d angränsande och %(off)d felträffarna%(pend)s"
+                    "%(oth)s listas inte.  Skälet står i sista kolumnen; för "
+                    "maskinklassade rader anges modellens konfidens.  "
+                    "Databaser: OpenAlex (OA; inte "
+                    "\\foreignlanguage{english}{open access}), DBLP, IEEE "
+                    "Xplore (IEEE), Web of Science (WoS), Scopus."),
     },
     "en": {
         "cited": "cited",
@@ -126,6 +135,14 @@ STRINGS = {
                     "Science (WoS), Scopus."),
         "pendcap": ", %d unclassified",
         "othcap": ", %d duplicates or other versions of cited sources",
+        "bearing": ("Records bearing on the claim, %(track)s: %(cit)d cited, "
+                    "%(sup)d supporting and %(qual)d qualifying or "
+                    "contradicting it, out of %(n)d unique records; the "
+                    "%(adj)d adjacent and %(off)d false hits%(pend)s%(oth)s "
+                    "are not listed.  The last column gives the reason; "
+                    "machine-classified rows show the model's confidence.  "
+                    "Databases: OpenAlex (OA; not open access), DBLP, IEEE "
+                    "Xplore (IEEE), Web of Science (WoS), Scopus."),
     },
 }
 
@@ -241,6 +258,9 @@ def main():
     ap.add_argument("--lang", choices=sorted(STRINGS), default="sv")
     ap.add_argument("--theme", action="append", default=[],
                     metavar="TAG=TEXT", help="readable reason for a cited source's theme tag")
+    ap.add_argument("--bearing-only", action="store_true",
+                    help="list only cited/supports/qualifies rows; adjacent and "
+                         "off-topic records appear as counts in the caption")
     ap.add_argument("-o", "--out", required=True, help="output .tex path")
     args = ap.parse_args()
 
@@ -260,9 +280,10 @@ def main():
         sys.exit(f"no rows with a title in {csv_path}")
     rows.sort(key=lambda r: (r["order"], r["title"].lower()))
     counts = {o: sum(1 for r in rows if r["order"] == o) for o in range(0, 7)}
+    listed = [r for r in rows if r["order"] <= 2] if args.bearing_only else rows
     body = "\n".join("%s & %s & %s & %s \\\\" % (
-        r["title"], r["year"], ", ".join(r["prov"]), r["reason"]) for r in rows)
-    caption = strings["caption"] % {
+        r["title"], r["year"], ", ".join(r["prov"]), r["reason"]) for r in listed)
+    caption = strings["bearing" if args.bearing_only else "caption"] % {
         "track": tex(args.track) or args.label,
         "n": len(rows), "cit": counts[0], "sup": counts[1], "qual": counts[2],
         "adj": counts[3], "off": counts[4],
@@ -273,9 +294,10 @@ def main():
         "caption": caption, "label": args.label, "h0": h0, "h1": h1, "h2": h2,
         "h3": h3, "cont": strings["cont"], "next": strings["next"], "body": body},
         encoding="utf-8")
-    print(f"{csv_path.name}: {len(rows)} rows | cited {counts[0]}, supports "
-          f"{counts[1]}, qualifies {counts[2]}, adjacent {counts[3]}, off-topic "
-          f"{counts[4]}, pending {counts[5]}, other {counts[6]} -> {args.out}")
+    print(f"{csv_path.name}: {len(rows)} rows ({len(listed)} listed) | cited "
+          f"{counts[0]}, supports {counts[1]}, qualifies {counts[2]}, adjacent "
+          f"{counts[3]}, off-topic {counts[4]}, pending {counts[5]}, other "
+          f"{counts[6]} -> {args.out}")
 
 
 if __name__ == "__main__":

@@ -37,10 +37,15 @@ provenance fields — goes into **source comments**, never into the PDF.
 5. **Conclusion** — first sentence answers the research question ("Ja på
    båda frågorna, med ett förbehåll: …"); then the caveats and what they
    mean for how the claim is used in the main text.
-6. **Full hit list** — the classified session as a `longtable` at the end
-   of the chapter (`\input{…-full}`), so the reader can audit the
-   screening, not only the winners. The chapter's argument ends at the
-   conclusion; the table is audit data after it.
+6. **Hit list** — the classified session as a `longtable` at the end of
+   the chapter (`\input{…-full}`), so the reader can audit the screening,
+   not only the winners. When a topic-driven search returns thousands of
+   records, list the rows that *bear on the claim* — cited, supporting,
+   qualifying/contradicting — and give the adjacent and off-topic
+   records as counts in the caption (`session_table.py --bearing-only`);
+   the per-query totals are in the query table and the full record is in
+   the session export named in the author block. The chapter's argument
+   ends at the conclusion; the table is audit data after it.
 
 A short chapter (known-item verification plus a light counter-search)
 keeps the same skeleton as `\paragraph`s; a long one uses `\section`s.
