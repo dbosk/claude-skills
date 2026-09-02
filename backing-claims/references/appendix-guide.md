@@ -99,6 +99,23 @@ Scopus. The query table makes this auditable: a row is a query, the
 columns are providers, the cells are hit counts (or "—" when the query was
 not run there, which the text must justify).
 
+### Provider quirks that fake a negative
+
+- **DBLP** indexes titles only, applies an implicit AND, and when
+  throttled answers *zero with no error*. Re-query every DBLP zero before
+  recording it; keep DBLP queries to two or three terms.
+- **OpenAlex** is metered (a daily free budget, reset at midnight UTC) and
+  answers HTTP 429 with a JSON body when the budget is spent; a cell left
+  unanswered is provider-limited, not zero. Set `SCHOLAR_EMAIL` (the
+  user's call) for the polite pool.
+- **IEEE Xplore** has a daily quota; **Scopus** may reject every query
+  (HTTP 400) on a bad day. Record such cells as "provider down/limited"
+  with the reason and rerun when the provider is back — never as 0.
+- **Relevance ranking buries old papers.** For a bare-concept query whose
+  subject *is* the classic paper ("stepwise refinement", "literate
+  programming"), take the full result set rather than the top 40, and say
+  so in the query table.
+
 ### Vocabulary symmetry
 
 The counter-search uses every concept term the support search used, plus

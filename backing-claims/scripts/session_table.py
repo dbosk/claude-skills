@@ -203,7 +203,11 @@ def reason_for(row, strings, themes):
     note_texts = [notes[t] for t in tags if t in notes]
     theme_tags = [t for t in tags if t not in CATEGORY_ORDER and t not in notes]
 
-    if status == "kept" and category is None and theme_tags:
+    # A row the human kept with a theme tag is a cited source even if the
+    # model's category tag is still attached (`scholar sessions decide -t`
+    # appends rather than replaces).  A theme tag on an LLM-decided row is
+    # a copied tag, not a citation.
+    if status == "kept" and theme_tags and (category is None or src == "human"):
         theme = themes.get(theme_tags[0], theme_tags[0])
         label, order = "\\emph{%s}: %s" % (strings["cited"], tex(theme)), 0
     elif category is not None:
