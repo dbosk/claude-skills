@@ -27,7 +27,7 @@ files: `src/scholar/cli.nw` (commands), `src/scholar/crossref.nw` (verify),
 
 | Capability | Status | Interim |
 |------------|--------|---------|
-| `scholar sessions export --format table` — a classified session as an auditable LaTeX `longtable` (cited / supports / qualifies / adjacent / off-topic / pending, provider-duplicate merging, confidence per row, `--lang sv\|en`, `--label`, `--track`) for `\input` in a backing appendix | Spec sent to the scholar development session 2026-09-02 (from the intropy computational-thinking deck); add the issue/PR number here when known | `scripts/session_table.py` in this skill, same interface |
+| `scholar sessions export SESSION -f table --lang sv --label sok-A --track "sökspår 1" --theme TAG=NAME -o base` — a classified session as an auditable `longtable` fragment (`base.tex`, always `\input`-able; `--lang en` default). Cited = status kept AND a human decision (source `human` or `llm_reviewed`) AND a non-category tag or none; LLM keeps stay candidates. `sessions decide --source human\|llm` records who decided. | Implemented 2026-09-02 on `dbosk/scholar` branch `feature/latex-standalone-fragment` (unmerged; the user decides when it lands). Also on that branch: list-valued venues joined with "; " in BibTeX export. Queued as follow-up issues pending the user's OK: DBLP zero backoff/retry, OpenAlex daily-budget reporting and unset-`SCHOLAR_EMAIL` warning, atomic export writes. | `scripts/session_table.py` in this skill until the branch is merged and installed; then switch (`--bearing-only` has no counterpart yet — ask for it or keep the script for that mode) |
 
 ## Future ideas (not yet built)
 
