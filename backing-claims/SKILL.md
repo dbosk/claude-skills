@@ -165,6 +165,20 @@ Scopus `TITLE-ABS-KEY(...)`) — natural-language counter-queries such as
 "maintainability index criticism limitations" returned only off-topic hits
 on WoS/OpenAlex, so a "nothing found" from them is not a real negative.
 
+Two rules that a reviewer had to add after a real appendix broke them:
+
+- **Same queries, all providers.** Run *every* query — support and counter —
+  on the *same* full set of live providers. When a provider needs field
+  syntax, translate the *same* keywords into it; never one keyword set on
+  WoS and a different one on Scopus. Record a query × provider × hits
+  matrix; a cell may be empty only because a provider was down.
+- **Vocabulary symmetry.** The counter-search uses every concept term the
+  support search used, plus the field's indexed names for the concept (the
+  practitioner name — "DRY" — is often unindexed; the academic name — "code
+  clones", "code duplication" — is where the literature is). Never write
+  "the concept is indexed as X and Y" unless both were searched in both
+  directions.
+
 **No `scholar` in the environment?** The protocol does not depend on it. Run the
 same two-sided searches with WebSearch, and verify existence and content with
 direct API/page retrieval — `api.crossref.org/works/<doi>`,
@@ -200,6 +214,10 @@ strongest/most-central source(s) for economy, and record the rest as
 supporting pile is large and you are tempted to prune it: prune for *economy*
 (cite the canonical one), and label the remainder honestly as corroboration in
 the appendix — do not relabel corroboration as a reason for exclusion.
+**Corroboration is cited, not exported**: each corroborating source gets a
+verified bib entry (full text where obtainable, else abstract-level and
+flagged in `VERIFIED`) and a citation with its one-clause finding in the
+appendix. "Six further studies agree, see the export" is not a citation.
 
 ### 4. Verify applicability (the double-check)
 
@@ -277,93 +295,54 @@ co-author name is the canonical failure here. After any bib work, run
 `check_metadata.py` over the touched files; treat diacritic and subtitle
 differences as benign, investigate everything else.
 
+**Bib hygiene the reader sees.** A title containing quotes gets
+`\mkbibquote{…}` around the inner quote (biblatex then nests it as single
+quotes; raw `` `` `` inside a quoted title prints `""…"`). A source read
+only in abstract, an edition other than the one cited, or a page number
+*inferred* from a folio-less copy is said so in `VERIFIED` — and the
+appendix's limitations paragraph repeats it.
+
 ## Mirror the searches into a paper appendix
 
-When the citations belong to a paper, the FOUND-VIA records must also
-surface as a **search-and-verification protocol appendix** in the paper
-itself (like vt-prog-misconceptions' `literature-protocol.tex` and
-vt-debug's `search-protocol.tex`), with the **verbatim queries**, the date,
-the source/API used, what was retained, and — equally important — what was
-**discarded as unverifiable** or substituted. State the find→verify→record
-protocol once at the top and point to the per-reference provenance blocks in
-the `.bib`.
+When the citations belong to a paper, the searches must also surface as a
+**backing appendix** in the paper itself — **one chapter per backed claim,
+each a short, reproducible, self-contained paper** that a reader without the
+repository can follow. `references/appendix-guide.md` is the authority
+(skeleton, rules, LaTeX templates, checklist); the essentials:
 
-**Organize the appendix by *claim*, not by search episode — one chapter (or
-section) per backed claim, each readable as a standalone article.** Each
-chapter opens by stating *the factual claim itself* as its research question —
-about the claim's truth and how strongly the literature supports it ("Is X
-true? How well-established is X?"). Frame it as the factual question, **not** as
-a question about a reference ("does source Y establish X?"): the object being
-backed is the strength of the factual claim, and the reference is the evidence
-for it, not the subject of the question. (Attribution/origin — "and does X come
-from author A?" — is itself a factual, historical claim and may be part of the
-question; "does paper P adequately establish X?" is not.) Then give the backing
-for exactly that claim. This makes the *strength* of each backing legible, not
-just its existence: a substantive/contested claim earns a full multi-query,
-multi-provider search sweep (with the hit-list screen below). A **pure
-attribution or definition** ("method M originates with author A"; "the notation
-is N") earns a lighter **known-item verification** — state the claim, how the
-source was found and why it was picked over reprints, and the verbatim quote
-that entails it; no broad sweep, and say so.
+- **By claim, not by search episode.** Each chapter opens with the *factual
+  claim* as its research question ("Is X true? How well-established is X?"),
+  never a question about a reference. Split mixed claims: *origin* ("from
+  author A") is a known-item verification; *establishment* ("an established
+  method") is an empirical claim about status in the field that the
+  originator's paper cannot back — it needs evidence of adoption **and** a
+  counter-search. "The belief is a known-item verification" written about
+  anything containing "established/standard/proven" is the tell that you
+  are backing the reference instead of the fact.
+- **Mini-paper skeleton:** intro (claim cited at first mention, RQ,
+  strength) → method (date, providers and their health, session name, a
+  **query × provider × hits table**, how known items were retrieved and
+  verified) → results per sub-question with every source cited → discussion
+  and limitations → conclusion whose first sentence answers the RQ → the
+  **full classified hit list as a table** at the end.
+- **Self-contained.** Every source cited with a full reference; URLs as bib
+  entries or footnotes, never inline; corroborating studies cited with a
+  finding each. **No export paths, bib file names or CSV columns in the
+  compiled text** — those are for the author and go in `%` comments next to
+  the table's `\input` and in the bib provenance blocks.
+- **The hit list is classified and included.** `scholar llm context` +
+  `scholar llm classify --no-examples` over the whole session (two-sided
+  tags: supports-claim / qualifies-claim / adjacent-subtopic /
+  off-topic-false-hit; theme tags on the cited ones), read the
+  low-confidence and every qualifying row yourself, then generate the table
+  with `scholar sessions export --format table` when it exists, otherwise
+  `scripts/session_table.py` (same interface). Model confidence shows per
+  row; the caption counts both sides.
 
-**But watch the word "established".** "M is an *established* / *standard* /
-*widely-used* method" is not an attribution — it is an empirical claim about M's
-*status in the field*, and the originator's paper cannot back it (that paper
-shows M was *proposed*, not *adopted*). Backing "M is established" needs (a)
-evidence of establishment — later formalization, textbooks, adoption, reviews,
-living descendants — **and** (b) a counter-search for criticism/qualification: a
-real two-sided review, never a lone seminal quote. So split a mixed claim: known
--item verification for the *origin*, two-sided review for the *establishment*.
-When you catch yourself writing "the belief is a known-item verification, not a
-sweep" for anything containing "established/standard/proven", stop — that is the
-tell that you are backing the reference instead of investigating the fact. The
-reader should be able to open any one chapter and see: what is claimed, how it
-was backed, and how convincingly.
-Don't bury several distinct claims under one method-organized "search
-protocol" — the reader then cannot tell which evidence backs which claim.
-
-**Write each claim chapter as a mini-paper.** Its skeleton:
-
-1. *Intro* — a few sentences: point (`\cref`) to the main-text passage that
-   makes the claim, state the claim, pose the research question, and (if the
-   chapter has several sections) give a one-sentence roadmap.
-2. *Method* — reproducible from the appendix text alone: the verbatim queries,
-   providers, search date, session name, and where the session export and the
-   per-reference provenance blocks live. Report limitations honestly: if the
-   topic-driven queries returned only false hits and the cited sources came
-   via known-item queries, say so — the committed export shows it anyway.
-3. *Results* — what each search found, what was retained, deferred, or
-   rejected (for a two-sided review: origin, establishment, criticism).
-4. *Conclusion* — answer the research question in the first sentence ("Yes on
-   both counts, with one caveat: …"), then the caveats. The full hit-list
-   tables belong *after* the conclusion, framed as audit data — the chapter's
-   argument must not peter out into raw tables with the answer buried
-   mid-chapter.
-
-A short chapter (known-item verification plus a light counter-search) keeps
-the same skeleton as `\paragraph`s; a long one uses `\section`s.
-
-Run each round's searches under one named `scholar` session per paper
-(`search -n`, decisions via `sessions decide`) and commit the session's
-`sessions export` output (bib/csv/latex) to the paper repo (e.g.
-`literature-review/`) — the exported session *is* the appendix's audit
-record.
-Update the appendix in the same commit as the search; a search that is only
-recorded in bib comments is not yet documented.
-
-**Screen the full hit-list by reading, not by guessing from titles.** When the
-appendix lists *every* candidate with an in/exclusion reason, ground those
-reasons in each paper's content: `scholar enrich <session>` fills abstracts;
-`scholar llm context <session> "<research question + what makes a paper
-relevant>"` then `scholar llm classify <session> --no-examples` (add
-`--full-text` for borderline cases) classifies each pending paper against that
-context and records a confidence. Read the low-confidence and clearly-wrong
-calls yourself and override them — the model is a first pass, the judgement
-stays yours. Show the model's confidence in the appendix so the screening is
-auditable. Pick exclusion categories that describe *why the paper does not bear
-on the claim* (another field / a different question within the field), and a
-**separate** category for corroborating sources that *do* bear on it
-("supports the claim") — never an exclusion category that means "redundant".
+Run each round's searches under one named `scholar` session per paper and
+commit the `sessions export` output to the repo — the export is the audit
+record, the table in the appendix is what the reader gets. Update the
+appendix in the same commit as the search.
 
 ## Delegating research to subagents
 
@@ -380,22 +359,32 @@ Load the `backing-claims` skill (Skill tool: skill="backing-claims") and
 follow it. Run `scholar providers check` first and record which providers
 are alive. Run EVERY search under one named session:
   scholar search "<topic query>" -n <claim-slug> -p dblp -p wos -p ieee
-    -p openalex -f bibtex+prov
-Search topic-driven (by concept), not by author name; retrieve known items
-by DOI (curl https://api.crossref.org/works/<doi>) or field search
-(scholar search 'TI=(...)' -p wos). For every claim run at least one
-COUNTER-search (field syntax, e.g. TS=("<term>" AND (critique OR
-limitation OR replication))). Verify each source by opening it (scholar
+    -p openalex -p scopus -f bibtex+prov
+Run every query -- support AND counter -- on the SAME full set of live
+providers (translate the same keywords into WoS TS=(...) / Scopus
+TITLE-ABS-KEY(...) where needed; never different keyword sets per
+provider) and record a query x provider x hits matrix. Search
+topic-driven (by concept), not by author name; retrieve known items by
+DOI (curl https://api.crossref.org/works/<doi>) or field search
+(scholar search 'TI=(...)' -p wos). For every claim run COUNTER-searches
+that reuse every concept term of the support searches plus the field's
+indexed names for the concept. Verify each source by opening it (scholar
 pdf quote / WebFetch of the publisher or an OA copy) and capture a
-VERBATIM quote. alphaXiv, WebSearch and WebFetch MAY complement scholar,
-but every such query must be recorded verbatim (tool, query, outcome) in
-FOUND-VIA/COUNTER and in a "Search protocol" section of your report.
-Write a .bib with a provenance block (CLAIM / FOUND-VIA / PICKED / QUOTE /
-VERIFIED / COUNTER / DATE) above every entry to <scratchpad>/<slug>.bib
-and run <skill>/scripts/check_provenance.py on it. Sources you cannot
-verify are listed as DROPPED, never cited. Write the COMPLETE report to
-<scratchpad>/<slug>-report.md (agent replies are truncated at ~4 KB) and
-reply with a one-paragraph summary plus the paths.
+VERBATIM quote with locator. Corroborating sources get verified entries
+too (abstract-level flagged as such), not a mention. alphaXiv, WebSearch
+and WebFetch MAY complement scholar, but every such query must be
+recorded verbatim (tool, query, outcome) in FOUND-VIA/COUNTER and in a
+"Search protocol" section of your report. Classify the WHOLE session
+(scholar llm context; scholar llm classify --no-examples; tags
+supports-claim / qualifies-claim / adjacent-subtopic / off-topic-false-hit,
+theme tags on cited papers; read low-confidence and qualifying rows
+yourself) and export it (scholar sessions export) so the audit table can
+be generated. Write a .bib with a provenance block (CLAIM / FOUND-VIA /
+PICKED / QUOTE / VERIFIED / COUNTER / DATE) above every entry to
+<scratchpad>/<slug>.bib and run <skill>/scripts/check_provenance.py on
+it. Sources you cannot verify are listed as DROPPED, never cited. Write
+the COMPLETE report to <scratchpad>/<slug>-report.md (agent replies are
+truncated at ~4 KB) and reply with a one-paragraph summary plus the paths.
 ```
 
 Then, when the reports arrive: read the `.bib` files rather than the
@@ -428,6 +417,9 @@ first.
 | Delegate a literature search with "use WebSearch/alphaXiv" and no protocol. | Load this skill first; the subagent prompt carries the preamble above (named `scholar` session, counter-searches, provenance `.bib`, documented complements, report to a file). |
 | Use alphaXiv/WebSearch and mention it in passing. | Record the tool and verbatim query in `FOUND-VIA`/`COUNTER` **and** in the search-protocol appendix — undocumented complements are unbacked. |
 | Keyword-search for a paper whose title/DOI you already know. | Retrieve known items by DOI (OpenAlex `works/doi:`, Crossref) or field search (WoS `TI=`, Scopus `TITLE()`); Google Scholar / citation-chain / author copy for grey lit. |
+| One counter-query on WoS, a different one on Scopus. | The same query on every live provider (same keywords, translated into each field syntax); a query × provider × hits matrix in the appendix. |
+| "Six further studies agree — they are in the export." | Each corroborating study verified, in the bib, and cited with its one-clause finding. |
+| "The export lies in `litteratursokning/x.csv`" in the compiled appendix; URLs inline in prose. | Hit-list table `\input` at the end of the chapter; sources cited with bib entries/footnotes; paths only in `%` comments. |
 
 ## Reference files
 
@@ -437,6 +429,8 @@ first.
 | `references/verification-checklist.md` | Applicability tests for deciding whether a source really supports a claim | `scope`, `primary vs secondary`, `over-claim`, `retraction`, `venue` |
 | `references/scholar-cookbook.md` | Non-interactive `scholar` recipes (incl. `bibtex+prov`, `prov`, `verify`, `pdf quote`) + how to phrase `FOUND-VIA` for non-`scholar` sources | `bibtex+prov`, `prov found-via`, `pdf quote`, `verify`, `WebFetch`, `Crossref` |
 | `references/scholar-enhancements.md` | Record of shipped provenance support (#49–#53) and a place for future ideas | `shipped`, `gh issue`, `future ideas` |
+| `references/appendix-guide.md` | The backing appendix as a short reproducible paper: skeleton, self-containment rules, query-table template, hit-list table generation, checklist | `Self-contained`, `Same queries`, `Vocabulary symmetry`, `Query table`, `session_table` |
+| `scripts/session_table.py` | Classified session CSV → auditable `longtable` (cited / supports / qualifies / adjacent / off-topic / pending), `--lang sv|en`; interim for `scholar sessions export --format table` | `--csv`, `--label`, `--theme` |
 
 ## Workflow checklist
 
@@ -450,3 +444,5 @@ first.
 - [ ] Verbatim supporting quote captured, entails the claim
 - [ ] Provenance block written above the entry; `check_provenance.py` passes
 - [ ] Citation emitted in the project's markup style (writing-crypto / latex-writing)
+- [ ] Every query run on every live provider; counter vocabulary mirrors support (matrix recorded)
+- [ ] Appendix self-contained: claim cited at first mention, corroborations cited, classified hit-list table included, no export paths/URLs in the compiled text (`references/appendix-guide.md` checklist)

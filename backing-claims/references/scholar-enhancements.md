@@ -23,9 +23,15 @@ truth; activate the `literate-programming` skill before editing). Relevant
 files: `src/scholar/cli.nw` (commands), `src/scholar/crossref.nw` (verify),
 `src/scholar/pdf.nw` (quote), `src/scholar/notes.nw` (prov round-trip).
 
+## Requested (in progress)
+
+| Capability | Status | Interim |
+|------------|--------|---------|
+| `scholar sessions export --format table` — a classified session as an auditable LaTeX `longtable` (cited / supports / qualifies / adjacent / off-topic / pending, provider-duplicate merging, confidence per row, `--lang sv\|en`, `--label`, `--track`) for `\input` in a backing appendix | Spec sent to the scholar development session 2026-09-02 (from the intropy computational-thinking deck); add the issue/PR number here when known | `scripts/session_table.py` in this skill, same interface |
+
 ## Future ideas (not yet built)
 
-None currently tracked. When a new gap appears, offer to file it as a `gh issue`
+When a new gap appears, offer to file it as a `gh issue`
 on `dbosk/scholar` (per the `document-issues` convention) rather than building it
 ad hoc:
 
