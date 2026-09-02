@@ -33,17 +33,15 @@ files: `src/scholar/cli.nw` (commands), `src/scholar/crossref.nw` (verify),
 | `\input`-able report / synthesis | `scholar sessions export -f latex --no-standalone`; `scholar llm synthesize -f latex --no-standalone --output …` |
 | List-valued venues no longer crash the export | — |
 
-Still missing for the appendix workflow: a `--bearing-only` mode for
-`-f table` (requested); until it exists, `scripts/session_table.py
---bearing-only` produces the bearing-rows table. Queued follow-ups pending
-the user's OK: DBLP zero-hit backoff/retry, atomic export writes,
-venue normalisation at ingest.
-
-## Requested (in progress)
-
-| Capability | Status | Interim |
-|------------|--------|---------|
-| `scholar sessions export SESSION -f table --lang sv --label sok-A --track "sökspår 1" --theme TAG=NAME -o base` — a classified session as an auditable `longtable` fragment (`base.tex`, always `\input`-able; `--lang en` default). Cited = status kept AND a human decision (source `human` or `llm_reviewed`) AND a non-category tag or none; LLM keeps stay candidates. `sessions decide --source human\|llm` records who decided. | Implemented 2026-09-02 on `dbosk/scholar` branch `feature/latex-standalone-fragment` (unmerged; the user decides when it lands). Also on that branch: list-valued venues joined with "; " in BibTeX export. Queued as follow-up issues pending the user's OK: DBLP zero backoff/retry, OpenAlex daily-budget reporting and unset-`SCHOLAR_EMAIL` warning, atomic export writes. | `scripts/session_table.py` in this skill until the branch is merged and installed; then switch (`--bearing-only` has no counterpart yet — ask for it or keep the script for that mode) |
+`-f table --bearing-only` shipped the same day (PR #80 commit f814c33):
+bearing rows only, excluded counts in the caption, no session name in the
+compiled text (a `% Session:` comment at the top of the fragment),
+databases listed full-name-first, bookkeeping tags shown as notes,
+`--theme` as the allowlist for cited rows. Verified against
+`scripts/session_table.py` on a 715-record session: identical rows,
+cited counts and reasons. The script stays as the CSV-based fallback.
+Queued follow-ups pending the user's OK: DBLP zero-hit backoff/retry,
+atomic export writes, venue normalisation at ingest.
 
 ## Future ideas (not yet built)
 

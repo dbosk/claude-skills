@@ -42,7 +42,8 @@ provenance fields — goes into **source comments**, never into the PDF.
    not only the winners. When a topic-driven search returns thousands of
    records, list the rows that *bear on the claim* — cited, supporting,
    qualifying/contradicting — and give the adjacent and off-topic
-   records as counts in the caption (`session_table.py --bearing-only`);
+   records as counts in the caption (`scholar sessions export … -f table
+   --bearing-only`);
    the per-query totals are in the query table and the full record is in
    the session export named in the author block. The chapter's argument
    ends at the conclusion; the table is audit data after it.
@@ -77,9 +78,10 @@ keeps the same skeleton as `\paragraph`s; a long one uses `\section`s.
   %                     model github_copilot/gpt-5.4; 53 human overrides via
   %                     scholar sessions decide (read: every qualifies row,
   %                     every row < 0.7)
-  %   hit-list table  : session_table.py --csv litteratursokning/dry-principle.csv
-  %                     --label sok-dry --track "DRY-principen" --lang sv
-  %                     --theme clones-faults="..." ...
+  %   hit-list table  : scholar sessions export dry-principle -f table
+  %                     --bearing-only --lang sv --label sok-dry
+  %                     --track "DRY-principen" --theme clones-faults="..." ...
+  %                     -o litteratursokning/dry-principle-full
   %   provenance      : ltnotes.bib, keys HuntThomas1999 ThomasHunt2019
   %                     Juergens2009Clones ... (CLAIM/FOUND-VIA/QUOTE/VERIFIED)
   \input{litteratursokning/dry-principle-full}
@@ -188,18 +190,22 @@ scholar sessions export <session>          # csv with tags, confidence, source
 
 Read the low-confidence rows and every `qualifies-claim` row yourself and
 override with `scholar sessions decide` where the model is wrong; tag the
-sources you cite with a theme tag (e.g. `dry-origin`) so they show as
-*cited* with a reason. Then generate the table — with
-`scholar sessions export --format table` once it exists, until then with
-the skill's `scripts/session_table.py`:
+sources you cite with a theme tag (`decide … -t dry-origin`) so they show
+as *cited* with a reason. Then generate the table with scholar:
 
 ```bash
-~/.claude/skills/backing-claims/scripts/session_table.py \
-  --csv litteratursokning/dry-principle.csv --label sok-dry \
-  --track "DRY-principen" --lang sv \
+scholar sessions export dry-principle -f table --bearing-only --lang sv \
+  --label sok-dry --track "DRY-principen" \
   --theme dry-origin="principens ursprung" --theme clones-faults="klonfel" \
-  -o litteratursokning/dry-principle-full.tex
+  -o litteratursokning/dry-principle-full        # writes …-full.tex
 ```
+
+Cited = a human-decided kept row whose first non-category tag is in the
+`--theme` allowlist; other non-category tags are audit notes shown in
+parentheses; LLM keeps show their category and confidence. Omit
+`--bearing-only` for the full list. If the installed scholar predates
+this (no `-f table`), `scripts/session_table.py --csv <export.csv> …`
+produces the same table from the CSV export.
 
 Rows are grouped cited → supports → qualifies/contradicts → adjacent →
 off-topic → still pending, with the model's confidence per machine-decided

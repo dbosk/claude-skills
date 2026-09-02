@@ -347,9 +347,10 @@ repository can follow. `references/appendix-guide.md` is the authority
   tags: supports-claim / qualifies-claim / adjacent-subtopic /
   off-topic-false-hit; theme tags on the cited ones), read the
   low-confidence and every qualifying row yourself, then generate the table
-  with `scholar sessions export --format table` when it exists, otherwise
-  `scripts/session_table.py` (same interface). Model confidence shows per
-  row; the caption counts both sides.
+  with `scholar sessions export <session> -f table --bearing-only --lang sv
+  --label … --track … --theme TAG=NAME -o <base>` (fallback for older
+  scholar: `scripts/session_table.py --csv <export.csv>`, same output).
+  Model confidence shows per row; the caption counts both sides.
 
 Run each round's searches under one named `scholar` session per paper and
 commit the `sessions export` output to the repo — the export is the audit
@@ -446,7 +447,7 @@ first.
 | `references/scholar-cookbook.md` | Non-interactive `scholar` recipes (incl. `bibtex+prov`, `prov`, `verify`, `pdf quote`) + how to phrase `FOUND-VIA` for non-`scholar` sources | `bibtex+prov`, `prov found-via`, `pdf quote`, `verify`, `WebFetch`, `Crossref` |
 | `references/scholar-enhancements.md` | Record of shipped provenance support (#49–#53) and a place for future ideas | `shipped`, `gh issue`, `future ideas` |
 | `references/appendix-guide.md` | The backing appendix as a short reproducible paper: skeleton, self-containment rules, query-table template, hit-list table generation, checklist | `Self-contained`, `Same queries`, `Vocabulary symmetry`, `Query table`, `session_table` |
-| `scripts/session_table.py` | Classified session CSV → auditable `longtable` (cited / supports / qualifies / adjacent / off-topic / pending), `--lang sv|en`; interim for `scholar sessions export --format table` | `--csv`, `--label`, `--theme` |
+| `scripts/session_table.py` | Fallback for `scholar sessions export -f table`: classified session CSV → the same auditable `longtable` (`--bearing-only`, `--lang sv|en`, `--theme`) | `--csv`, `--label`, `--theme` |
 
 ## Workflow checklist
 
