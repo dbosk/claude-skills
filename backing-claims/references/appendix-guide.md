@@ -111,9 +111,12 @@ not run there, which the text must justify).
   not zero. `SCHOLAR_EMAIL` (the polite pool) raises the *rate* limit but
   draws on the same budget — verified by sending the same request with
   and without `mailto` while the budget was spent — so the lever against
-  a budget outage is a funded key, not the address. Plan a thorough
-  chapter (a hundred-odd queries) against that budget, or run it across
-  two days.
+  a budget outage is an API key, not the address: a free OpenAlex key
+  raises the daily budget tenfold
+  (https://help.openalex.org/api/authentication/; set it as
+  `OPENALEX_API_KEY` in `~/.credentials`, never in a prompt or a report).
+  Without one, plan a thorough chapter (a hundred-odd queries) against
+  the free budget, or run it across two days.
 - **IEEE Xplore** has a daily quota; **Scopus** may reject every query
   (HTTP 400) on a bad day. Record such cells as "provider down/limited"
   with the reason and rerun when the provider is back — never as 0.
