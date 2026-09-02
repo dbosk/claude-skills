@@ -23,6 +23,22 @@ truth; activate the `literate-programming` skill before editing). Relevant
 files: `src/scholar/cli.nw` (commands), `src/scholar/crossref.nw` (verify),
 `src/scholar/pdf.nw` (quote), `src/scholar/notes.nw` (prov round-trip).
 
+## Shipped 2026-09-02 (installed via pipx from the stacked tip of dbosk/scholar PRs #80 and #81)
+
+| Capability | Command |
+|------------|---------|
+| Audit table of a classified session as an `\input` fragment; cited = kept by a human decision (source `human` or `llm_reviewed`) with a non-category tag or none, theme = first non-category tag; LLM keeps show category + confidence | `scholar sessions export SESSION -f table --lang sv --label sok-A --track "sökspår 1" --theme TAG=NAME -o base` → `base.tex` |
+| Record who decided | `scholar sessions decide … --source human\|llm` (a human decision on an LLM row marks it `llm_reviewed`) |
+| OpenAlex API key (bearer token; a free key raises the metered daily budget tenfold) | `OPENALEX_API_KEY` in the environment; `scholar providers check` shows remaining budget and reset time; a 429 with the budget spent blocks the group until the reset |
+| `\input`-able report / synthesis | `scholar sessions export -f latex --no-standalone`; `scholar llm synthesize -f latex --no-standalone --output …` |
+| List-valued venues no longer crash the export | — |
+
+Still missing for the appendix workflow: a `--bearing-only` mode for
+`-f table` (requested); until it exists, `scripts/session_table.py
+--bearing-only` produces the bearing-rows table. Queued follow-ups pending
+the user's OK: DBLP zero-hit backoff/retry, atomic export writes,
+venue normalisation at ingest.
+
 ## Requested (in progress)
 
 | Capability | Status | Interim |
