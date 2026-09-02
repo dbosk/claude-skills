@@ -104,10 +104,16 @@ not run there, which the text must justify).
 - **DBLP** indexes titles only, applies an implicit AND, and when
   throttled answers *zero with no error*. Re-query every DBLP zero before
   recording it; keep DBLP queries to two or three terms.
-- **OpenAlex** is metered (a daily free budget, reset at midnight UTC) and
-  answers HTTP 429 with a JSON body when the budget is spent; a cell left
-  unanswered is provider-limited, not zero. Set `SCHOLAR_EMAIL` (the
-  user's call) for the polite pool.
+- **OpenAlex** is metered ($0.001 per request against a daily free
+  budget shared by everything run that day, reset at midnight UTC) and
+  answers HTTP 429 with a JSON body (`dailyRemainingUsd`, `retryAfter`)
+  when the budget is spent; a cell left unanswered is provider-limited,
+  not zero. `SCHOLAR_EMAIL` (the polite pool) raises the *rate* limit but
+  draws on the same budget — verified by sending the same request with
+  and without `mailto` while the budget was spent — so the lever against
+  a budget outage is a funded key, not the address. Plan a thorough
+  chapter (a hundred-odd queries) against that budget, or run it across
+  two days.
 - **IEEE Xplore** has a daily quota; **Scopus** may reject every query
   (HTTP 400) on a bad day. Record such cells as "provider down/limited"
   with the reason and rerun when the provider is back — never as 0.
