@@ -83,13 +83,15 @@ STRINGS = {
         "head": ("Titel", "År", "Databas", "Skäl"),
         "cont": "forts.",
         "next": "forts.\\ på nästa sida",
-        "caption": ("Fullständig träfflista, %(track)s (session "
-                    "\\texttt{%(sess)s}; %(n)d unika poster: %(cit)d "
-                    "citerade, %(sup)d stöder påståendet, %(qual)d "
-                    "kvalificerar eller motsäger det, %(adj)d angränsande, "
-                    "%(off)d felträffar%(pend)s%(oth)s).  Skälet till varje "
-                    "in- eller uteslutning står i sista kolumnen; för "
-                    "maskinklassade rader anges modellens konfidens."),
+        "caption": ("Fullständig träfflista, %(track)s: %(n)d unika poster, "
+                    "varav %(cit)d citerade, %(sup)d stöder påståendet, "
+                    "%(qual)d kvalificerar eller motsäger det, %(adj)d "
+                    "angränsande och %(off)d felträffar%(pend)s%(oth)s.  "
+                    "Skälet till varje in- eller uteslutning står i sista "
+                    "kolumnen; för maskinklassade rader anges modellens "
+                    "konfidens.  Databaser: OA = OpenAlex (inte "
+                    "\\foreignlanguage{english}{open access}), DBLP, IEEE = "
+                    "IEEE Xplore, WoS = Web of Science, Scopus."),
         "pendcap": ", %d ej klassade",
         "othcap": ", %d dubbletter eller andra versioner av citerade källor",
     },
@@ -114,12 +116,14 @@ STRINGS = {
         "head": ("Title", "Year", "Provider", "Reason"),
         "cont": "cont.",
         "next": "continued on next page",
-        "caption": ("Full hit list, %(track)s (session \\texttt{%(sess)s}; "
-                    "%(n)d unique records: %(cit)d cited, %(sup)d support the "
-                    "claim, %(qual)d qualify or contradict it, %(adj)d "
-                    "adjacent, %(off)d false hits%(pend)s%(oth)s).  The last "
-                    "column gives the reason for inclusion or exclusion; "
-                    "machine-classified rows show the model's confidence."),
+        "caption": ("Full hit list, %(track)s: %(n)d unique records, of which "
+                    "%(cit)d cited, %(sup)d support the claim, %(qual)d "
+                    "qualify or contradict it, %(adj)d adjacent and %(off)d "
+                    "false hits%(pend)s%(oth)s.  The last column gives the "
+                    "reason for inclusion or exclusion; machine-classified "
+                    "rows show the model's confidence.  Databases: OA = "
+                    "OpenAlex (not open access), DBLP, IEEE = IEEE Xplore, "
+                    "WoS = Web of Science, Scopus."),
         "pendcap": ", %d unclassified",
         "othcap": ", %d duplicates or other versions of cited sources",
     },
@@ -234,7 +238,6 @@ def main():
     ap.add_argument("--csv", required=True, help="session CSV from `scholar sessions export`")
     ap.add_argument("--label", required=True, help="LaTeX label suffix: \\label{tab:<label>}")
     ap.add_argument("--track", default="", help="free text for the caption, e.g. 'sökspår 1'")
-    ap.add_argument("--session", default=None, help="session name for the caption (default: CSV stem)")
     ap.add_argument("--lang", choices=sorted(STRINGS), default="sv")
     ap.add_argument("--theme", action="append", default=[],
                     metavar="TAG=TEXT", help="readable reason for a cited source's theme tag")
@@ -260,7 +263,7 @@ def main():
     body = "\n".join("%s & %s & %s & %s \\\\" % (
         r["title"], r["year"], ", ".join(r["prov"]), r["reason"]) for r in rows)
     caption = strings["caption"] % {
-        "track": tex(args.track) or args.label, "sess": args.session or csv_path.stem,
+        "track": tex(args.track) or args.label,
         "n": len(rows), "cit": counts[0], "sup": counts[1], "qual": counts[2],
         "adj": counts[3], "off": counts[4],
         "pend": (strings["pendcap"] % counts[5]) if counts[5] else "",

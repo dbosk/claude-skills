@@ -330,6 +330,15 @@ repository can follow. `references/appendix-guide.md` is the authority
   finding each. **No export paths, bib file names or CSV columns in the
   compiled text** — those are for the author and go in `%` comments next to
   the table's `\input` and in the bib provenance blocks.
+- **Redo, don't narrate — and never do worse.** A search that was
+  author-driven, partial, malformed or noisy is redone under the rules
+  and only the redone search is documented; the appendix's limitations
+  are facts about the data and tools, not the author's earlier attempts.
+  A redo must recover every relevant result of the search it replaces —
+  close gaps by improving the *concept* queries, never by searching for
+  the missing paper by name. Session names are author-only (`%`
+  comments); query-table captions define every abbreviation (OA =
+  OpenAlex, not open access) and sit in the margin (`sidecaption`).
 - **The hit list is classified and included.** `scholar llm context` +
   `scholar llm classify --no-examples` over the whole session (two-sided
   tags: supports-claim / qualifies-claim / adjacent-subtopic /
@@ -363,7 +372,11 @@ are alive. Run EVERY search under one named session:
 Run every query -- support AND counter -- on the SAME full set of live
 providers (translate the same keywords into WoS TS=(...) / Scopus
 TITLE-ABS-KEY(...) where needed; never different keyword sets per
-provider) and record a query x provider x hits matrix. Search
+provider) and record a query x provider x hits matrix. If an earlier
+query in the session was author-driven, partial or malformed, rerun it
+properly and mark the old one superseded; a redo must recover every
+relevant result of the search it replaces -- close gaps by improving the
+concept queries, never by searching for the missing paper by name. Search
 topic-driven (by concept), not by author name; retrieve known items by
 DOI (curl https://api.crossref.org/works/<doi>) or field search
 (scholar search 'TI=(...)' -p wos). For every claim run COUNTER-searches

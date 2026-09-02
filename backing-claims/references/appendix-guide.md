@@ -16,23 +16,24 @@ provenance fields — goes into **source comments**, never into the PDF.
    fel"). Split mixed claims: origin (known-item) vs establishment
    (two-sided review).
 2. **Method** — reproducible from the text alone: search date, tool,
-   providers and their health that day, session name (as a name, not a
-   path), and a **query × provider × hits table** (template below). Say
-   which items were retrieved as known documents and how (DOI, title
-   search, author copy) and how each was verified (full text; OCR of a
-   scan; abstract only). Failed and malformed queries stay in the table,
-   labelled.
+   databases and their health that day, and a **query × database × hits
+   table** (template below). Say which items were retrieved as known
+   documents, why that is the right method for them (a pre-DOI journal,
+   DOI-less proceedings, a book) and how each was verified (full text;
+   OCR of a scan; abstract only). Session names, export paths and bib
+   details are for the author: `%` comments, never the compiled text.
 3. **Results**, one paragraph per sub-question — origin, establishment,
    criticism — every source cited with a full reference (footnote
    citation in verbose styles) and a verbatim quote with locator for the
    load-bearing ones. **Corroborating sources are cited here with a
    one-clause finding each**, not summarised as "six further studies
    agree, see the export".
-4. **Discussion and limitations** — dead providers, queries that returned
-   noise, a provider that only holds the abstract, inferred page numbers,
-   a phrase that is unsearchable in the databases, an edition that could
-   not be obtained. Written plainly; a limitation stated is not a weakness
-   of the appendix.
+4. **Discussion and limitations** — facts about the data and the tools: a
+   dead provider, hit caps, a database's implicit AND, a phrase that is
+   unindexed, a source available only in abstract, an inferred page
+   number, an edition that could not be obtained. Not the author's earlier
+   attempts (see "Redo, don't narrate"). Written plainly; a limitation
+   stated is not a weakness of the appendix.
 5. **Conclusion** — first sentence answers the research question ("Ja på
    båda frågorna, med ett förbehåll: …"); then the caveats and what they
    mean for how the claim is used in the main text.
@@ -53,9 +54,10 @@ keeps the same skeleton as `\paragraph`s; a long one uses `\section`s.
 - URLs of sources go into bib entries or footnotes, never inline in prose
   as `\texttt{…}`. A publisher excerpt or an author's copy that was
   actually read gets a bib entry (edition, URL, urldate) and is cited.
-- **No export paths, no bib file names, no CSV column names in the text.**
-  Put them in `%` comments next to the `\input` of the hit-list table and
-  in the bib provenance blocks:
+- **No export paths, no bib file names, no CSV column names, no session
+  names in the text.** Put them in `%` comments next to the `\input` of
+  the hit-list table (and above the query table) and in the bib
+  provenance blocks:
 
   ```latex
   % Session export: litteratursokning/dry-principle.{csv,bib}; table
@@ -85,6 +87,37 @@ the field's indexed names for the concept (the practitioner name — "DRY"
 — is often unindexed; the academic name — "code clones", "code
 duplication" — is where the literature is). Never write "the concept is
 indexed as X and Y" unless both X and Y were searched in both directions.
+
+### Redo, don't narrate
+
+The appendix documents the method that produced the evidence, not the
+history of attempts. A search that was author-driven, ran on a subset of
+the providers, was malformed by shell quoting, or drowned in noise is
+**redone under the rules and the redone search is documented**; the
+earlier attempt is not chronicled ("track 1 was author-driven and that is
+a weakness"; "the first round read six studies on their titles"). What
+stays in the limitations are facts about the world: a provider was down,
+counts are capped, a database applies an implicit AND, the practitioner
+name of a concept is unindexed, a venue is not indexed so the item was
+retrieved as a known document. Known-item retrieval of a primary source
+is a method, stated as such — never "topic search failed, so…".
+
+### A redo must not do worse
+
+Before superseding a search, record its **baseline**: every source the
+chapter cites and every row the old session marked supports/qualifies.
+After the redone, topic-driven search, check by DOI or normalised title
+that every baseline item is in the new session. Close a gap by
+**improving the concept query** — synonyms, the field's own vocabulary
+(the terms the literature uses for the concept, not the missing paper's
+title), a broader or narrower phrasing, a second formulation of the same
+concept — and iterate until coverage is at least the baseline. **Never**
+by searching for the missing paper by author or title: "I'm missing X,
+I'll search for X" is author-anchored discovery in disguise. Only an item
+provably outside topic search on these providers (a pre-DOI journal,
+DOI-less proceedings, a book) is retrieved as a known item, stated as
+such. Report before/after coverage in the working notes; the appendix
+shows only the final search.
 
 ### Corroboration is cited, not exported
 
@@ -130,36 +163,50 @@ reader sees at a glance how much refuting/qualifying work there was.
 
 ## Query table template
 
+The caption goes in the margin (memoir's `sidecaption`; the didactic
+package provides a fallback environment for other classes), names the
+date and the tool, and **defines every abbreviation** — "OA = OpenAlex"
+must be spelled out, or readers read it as open access. No session name.
+
 ```latex
+% Author's note: scholar session dry-principle; export
+% litteratursokning/dry-principle.{csv,bib}.
 \begin{table}[htbp]
-  \centering\footnotesize
-  \caption{Sökfrågor och antal träffar per databas, session
-    \texttt{dry-principle}, 2026-09-02.  Semantic Scholar var otillgängligt
-    (nyckeln nekades).  Fältsyntax: WoS \texttt{TS=(...)}, Scopus
-    \texttt{TITLE-ABS-KEY(...)}; övriga databaser fick samma nyckelord som
-    fritext.}
-  \label{tab:dry-queries}
-  \begin{tabular}{@{}lp{0.45\linewidth}rrrrr@{}}
-    \toprule
-    & Fråga & OA & DBLP & WoS & Scopus & IEEE \\
-    \midrule
-    S1 & code clones inconsistent changes faults & 31 & 0 & 22 & 25 & 13 \\
-    … \\
-    M1 & code clones beneficial harmless "considered harmful" & … \\
-    \bottomrule
-  \end{tabular}
+  \begin{sidecaption}{Sökfrågor och antal träffar per databas,
+    2026-09-02, verktyget \texttt{scholar}.  S = stödfråga, M = motfråga,
+    K = känt dokument.  Databaser: OA = OpenAlex (inte
+    \foreignlanguage{english}{open access}), DBLP, IEEE = IEEE Xplore,
+    WoS = Web of Science, Scopus.  Högst 40 träffar per databas och fråga,
+    så 40 betyder \enquote{minst 40}.  DBLP kräver att varje ord matchar.
+    Web of Science fick nyckelorden som \texttt{TS=(\dots)}, Scopus som
+    \texttt{TITLE-ABS-KEY(\dots)}, OpenAlex och IEEE som boolesk fritext,
+    DBLP som ordlista.}[tab:dry-queries]
+    \centering\footnotesize
+    \begin{tabular}{@{}lp{0.5\linewidth}rrrrr@{}}
+      \toprule
+      & Nyckelord & OA & DBLP & IEEE & WoS & Scopus \\
+      \midrule
+      S1 & \enquote{code clones} inconsistent changes faults & 40 & 0 & 14 & 2 & 4 \\
+      … \\
+      M1 & \enquote{code clones} (beneficial, harmless eller \enquote{considered harmful}) & 40 & 0 & 40 & 19 & 31 \\
+      \bottomrule
+    \end{tabular}
+  \end{sidecaption}
 \end{table}
 ```
 
-Prefix support queries S and counter queries M (motsökning) or C, and
-refer to them by label in the prose.
+Prefix support queries S, counter queries M (motsökning) or C, known-item
+retrievals K, and refer to them by label in the prose.
 
 ## Checklist for the appendix
 
 - [ ] Claim cited at first mention; RQ about the fact; strength stated
-- [ ] Method: date, providers + health, session name, query × provider ×
-      hits table; known-item retrievals and verification mode stated
+- [ ] Method: date, tool, databases + health, side-captioned query ×
+      database × hits table with the abbreviations defined; known-item
+      retrievals justified and their verification mode stated
 - [ ] Every query on every live provider; counter vocabulary mirrors support
+- [ ] Redone searches recover every baseline item (coverage checked);
+      no narration of earlier attempts; no session names in the text
 - [ ] Results cite every source (load-bearing ones with verbatim quote and
       locator); corroborations cited with a finding each
 - [ ] Limitations paragraph present and honest
