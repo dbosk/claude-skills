@@ -336,9 +336,12 @@ repository can follow. `references/appendix-guide.md` is the authority
   are facts about the data and tools, not the author's earlier attempts.
   A redo must recover every relevant result of the search it replaces —
   close gaps by improving the *concept* queries, never by searching for
-  the missing paper by name. Session names are author-only (`%`
-  comments); query-table captions define every abbreviation (OA =
-  OpenAlex, not open access) and sit in the margin (`sidecaption`).
+  the missing paper by name. Session names are author-only — one `%`
+  block per chapter with session, exports, date, providers and health,
+  classification model and overrides, the exact table command and the
+  bib keys; query-table captions introduce every abbreviation full name
+  first ("OpenAlex (OA; not open access)") and sit in the margin
+  (`sidecaption`).
 - **The hit list is classified and included.** `scholar llm context` +
   `scholar llm classify --no-examples` over the whole session (two-sided
   tags: supports-claim / qualifies-claim / adjacent-subtopic /

@@ -55,14 +55,28 @@ keeps the same skeleton as `\paragraph`s; a long one uses `\section`s.
   as `\texttt{…}`. A publisher excerpt or an author's copy that was
   actually read gets a bib entry (edition, URL, urldate) and is cited.
 - **No export paths, no bib file names, no CSV column names, no session
-  names in the text.** Put them in `%` comments next to the `\input` of
-  the hit-list table (and above the query table) and in the bib
-  provenance blocks:
+  names in the text.** Everything the *author* needs to verify and
+  reproduce the chapter goes in one `%` block per chapter, placed above
+  the query table (and repeated in short above the `\input` of the
+  hit-list table) and in the bib provenance blocks. The block is
+  complete when a future author can redo the search and rebuild the
+  tables from it alone:
 
   ```latex
-  % Session export: litteratursokning/dry-principle.{csv,bib}; table
-  % regenerated with: scholar sessions export --format table … (or, until
-  % that ships, session_table.py --csv … --label sok-dry --lang sv)
+  % Author's note (verification and reproduction):
+  %   scholar session : dry-principle
+  %   exports         : litteratursokning/dry-principle.{csv,bib,tex}
+  %   searched        : 2026-09-02; providers openalex dblp wos scopus ieee
+  %                     (s2: key rejected, HTTP 403 -- absent)
+  %   classification  : scholar llm context + llm classify --no-examples,
+  %                     model github_copilot/gpt-5.4; 53 human overrides via
+  %                     scholar sessions decide (read: every qualifies row,
+  %                     every row < 0.7)
+  %   hit-list table  : session_table.py --csv litteratursokning/dry-principle.csv
+  %                     --label sok-dry --track "DRY-principen" --lang sv
+  %                     --theme clones-faults="..." ...
+  %   provenance      : ltnotes.bib, keys HuntThomas1999 ThomasHunt2019
+  %                     Juergens2009Clones ... (CLAIM/FOUND-VIA/QUOTE/VERIFIED)
   \input{litteratursokning/dry-principle-full}
   ```
 
@@ -165,18 +179,19 @@ reader sees at a glance how much refuting/qualifying work there was.
 
 The caption goes in the margin (memoir's `sidecaption`; the didactic
 package provides a fallback environment for other classes), names the
-date and the tool, and **defines every abbreviation** — "OA = OpenAlex"
-must be spelled out, or readers read it as open access. No session name.
+date and the tool, and **introduces every abbreviation the sensible way
+round — full name first, abbreviation in parentheses**: "OpenAlex (OA;
+not open access)", "Web of Science (WoS)". No session name.
 
 ```latex
-% Author's note: scholar session dry-principle; export
-% litteratursokning/dry-principle.{csv,bib}.
+% Author's note (verification and reproduction): see the block above the
+% hit-list \input at the end of the chapter.
 \begin{table}[htbp]
   \begin{sidecaption}{Sökfrågor och antal träffar per databas,
     2026-09-02, verktyget \texttt{scholar}.  S = stödfråga, M = motfråga,
-    K = känt dokument.  Databaser: OA = OpenAlex (inte
-    \foreignlanguage{english}{open access}), DBLP, IEEE = IEEE Xplore,
-    WoS = Web of Science, Scopus.  Högst 40 träffar per databas och fråga,
+    K = känt dokument.  Databaser: OpenAlex (OA; inte
+    \foreignlanguage{english}{open access}), DBLP, IEEE Xplore (IEEE),
+    Web of Science (WoS), Scopus.  Högst 40 träffar per databas och fråga,
     så 40 betyder \enquote{minst 40}.  DBLP kräver att varje ord matchar.
     Web of Science fick nyckelorden som \texttt{TS=(\dots)}, Scopus som
     \texttt{TITLE-ABS-KEY(\dots)}, OpenAlex och IEEE som boolesk fritext,

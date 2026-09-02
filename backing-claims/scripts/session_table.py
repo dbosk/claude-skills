@@ -89,9 +89,9 @@ STRINGS = {
                     "angränsande och %(off)d felträffar%(pend)s%(oth)s.  "
                     "Skälet till varje in- eller uteslutning står i sista "
                     "kolumnen; för maskinklassade rader anges modellens "
-                    "konfidens.  Databaser: OA = OpenAlex (inte "
-                    "\\foreignlanguage{english}{open access}), DBLP, IEEE = "
-                    "IEEE Xplore, WoS = Web of Science, Scopus."),
+                    "konfidens.  Databaser: OpenAlex (OA; inte "
+                    "\\foreignlanguage{english}{open access}), DBLP, IEEE "
+                    "Xplore (IEEE), Web of Science (WoS), Scopus."),
         "pendcap": ", %d ej klassade",
         "othcap": ", %d dubbletter eller andra versioner av citerade källor",
     },
@@ -121,9 +121,9 @@ STRINGS = {
                     "qualify or contradict it, %(adj)d adjacent and %(off)d "
                     "false hits%(pend)s%(oth)s.  The last column gives the "
                     "reason for inclusion or exclusion; machine-classified "
-                    "rows show the model's confidence.  Databases: OA = "
-                    "OpenAlex (not open access), DBLP, IEEE = IEEE Xplore, "
-                    "WoS = Web of Science, Scopus."),
+                    "rows show the model's confidence.  Databases: OpenAlex "
+                    "(OA; not open access), DBLP, IEEE Xplore (IEEE), Web of "
+                    "Science (WoS), Scopus."),
         "pendcap": ", %d unclassified",
         "othcap": ", %d duplicates or other versions of cited sources",
     },
