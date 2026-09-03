@@ -17,7 +17,7 @@ Lessons from a real campaign: 7 review agents + dozens of fix agents, each in
 its own worktree of a literate-programming (noweb) repo, one branch and PR per
 fix. Every item below cost an agent real time at least once.
 
-## The eight worktree traps (put these in every agent prompt)
+## The ten worktree traps (put these in every agent prompt)
 
 0. **The auto-created worktree may be based on the DEFAULT branch, not the
    branch you are on.** Agent-tool worktree isolation has been observed to
@@ -103,9 +103,34 @@ fix. Every item below cost an agent real time at least once.
    `git remote get-url origin` name the expected repo, with orders to STOP
    and report rather than improvise if not.
 
+8. **The auto-created worktree may sit at a STALE default-branch commit
+   whose working tree already equals your base — so `git checkout -B` aborts
+   or refuses.** Observed (nine agents, one campaign): worktrees were
+   created at an old `master` commit while the files matched the feature
+   tip, and with a submodule in the tree the plain checkout also tried to
+   recurse into it. The command that works in every case:
+   `git -c submodule.recurse=false checkout -f -B <branch> <base-sha>`
+   (the worktree is fresh, so `-f` discards nothing of value). As
+   orchestrator, run `git worktree list` right after launching: a new
+   worktree still showing the stale commit a minute later means the agent
+   skipped the step.
+
+9. **`git submodule update --init <name>` can be a silent no-op.** If the
+   repo config carries `submodule.<name>.update=none` (set by someone who
+   never wanted that submodule checked out), the plain form prints nothing
+   and checks out nothing; pass `--checkout` explicitly:
+   `git submodule update --init --checkout <name>`. When the submodule is
+   half-initialised (a gitfile `<name>/.git` pointing at a
+   `.git/worktrees/<wt>/modules/<name>` that holds only `config`) and the
+   agent must not touch `.git/`, give it a fallback that needs no repair:
+   clone the submodule's repository into the agent's own scratch directory
+   at the pinned commit and pass its path on the make command line
+   (`make … INCLUDE_MAKEFILES=<clone>`), so the repository is never
+   modified and merge time sees nothing unusual.
+
 ## Prompt-engineering the fix agents
 
-- Include a SETUP preamble with the eight traps above. Agents without it each
+- Include a SETUP preamble with the ten traps above. Agents without it each
   lose ~15 minutes rediscovering the venv trap; agents with it don't.
 - When several agents edit the same file on different branches, assign each an
   explicit region ("keep your diff to function X; branches A/B own areas Y/Z")
@@ -118,7 +143,7 @@ fix. Every item below cost an agent real time at least once.
   of the repo and cleaned up. Observed twice in one campaign: `/tmp/b1.log`
   and `scratchpad/probe.py` overwritten by siblings mid-task, making one
   agent's build look further along than it was.
-- Include the eight traps' SETUP preamble verbatim; in one round the
+- Include the ten traps' SETUP preamble verbatim; in one round the
   preamble said "build the dirs you touch" instead of "build ALL" and four
   agents independently lost ~20 minutes to trap 6 before their import-path
   check caught it.
