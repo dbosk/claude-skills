@@ -106,8 +106,12 @@ Then pull the recorded query into `FOUND-VIA` (see `provenance-format.md`).
 ```bash
 scholar enrich "<session>"             # fill missing abstracts via DOI lookup
 scholar search "..." --enrich -f bibtex  # enrich inline during a search
-scholar pdf open "<pdf-url>"           # download (cache) and open full text
+scripts/fetch_pdf.py --text "<url-or-doi>"  # download into the cache, no viewer;
+                                       # prints <source>\t<cache pdf>\tOK\t<text file>
+scholar pdf path                       # the cache directory (~/.cache/scholar/pdfs,
+                                       # files named by SHA-256 of the URL)
 scholar pdf info                       # PDF cache stats
+scholar pdf open "<pdf-url>"           # interactive only: caches AND opens a viewer
 
 # Surface candidate supporting passages for a claim (the QUOTE step).
 # Ranks lexically, then optionally reranks with an LLM. Judgement stays human.

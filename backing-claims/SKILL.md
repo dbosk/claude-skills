@@ -124,6 +124,15 @@ scholar search 'TITLE("Language-Independent Conceptual Bugs")' -p scopus     # S
 scholar search 'ti:"visual program simulation"' -p arxiv                     # arXiv: ti: au:
 ```
 
+**The user's own library may hold it.** Before declaring a book or a
+closed-access paper unobtainable, search the user's reMarkable library
+(`remarkable_browse(query=…)`, then `remarkable_read(…, content_type="raw",
+grep=…)` to locate the passage and its printed page). Books cited by chapter
+or page (Gamma et al., Marton, Martin) and closed journal articles the user
+has read are often there; delegate the page-by-page reading to a subagent.
+Record such a retrieval as `FOUND-VIA: known item, read on the user's
+reMarkable (<tablet path>)`.
+
 **Grey literature may be in none of them.** Conference papers without a DOI
 (e.g. AERA/education proceedings), dissertations, and tech reports are often
 absent from OpenAlex, DBLP, WoS *and* Scopus — a `TI=`/`TITLE()` field search
@@ -225,11 +234,23 @@ Read the **actual source**, not just the title:
 
 ```bash
 scholar enrich "<session>"            # fill in missing abstracts via DOI
-scholar pdf open "<pdf-url>"          # download + open full text
+scripts/fetch_pdf.py --text "<pdf-url-or-doi>"   # download into scholar's PDF cache, no viewer; prints cache + text paths
 scholar pdf quote "<pdf-url>" --claim "<the claim>"   # surface candidate QUOTE passages
 scholar verify "<session>"            # flag retracted/corrected/superseded papers
 # or WebFetch the publisher/arXiv page to read the relevant section
 ```
+
+**Fetch every full text through scholar's cache, never with a bare `curl` or
+WebFetch into a scratch directory.** `scripts/fetch_pdf.py` calls scholar's
+own downloader, so the file lands in the PDF cache (`scholar pdf path`,
+keyed by the URL) and a later session asking for the same URL or DOI gets it
+without fetching again; with `--text` it also leaves a `pdftotext -layout`
+extraction beside the PDF for grepping. It accepts DOIs (resolved via
+Unpaywall / Semantic Scholar) and direct URLs, and prints one TSV line per
+source. Do not use `scholar pdf open` from an agent: it always launches the
+system viewer. A source that only exists as plain text (an RFC `.txt`, an
+HTML documentation page) is not a PDF and cannot be cached this way — record
+its URL and access date in the provenance block instead.
 
 `scholar pdf quote` proposes candidate supporting passages (with location) — the
 **judgement stays yours**; read the passage and confirm it entails the claim.
