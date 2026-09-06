@@ -37,7 +37,18 @@ provenance fields — goes into **source comments**, never into the PDF.
 5. **Conclusion** — first sentence answers the research question ("Ja på
    båda frågorna, med ett förbehåll: …"); then the caveats and what they
    mean for how the claim is used in the main text.
-6. **Hit list** — the classified session as a `longtable` at the end of
+6. **Future work** (Swedish decks: `\section{Fortsatt arbete}`) — two
+   halves, one to three short paragraphs, no new searches: (a) what *this*
+   search left undone — providers that were down or quota-limited, sources
+   read only at abstract level (cite them), sources found but not obtained
+   (name them, DOI in a footnote), queries that could not be run; and (b)
+   what the *field* lacks for a surer answer — the population never
+   studied (e.g. Python novices), the sub-claim nobody tested, the kind of
+   study that would settle it (controlled experiment, replication,
+   longitudinal), and one sentence on how the main text would change if
+   that study came out either way. This is the chapter's to-do list; it
+   turns "with reservations" into work someone can pick up.
+7. **Hit list** — the classified session as a `longtable` at the end of
    the chapter (`\input{…-full}`), so the reader can audit the screening,
    not only the winners. When a topic-driven search returns thousands of
    records, list the rows that *bear on the claim* — cited, supporting,
@@ -263,6 +274,8 @@ retrievals K, and refer to them by label in the prose.
       locator); corroborations cited with a finding each
 - [ ] Limitations paragraph present and honest
 - [ ] Conclusion's first sentence answers the RQ
+- [ ] Future work: what this search left undone (named sources, dead
+      providers) and what the field must study for a surer answer
 - [ ] Session classified; hit-list table `\input` at the end, with
       two-sided counts in the caption
 - [ ] No export paths, bib file names or CSV columns in the compiled text —

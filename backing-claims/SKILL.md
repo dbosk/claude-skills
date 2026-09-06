@@ -55,12 +55,11 @@ family). Do not duplicate that guidance here.
 
 The protocol is useless for a claim nobody noticed. Audit the finished text
 for claims that carry no citation: every imperative ("follow PEP 8", "use
-descriptive names") asserts a **benefit**, and its "because" ("so that
-others can read the code") is an empirical claim with a two-sided
-literature. Verifying that the convention exists and says what you quote
-backs the *attribution*, not the *benefit*. "This text makes no claims
-needing a search" is itself a claim: list the imperatives and test each.
-Audit questions and the PEP 8 case: `references/claim-audit.md`.
+descriptive names") asserts a **benefit**, and its "because" is an empirical
+claim with a two-sided literature. Verifying that the convention exists
+and says what you quote backs the *attribution*, not the *benefit*. "This
+text makes no claims needing a search" is itself a claim: list the
+imperatives and test each. Details: `references/claim-audit.md`.
 
 ### 1. State the claim precisely
 
@@ -355,8 +354,9 @@ repository can follow. `references/appendix-guide.md` is the authority
   strength) → method (date, providers and their health, session name, a
   **query × provider × hits table**, how known items were retrieved and
   verified) → results per sub-question with every source cited → discussion
-  and limitations → conclusion whose first sentence answers the RQ → the
-  **full classified hit list as a table** at the end.
+  and limitations → conclusion whose first sentence answers the RQ →
+  **future work** (what this search left undone; what the field must
+  study for a surer answer) → the **full classified hit list** at the end.
 - **Self-contained.** Every source cited with a full reference; URLs as bib
   entries or footnotes, never inline; corroborating studies cited with a
   finding each. **No export paths, bib file names or CSV columns in the
