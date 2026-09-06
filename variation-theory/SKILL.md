@@ -262,7 +262,10 @@ Research suggests using patterns in this order:
 **Important**: Within each pattern, contrast multiple **values** together. "One at a time" applies to **dimensions/aspects**, not values.
 
 **Why contrast must come first** (verified in Marton, *Necessary Conditions
-of Learning*, 2014, pp. 45–47 — cite these pages when writing this claim):
+of Learning*, 2014, pp. 45–47 — cite these pages when writing this claim;
+the companion rule that a *definition* comes last, after the learner has
+met the variation, is NCOL pp. 13, 89 and 91 — see the `try-first-tell-later`
+skill, "Section Order"):
 
 - Generalization before contrast is *induction*, and induction cannot open a
   dimension the learner has never discerned: "if you cannot see the greenness

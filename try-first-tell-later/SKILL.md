@@ -37,6 +37,11 @@ Try-first prompts serve a dual purpose:
 **Key insight** (Marton, NCOL p. 89):
 > "If we want to find out to what extent they have learned to do so, we should not point out those aspects for them but let the students discern them by themselves."
 
+And the rule for the question itself (NCOL p. 91, on the physics-exam task whose aspects "all are pointed out in the question"):
+> "[T]he questions should not point out the relevant aspects of the problem to be solved, as this is exactly what the students are supposed to find out (discern)."
+
+(Pages 13, 89 and 91 verified against the printed book, 2026-09-06; cite them as `\parencite[s.~13 och 89]{Marton2015}` or with p. 91 when the prompt-design rule is the point.)
+
 **Use try-first prompts to diagnose**:
 - Which critical aspects students already discern
 - Which aspects need teaching (require variation patterns)
@@ -56,6 +61,28 @@ Try-first prompts serve a dual purpose:
 - That "constant speed" implies balanced forces
 - Which forces are relevant
 - That "engine pushes forward" alone is wrong
+
+### Section Order: Ask, Show, Explain, Define
+
+A section that opens with a definition is tell-first even when an exercise
+follows: the definition has already pointed out the critical aspect, so
+nothing is left to discern (NCOL p. 13). The order that lets the student
+discern is
+
+1. **exercise** — a program or case to predict, whose lead-in presupposes
+   nothing the definition would introduce and reveals nothing of the
+   answer ("Programmets två utskriftsrader ser nästan lika ut. Skriv ner
+   vad var och en av dem skriver ut."), not ("Lägg märke till att 5 och
+   "5" inte är samma sak: vad skriver programmet ut?");
+2. **output** — the real run, in the same example environment;
+3. **explanation** — what varied and what that reveals;
+4. **definition** — last, naming what the student has now met.
+
+Reordering an existing section usually breaks one paragraph: the lead-in
+that referred forward to the definition ("de två sista exemplen i
+definitionen") must be rewritten as the try-first prompt, not moved. Record
+the ordering decision in an `\ltnote` citing NCOL pp. 13, 89 and 91 (course
+author's request, 2026-09-06).
 
 ### Prompt Design Checklist
 
