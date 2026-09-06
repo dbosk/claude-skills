@@ -1,7 +1,7 @@
 ---
 name: backing-claims
 description: |
-  Back factual and empirical claims with a small two-sided literature review — searches for literature that supports AND refutes/qualifies the claim (COUNTER) — verify sources in full text, and record provenance (how found, why picked, quote, counter-search outcome). Format-independent: papers, reports, memos, evidence logs, survey answers — any output resting on a factual claim, not just TeX. Use proactively when: (1) adding OR reusing a citation, page number, or attribution for a factual/empirical claim (inherited citations are NOT pre-verified), (2) attributing a claim to a source ("X found that…"), (3) the user asks to find a reference or check a citation — or wants an answer or decision backed by evidence, research, or literature, (4) writing related-work, background, or claims sections, (5) mentions of scholar, BibTeX, DOI, arXiv, OpenAlex, Crossref, or a literature search. (6) DELEGATING literature research to a subagent or teammate — the subagent prompt must tell it to load this skill, run every search under a named scholar session, and document alphaXiv/WebSearch complements in the appendix (see "Delegating research to subagents"). Trigger BEFORE citing; this skill owns finding/verifying/justifying the reference (markup: writing-crypto/latex-writing).
+  Back factual and empirical claims with a small two-sided literature review — searches for literature that supports AND refutes/qualifies the claim (COUNTER) — verify sources in full text, and record provenance (how found, why picked, quote, counter-search outcome). Format-independent: papers, reports, memos, evidence logs, survey answers — any output resting on a factual claim, not just TeX. Use proactively when: (1) adding OR reusing a citation, page number, or attribution for a factual/empirical claim (inherited citations are NOT pre-verified), (2) attributing a claim to a source ("X found that…"), (3) the user asks to find a reference or check a citation — or wants an answer or decision backed by evidence, research, or literature, (4) writing related-work, background, or claims sections, (5) mentions of scholar, BibTeX, DOI, arXiv, OpenAlex, Crossref, or a literature search, (6) writing or reviewing ADVICE — rules, conventions, best practices, "do X because Y" — or a statement that a text "makes no claims needing a search": advice asserts a benefit, and that benefit is an empirical claim to audit even when nobody planned to cite anything. (7) DELEGATING literature research to a subagent or teammate — the subagent prompt must tell it to load this skill, run every search under a named scholar session, and document alphaXiv/WebSearch complements in the appendix (see "Delegating research to subagents"). Trigger BEFORE citing; this skill owns finding/verifying/justifying the reference (markup: writing-crypto/latex-writing).
 ---
 
 # Backing Claims with Verified References
@@ -50,6 +50,17 @@ This skill owns *find → verify → record*. It hands the citation **markup** o
 family). Do not duplicate that guidance here.
 
 ## The find → verify → record protocol
+
+### 0. Find the claims first — advice hides its claim in the "because"
+
+The protocol is useless for a claim nobody noticed. Audit the finished text
+for claims that carry no citation: every imperative ("follow PEP 8", "use
+descriptive names") asserts a **benefit**, and its "because" ("so that
+others can read the code") is an empirical claim with a two-sided
+literature. Verifying that the convention exists and says what you quote
+backs the *attribution*, not the *benefit*. "This text makes no claims
+needing a search" is itself a claim: list the imperatives and test each.
+Audit questions and the PEP 8 case: `references/claim-audit.md`.
 
 ### 1. State the claim precisely
 
@@ -448,6 +459,7 @@ first.
 | Drop a source as "redundant" because it agrees with one already cited. | Keep it as corroboration — convergent support strengthens the claim; cite the strongest for economy and list the rest as "supports the claim". |
 | Screen the full hit-list from titles alone. | Enrich abstracts, classify against a stated research context (`scholar llm classify`) with confidence, then override the model's weak/wrong calls by reading. |
 | Bury several claims under one method-organized "search protocol" appendix. | One appendix chapter per claim, each stating the claim as its research question and standalone; depth scales (full sweep vs known-item verification). |
+| Verify that a convention exists and says what you quote, and call the advice backed. | The primary source backs the attribution; the advice's *benefit* ("because it helps the reader") is a separate empirical claim — audit it two-sidedly (`references/claim-audit.md`). |
 | Back "X is an *established* method" with a quote from X's originator. | The originator shows X was *proposed*, not *adopted*; investigate establishment (formalization, textbooks, adoption, descendants) AND counter-search for criticism — a two-sided review. |
 | "Document" a counter-search by naming its session in passing. | A Method paragraph with the verbatim queries, providers, date, and export path — reproducible from the appendix text alone. |
 | Chapter's answer buried mid-chapter; it ends on raw hit-list tables. | A Conclusion answers the research question explicitly; the tables follow it as audit data. |
@@ -464,6 +476,7 @@ first.
 | File | Content | Search patterns |
 |------|---------|-----------------|
 | `references/provenance-format.md` | Full provenance schema, field semantics, worked examples, migrating a `scholar rq` session into `FOUND-VIA` | `FOUND-VIA`, `QUOTE`, `VERIFIED`, `multi-line` |
+| `references/claim-audit.md` | Finding the claims that carry no citation: advice, conventions, "because" clauses, "no claims" statements; the PEP 8 case | `imperative`, `benefit`, `because`, `no claims` |
 | `references/verification-checklist.md` | Applicability tests for deciding whether a source really supports a claim | `scope`, `primary vs secondary`, `over-claim`, `retraction`, `venue` |
 | `references/scholar-cookbook.md` | Non-interactive `scholar` recipes (incl. `bibtex+prov`, `prov`, `verify`, `pdf quote`) + how to phrase `FOUND-VIA` for non-`scholar` sources | `bibtex+prov`, `prov found-via`, `pdf quote`, `verify`, `WebFetch`, `Crossref` |
 | `references/scholar-enhancements.md` | Record of shipped provenance support (#49–#53) and a place for future ideas | `shipped`, `gh issue`, `future ideas` |
@@ -472,6 +485,7 @@ first.
 
 ## Workflow checklist
 
+- [ ] Text audited for uncited claims: every imperative's benefit, every "because", every "no claims here" statement
 - [ ] Claim stated with scope and strength
 - [ ] Found via recorded, reproducible, **topic-driven** queries (names only for retrieval)
 - [ ] Several providers queried and their **health checked** (`scholar providers check`); known items retrieved by DOI/field search, not buried keyword ranking
