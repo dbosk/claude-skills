@@ -112,6 +112,8 @@ is 0.
 | Notes show old program output after a chunk changed | `.pytxcode` unchanged, so latexmk never invoked PythonTeX | the stale-transcript recipe below |
 | Notes transcripts belong to the wrong example | `\pause` and `\runpython` in one frame | split the frame; see `runpython-and-output.md` |
 | `Nothing to do` after an error, nothing rebuilds | stuck `ltxobj/<job>.fdb_latexmk` | `rm ltxobj/notes.fdb_latexmk` |
+| `<MINTED>` in the *notes*, `! Package minted Error: Cannot find input file "didactic_output_…txt"`, and stray `notes.pytxmcr`, `notes.pytxpyg`, `notes.unq`, `pythontex_data.pkl`, `py_default_default_*.stderr` in the deck directory | latexmk ran PythonTeX with the deck directory as cwd | delete the strays, `ltxobj/notes.*` and `didactic_output_*.txt`; rebuild (below) |
+| The checks report the *previous* build's numbers | the PDF was up to date, so no pass ran and the log is stale | `rm ltxobj/<job>.pdf` (or touch a source), rerun |
 | Build hangs immediately | a killed run left `ltxobj/_minted` | `rm -rf ltxobj/_minted` |
 | "empty citation" / `??` after adding bib keys | latexmk under `-use-make` did not rerun biber | run biber by hand, touch a source, make again |
 | "Too many unprocessed floats", pages after the cause | margin notes exhausted the float pool | `\extrafloats{200}` in `preamble.tex` |
@@ -164,6 +166,36 @@ Both jobs write into `ltxobj`. Two consequences:
   ```
 
   The two line counts must be nearly equal.
+
+### A PythonTeX run from the deck directory
+
+Seen once in a campaign of a hundred builds: latexmk's `pytxcode → pytxmcr`
+custom dependency (in the shared `latexmkrc`) ran `pythontex` with the
+*deck* directory as its working directory instead of `ltxobj`. That run
+wrote `notes.pytxmcr`, `notes.pytxpyg`, `notes.unq`, `pythontex_data.pkl`
+and `py_default_default_*.stderr` beside the sources (none of them
+gitignored), failed with `FileNotFoundError: … 'examples'` because its
+`chdir` resolved one level up, and left `notes.pdf` with a minted error per
+transcript and a `<MINTED>` placeholder on each. The slides-only MINTED
+check does not see it, and the `^!` count is the only symptom in the log.
+Cure:
+
+```bash
+rm -f notes.pytxmcr notes.pytxpyg notes.unq pythontex_data.pkl \
+      py_default_default_*.std* ltxobj/notes.* didactic_output_*.txt
+make notes.pdf LATEXFLAGS="-shell-escape -interaction=nonstopmode"
+```
+
+After the rebuild `ltxobj/notes.pytxmcr` exists and the errors are gone.
+Do not gitignore the strays: their presence is the diagnosis.
+
+### The checks reading a stale log
+
+After a failed build, a second `make` often finds the PDF up to date, runs
+no `pdflatex`, and leaves `ltxobj/<job>.log` from the failed run in place,
+so every log-based check reports the old numbers. `build_deck.sh` flags a
+build during which the log did not change; by hand, `rm ltxobj/<job>.pdf`
+or touch a source before rerunning.
 
 ### Stuck latexmk
 

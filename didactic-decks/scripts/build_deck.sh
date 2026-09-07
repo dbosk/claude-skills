@@ -111,12 +111,22 @@ converge() {
 if [ "$CHECK_ONLY" -eq 0 ]; then
   pre_clean
   for j in "${JOBLIST[@]}"; do
+    # A make that finds the PDF up to date runs no pass and leaves the
+    # previous run's log behind, so the checks below would report stale
+    # numbers.  Stamp the start and demand a newer log.
+    stamp=$(mktemp "ltxobj/.stamp.$j.XXXXXX")
     set +e
     make "$j.pdf" "${MAKEARGS[@]}" >> "$LOG" 2>&1
     rc=$?
     set -e
     note "$j: make exit $rc"
     [ "$rc" -eq 0 ] || bad "$j: make failed (see $LOG)"
+    if [ ! "ltxobj/$j.log" -nt "$stamp" ]; then
+      bad "$j: nothing was rebuilt (PDF up to date); the checks would read" \
+          "the previous run's log --- rm ltxobj/$j.pdf and rerun, or use" \
+          "--check-only"
+    fi
+    rm -f "$stamp"
     converge "$j"
   done
 fi
@@ -162,16 +172,23 @@ for j in "${JOBLIST[@]}"; do
   fi
 done
 
-# Literal <MINTED> placeholders: the build stopped one pass short.
-case ",$JOBS," in *,slides,*)
-  SPDF=slides.pdf; [ -f "$SPDF" ] || SPDF=ltxobj/slides.pdf
-  if [ -f "$SPDF" ]; then
-    m=$(pdftotext "$SPDF" - 2>/dev/null | grep -c MINTED || true)
-    note "slides: MINTED placeholders $m"
-    [ "$m" -eq 0 ] || bad "slides: $m MINTED placeholders (one more pass)"
+# Literal <MINTED> placeholders.  On the slides the build stopped one pass
+# short; in the notes PythonTeX ran from the deck directory and every
+# transcript is missing (see references/build-and-gotchas.md).
+for j in "${JOBLIST[@]}"; do
+  JPDF=$j.pdf; [ -f "$JPDF" ] || JPDF=ltxobj/$j.pdf
+  [ -f "$JPDF" ] || continue
+  m=$(pdftotext "$JPDF" - 2>/dev/null | grep -c MINTED || true)
+  note "$j: MINTED placeholders $m"
+  if [ "$m" -ne 0 ]; then
+    if [ "$j" = notes ]; then
+      bad "notes: $m MINTED placeholders (a PythonTeX run from the deck" \
+          "directory: delete the stray notes.pytx* files and rebuild)"
+    else
+      bad "$j: $m MINTED placeholders (one more pass)"
+    fi
   fi
-  ;;
-esac
+done
 
 # PythonTeX instance skew: a frame combining \pause with \runpython
 # doubles the slides job's instances and the shared cache then prints the

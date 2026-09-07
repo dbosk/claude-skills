@@ -217,6 +217,7 @@ for the `##### all done` marker.
 | Notes show old output after a chunk changed | `rm -f ltxobj/*.pytx* ltxobj/*.fdb_latexmk didactic_output_*.txt; touch contents.nw` |
 | Notes transcripts belong to the wrong example | a `\pause` in a `\runpython` frame; split it |
 | "Nothing to do", nothing rebuilds | `rm ltxobj/notes.fdb_latexmk` |
+| `<MINTED>` in the notes, stray `notes.pytxmcr` beside the sources | PythonTeX ran from the deck directory; delete the strays and `ltxobj/notes.*`, rebuild |
 | Build hangs immediately | `rm -rf ltxobj/_minted` |
 | "empty citation" or `??` after new bib keys | run biber by hand, touch a source, make again |
 | "Too many unprocessed floats" | `\extrafloats{200}` missing from `preamble.tex` |
@@ -237,7 +238,7 @@ These `scripts/build_deck.sh` runs itself:
 | `??` in `pdftotext` of both PDFs | 0 |
 | "empty citation" in the logs | 0 |
 | `Overfull \vbox` in `ltxobj/slides.log` | 0 |
-| `MINTED` in `pdftotext` of the slides | 0 |
+| `MINTED` in `pdftotext` of both PDFs | 0 (in the notes it means a PythonTeX run from the wrong directory) |
 | `wc -l ltxobj/*.pytxcode`, the two jobs | nearly equal |
 | `black --check` on the tangled `.py` files | clean, `--exempt GLOB` for hand-written inputs |
 | source lines over 79 characters | none |
