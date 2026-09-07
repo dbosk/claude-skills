@@ -447,6 +447,87 @@ When teaching complex topics, sequence prompts strategically:
 7. **Dismissing attempts**: Validate good thinking even if prediction is wrong
 8. **Revealing critical aspects in the question**: Don't point out what students should discern (see Teacher's Paradox in SKILL.md)
 
+## Keeping the Answer Out of the Material
+
+### The payload must not narrate the answer
+
+Everything the student meets before predicting is part of the question: the
+example's title, the lead-in sentence, and the strings the program itself
+prints. A payload that describes what the program does hands over the very
+aspect the exercise was built to make discernible.
+
+**BAD** — three separate reveals:
+
+```latex
+\begin{example}[Ett program med ett stavfel]
+  Vad är felet i programmet?
+  \begin{minted}{python}
+print("Den här raden hinner köras.")
+prnt("Den här raden gör det inte.")
+  \end{minted}
+\end{example}
+```
+
+1. **The title** names the fault (`stavfel`), so the student hunts a typo
+   instead of discerning that the interpreter executes statement by
+   statement until one fails.
+2. **The lead-in** ("Vad är felet") points at the dimension to attend to and
+   turns discernment into a search.
+3. **The payload** states the answer outright: the first string *says* it is
+   reached, the second *says* it is not. Nothing is left to predict.
+
+**GOOD** — neutral title, open question, neutral payload:
+
+```latex
+\begin{example}[Ett program med ett fel]
+  Vad skriver programmet ut?
+  \begin{minted}{python}
+print("Välkommen!")
+prnt("Hej!")
+  \end{minted}
+\end{example}
+```
+
+Now the student must discern that the first line runs, that the second
+raises an error, and that execution got that far at all.
+
+**Checklist for each try-first case**:
+
+- [ ] Does the title name the fault, the mechanism, or the concept?
+- [ ] Does the lead-in mention what the student is meant to notice?
+- [ ] Does any printed string, variable name, or comment state the answer?
+- [ ] Is the question open ("what does it print?") rather than pointed
+      ("what is wrong with it?")?
+
+### An `example` shows its own output; an `exercise` keeps its answer separate
+
+The two environments carry opposite obligations.
+
+- An **`example`** is incomplete without its output. Show the code and the
+  real run in the same environment — a terminal transcript with the command
+  line first (`\runpython[showcommand]{examples/x.py}`, or
+  `[transcript, stdin={…}]` when the program reads input), never a bare
+  output block detached from the code. The student must compare what was
+  written with what happened without turning a page.
+- An **`exercise`** withholds its answer, because the delay is the point.
+  The answer comes afterwards — in the following example, in a `solution`,
+  or in the prose that resolves the prediction — never inside the exercise.
+
+An example that hides its output is a failed exercise; an exercise that
+shows its answer is a slow example.
+
+### Ask what can go wrong before showing the handlers
+
+Where a program handles several errors, do not present the handlers as a
+finished list. Ask first what can go wrong with the unprotected program,
+collect the answers, and only then show the code that responds to each case.
+The student who has enumerated the failure modes reads the handlers as
+answers to their own questions; the student handed the list reads it as
+syntax.
+
+The same order applies to any defensive construct — validation, retries,
+resource cleanup: the problem is discovered, then the mechanism is named.
+
 ## Diagnostic Use of Try-First Prompts
 
 Try-first prompts double as diagnostic tools, revealing which critical aspects students can already discern. This section provides implementation guidance.

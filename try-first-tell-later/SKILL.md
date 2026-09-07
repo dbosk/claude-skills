@@ -62,6 +62,14 @@ And the rule for the question itself (NCOL p. 91, on the physics-exam task whose
 - Which forces are relevant
 - That "engine pushes forward" alone is wrong
 
+**The reveal hides in three more places**: the example's *title* ("Ett program
+med ett stavfel" names the bug --- write "Ett program med ett fel"), the *lead-in*,
+and the program's own *payload*. A program printing "Den här raden hinner köras."
+narrates the answer before the student predicts it; print "Välkommen!" and let
+them discern what ran. Keep the question open --- "Vad skriver programmet ut?", not
+"Vad är felet?" --- so the critical aspect can surface in the answers without being
+pointed at. See `references/patterns.md`, "The payload must not narrate the answer".
+
 ### Section Order: Ask, Show, Explain, Define
 
 A section that opens with a definition is tell-first even when an exercise
