@@ -1,0 +1,37 @@
+% The abstract of the notes.  Three parts, in this order: Översikt (what
+% the deck does and where it goes), Lärandemål (the learning objectives),
+% Förkunskaper (what the student should have met before).  A Läsning part
+% is optional.  Section headings are \emph, not \section: the abstract is
+% one block of prose.
+%
+% PROJECT: the headings below are Swedish.  Translate them, and the LO
+% wording, for a deck in another language.
+
+\emph{Översikt}
+One paragraph: what question the deck opens with, what it takes the
+student through, and where it stops.  Name topics and deck titles, never
+weeks, lecture order or course events.
+
+\emph{Lärandemål}
+Efter denna modul ska studenten kunna:
+% PROJECT: keep the course's own outcome codes here as a comment, so the
+% mapping survives without leaking into the student's text.
+% Lo04, Lo05 ...
+\begin{restatable}{lo}{ModuleLOFirst}\label{ModuleLOFirst}%
+  What the student can do, in plain words, without restating the
+  mechanism.  The label is \texttt{ModuleLOAspect}: the module's name
+  followed by \texttt{LO} and the aspect, so the notes can restate the
+  objective where the prose meets it with \verb|\ModuleLOFirst|.
+\end{restatable}
+\begin{restatable}{lo}{ModuleLOSecond}\label{ModuleLOSecond}%
+  A second objective.  One capability per environment; a sentence that
+  needs an "och" for two unrelated abilities is two objectives.
+\end{restatable}
+\begin{restatable}{lo}{ModuleLOThird}\label{ModuleLOThird}%
+  A third objective.
+\end{restatable}
+
+\emph{Förkunskaper}
+What the student should have met first: "Studenten bör ha tagit del av
+föreläsningen \emph{Deck Title}", never "ha sett", and never a week or a
+lecture number.  Say what that deck supplies that this one needs.

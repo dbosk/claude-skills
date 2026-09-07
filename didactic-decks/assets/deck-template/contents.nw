@@ -1,0 +1,84 @@
+\mode*
+
+\section{The first idea}
+\label{sec:first-idea}
+
+Article-only prose runs between the frames and carries the lecture notes.
+It says what the deck is about to do and why, in the student's language.
+A section asks before it tells: exercise, then output, then explanation,
+then the definition last.
+
+\begin{frame}
+  \begin{exercise}\label{ex:first-question}
+    The try-first question, asked before anything it presupposes has been
+    explained.  It stays open --- "what does the program print?", not
+    "what is the mistake?" --- so the critical aspect can surface in the
+    answers without being pointed at.
+  \end{exercise}
+\end{frame}
+
+\ltnote{%
+  Relevant learning objectives: \cref{ModuleLOFirst}.
+
+  Why this example and not another; which misconception it targets; what
+  varies and what stays invariant (contrast, generalisation or fusion ---
+  the label must match what the example actually varies).  \parencite is
+  used only inside an \verb|\ltnote|; the prose cites with \verb|\autocite|.
+  Anchor the note where the decision is made, not at the end of the
+  passage.
+}
+
+Now the program that answers it.  A frame holding a chunk must be
+\texttt{[fragile]}, and a theorem-style environment never opens with a
+chunk: a short lead-in sentence comes first.
+
+\begin{frame}[fragile]
+  \begin{example}[A program that greets]\label{ex:greeting}
+    The program prints one line:
+<<[[example.py]]>>=
+print("Hej!")
+@
+    and running it looks like this:
+    \runpython[showcommand, chdir]{examples/example.py}
+  \end{example}
+\end{frame}
+
+The explanation follows the output, not the other way round.  Say what
+happened, in the words the student just saw on the screen.
+
+\begin{frame}
+  \begin{definition}[The term]
+    The definition comes last, once the student has met the thing it
+    names.
+  \end{definition}
+\end{frame}
+
+\Cref{fig:example} shows the documentation page for the function; every
+figure is referenced from the student-facing prose, not only from an
+\verb|\ltnote|, and sits next to the paragraph that references it.
+
+\begin{figure}[htbp]
+  \centering
+  \begin{sidecaption}{What the figure shows, spelled out well enough to
+    stand on its own: the abbreviations, the row codes and what any
+    markers mean.}[fig:example]
+    \includegraphics[width=0.7\textwidth]{figs/example.png}
+  \end{sidecaption}
+\end{figure}
+
+\mode<article>{\clearpage}
+\section{The next idea}
+\label{sec:next-idea}
+
+Notes-only structure goes in \verb|\mode<article>{...}|; slide-only
+tweaks go in \verb|\mode<presentation>{...}|.  A \verb|\clearpage| before
+a section drains the \verb|\ltnote| queue on a page still inside the
+chapter.
+
+\begin{frame}
+  \begin{summary}
+    A block that closes a section by summarising it is a
+    \texttt{summary}, not a \texttt{remark} --- and the prose does not
+    pre-announce what it is about to say.
+  \end{summary}
+\end{frame}

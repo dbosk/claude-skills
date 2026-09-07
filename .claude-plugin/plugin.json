@@ -1,7 +1,7 @@
 {
   "name": "dbosk-skills",
   "description": "Daniel Bosk's skills: literate programming, LaTeX writing, teaching, and review",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "skills": [
     "./backing-claims",
     "./commit",
@@ -14,6 +14,7 @@
     "./try-first-tell-later",
     "./update-project-docs",
     "./variation-theory",
-    "./writing-crypto"
+    "./writing-crypto",
+    "./didactic-decks"
   ]
 }
