@@ -229,6 +229,8 @@ Each of these is spelled out, with its command, in
 
 ## Checks before review
 
+These `scripts/build_deck.sh` runs itself:
+
 | Check | Threshold |
 |---|---|
 | `^!` lines in `ltxobj/*.log` | 0, both jobs |
@@ -237,26 +239,42 @@ Each of these is spelled out, with its command, in
 | `Overfull \vbox` in `ltxobj/slides.log` | 0 |
 | `MINTED` in `pdftotext` of the slides | 0 |
 | `wc -l ltxobj/*.pytxcode`, the two jobs | nearly equal |
-| `black --check examples/` | clean, tracked hand-written inputs exempt |
+| `black --check` on the tangled `.py` files | clean, `--exempt GLOB` for hand-written inputs |
 | source lines over 79 characters | none |
-| `check_provenance.py`, `check_metadata.py` on `ltnotes.bib` | clean |
-| every tangled example runs | yes |
+| `check_provenance.py` on `ltnotes.bib` | `Result: OK` |
+| blank-ish slides | reported, not failed: poster and section frames are legitimately sparse |
 
-`scripts/build_deck.sh` runs all of those. Two more are separate:
+Every row but the last makes the script exit non-zero. It prints the
+counts either way, so read its output rather than only its exit status.
 
-```bash
-python3 ~/.claude/skills/didactic-decks/scripts/check_margin_notes.py \
-        ltxobj/notes.pdf
-```
+**Four checks it does not run.** Do them yourself before calling a deck
+reviewed:
 
-Every margin footnote must print on the page carrying its marker; a note
-pushed to the next page is a layout defect. The script warns when it
-cannot recognise one half of a pair, which means read that page by eye.
+1. **Margin notes.** Every margin footnote must print on the page carrying
+   its marker; a note pushed to the next page is a layout defect.
 
-Then **render and read every slide and every notes page** — contact sheets
-with `pdftoppm -r 40` plus `montage`, then close reads of anything that
-looks wrong. No script replaces this. `references/review-checklist.md` has
-the commands and the warnings that are known to be harmless.
+   ```bash
+   python3 ~/.claude/skills/didactic-decks/scripts/check_margin_notes.py \
+           ltxobj/notes.pdf
+   ```
+
+   It warns when it cannot recognise one half of a pair, which means read
+   that page by eye.
+2. **`check_metadata.py` on `ltnotes.bib`** — left out of the script
+   because it queries Crossref over the network. Run it once per revision,
+   from the `backing-claims` skill.
+3. **Running the tangled examples.** The build already ran every program
+   carrying a `\runpython`, so for those the check is to read the
+   transcripts against the tangled files. Programs without one are run by
+   hand, with the input the deck feeds them —
+   `python3 x.py < /dev/null` reports a false failure for anything that
+   reads input. `references/review-checklist.md` has the recipe.
+4. **Reading every slide and every notes page** — contact sheets with
+   `pdftoppm -r 40` plus `montage`, then close reads of anything that
+   looks wrong. No script replaces this.
+
+`references/review-checklist.md` has every command in full, and the
+warnings that are known to be harmless.
 
 ## Keeping the template in sync
 

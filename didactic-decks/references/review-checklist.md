@@ -34,15 +34,73 @@ frame. On the notes it is ordinary typesetting and not a defect.
 
 ## Tangled examples
 
-Every tangled program must run, and must be black-clean:
+Every tangled program must run, and must be black-clean.
+
+### Running them
+
+**The build has already run every program that carries a `\runpython`**,
+with the input the deck feeds it. For those, the check is not to run them
+again but to read the transcripts in the notes against the tangled files
+they claim to run. `runpython-and-output.md` has the recipe for forcing
+PythonTeX to re-run when only a chunk changed.
+
+To run one by hand, take its input from the `\runpython` call rather than
+guessing. `python3 examples/x.py < /dev/null` reports a false failure for
+every program that reads input, and in a deck about exception handling
+that is typically all of them. Collect the values first:
+
+```bash
+grep -o 'stdin={[^}]*}' contents.nw
+```
+
+Then feed them in the order they appear, one per prompt:
+
+```bash
+printf '%s\n' Malvina 1927 | python3 examples/x.py
+```
+
+A program with no `\runpython` and no `stdin` is run bare. The loop for a
+whole deck first collects the files the build already ran, then runs only
+the rest. Flatten the source first: a `\runpython` call routinely wraps
+over two lines, so a line-oriented grep misses it.
+
+```bash
+ran=$(tr '\n' ' ' < contents.nw \
+      | grep -o '\\runpython\(\[[^]]*\]\)\?{[^}]*}' \
+      | sed 's/.*{//;s/}$//' | sort -u)
+for f in examples/*.py; do
+  grep -qxF "$f" <<< "$ran" && continue   # the build ran it: read its transcript
+  python3 "$f" < /dev/null || echo "FAILED: $f"
+done
+```
+
+Measured on a deck whose seven programs all read input, `$ran` holds all
+seven and the loop runs nothing. That is the correct answer: the check
+there is to read the transcripts.
+
+### black
 
 ```bash
 black --check examples/
-for f in examples/*.py; do python3 "$f" < /dev/null || echo "FAILED: $f"; done
 ```
 
+**black honours the `.gitignore` at the git root, and a deck repository
+ignores `examples/`**, so this command can answer "No Python files are
+present to be formatted. Nothing to do" and exit 0 having checked
+nothing. Read its count: it must match the number of tangled `.py` files.
+If it does not, pass the files explicitly:
+
+```bash
+find examples -name '*.py' -type f | wc -l
+black --check $(find examples -name '*.py' -type f)
+```
+
+`build_deck.sh` always passes the file list explicitly and prints the
+count it checked, for this reason.
+
 Hand-written activity inputs that a deck *reads* rather than presents are
-exempt from `black --check`; exclude them by path.
+exempt from `black --check`; exclude them by path (`build_deck.sh
+--exempt GLOB`).
 
 Confirm that `examples/` holds nothing but generated files:
 

@@ -13,7 +13,7 @@ cp -r ~/.claude/skills/didactic-decks/assets/deck-template <project>/<module>/sl
 | `TITLE` | `slides.tex`, `notes.tex` | the deck title, identical in both |
 | `AUTHOR` | `slides.tex`, `notes.tex` | the author |
 | `INSTITUTE` | `slides.tex`, `notes.tex` | the institute |
-| `Module` in `ModuleLOFirst` | `abstract.tex` | the module's name, so labels read `<Module>LO<Aspect>` |
+| `Module` in `ModuleLOFirst` | `abstract.tex`, `contents.nw` | the module's name, so labels read `<Module>LO<Aspect>`; `contents.nw` cross-references the same label from its `\ltnote` |
 | `../../../makefiles` | `Makefile` | the relative path to the shared makefiles submodule |
 | `examples/example.py` | `Makefile` | one `EXAMPLES+=` line per tangled program |
 

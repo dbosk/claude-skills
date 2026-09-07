@@ -22,8 +22,10 @@ then the definition last.
 
   Why this example and not another; which misconception it targets; what
   varies and what stays invariant (contrast, generalisation or fusion ---
-  the label must match what the example actually varies).  \parencite is
-  used only inside an \verb|\ltnote|; the prose cites with \verb|\autocite|.
+  the label must match what the example actually varies).
+  \texttt{\textbackslash parencite} is used only inside an
+  \texttt{\textbackslash ltnote}; the prose cites with
+  \texttt{\textbackslash autocite}.
   Anchor the note where the decision is made, not at the end of the
   passage.
 }

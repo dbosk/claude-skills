@@ -214,17 +214,30 @@ esac
 
 # Tangled Python must be black-clean: the tangle rule pipes it through
 # black and the file has to match the slide byte for byte.
+#
+# The files are listed explicitly rather than handing black the directory.
+# black honours the .gitignore at the git root, and a deck repository
+# ignores examples/, so `black --check examples/` can answer "No Python
+# files are present to be formatted" and exit 0 having checked nothing.
 if [ -d examples ]; then
-  if command -v black > /dev/null; then
-    BLACKARGS=(--check examples/)
+  PYFILES=()
+  while IFS= read -r f; do
+    skip=0
     for g in ${EXEMPT+"${EXEMPT[@]}"}; do
-      BLACKARGS+=(--extend-exclude "$g")
+      # shellcheck disable=SC2254
+      case "$f" in $g) skip=1 ;; esac
     done
+    [ "$skip" -eq 0 ] && PYFILES+=("$f")
+  done < <(find examples -name '*.py' -type f | sort)
+
+  if [ ${#PYFILES[@]} -eq 0 ]; then
+    note "black: no tangled Python examples to check"
+  elif command -v black > /dev/null; then
     set +e
-    out=$(black "${BLACKARGS[@]}" 2>&1)
+    out=$(black --check "${PYFILES[@]}" 2>&1)
     rc=$?
     set -e
-    note "black: $(echo "$out" | tail -1)"
+    note "black: ${#PYFILES[@]} files checked --- $(echo "$out" | tail -1)"
     [ "$rc" -eq 0 ] || bad "black --check failed on examples/"
   else
     note "WARNING: black not found --- skipping the style check"
@@ -241,6 +254,27 @@ done
 [ "$LONG" -eq 0 ] && note "line length: all <= 79"
 [ "$LONG" -eq 0 ] || bad "$LONG source lines longer than 79 characters"
 
+# Provenance blocks in the bibliography.  check_provenance.py is offline
+# and cheap, so it belongs in every build; its companion check_metadata.py
+# queries Crossref and is left to the reviewer.
+PROV=~/.claude/skills/backing-claims/scripts/check_provenance.py
+if [ -f ltnotes.bib ]; then
+  if [ -f "$PROV" ]; then
+    set +e
+    out=$(python3 "$PROV" ltnotes.bib 2>&1)
+    rc=$?
+    set -e
+    note "provenance: $(echo "$out" | grep -a 'Result:' | tail -1 \
+                       | sed 's/^ *//')"
+    if [ "$rc" -ne 0 ]; then
+      echo "$out" | grep -a -A20 'ERRORS' | head -20
+      bad "check_provenance.py failed on ltnotes.bib"
+    fi
+  else
+    note "WARNING: $PROV not found --- provenance unchecked"
+  fi
+fi
+
 command -v montage > /dev/null \
   || note "WARNING: montage not found --- render contact sheets elsewhere"
 
@@ -252,8 +286,9 @@ fi
 
 if [ "$FAIL" -eq 0 ]; then
   note "ALL CHECKS PASSED"
-  note "Still to do by hand: read every slide and every notes page, and run"
-  note "  check_margin_notes.py on the notes PDF."
+  note "Still to do separately: check_margin_notes.py on the notes PDF;"
+  note "  check_metadata.py on ltnotes.bib (needs the network); running the"
+  note "  tangled examples; reading every slide and every notes page."
 else
   note "CHECKS FAILED"
 fi
