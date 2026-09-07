@@ -130,6 +130,39 @@ Consequences:
   give the article real prose instead. A reviewer reading the article
   should never see slide bullets restating the previous paragraph.
 
+## A centred two-line display collapses in the article
+
+`\\` inside a `center` environment is a paragraph break in beamer but not
+reliably one under `beamerarticle` + memoir: inside a theorem-style environment
+(didactic's `example`, `remark`, …) the article job swallows it and prints the
+two lines run together on one line. The slides look right, so the defect is
+found only by reading the article.
+
+```latex
+% BAD — one line in the article, two on the slide
+\begin{example}
+  \begin{center}
+    3 + 4 \\
+    7
+  \end{center}
+\end{example}
+```
+
+Use a one-column `tabular`, which breaks rows in both jobs, or end the first
+line with `\par`:
+
+```latex
+\begin{center}
+  \begin{tabular}{c}
+    3 + 4 \\
+    7
+  \end{tabular}
+\end{center}
+```
+
+The same caution applies to any `\\` whose only job is a visual line break:
+prefer a structure (`tabular`, `\par`, a list) that both jobs must honour.
+
 ## Biber for the second job
 
 When one job's citations stay undefined ("Please (re)run Biber"), run

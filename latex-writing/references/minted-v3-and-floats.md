@@ -107,6 +107,41 @@ So for a slide-only frame you cannot have both `\mode<presentation>{...}` and
   with `\only<presentation>{\autocite{...}}` so it does not execute in the
   article and orphan a margin float.
 
+### A citation inside a `table`/`figure` float loses the float
+
+The same mechanism bites in an ordinary single-output document as soon as
+citations are footnotes in the margin (verbose biblatex styles; didactic and
+memoir in `\footnotesinmargin` mode). `\textcite`/`\autocite` then emit a
+`\marginpar`, which is itself a float — and a float emitted *from inside*
+another float is lost:
+
+```latex
+% BAD — the citation's margin footnote is a float inside a float
+\begin{table}[htbp]
+  \begin{sidecaption}{Urvalet följer \textcite{Kitchenham2007}.}[tab:hits]
+  ...
+\end{table}
+```
+
+Symptom: `! LaTeX Error: Float(s) lost.` **plus undefined references** — the
+lost float takes its `\label` with it, so every `\cref{tab:hits}` in the
+document reports `??` (four references to the table, four undefined
+references). Those undefined references are the useful clue, because they name
+the float that vanished; the error itself names nothing.
+
+Fix: inside a float use `\parencite`, which prints an inline parenthetical and
+emits no footnote. When the source deserves a footnoted first mention, put that
+mention in the **prose outside the float** and let the caption cite
+parenthetically:
+
+```latex
+Urvalet följer \textcite{Kitchenham2007}.       % prose, outside: footnote is fine
+\begin{table}[htbp]
+  \begin{sidecaption}{... efter \parencite{Kitchenham2007}.}[tab:hits]
+```
+
+This covers the whole float body — caption, side caption, table cells alike.
+
 Other classic triggers of "Float(s) lost": a `figure`/`table` nested inside
 another box (minipage, `\parbox`, another float), or a margin float emitted from
 any restricted-mode context. Diagnose by minimal reproduction (does the

@@ -94,6 +94,34 @@ beamer's list internals (see the dual-build rules in SKILL.md — load it in
 the article driver only), so in slide decks and dual beamer/article sources
 use the `\label[type]` route inside frames instead.
 
+## Types with no usable name: unnumbered environments, and beamer
+
+Two cases where the override pattern above cannot help, because the printed
+name is wrong for a reason other than terminology.
+
+**An unnumbered environment prints `??`.** cleveref names a *counter*, so a
+theorem-style environment declared without one has nothing to reference. The
+didactic package's `remark`, `summary` and `solution` are unnumbered by design,
+and `\cref` to a label inside one renders `??` (the `\label` picks up whatever
+counter was last stepped, or none). Refer to such a block in prose by what it
+says, and reserve `\cref` for the numbered types (`example`, `exercise`,
+`definition`, figures, tables, sections).
+
+**A dual beamer/article build prints the wrong word on slides.** An environment
+that is a numbered theorem in the article is a beamer *block* in the slides, and
+the beamer job resolves the type against its own theorem set: `\cref` to an
+`example` prints "sats" (theorem) there while the article correctly prints
+"exempel". Since the number means nothing on a slide anyway, emit the
+cross-reference in the article only:
+
+```latex
+... som i det tidigare exemplet\only<article>{ (\cref{ex:division})}.
+```
+
+`\only<article>` (not `\mode<article>`) keeps this inline, so the sentence reads
+correctly in both outputs. Same treatment for a `\cref` to any environment whose
+type name differs between the two jobs.
+
 ## Overriding a shipped name: \AtBeginDocument, registered after cleveref's
 
 cleveref's language options install their names in an `\AtBeginDocument`
