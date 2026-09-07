@@ -33,6 +33,7 @@ This skill includes detailed references in `references/`:
 | `latex-examples.md` | Restatable LOs, citations, complete examples | `restatable`, `\cref{}`, `biblatex` |
 | `beamer-patterns.md` | Mode splits, overlays, verbose environments | `\mode<article>`, `uncoverenv`, `\textbytext` |
 | `semantic-environments.md` | Environment selection, generalizations | `definition`, `remark`, `example`, `block` |
+| `note-scope-and-visibility.md` | Note vs. prose (what students never see), where to anchor a note, the margin queue and `\clearpage`, no pre-announced `summary` | `\ltnoteoff`, `margin queue`, `\clearpage`, `sidecaption` |
 | `footnotes-and-citations.md` | Margin footnotes & verbose margin references in dual beamer/article builds; the fatal "Float(s) lost" from a citation inside a `<presentation>`-only frame and its `\only<presentation>` fix; mode-adaptive citation commands (`\autocite`, verbose style) | `footnotesinmargin`, `Float(s) lost`, `\only<presentation>`, `\autocite`, `style=verbose` |
 
 **CRITICAL gotcha:** in a memoir article that also builds beamer slides, didactic

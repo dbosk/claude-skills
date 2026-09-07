@@ -351,6 +351,35 @@ The didactic.sty package provides `\textbytext{...}{...}` and `\textbytext*{...}
 
 Images and tables should use memoir's sidecaption for better layout and accessibility.
 
+### Preamble requirements
+
+Two lines are needed right after `\usepackage[...]{didactic}`, or side
+captions misbehave in ways that look like unrelated bugs:
+
+```latex
+\extrafloats{200}
+\ifdefined\setsidecappos\setsidecappos{b}\fi
+```
+
+- `\extrafloats{200}` — didactic's margin footnotes and verbose `\autocite`s
+  are `\marginpar`s, and in a citation-heavy chapter they exhaust LaTeX's
+  float pool: "Too many unprocessed floats", reported pages after the cause.
+- `\setsidecappos{b}` — memoir `\rlap`s the side caption, so the default
+  centred position overprints an `\ltnote` sitting at the same height.
+
+### Choosing between a side caption and a normal caption
+
+Placement comes first, the caption style second:
+
+1. Float `[htbp]` immediately after the paragraph that references the float.
+   Never `[p]`: a float page separates the figure from its reference.
+2. Use `sidecaption` when the margin beside the float is free **and** the
+   rendered caption is not taller than the float itself.
+3. Otherwise use a normal `\caption` with the **same full text**. A side
+   caption towering over a short table goes below it instead; shortening the
+   caption is the wrong fix.
+4. A `longtable` cannot take a side caption and keeps a full `\caption`.
+
 ### For Figures
 
 ```latex
@@ -388,6 +417,12 @@ Images and tables should use memoir's sidecaption for better layout and accessib
 - **Describe content**: "Python documentation for file I/O operations"
 - **Be specific**: "File modes available in open() function" not "Documentation screenshot"
 - **Explain relevance**: "CSV module methods showing reader and writer classes"
+- **Explain the notation**: expand every abbreviation used in the float (OA,
+  WoS, IEEE), say what the row codes mean, and state what each marker
+  (`--`, `\dag`) stands for. A caption stands on its own or it is not a
+  caption.
+- **Fuller, not shorter**: a caption is trimmed only of words, never of the
+  information a reader needs to read the float without the prose.
 
 ### Anti-pattern (Standalone Image Without Caption)
 

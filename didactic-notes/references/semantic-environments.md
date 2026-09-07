@@ -86,6 +86,38 @@ Use **activity**:
 \end{activity>
 ```
 
+### For Closing a Section
+
+Use **summary**, not `remark`. A block that closes a section by summarising
+it is a summary; `remark` is for an observation raised *while* the material
+is being developed. Getting this wrong costs the reader the signal that the
+section is finished, and it makes the two environments interchangeable, so
+neither carries meaning.
+
+```latex
+% BAD — a closer dressed as an aside
+\begin{remark}[Sammanfattning]
+  Vi har sett tre sätt att hantera fel: ...
+\end{remark}
+
+% GOOD
+\begin{summary}
+  Vi har sett tre sätt att hantera fel: ...
+\end{summary}
+```
+
+### One `example` or `exercise` per case
+
+Give each case its own environment: one program, one question, one
+transcript per `example`; one question per `exercise`. Two cases merged into
+a single environment lose the boundary the reader needs to see what varied
+between them, and a `\cref` can then point only at the pair.
+
+Keep the environments **adjacent** where the cases belong together — an
+exercise immediately followed by the example that answers it — rather than
+merging them. Adjacency preserves the sequence; merging destroys the
+contrast.
+
 ---
 
 ## Generalizations in Semantic Environments
