@@ -5,10 +5,13 @@ description: Orchestrate parallel fix/implementation subagents in isolated git
   when (1) spawning Agent tasks with worktree isolation, (2) running a batch
   bug-fix or migration campaign where several agents edit the same repo in
   parallel, (3) a worktree agent reports import/venv/submodule build failures,
-  (4) resuming subagents after a session limit or crash, or (5) writing
-  prompts for agents that must build a generated-artifact project (e.g.
-  noweb/literate programs) before testing. Documents obstacles observed in a
-  real 47-branch campaign and the prompt preamble that avoids them.
+  (4) resuming subagents after a session limit or crash (HTTP 429 vs 529,
+  agents unreachable after a restart), (5) writing prompts or a brief for
+  agents that must build a generated-artifact project (e.g. noweb/literate
+  programs) before testing, or (6) running reader agents over the finished
+  artifacts or scripting long orchestrated builds. Documents obstacles
+  observed in a real 47-branch campaign and the prompt preamble that avoids
+  them.
 ---
 
 # Running parallel subagents in git worktrees
@@ -161,10 +164,12 @@ fix. Every item below cost an agent real time at least once.
 - Agents sometimes go idle without delivering their final report. Poke them
   with SendMessage ("send me your findings/report now"); a queued message
   ("delivered at next tool round") means the agent is still running — wait.
-- A session limit kills all background agents mid-task. After reset, resume
-  each by name with SendMessage — they continue from their transcript;
-  committed work and worktrees survive. Resume is near-free; relaunching
-  re-does everything.
+- A session limit kills all background agents mid-task. Within the same
+  session they resume from their transcript with SendMessage — committed work
+  and worktrees survive, and resume is near-free while relaunching re-does
+  everything. Which agents are still reachable, and whether by name or by id,
+  depends on what killed them: see "Session limits, resume and unreachable
+  agents" below.
 - Branches created in worktrees are visible in the main repo — review diffs,
   push, and open PRs from the main repo; never merge or push from inside an
   agent worktree.
@@ -173,6 +178,100 @@ fix. Every item below cost an agent real time at least once.
   subagent as "read the whole diff line by line", not as a verdict.
 - Persist orchestration state (plan file with per-branch status, follow-up
   issue list) outside the conversation after every batch — sessions die.
+
+## Session limits, resume and unreachable agents
+
+- **Read the HTTP code before retrying — 529 and 429 need opposite
+  responses.** `529 Overloaded` is API-wide: the launch never produced a
+  working agent, its unchanged worktree is auto-removed, so resuming it is
+  useless and changing model does not help (observed on `claude-opus-5` and on
+  the session model within one half hour). Relaunch after a pause of ~15
+  minutes; do not hammer. `429` "session limit · resets <time>" is the
+  account's usage limit: running agents die mid-task but a worktree with
+  changes survives, so they are resumable and relaunching throws work away.
+- **Resume by agent id when the name has been reused.** SendMessage to
+  `deck-packages` reaches the *latest* launch under that name, not the crashed
+  one you mean. Record each spawn's agent id in the plan file at launch, and
+  resume by id — three agents came back that way hours later, worktrees intact.
+- **After a session restart or compaction every in-process subagent of the
+  earlier session is unreachable** ("No agent named … is reachable"), while
+  their worktrees remain — locked — and their branch names stay taken. A
+  follow-up round then needs a *fresh* agent on a *new* branch (`fix-<x>-rN`)
+  from the current tip with the brief re-pointed; that costs one brief plus one
+  read of the target, but only because the brief is a file on disk.
+- **Data shared across branches gets a `% TODO(orchestrator)` placeholder, not
+  an invention per agent.** When several agents need the same bibliography
+  entry or shared config line, which so far exists only on a sibling branch,
+  have each write a placeholder key carrying the marker; resolve them once at
+  merge time, and grep for the marker before every merge.
+- **Check disk before a batch, and tell the user instead of freeing space
+  yourself.** A worktree costs ~45–50 MB plus build output; 28 of them reached
+  1.5 GB on a disk with 500 MB free. Report what is large (`/usr/bin/du -sh`),
+  delete nothing, and give every agent "No space left on device → STOP and
+  report".
+- **Clean up at the end of a round.** Merged worktrees are not free and the
+  auto-created branches accumulate silently. Confirm first that
+  `git branch --no-merged <base>` lists none of the agent branches. Then
+  `git worktree unlock <path>` the locked ones, `git worktree remove --force
+  <path>` each, `git branch -d` both the agent branches *and* the auto-created
+  `worktree-agent-*` branches, and `git worktree prune`. Verify with
+  `git worktree list` and `/usr/bin/du -sh <worktree dir>` — 1.5 GB became
+  95 MB in the campaign.
+
+## Reader and fix agents from a brief on disk
+
+- **One brief file per agent, on disk — never a task typed into the launch
+  message.** The launch names only the target, the branch, the base SHA, the
+  scratch directory and the brief's path; everything else lives in the file:
+  §0 setup preamble (the traps above as numbered steps), §1 what to read before
+  editing, §2 the task with an explicit decision on every ambiguous item,
+  §3 build and checks, §4 commit trailers and the report format. Skeleton to
+  copy: `references/brief-skeleton.md`. The file makes a relaunch cheap when an
+  agent becomes unreachable, and keeps ten agents' instructions identical.
+- **Decide the ambiguous items in the brief, not in the agent.** Anything the
+  source material leaves open — which of two readings of a review comment, what
+  wins when a rule and a local convention collide — is answered in §2 by name;
+  agents that must guess guess differently.
+- **Run an independent reader agent per 2–3 finished artifacts.** It never saw
+  the diff; it reads the *product*: text extraction per page, 45-dpi contact
+  sheets (`pdftoppm -r 40` + `montage`), 110-dpi close reads of the pages that
+  look wrong, and a re-run of every generated program against the output
+  embedded in the document. It reports by severity — blockers, should-fix,
+  nits — each with `file:line`. Template: `references/reader-agent-brief.md`.
+- **The reader exists because a fix agent's report inherits its own
+  assumptions.** Readers caught a 19.5 pt overrun the build log never warned
+  about, a caption contradicting the transcript beside it, and a count in the
+  prose disagreeing with its table — none visible in a diff.
+- **The orchestrator reads the diff itself**, spot-checks renders, applies
+  small merge-time fixes directly (a flag in a Makefile, a name, a caption) and
+  routes redesigns back to the agent by name with the reader's list; the agent
+  keeps its worktree for round 2.
+- **A round is: brief → fix agent → reader → fix list → merge → the
+  orchestrator's own build → deliver → generalise.** The last step pays: every
+  defect the round found becomes a rule in the project's standard file and in
+  the brief, so the next unit cannot reproduce it.
+
+## Shell traps when orchestrating builds
+
+- **`pkill -f <pattern>` kills the tool's own shell** when the pattern also
+  occurs in the command line running it (twice, exit 144, mid-round). Use the
+  bracket trick in a command with no other literal copy: `pkill -f '[p]dflatex'`.
+- **A backslash pattern in `grep` can silently match nothing.**
+  `grep -c "Overfull \vbox"` reports 0 against a log full of them — and single
+  quotes fail identically: the shell passes `\v` through and the regex engine
+  leaves it undefined. Write `grep -c 'Overfull .vbox'`; a zero count from a
+  pattern with a backslash is unproven until it matches a line you know exists.
+- **A trailing `&` backgrounds the WHOLE `&&` chain, not the last command.**
+  `git merge … && git push && nohup build.sh &` backgrounds the merge and the
+  push too, and you then review a merge that has not happened. Wrap only the
+  detached part: `git merge … && git push && ( nohup build.sh > log 2>&1 & )`.
+- **The Bash tool caps a command at ten minutes**, so longer work runs detached
+  (`nohup script.sh > log 2>&1 &`), printing one summary line per unit and a
+  final `ALL DONE` marker; watch it with the Monitor tool polling that log.
+- **Never build two jobs of one document concurrently**: they share the build
+  directory and its caches, so one job reads the other's intermediates.
+- **`du` may be an alias in the user's shell** — call `/usr/bin/du` wherever a
+  script or a measurement must not depend on it.
 
 ## After the PRs: review rounds and live verification
 
