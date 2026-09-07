@@ -17,9 +17,16 @@ along inside it, because acro prints "long (short)" on first use.
 **Never tie the text to weeks, lecture order or course events.** Not
 "förra veckan", "vecka 38", "föreläsningens första halva", "på
 laborationen", "veckans modul". Refer to topics, deck titles and
-activities: "tidigare", "föreläsningen \emph{Funktioner}", "när ni
+activities: "tidigare", "föreläsningen \emph{Funktioner}", "när du
 programmerar". An `\ltnote` may still mention the lab; the student's text
 may not.
+
+**Address the student as "du".** Second person singular throughout the
+student text — prose, exercises, learning objectives, appendices: "när du
+programmerar", "din kod", "ditt program", "dina svar". Never "ni"/"er"
+for the reader (the author, 2026-09-07: "use du"); a real plural — two
+students in a pair — keeps "ni". Program strings and quoted sources keep
+their own wording.
 
 **Förkunskaper say "tagit del av".** "Studenten bör ha tagit del av
 föreläsningen \emph{X}", never "ha sett".
