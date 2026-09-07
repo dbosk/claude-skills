@@ -112,8 +112,9 @@ if [ "$CHECK_ONLY" -eq 0 ]; then
   pre_clean
   for j in "${JOBLIST[@]}"; do
     # A make that finds the PDF up to date runs no pass and leaves the
-    # previous run's log behind, so the checks below would report stale
-    # numbers.  Stamp the start and demand a newer log.
+    # previous run's log behind.  That is correct when nothing changed
+    # (the log belongs to the PDF), and misleading after a failed run
+    # that the fix did not touch; say which run the checks describe.
     stamp=$(mktemp "ltxobj/.stamp.$j.XXXXXX")
     set +e
     make "$j.pdf" "${MAKEARGS[@]}" >> "$LOG" 2>&1
@@ -122,9 +123,9 @@ if [ "$CHECK_ONLY" -eq 0 ]; then
     note "$j: make exit $rc"
     [ "$rc" -eq 0 ] || bad "$j: make failed (see $LOG)"
     if [ ! "ltxobj/$j.log" -nt "$stamp" ]; then
-      bad "$j: nothing was rebuilt (PDF up to date); the checks would read" \
-          "the previous run's log --- rm ltxobj/$j.pdf and rerun, or use" \
-          "--check-only"
+      note "$j: nothing was rebuilt (PDF up to date): the checks describe" \
+           "the run that produced it; after a failed run, rm ltxobj/$j.pdf" \
+           "to force a rebuild"
     fi
     rm -f "$stamp"
     converge "$j"

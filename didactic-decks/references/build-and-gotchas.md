@@ -193,9 +193,10 @@ Do not gitignore the strays: their presence is the diagnosis.
 
 After a failed build, a second `make` often finds the PDF up to date, runs
 no `pdflatex`, and leaves `ltxobj/<job>.log` from the failed run in place,
-so every log-based check reports the old numbers. `build_deck.sh` flags a
-build during which the log did not change; by hand, `rm ltxobj/<job>.pdf`
-or touch a source before rerunning.
+so every log-based check reports the old numbers. `build_deck.sh` says when
+a job's log did not change during the build (harmless when nothing changed:
+the log belongs to the PDF); after a failed run, `rm ltxobj/<job>.pdf` or
+touch a source before rerunning.
 
 ### Stuck latexmk
 
