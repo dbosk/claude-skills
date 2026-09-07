@@ -1,5 +1,9 @@
 # Building a deck, and the gotchas
 
+See also `literate-programming/references/build-pythontex-biber.md` for the
+general latexmk, PythonTeX and biber mechanics; this file keeps what is
+specific to a deck with two jobs sharing one `ltxobj`.
+
 Contents: [Makefile wiring](#makefile-wiring) · [Running a build](#running-a-build) ·
 [The convergence loop](#the-convergence-loop) ·
 [Symptom to fix](#symptom-to-fix) · [Each gotcha in full](#each-gotcha-in-full)
