@@ -256,6 +256,46 @@ def räkna_ord(text):
 
 ---
 
+### Type 5: A Variation Label That Does Not Match the Variation
+
+**Problem**: an `\ltnote` labels the design *contrast*, *generalization* or
+*fusion*, but the examples vary something else. The label then records an
+intention rather than the material, and the next editor preserves the wrong
+invariant.
+
+The label is a claim about the examples, so check it against them:
+
+| Label | Requires |
+|-------|----------|
+| contrast | exactly one aspect differs; everything else identical |
+| generalization | the critical aspect is invariant; incidental aspects vary |
+| fusion | several critical aspects vary together, deliberately |
+
+**BAD** — labelled contrast, but two aspects move at once:
+
+```latex
+% Example 1: for-loop over a list of names, printing with f-strings
+% Example 2: while-loop over a counter, printing with concatenation
+\ltnote{Kontrast: loopkonstruktionen varierar, allt annat är invariant.}
+```
+
+Loop construction *and* string formatting vary, so nothing is separated. This
+is fusion, and unlabelled fusion before contrast leaves the learner unable to
+tell which change produced which effect.
+
+**GOOD** — make the examples match the label:
+
+```latex
+% Example 1: for-loop over a list of names, printing with f-strings
+% Example 2: while-loop over the same list, printing with f-strings
+\ltnote{Kontrast: loopkonstruktionen varierar, utskriften är invariant.}
+```
+
+Or relabel to match the examples, and move the pair after the contrasts that
+separated each aspect on its own.
+
+---
+
 ## How to Review for Violations
 
 ### Checklist
@@ -268,6 +308,7 @@ When reviewing educational materials, check for:
 - [ ] Are explanations of "why" or "how" given before students experience the problem?
 - [ ] Do file modes (r/w/a) get explained before examples show their use?
 - [ ] Are categorizations (text vs binary) stated before contrasting examples?
+- [ ] Does every variation label name what the examples actually vary?
 
 ### Fix Pattern
 

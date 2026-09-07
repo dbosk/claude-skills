@@ -243,6 +243,23 @@ for checking whether students now discern the critical aspect afterward.
 
 **Example**: Show the same geometric principle applied to triangles, rectangles, circles.
 
+**Sequence rule**: when the same task is repeated case after case (language
+after language, editor after editor, library after library), the invariant
+must hold from the *first* case — the first example performs exactly the task
+the last one does, or there is no invariant to generalize over. Three
+consequences:
+
+- **Each step asks how the new case relates to the previous one** ("Hur
+  förhåller sig detta till assembler?"). Without the relational question the
+  sequence is a list, and the learner experiences succession, not variation.
+- **Each case carries its own motivation in the body**, where it appears —
+  why this language exists, what is special about this editor. A motivation
+  saved for a closing summary leaves the learner no reason to attend to the
+  case while reading it.
+- **A case added later is added to every enumeration of the cases.** A
+  sentence listing four languages while the sequence now shows five teaches
+  that the fifth is an aside.
+
 ### 3. Fusion
 
 **Purpose**: Enable learners to experience multiple critical aspects simultaneously as an integrated whole.
@@ -323,6 +340,7 @@ See `references/common-violations.md` for detailed examples.
 2. **Block/remark environments before examples**
 3. **Incomplete skeletons before complete solutions**
 4. **Explanatory principles before demonstrating examples**
+5. **A variation label that does not match what the example varies**
 
 **Fix pattern** for each violation:
 1. Remove the generalization from its current position
