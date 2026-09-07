@@ -20,6 +20,7 @@
 #   --makefiles DIR   passed on to build_deck.sh
 #   --logdir DIR      where the per-deck logs go (default: /tmp/deck-builds)
 #   --jobs LIST       passed on to build_deck.sh (default: notes,slides)
+#   --exempt GLOB     passed on to build_deck.sh (repeatable)
 set -uo pipefail
 
 # The block of comments at the top of this file is the help text.
@@ -29,13 +30,14 @@ usage() {
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 BUILD=$HERE/build_deck.sh
-MAKEFILES=""; LOGDIR=/tmp/deck-builds; JOBS="notes,slides"
+MAKEFILES=""; LOGDIR=/tmp/deck-builds; JOBS="notes,slides"; EXEMPT=()
 
 while [ $# -gt 0 ]; do
   case "$1" in
     --makefiles) MAKEFILES="${2:-}"; shift 2 ;;
     --logdir)    LOGDIR="${2:-}"; shift 2 ;;
     --jobs)      JOBS="${2:-}"; shift 2 ;;
+    --exempt)    EXEMPT+=(--exempt "${2:-}"); shift 2 ;;
     -h|--help)   usage; exit 0 ;;
     --)          shift; break ;;
     -*)          echo "unknown option: $1" >&2; exit 2 ;;
@@ -67,6 +69,7 @@ for d in "$@"; do
   args=(--deck "$d" --log "$log" --jobs "$JOBS")
   [ -n "$MAKEFILES" ] && args+=(--makefiles "$MAKEFILES")
   [ -n "$title" ] && args+=(--title "$title")
+  [ ${#EXEMPT[@]} -gt 0 ] && args+=("${EXEMPT[@]}")
 
   "$BUILD" "${args[@]}" 2>&1
   rc=$?
