@@ -1,6 +1,6 @@
 ---
 name: remarkable
-description: "IMPORTANT: load this skill BEFORE calling ANY remarkable-mcp tool — even a one-line upload — because the tools have silent-failure gotchas (address docs by path/name, NOT the UUID that upload returns; annotations only appear after the tablet syncs; render_merged needs the patched build). Work with a reMarkable tablet via the remarkable-mcp MCP server: upload PDFs/EPUBs, browse/search the cloud, render pages (optionally compositing annotations onto the PDF), read page text/OCR, extract highlighted text, and list which pages carry notes/highlights. Use when: (1) sending/uploading a document, paper, or PDF to the reMarkable ('put this on my reMarkable', 'upload to remarkable'); (2) reading/rendering/checking an annotation, note, or highlight, or extracting only the annotated pages; (3) the user mentions reMarkable, remarkable-mcp, rmapi, or their tablet; (4) setting up or troubleshooting the server. Covers auth, the tool inventory, annotation extraction, and more gotchas (1-based pages, mid-session MCP loading)."
+description: "IMPORTANT: load this skill BEFORE calling ANY remarkable-mcp tool — even a one-line upload — because the tools have silent-failure gotchas (address docs by path/name, NOT the UUID that upload returns; annotations only appear after the tablet syncs; render_merged needs the patched build). Work with a reMarkable tablet via the remarkable-mcp MCP server: upload PDFs/EPUBs, browse/search the cloud, render pages (optionally compositing annotations onto the PDF), read page text/OCR, extract highlighted text, and list which pages carry notes/highlights. Use when: (1) sending/uploading a document, paper, or PDF to the reMarkable ('put this on my reMarkable', 'upload to remarkable'); (2) reading, rendering, checking or transcribing an annotation, highlight or review round; (3) the user mentions reMarkable, remarkable-mcp, rmapi, or their tablet; (4) setting up or troubleshooting the server. Covers auth, the tool inventory, annotation extraction, and more gotchas (1-based pages, mid-session MCP loading)."
 ---
 
 # Working with the reMarkable via remarkable-mcp
@@ -122,6 +122,20 @@ highlights. For correct output there, use reMarkable's **own on-device export**:
    (`compatibility=true`) return the PNG as a `data:image/png;base64,…` string in
    a `data_uri` JSON field instead — handle that shape too.
 
+6. **`content_type="raw"` paginates by TEXT BLOCK, not by PDF page.** On a
+   33-page document it reports 13 pages and refuses `page=16` as out of range,
+   so its page numbers cannot be used to locate anything. Page numbers from
+   `content_type="annotations"`, from `remarkable_image` and from the PDF
+   itself are the real ones; for page text, use the renders and the source
+   files.
+
+7. **The version the user annotated is not always the newest upload.** Uploads
+   are add-only, so a family holds several documents; the annotated one is the
+   one whose `modified` time is later than its own upload, while a vN+1 you
+   pushed since may be untouched. Check `modified` per version in
+   `remarkable_browse`/`_recent` before rendering anything, and read the
+   version the user names even when a newer one exists.
+
 ## Driving the server directly (in-session fallback)
 
 When the MCP tools are not yet loaded (gotcha 3), or for scripted/batch use, run
@@ -228,3 +242,39 @@ For research papers, the surrounding loop (read all annotated pages, apply
 the round, rebuild, one commit per round named after the draft, push,
 upload the next version) is owned by the **scientific-writing** skill;
 this section owns only the tablet mechanics.
+
+## Transcribing a review round
+
+A round starts by turning the ink into a written comment list. Do that in a
+subagent (10–25 comments over as many pages of renders is context the
+orchestrator does not need), with `references/transcription-brief.md` as prompt.
+
+- **List the annotated pages first.** `remarkable_read(document,
+  content_type="annotations")` names only the pages that carry ink or
+  highlights, so never scan all N pages. Trust that list, and state in the
+  report that the other pages were not swept.
+- **Read the version the user actually annotated** (gotcha 7), and map its
+  anchors to the sources **at the commit that PDF was built from**, not to the
+  working tree. Say per file whether the line numbers still match, and give
+  both numbers where a later commit shifted them.
+- **Render both layers of every annotated page**: merged
+  (`render_merged=True`) for placement and anchoring, ink-only
+  (`render_merged=False`) to settle what is ink and what is print, plus a zoom
+  crop per ink group. The ink layer also carries strokes the merged render
+  clips at the trim — on one page four of five groups were legible only there.
+- **Describe the strokes; do not conclude that a word is struck.** A reviewer
+  who crosses `t`/`tt` with one long horizontal stroke produces a line running
+  over the *following* word that is indistinguishable from a strike-through at
+  page scale. Check every apparent strike-through against the ink-only layer,
+  note the reviewer's habit once at the top of the report, and flag genuine
+  strikes explicitly. The reverse happens too: a printed superscript footnote
+  marker looks like a caret in the composite and is absent from the ink layer.
+- **One entry per comment, in a fixed format** — anchor with the strokes
+  described, verbatim transcription with `[?]` on any uncertain word, source
+  `file:line`, your reading of the request, a scope guess (this document only,
+  or a general rule), and its relation to the previous round. Collect the
+  genuinely ambiguous items in a list at the end for the user, and close with
+  the caveats of the transcription itself.
+- **Sources cited in the reviewed document may be on the tablet too.** Search
+  it before reporting a closed-access source as unobtainable; the
+  `backing-claims` skill owns that rule.
