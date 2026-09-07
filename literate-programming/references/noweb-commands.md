@@ -158,6 +158,18 @@ Fallback without the patched noweb (no `autolang`/`tominted`):
 noweave -n -delay -x -t2 file.nw > file.tex
 ```
 
+### Weaving for a Beamer Job
+
+A woven chunk carries noweb's cross-reference apparatus: sub-page labels,
+margin tags, and the "defines/used in" lists. Beamer re-executes a frame body
+once per overlay, so every sub-page label inside a frame is defined several
+times, and the apparatus is noise on a slide anyway. Strip it in the slides
+driver only — `\noweboptions{breakcode,nomargintag,noxref}` plus empty
+definitions for `\sublabel`, `\subpageref`, the `\nwindex*`/`\nwident*` and
+`\nwused`-family macros, and `\nwprevnextdefs` — while the article or notes
+driver keeps the full apparatus. The **didactic-decks** skill carries the
+complete driver pair.
+
 ---
 
 ## Syntax Highlighting with tominted

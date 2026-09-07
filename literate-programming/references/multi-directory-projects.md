@@ -160,6 +160,48 @@ The LaTeX build must run with `-shell-escape` (minted runs Pygments);
 the doc Makefiles below already do via
 `latexmk -xelatex -shell-escape` / `LATEXFLAGS += -shell-escape`.
 
+### Tangling Across a Directory Boundary Needs Explicit Rules
+
+The suffix and pattern rules above match only when source and target share a
+directory and a stem. A document that tangles its programs into a
+subdirectory — `contents.nw` producing `examples/hello.py`, `examples/loop.py`,
+… — matches neither `.nw.py` (a suffix rule is same-directory by definition)
+nor `%.py: %.nw` (the stem would have to span `examples/`). Make then reports
+"No rule to make target `examples/hello.py`". Write one explicit rule per
+suffix instead, reusing the shared recipe:
+
+```makefile
+examples/%.py: contents.nw
+	${NOTANGLE.py}
+
+examples/%.cpp: contents.nw
+	${NOTANGLE.cpp}
+```
+
+`NOTANGLE.<suffix>` already expands `-R$(notdir $@)`, so the chunk names stay
+plain filenames (`<<[[hello.py]]>>=`). List the products in a variable
+(`EXAMPLES= examples/hello.py …`) and make the PDF depend on it, or the
+document is typeset against stale programs.
+
+**Turn off line directives for material meant to be read.** The default
+`NOTANGLEFLAGS` include `-L`, which injects `#line` directives into the tangled
+file — right for debugging a compiled program, wrong for a teaching example or
+any file a reader opens. Override per suffix, before the include:
+
+```makefile
+NOTANGLEFLAGS.cpp=          # empty: no #line directives in the tangled C++
+NOTANGLEFLAGS.c=
+NOTANGLEFLAGS.hs=
+```
+
+**A reformatting tangle rule constrains the source.** `NOTANGLE.py` pipes the
+tangled file through `black`. Whenever the tangled file is also *shown* to the
+reader — a woven chunk, or a whole-file `\inputminted` recap — the two must be
+identical, so write the chunk black-clean in the first place: four-space
+indents, double quotes, two blank lines around top-level definitions. Keep
+source lines within 79 columns so neither the woven listing nor the reformatted
+file wraps.
+
 ### The subdir.mk Recursion Rules
 
 The `subdir.mk` file enables recursive builds:

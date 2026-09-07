@@ -102,6 +102,109 @@ The Makefile rule depends only on `didactic.ins` (unchanged across versions), so
 plain `make` reports "up to date" even when the `.dtx` changed — delete and
 rebuild.
 
+## latexmk can stop one pass short of convergence
+
+A `make`-driven latexmk (`-use-make`) sometimes exits 0 with the document *not*
+converged: labels, the table of contents and the bibliography still stale. The
+build looks successful, so always read the tail of the last log rather than the
+make summary:
+
+```bash
+grep -nE 'Rerun to get cross-references right|There were undefined references|Please \(re\)run Biber' \
+    ltxobj/<job>.log
+```
+
+Any hit means one more cycle is owed. Run it by hand until the log is quiet:
+
+```bash
+biber --output-directory ltxobj ltxobj/<job>          # only if Biber was asked for
+pdflatex -shell-escape -interaction=nonstopmode -output-directory=ltxobj <job>.tex
+```
+
+In a beamer job the symptom is visible rather than logged:
+
+- **Blank table-of-contents frames** at every section and subsection (the
+  `\tableofcontents[currentsection]` frames a theme inserts have no `.toc` to
+  read yet).
+- **Literal `<MINTED>` placeholders** on every slide, where the minted
+  environments should be. Check with
+
+  ```bash
+  pdftotext ltxobj/slides.pdf - | grep -c MINTED     # must be 0
+  ```
+
+  A non-zero count is always one missing pdflatex pass, never a minted
+  configuration problem.
+
+**Harmless exception.** A citation whose margin footnote sits exactly at a page
+boundary can oscillate between two page assignments, so "Rerun to get
+cross-references right" never clears — latexmk gives up after its rerun limit.
+That is benign as long as no reference is actually undefined: verify with
+`pdftotext <job>.pdf - | grep -c '??'` (expect 0) and move on.
+
+## Stuck latexmk and minted state
+
+- **"gave an error in previous invocation … Nothing to do"** — latexmk
+  remembers the failure in its file database and refuses to retry even after
+  the cause is fixed. Delete the database: `rm ltxobj/<job>.fdb_latexmk`.
+- **A killed run leaves `ltxobj/_minted`** half-written, and the next run hangs
+  waiting on it: `rm -rf ltxobj/_minted` before rebuilding. (Interrupting a
+  build with Ctrl-C or a timeout is the usual cause.)
+- **biber is not rerun after new bib keys.** Under `-use-make`, latexmk may not
+  notice that the `.bcf` asks for citations it has never resolved, and the new
+  keys stay undefined build after build. Force one round:
+
+  ```bash
+  biber --output-directory ltxobj ltxobj/<job>
+  touch <a source file>       # so make has something to do
+  make <job>.pdf
+  ```
+
+## PythonTeX does not rerun when only the tangled programs change
+
+PythonTeX is a latexmk custom dependency keyed on the `.pytxcode` file. Edit
+only a *tangled* program — rename a variable in a chunk, change a printed
+string, with no change to the surrounding document — and the `.pytxcode` comes
+out byte-identical, so latexmk never invokes PythonTeX. The document then keeps
+the **previous run's transcripts**: didactic's `didactic_output_*.txt` files are
+named after their output's content, so the stale files still exist and are still
+referenced, and nothing errors.
+
+Force the rerun by removing the PythonTeX state *and* giving make a reason to
+rebuild:
+
+```bash
+rm -f ltxobj/*.pytx* ltxobj/*.fdb_latexmk didactic_output_*.txt
+touch <source>.nw            # without this, latexmk reports "nothing to do"
+make <job>.pdf
+```
+
+Then read the rebuilt transcripts against the tangled programs — this failure
+mode is silent, so the only check is comparing the printed output with what the
+program now does.
+
+## Two jobs from one source sharing one output directory
+
+When two drivers (say `slides.tex` and `notes.tex`) build from the same content
+and share `ltxobj`, they also share PythonTeX's cache, and the two jobs must
+agree about the sequence of code blocks:
+
+- Set `PYTHONTEXFLAGS= --interpreter python:python3 --rerun=always` so the
+  second job does not reuse the first job's cached results.
+- **Never combine overlays with executed code in one frame.** A `\pause` in a
+  frame that also runs `\runpython` makes beamer re-execute the frame body once
+  per overlay, which duplicates that frame's PythonTeX instances and shifts the
+  numbering of every later one — the other job then prints the wrong program's
+  output. Check the two jobs agree:
+
+  ```bash
+  wc -l ltxobj/notes.pytxcode ltxobj/slides.pytxcode    # counts nearly equal
+  ```
+
+  A large skew is this bug.
+- **Build one job at a time.** Two concurrent latexmk runs on one output
+  directory corrupt each other's aux tree and PythonTeX cache.
+
 ## Clean state matters
 
 These multi-pass builds (latex → biber → pythontex → latex×N) leave a lot of
