@@ -52,6 +52,21 @@ natural-language queries — prefer their field-tagged syntax (see
 `scholar syntax`). The S2 key may be expired; S2 still works keyless at
 a lower rate limit.
 
+**Check provider health before *and* during a long session.**
+
+```bash
+scholar providers check     # keys configured, and each provider answering
+```
+
+Run it again partway through a session of many queries: keys get rejected and
+daily quotas run out mid-run, and the failure is quiet — the affected queries
+simply return nothing. A zero from a provider that is quota-exhausted, rejected
+or down means **"not run"**, never "no such literature". Record such cells as
+provider-limited with the reason and rerun them when the provider is back; a
+negative or gap claim resting on one of those zeros is unsupported. See
+`appendix-guide.md`, "Provider quirks that fake a negative", for the per-provider
+failure modes.
+
 Query syntax differs per provider (run `scholar syntax`): e.g. OpenAlex/WoS need
 UPPERCASE boolean operators; DBLP treats space as implicit AND and disables NOT;
 arXiv uses `ANDNOT`. s2/openalex support `"phrase"` search; dblp supports

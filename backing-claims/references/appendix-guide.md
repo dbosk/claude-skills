@@ -62,6 +62,41 @@ provenance fields — goes into **source comments**, never into the PDF.
 A short chapter (known-item verification plus a light counter-search)
 keeps the same skeleton as `\paragraph`s; a long one uses `\section`s.
 
+## Pointing at the appendix from the text
+
+The appendix is only reachable if the main text points at it, and the pointer
+is part of the claim, not an afterthought.
+
+- **Beside the claim, once.** The pointer stands in the *same sentence* as the
+  claim it backs — a parenthesis or a following clause — so the reader meets
+  the evidence at the moment of the assertion. A pointer placed a sentence or
+  more later, as a trailing "Det vetenskapliga underlaget finns i …", reads as
+  a note about the document rather than a warrant for the claim. One pointer
+  per appendix per paragraph: repeating it is noise.
+
+- **Say what the appendix answers.** "Se \cref{app:dry}" tells the reader
+  nothing about whether to go there. Name the question the chapter settles:
+
+  ```latex
+  % vague
+  Följ DRY-principen.\autocite{HuntThomas1999}  Underlaget finns i \cref{app:dry}.
+  % says what is there
+  Principen kommer från Hunt och Thomas\autocite{HuntThomas1999}, och risken
+  den varnar för är verklig när kopior ändras olika --- \cref{app:dry} redovisar
+  både var principen kommer ifrån och om den håller, med sina förbehåll.
+  ```
+
+- **State the claim at the strength the appendix supports.** The pointer makes
+  the two checkable against each other: if the conclusion was "a risk, not an
+  absolute rule", the sentence carrying the pointer may not say "always".
+  Weakening the prose is the fix, not weakening the appendix.
+
+- **`\cref` cannot cross documents.** When the backing lives in a *different*
+  document (the claim was backed there and is reused here — see
+  `provenance-format.md`), name the document and the appendix letter in words:
+  "det vetenskapliga underlaget finns i föreläsningen \emph{Funktioner},
+  bilaga~B". A dangling `\cref` to another document's label prints `??`.
+
 ## Rules the appendix must satisfy
 
 ### Self-contained

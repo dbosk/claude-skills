@@ -11,6 +11,8 @@ reordering, and is invisible in the compiled document. The validator
 - [Field semantics](#field-semantics)
 - [Multi-line values](#multi-line-values)
 - [Worked examples](#worked-examples)
+- [Reusing a source across documents](#reusing-a-source-across-documents)
+- [Every source gets an entry — no nicknames](#every-source-gets-an-entry--no-nicknames)
 - [Generating the block instead of typing it](#generating-the-block-instead-of-typing-it)
 - [Validating](#validating)
 
@@ -97,6 +99,57 @@ value.
 % DATE: 2026-06-24
 @article{HattieTimperley2007, ... }
 ```
+
+## Reusing a source across documents
+
+A claim already backed in another document is **not searched again**. Copy the
+entry together with its provenance block into the new bibliography, unchanged —
+the original `FOUND-VIA` is still the reproducible record of how the source was
+found — and add one line saying how it reached *this* document:
+
+```bibtex
+% === provenance: HuntThomas1999 ===
+% CLAIM: Duplicated knowledge becomes inconsistent when the copies change apart.
+% FOUND-VIA: scholar search "code clones inconsistent changes faults" -p openalex -p ieee
+% FOUND-VIA (here): backed in Algoritmiskt tänkande, bilaga E
+% PICKED: ...
+```
+
+The `(here)` line is what tells a later reader that no new search stands behind
+this copy, and where the search that does stand behind it is written up. Point
+at that appendix from the prose as well (see `appendix-guide.md`, "Pointing at
+the appendix from the text"); the claim may only be stated at the strength that
+appendix supports.
+
+## Every source gets an entry — no nicknames
+
+A source referred to in an appendix, a note, or any prose is cited, never
+called by a nickname ("the misconceptions article", "Knuth's paper"). A
+nickname cannot be verified, and it hides whether the source was read.
+
+This includes unpublished material. The author's own manuscript gets a real
+entry, with the repository path as author-only information in the comment
+block:
+
+```bibtex
+% === provenance: BoskMisconceptions ===
+% CLAIM: Novices hold specific, recurring misconceptions about assignment.
+% FOUND-VIA: known item, the author's manuscript
+%   (repository: ~/devel/edu/vt-prog-misconceptions)
+% PICKED: the study this text summarises; no published version exists yet.
+% QUOTE (§4): "..."
+% VERIFIED: full-text; the manuscript's results section states the claim.
+% DATE: 2026-09-07
+@unpublished{BoskMisconceptions,
+  author = {Bosk, Daniel},
+  title  = {...},
+  year   = {2026},
+  note   = {Manuskript},
+}
+```
+
+`note = {Manuskript}` (or "Manuscript") is what the reader sees; the repository
+path never reaches the compiled text.
 
 ## Generating the block instead of typing it
 

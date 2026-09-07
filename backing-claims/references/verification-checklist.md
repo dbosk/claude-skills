@@ -11,6 +11,7 @@ the reference does not back the claim — find a better one.
 - [Strength words that must match](#strength-words-that-must-match)
 - [Source-quality red flags](#source-quality-red-flags)
 - [What "verified" requires](#what-verified-requires)
+- [Reading `check_metadata.py` output](#reading-check_metadatapy-output)
 
 ## The applicability tests
 
@@ -85,3 +86,24 @@ overstate the source.
 - **Never acceptable:** title-only, snippet-only, or "the model recalls this
   paper says…". Record in `VERIFIED` exactly what you read (`abstract` vs
   `full-text`) so the record is honest.
+
+## Reading `check_metadata.py` output
+
+`scripts/check_metadata.py` compares each entry against Crossref/DataCite, so
+some of what it reports is a defect in the *deposited* metadata, not in the
+entry. Recognise these before rewriting anything:
+
+- **arXiv and Zenodo DOIs** resolve through DataCite, whose records are sparse
+  and shaped differently; a generic or missing author/title there is the
+  deposit's shortcoming.
+- **Name particles and compound surnames** split differently between Crossref
+  and BibTeX ("de Moura", "van der Linden", double-barrelled names).
+- **Stripped diacritics** — ø, å, é and the rest are often transliterated or
+  dropped in the deposit.
+- **An IEEE deposit year two years after the conference** — the deposit date,
+  not the publication year.
+- **Crossref short titles** with the subtitle dropped.
+
+Everything else — a name that is not the author's, a year with no deposit
+explanation, a title that is a different work — is a real defect and must be
+fixed against the source itself.
