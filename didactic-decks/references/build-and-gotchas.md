@@ -186,11 +186,24 @@ slide and a plain exercise in the notes. Verified pattern (intropy decks
 *Algoritmiskt tänkande* and *Hello, World!*, 2026-09-08):
 
 - `import mentipy` fails in the system `python3` that PythonTeX runs (pipx
-  isolates the CLI). Run `mentipy init --venv .venv` once in the deck
-  directory and point PythonTeX at it:
-  `PYTHONTEXFLAGS= --interpreter python:$(CURDIR)/.venv/bin/python3 --rerun=always`.
-  Gitignore `.venv/`, `mentipy.json` (it collects the students' answers)
-  and `mentipy-obj/`.
+  isolates the CLI), so PythonTeX runs in a deck-local virtualenv that the
+  Makefile creates on the first build (never a manual "run once" step: it
+  is gitignored, so every fresh checkout or worktree would fail the build):
+
+  ```make
+  MENTIPY_VENV=	$(CURDIR)/.venv
+  PYTHONTEXFLAGS=	--interpreter python:${MENTIPY_VENV}/bin/python3 --rerun=always
+
+  ${MENTIPY_VENV}/bin/python3:
+  	mentipy init --venv ${MENTIPY_VENV}
+
+  notes.pdf slides.pdf: | ${MENTIPY_VENV}/bin/python3
+  ```
+
+  Order-only (`|`) so the venv's timestamp never triggers a rebuild.
+  `mentipy init` is idempotent and installs the released mentipy from
+  PyPI. Gitignore `.venv/`, `mentipy.json` (it collects the students'
+  answers) and `mentipy-obj/`.
 - One `pycode` block at the top of `contents.nw`, inside `\mode<all>` … `\mode*`,
   defines the common kwargs: `Store("mentipy.json")` (the deck directory is
   PythonTeX's working directory), `qr_dir="mentipy-obj"`, `layout="auto"`
