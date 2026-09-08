@@ -59,7 +59,11 @@ The rest of this document describes workflows, not exact command syntax.
 Use `ls` to list your tasks sorted by effective priority. Key options control
 depth (`--all` for subtasks), count limits, status filters, and output format —
 check `ls --help`. The default shows only top-level items; use `--all` or
-`--flat` to see the full hierarchy.
+`--flat` to see the full hierarchy. The listing is **capped** (`-n`, 10 by
+default): pass `-n 0` to see everything, in particular when checking that an
+`add` landed. On a terminal a cut listing ends with "… N more (use -n 0 to
+show all)"; piped output is headerless tab-separated rows, `-f csv` adds a
+header and commas, `-f json` gives structure.
 
 Use `status` to see the currently active task stack (what is already in
 progress). Use `next` to let the system pick the highest-priority pending task.
@@ -84,7 +88,9 @@ child rather than a new top-level task — this is how you drill into subtasks.
 
 Use `view` to see full details of a task (title, description, labels, deadline,
 estimate, notes, parent/child relationships). Without an ID it shows the
-currently active task.
+currently active task. `view N --notes` prints every sub-item's description and
+notes in full instead of a one-line preview; `--all` includes done sub-items,
+so `view N --all --notes` reads a whole group's history.
 
 ### Update tasks and leave notes
 
@@ -95,19 +101,15 @@ decisions. Both support `--help` for available options.
 Prefer `note` for incremental updates (progress, findings, blockers) and `edit`
 for structural changes (reassignment, deadline shifts, re-parenting).
 
-**Description versus notes.** The description is the *standing statement* of
-the task: what it is, why it matters, where the artefacts live. `edit
---description` **replaces** the whole text every time, so never rewrite it to
-record progress, review rounds, or version history ("reviewed v1 and v2; since
-v2: …"); that produces one ever-growing run-on line. Record such things with
-`note`, which appends and shows under "Notes" in `view`. Keep the description
-to a few sentences.
-
-When a description needs more than one paragraph, pass real newlines (a quoted
-multi-line argument, or `$'First paragraph.\n\nSecond paragraph.'`), never a
-single line. `view` renders the description as Markdown, so paragraph breaks
-survive, and `edit -E` shows it as a `description: |` block the user can
-reformat by hand.
+**Description versus notes.** The description is **one line**: what the task
+is and why (or empty). Everything else goes in the notes: context, artefact
+paths, what to check, progress, findings, review history. At creation pass
+`--note "…"` (repeatable; each value is one paragraph); afterwards use `note`,
+which appends. `edit --description` **replaces** the whole line and an empty
+string clears it; never turn the description into a status log ("reviewed v1
+and v2; since v2: …" belongs in `note`). `edit -E` shows the description as a
+`description: |` block and the notes as the body, so the user can reformat
+either by hand.
 
 ### Create subtasks
 
@@ -122,13 +124,17 @@ out and add at the root, or `--parent <id>` to target a specific parent.
 against existing siblings (you'll be prompted to compare priorities). For
 non-interactive batch adds use one of:
 
-- `--append` — places the new task just below the lowest-priority sibling.
-  Safe even when the parent has no existing children (the first child gets
-  a sensible default). When batch-adding in priority order (highest first),
-  each `--append` slots one rung below the previous, encoding the order
-  without prompts.
+- `--bottom` (old name `--append`) — places the new task just below the
+  lowest-priority sibling. Safe even when the parent has no existing children
+  (the first child starts in the middle of the parent's range). When
+  batch-adding in priority order (highest first), each `--bottom` slots one
+  rung below the previous, encoding the order without prompts.
+- `--top` — places the new task above the highest-priority sibling.
+- `--prio N` — stores exactly `N`; write negatives as `--prio=-10`.
 - `--skip-priority` — no numeric priority assigned; the task sorts by
   deadline only. Use for "do whenever" buckets.
+
+See "Priority and ranking" below for what the number means.
 
 **Default-command** (`-c`/`--command`): the value passed here becomes the
 command `nytid todo start <id>` runs (replacing the worker's default, which
@@ -136,10 +142,29 @@ is `bash`). Useful for embedding a one-step action — opening a file in an
 editor, launching a query in NeoMutt, running a script — so the user goes
 from `start` to working with no copy-paste.
 
-### Reprioritize
+### Priority and ranking
 
-Use `reprioritize` (alias `reprio`) to rerun the binary-search priority
-comparison for a task whose importance has changed.
+A priority is a float; **higher means more urgent**, and any value is allowed,
+negatives included (spell them `--prio=-10`; a bare `--prio -10` is read as
+another option). Listings (`ls -p`) show the *effective* priority: the stored
+number plus a boost that grows as a deadline approaches, so the number `ls`
+shows is not the number you set. Placement flags always work on stored
+numbers among the item's active, ranked siblings for the same worker; done
+items and other workers' items are ignored. Children of an unranked parent
+stay unranked.
+
+Non-interactive controls (each command refuses two of these together):
+
+- `add --top | --bottom | --prio N | --skip-priority`.
+- `edit ID --prio N | --top | --bottom` re-ranks among the current siblings.
+- `edit ID --parent P` **re-ranks interactively** among the new siblings by
+  default; in a session without a terminal always add `--top`, `--bottom`,
+  `--prio N` or `--keep-prio` (keeps the old number), or the prompt aborts.
+- `reprioritize ID --top | --bottom | --above ID2 | --below ID2` (alias
+  `reprio`); `--above`/`--below` place the item strictly between `ID2` and its
+  neighbour, and `ID2` must be a ranked sibling in the comparison set. Without
+  a flag, `reprioritize` reruns the interactive binary search; without an ID
+  it ranks every unranked item and takes no placement flag.
 
 ## Handing the user follow-ups from a session
 
@@ -148,14 +173,16 @@ When a session produces a batch of items the user must do personally (e.g.
 build **one parent todo that resumes the session, with one subtask per
 item**, all assigned to the user (omit `--who`):
 
-1. **Parent** — top-level, `--append` (no interactive priority prompt), a
-   description saying where the session's artefacts live (scratchpad paths,
-   scholar sessions, plan file), and a default command that lands the user
-   back in *this* session in the right directory:
+1. **Parent** — top-level, `--bottom` (no interactive priority prompt), a
+   one-line description, notes saying where the session's artefacts live
+   (scratchpad paths, scholar sessions, plan file) and the ordering rule for
+   the subtasks, and a default command that lands the user back in *this*
+   session in the right directory:
 
    ```
-   nytid todo add <labels> --top-level --append -t "<what and why>" \
-     --description "<artefact locations; ordering rule for subtasks>" \
+   nytid todo add <labels> --top-level --bottom -t "<what and why>" \
+     --description "<one line: what and why>" \
+     --note "<artefact locations>" --note "<ordering rule for subtasks>" \
      -C <working directory of the session> \
      -c "claude --resume <session-id>"
    ```
@@ -164,14 +191,14 @@ item**, all assigned to the user (omit `--who`):
    (`…/<project>/<session-id>/scratchpad`); the working directory is the
    session's primary working directory (a worktree path when working in
    one). `-C` and `-c` can also be set afterwards with `edit`.
-2. **Subtasks** — `--parent <parent-id> --append`, added in priority order
-   (most load-bearing first, so `--append` encodes the order), each with a
+2. **Subtasks** — `--parent <parent-id> --bottom`, added in priority order
+   (most load-bearing first, so `--bottom` encodes the order), each with a
    one-step default command (`-c "xdg-open https://doi.org/<doi>"` for a
-   paper, an editor or URL otherwise) and a description stating **what to
+   paper, an editor or URL otherwise) and a `--note` stating **what to
    check once the item is obtained** (e.g. "verify the 13/3/÷16 parameters
    attributed to it"), so the user does not have to reconstruct the context.
 3. Report the parent id and the few subtasks that matter most; the rest
-   are visible via `view <parent-id>`.
+   are visible via `view <parent-id> --notes`.
 
 Batch the subtask adds in one shell loop; each `add` prints `Added todo
 #<id>`, so capture the parent's id from its own output before the loop.
@@ -197,17 +224,17 @@ Always pass `--who dan-claude` when importing to ensure correct assignment.
 
 | Intent | Subcommand | Key flags to check |
 |--------|------------|--------------------|
-| List my top-level tasks | `ls` | `--all`, `--status`, `--flat`, `-n` (positional args = label filters, **not** parent IDs) |
+| List my top-level tasks | `ls` | `--all`, `--status`, `--flat`, `-n 0` for everything (positional args = label filters, **not** parent IDs) |
 | What am I working on? | `status` | — |
 | Start next task | `next` | `--headless` |
 | Start specific task | `start` | `--timeout`, tmux flags |
 | Pause current task | `stop` | — |
 | Complete current task | `done` | — |
-| View task + its sub-items | `view <id>` | shows description, notes, children — use this instead of `ls <id>` |
-| Edit task metadata | `edit` | `--edit` for editor, `-c` for default command, `--description` replaces the whole text (progress goes in `note`) |
-| Add progress note | `note` | `--message`, `--edit` |
-| Create subtask | `add` | `--parent`, `--top-level`, `--append`, `-c` (auto-parents to active todo by default) |
-| Change priority | `reprioritize` | — |
+| View task + its sub-items | `view <id>` | `--notes` for sub-items' notes, `--all` for done ones — use this instead of `ls <id>` |
+| Edit task metadata | `edit` | `--edit` for editor, `-c` for default command, `--description` replaces the one-line statement (details go in `note`), `--parent` with `--top`/`--bottom`/`--keep-prio` |
+| Add progress note | `note` | `--message`, `--edit` (replaces the whole notes on local items) |
+| Create subtask | `add` | `--parent`, `--top-level`, `--top`/`--bottom`, `--note` (repeatable), `-c` (auto-parents to active todo by default) |
+| Change priority | `reprioritize` | `--top`, `--bottom`, `--above ID`, `--below ID` |
 | Import from GitHub | `import` | `--number`, `--type` |
 | Sync with GitHub | `sync` | `--repo` |
 | Remove a task | `rm` | `--force` |
