@@ -95,6 +95,20 @@ decisions. Both support `--help` for available options.
 Prefer `note` for incremental updates (progress, findings, blockers) and `edit`
 for structural changes (reassignment, deadline shifts, re-parenting).
 
+**Description versus notes.** The description is the *standing statement* of
+the task: what it is, why it matters, where the artefacts live. `edit
+--description` **replaces** the whole text every time, so never rewrite it to
+record progress, review rounds, or version history ("reviewed v1 and v2; since
+v2: …"); that produces one ever-growing run-on line. Record such things with
+`note`, which appends and shows under "Notes" in `view`. Keep the description
+to a few sentences.
+
+When a description needs more than one paragraph, pass real newlines (a quoted
+multi-line argument, or `$'First paragraph.\n\nSecond paragraph.'`), never a
+single line. `view` renders the description as Markdown, so paragraph breaks
+survive, and `edit -E` shows it as a `description: |` block the user can
+reformat by hand.
+
 ### Create subtasks
 
 Use `add` to break a task into smaller pieces. **Auto-parenting**: if a task
@@ -190,7 +204,7 @@ Always pass `--who dan-claude` when importing to ensure correct assignment.
 | Pause current task | `stop` | — |
 | Complete current task | `done` | — |
 | View task + its sub-items | `view <id>` | shows description, notes, children — use this instead of `ls <id>` |
-| Edit task metadata | `edit` | `--edit` for editor, `-c` for default command |
+| Edit task metadata | `edit` | `--edit` for editor, `-c` for default command, `--description` replaces the whole text (progress goes in `note`) |
 | Add progress note | `note` | `--message`, `--edit` |
 | Create subtask | `add` | `--parent`, `--top-level`, `--append`, `-c` (auto-parents to active todo by default) |
 | Change priority | `reprioritize` | — |
