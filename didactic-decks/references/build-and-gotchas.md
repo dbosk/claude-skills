@@ -211,10 +211,11 @@ slide and a plain exercise in the notes. Verified pattern (intropy decks
 - `lock=True` (default) paces a question with the slides; `lock=False` for a
   second question on the same slide; `next=False` on the deck's last one.
 - The flat article layout (the `\mode<article>` branch of `auto`) is
-  transparent since 2026-09-08: the notes show the prompt and, for choice
-  and ranking questions, the options, and nothing of the form (no "Choose
-  exactly one", type, limit or range). The exercise reads as it did before
-  Mentipy. On the slides Mentipy still prints English labels and sets the
+  transparent since 2026-09-08: the notes show the prompt alone, in the
+  running text's weight — no options, no "Choose exactly one", type, limit
+  or range, no bold. The exercise reads as it did before Mentipy, so a
+  prompt that only works with its options ("vilket stämmer?") must be
+  rephrased for both surfaces. On the slides Mentipy still prints English labels and sets the
   full URL under the QR in `\footnotesize`, which overflows the QR column:
   the decks wrap the returned LaTeX in a small helper that swaps the labels
   and re-emits the sidecar with the URL in `\tiny` split at the port.
