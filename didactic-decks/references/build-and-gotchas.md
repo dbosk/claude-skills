@@ -143,9 +143,19 @@ Removing the PythonTeX files alone leaves latexmk with "nothing to do", so
 touch the source as well:
 
 ```bash
-rm -f ltxobj/*.pytx* ltxobj/*.fdb_latexmk didactic_output_*.txt
+rm -f ltxobj/*.pytx* ltxobj/*.fdb_latexmk *.pytxcode didactic_output_*.txt \
+      ltxobj/pythontex_data.pkl ltxobj/py_*.stdout ltxobj/py_*.stderr
+rm -rf ltxobj/pythontex-files-* pythontex-files-*
 touch contents.nw
 ```
+
+The `py_default_default_*.stdout` files and `pythontex_data.pkl` are the
+part people forget: `rm ltxobj/*.pytx*` leaves them, and a stale one is
+silently replayed at a block that should print something else — that is how
+a poll question or a transcript ends up on the wrong slide. Run this clean
+recipe after **every** change to PythonTeX content (`\runpython` calls,
+`pycode` blocks, a Mentipy question's text or options), not only after a
+tangled program changed, and before the final checks.
 
 Then rebuild and check the rebuilt transcripts against the tangled
 programs.
@@ -156,16 +166,61 @@ Both jobs write into `ltxobj`. Two consequences:
 
 - `PYTHONTEXFLAGS= --interpreter python:python3 --rerun=always` so the
   second job does not reuse the first job's cache.
-- A frame that combines `\pause` with `\runpython` doubles the slides job's
-  PythonTeX instance count, because the overlays re-execute the frame body,
-  and the shared cache then prints the wrong outputs in the notes. Check
-  with:
+- A frame that combines `\pause` (any overlay) with PythonTeX content —
+  `\runpython`, a `pycode` block, a Mentipy question — doubles the slides
+  job's PythonTeX instance count, because the overlays re-execute the frame
+  body, and the shared cache then prints the wrong outputs in the notes (or
+  a question on the wrong slide). Either drop the overlays or move the
+  `pycode` out of the frame (see the Mentipy section). Check with:
 
   ```bash
   wc -l ltxobj/notes.pytxcode ltxobj/slides.pytxcode
   ```
 
   The two line counts must be nearly equal.
+
+### Mentipy live questions
+
+An `exercise` can be a live poll: a Mentipy question with a QR code on the
+slide and a plain exercise in the notes. Verified pattern (intropy decks
+*Algoritmiskt tänkande* and *Hello, World!*, 2026-09-08):
+
+- `import mentipy` fails in the system `python3` that PythonTeX runs (pipx
+  isolates the CLI). Run `mentipy init --venv .venv` once in the deck
+  directory and point PythonTeX at it:
+  `PYTHONTEXFLAGS= --interpreter python:$(CURDIR)/.venv/bin/python3 --rerun=always`.
+  Gitignore `.venv/`, `mentipy.json` (it collects the students' answers)
+  and `mentipy-obj/`.
+- One `pycode` block at the top of `contents.nw`, inside `\mode<all>` … `\mode*`,
+  defines the common kwargs: `Store("mentipy.json")` (the deck directory is
+  PythonTeX's working directory), `qr_dir="mentipy-obj"`, `layout="auto"`
+  (`\mode<presentation>` gets text + QR columns, `\mode<article>` the flat
+  question; `show_url=False` keeps the URL out of the notes),
+  `environment=""` and the `exercise` environment written by hand around
+  the call, so titles and `\label`s survive, and an explicit `base_url`
+  (the public poll URL; a LAN address resolved at compile time breaks in
+  the lecture hall).
+- Question text and options are LaTeX-escaped by Mentipy: plain text only
+  (no macros, no `\cref`, no `"` under babel); code stays in the frame's
+  chunk and the question names the file.
+- Placement: a `pycode` inside a frame is safe only if the frame has no
+  overlays. To keep overlays, put the block at top level right before the
+  frame (in `\mode<all>`), let it write `mentipy-obj/<name>.tex`, and
+  `\input` that file inside the exercise (`\IfFileExists` guard for the
+  first pass).
+- `lock=True` (default) paces a question with the slides; `lock=False` for a
+  second question on the same slide; `next=False` on the deck's last one.
+- Mentipy 0.10 hard-codes English labels ("Choose exactly one:", Type/
+  Limit/Mode) and sets the full URL under the QR in `\footnotesize`, which
+  overflows the QR column: the decks wrap the returned LaTeX in a small
+  helper that swaps the labels and re-emits the sidecar with the URL in
+  `\tiny` split at the port. Remove the helper when Mentipy gains a language
+  option and a narrower sidecar.
+- Checks: the clean recipe above before the final build; pytxcode counts
+  equal; `mentipy list --store mentipy.json` lists the questions in slide
+  order and matches the prefixes printed under the QR codes; `pdftotext
+  notes.pdf - | grep -c <base host>` is 0; every question slide rendered
+  and read.
 
 ### A PythonTeX run from the deck directory
 

@@ -170,6 +170,16 @@ fix. Every item below cost an agent real time at least once.
   everything. Which agents are still reachable, and whether by name or by id,
   depends on what killed them: see "Session limits, resume and unreachable
   agents" below.
+- **Agents cannot sign commits.** With `commit.gpgsign=true` the agent's
+  shell has no pinentry, so `git commit` fails with `gpg: signing failed:
+  Timeout`; agents then commit unsigned (`git log --format=%G?` shows `N`)
+  or not at all. Plan for it: accept unsigned agent commits and re-sign at
+  merge time (`git cherry-pick -x` then `git commit --amend -S --no-edit`,
+  or `git rebase --exec 'git commit --amend -S --no-edit'` over the new
+  commits) in a shell whose gpg-agent holds the passphrase. The Bash tool's
+  own shell also cannot prompt: when signing times out there, ask the user
+  to unlock the agent once (`! echo x | gpg --clearsign >/dev/null`) and
+  retry; never push unsigned commits meant to be signed.
 - Branches created in worktrees are visible in the main repo — review diffs,
   push, and open PRs from the main repo; never merge or push from inside an
   agent worktree.

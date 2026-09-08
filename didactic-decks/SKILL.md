@@ -65,7 +65,7 @@ Read the one you need; do not read them all.
 | `references/review-checklist.md` | the checks with their exact commands and thresholds |
 | `references/house-style-sv.md` | Swedish wording rules (load only for a Swedish deck) |
 
-Quick ways in: `grep -n 'MINTED\|pytxcode\|_minted\|fdb_latexmk' references/build-and-gotchas.md`
+Quick ways in: `grep -n 'MINTED\|pytxcode\|_minted\|fdb_latexmk\|Mentipy' references/build-and-gotchas.md`
 for a build symptom; `grep -n 'sidecaption\|extrafloats\|Float(s) lost' references/*.md`
 for a margin or float problem.
 
@@ -170,7 +170,11 @@ Each line points at the reference that explains it.
   `example` prints "sats" on slides: wrap it in `\only<article>{...}`. `chunk-authoring.md`
 - An `example` shows its own output, as a terminal run with the command
   line first; an `exercise` keeps its answer separate. `runpython-and-output.md`
-- Never combine `\pause` and `\runpython` in one frame. `runpython-and-output.md`
+- Never combine `\pause` with PythonTeX content (`\runpython`, `pycode`, a
+  Mentipy question) in one frame; after any change to such content, rebuild
+  clean. `runpython-and-output.md`, `build-and-gotchas.md`
+- Exercises as live Mentipy polls (QR on the slide, plain in the notes):
+  venv, interpreter, placement and checks in `build-and-gotchas.md`.
 - Floats sit right after the paragraph that references them, never on a
   float page, and their captions explain enough to stand alone. `floats-and-margins.md`
 - Side captions only when the margin is free **and** the caption is not
