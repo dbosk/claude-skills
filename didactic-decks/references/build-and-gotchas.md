@@ -210,12 +210,16 @@ slide and a plain exercise in the notes. Verified pattern (intropy decks
   first pass).
 - `lock=True` (default) paces a question with the slides; `lock=False` for a
   second question on the same slide; `next=False` on the deck's last one.
-- Mentipy 0.10 hard-codes English labels ("Choose exactly one:", Type/
-  Limit/Mode) and sets the full URL under the QR in `\footnotesize`, which
-  overflows the QR column: the decks wrap the returned LaTeX in a small
-  helper that swaps the labels and re-emits the sidecar with the URL in
-  `\tiny` split at the port. Remove the helper when Mentipy gains a language
-  option and a narrower sidecar.
+- The flat article layout (the `\mode<article>` branch of `auto`) is
+  transparent since 2026-09-08: the notes show the prompt and, for choice
+  and ranking questions, the options, and nothing of the form (no "Choose
+  exactly one", type, limit or range). The exercise reads as it did before
+  Mentipy. On the slides Mentipy still prints English labels and sets the
+  full URL under the QR in `\footnotesize`, which overflows the QR column:
+  the decks wrap the returned LaTeX in a small helper that swaps the labels
+  and re-emits the sidecar with the URL in `\tiny` split at the port.
+  Remove the helper when Mentipy gains a language option and a narrower
+  sidecar.
 - Checks: the clean recipe above before the final build; pytxcode counts
   equal; `mentipy list --store mentipy.json` lists the questions in slide
   order and matches the prefixes printed under the QR codes; `pdftotext
