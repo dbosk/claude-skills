@@ -252,8 +252,16 @@ These `scripts/build_deck.sh` runs itself:
 Every row but the last makes the script exit non-zero. It prints the
 counts either way, so read its output rather than only its exit status.
 
-**Four checks it does not run.** Do them yourself before calling a deck
+**Five checks it does not run.** Do them yourself before calling a deck
 reviewed:
+
+0. **Clipped verbatim lines.** A long program line or transcript line in a
+   frame without `shrink` runs off the slide's right edge and LaTeX logs
+   nothing. `scripts/cutcheck.py <deck dir> slides notes` finds them two
+   ways (a printed line that is a strict prefix of a tangled or
+   transcript line; a word whose box passes the page width); it needs the
+   deck built. Fix by shortening the text or `shrink`; a chunk frame at
+   the decks' minted size shows about 69 characters.
 
 1. **Margin notes.** Every margin footnote must print on the page carrying
    its marker; a note pushed to the next page is a layout defect.

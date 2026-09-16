@@ -168,6 +168,20 @@ python3 ~/.claude/skills/didactic-decks/scripts/check_margin_notes.py \
 By hand, for one page: `pdftotext -f N -l N notes.pdf -` and read the
 superscript numbers in the text against the numbers in the margin block.
 
+## Clipped lines on slides
+
+`Overfull \hbox` is silent for verbatim lines that run past a frame's
+right edge, and `pdftotext -bbox` alone misses a line clipped clean off
+(the missing words never reach pdftotext). Run
+
+```bash
+python3 ~/.claude/skills/didactic-decks/scripts/cutcheck.py <deck dir> slides notes
+```
+
+after the build; it reports every page whose printed line is a strict
+prefix of a tangled program or transcript line, and every word past the
+page width. Found in six of eleven decks in one campaign (2026-09-16).
+
 ## Cross-deck premises
 
 When a deck says what an earlier deck showed, or reuses its program, read
