@@ -228,12 +228,18 @@ slide and a plain exercise in the notes. Verified pattern (intropy decks
   running text's weight — no options, no "Choose exactly one", type, limit
   or range, no bold. The exercise reads as it did before Mentipy, so a
   prompt that only works with its options ("vilket stämmer?") must be
-  rephrased for both surfaces. On the slides Mentipy still prints English labels and sets the
-  full URL under the QR in `\footnotesize`, which overflows the QR column:
-  the decks wrap the returned LaTeX in a small helper that swaps the labels
-  and re-emits the sidecar with the URL in `\tiny` split at the port.
-  Remove the helper when Mentipy gains a language option and a narrower
-  sidecar.
+  rephrased for both surfaces. On the slides Mentipy still prints English
+  labels; the decks swap them in a small helper on the returned LaTeX.
+- The address under the QR lives in the sidecar `mentipy-obj/Q-*.pdf_tex`,
+  which `mentipy serve` rewrites together with the image. **Never
+  post-process the sidecar `\input` into literal text** (the copy freezes
+  at compile time and the caption stops following the server, while the
+  QR image keeps updating). To make the URL fit the narrow QR column,
+  redefine Mentipy's hook (mentipy ≥ 0.12) in `\mode<all>` before the
+  first question: `\newcommand{\mentipyqrcaption}[1]{{\tiny\url{#1}}}`
+  (`\url` breaks after `:`, `.` and `/`). And make the PDFs depend on the
+  sidecars, or `make` after `mentipy serve` says nothing to do:
+  `notes.pdf slides.pdf: $(wildcard mentipy-obj/Q-*.pdf_tex)`.
 - Checks: the clean recipe above before the final build; pytxcode counts
   equal; `mentipy list --store mentipy.json` lists the questions in slide
   order and matches the prefixes printed under the QR codes; `pdftotext
