@@ -168,6 +168,24 @@ python3 ~/.claude/skills/didactic-decks/scripts/check_margin_notes.py \
 By hand, for one page: `pdftotext -f N -l N notes.pdf -` and read the
 superscript numbers in the text against the numbers in the margin block.
 
+## Cross-deck premises
+
+When a deck says what an earlier deck showed, or reuses its program, read
+that deck's *current* `contents.nw`: the premise drifts when the earlier
+deck is revised. The age program in *Variabler och utskrifter* came to
+read its values with `input()`, and the input deck still opened on
+"hittills stod värdena i koden" (author, 2026-09-16: "We updated this one
+to include an input"). Grep the earlier deck for the program and the
+claim; fix the premise, not the pointer's wording.
+
+## Floats in the appendices
+
+Bilaga A's question table is declared right after the paragraph whose
+`\Cref` names it; declared at the chapter's end it prints two pages after
+its reference (author: "Why is this table here at the end when it's
+referenced at the first page?"). The same holds for every table and
+figure in `sokprotokoll.tex`.
+
 ## Known harmless
 
 - A permanent two-cycle of "Rerun to get cross-references right" caused by

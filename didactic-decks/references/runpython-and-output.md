@@ -49,6 +49,11 @@ it the program runs from the deck directory and the relative path misses.
 - A running example the student is asked to run should be re-runnable with
   different data without editing it: read the value with `input` and feed
   it in the build with `stdin`, even when input is taught in a later deck.
+- `help()` on a function without a docstring prints the `#` comment block
+  directly above its `def` (pydoc's `getcomments` fallback, Python 3.14),
+  so a docstring-versus-comment contrast puts the comment *inside* the
+  body or the contrast vanishes. A failing program embeds fine: the
+  transcript carries the traceback with the absolute path stripped.
 
 ## Verifying transcripts
 

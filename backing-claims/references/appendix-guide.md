@@ -86,6 +86,13 @@ is part of the claim, not an afterthought.
   både var principen kommer ifrån och om den håller, med sina förbehåll.
   ```
 
+- **Name the claim the pointer serves** when a paragraph carries several
+  ("det vetenskapliga underlaget för DRY … finns i …"), and **cite a
+  measured claim where it stands** — "erfarna utvecklare är mätbart oense
+  om den\autocite{…}" keeps its sources in the sentence even though the
+  appendix pointer follows a sentence later (the author's "Ref!" beside
+  the clause, 2026-09-15).
+
 - **State the claim at the strength the appendix supports.** The pointer makes
   the two checkable against each other: if the conclusion was "a risk, not an
   absolute rule", the sentence carrying the pointer may not say "always".
@@ -136,6 +143,14 @@ is part of the claim, not an afterthought.
   The compiled text may say, once, in the general method chapter, that
   each source's provenance is recorded in the bibliography's source file
   with fixed fields — and explain the fields there.
+
+### The method names its sources
+
+A Metod section that says the sources come from an earlier review ("hämtade
+ur en systematisk genomgång … som kursens lärare gjort") cites that review
+(`\parencite{<key>}` with its own provenance block), or the appendix's whole
+method rests on a work the reader cannot reach (the author's "Ref to that
+study.", 2026-09-16).
 
 ### Same queries, all providers
 

@@ -293,7 +293,9 @@ skill, "Section Order"):
   (p. 47).
 - Discernment comes from "the simultaneous experience of things that differ
   in color but are the same otherwise" (p. 46) — so juxtapose the contrasting
-  instances side by side (in one figure, one code listing pair, one slide).
+  instances side by side (in one figure, one code listing pair, one slide,
+  and in one *exercise* when the student is asked to predict them — see
+  the try-first-tell-later skill, "Names and pairing").
   Instances presented apart must be juxtaposed in the learner's memory
   instead: a cognitive-load argument for contrast-first, side-by-side design.
 

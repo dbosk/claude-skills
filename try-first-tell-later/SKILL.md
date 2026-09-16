@@ -70,6 +70,19 @@ them discern what ran. Keep the question open --- "Vad skriver programmet ut?", 
 "Vad är felet?" --- so the critical aspect can surface in the answers without being
 pointed at. See `references/patterns.md`, "The payload must not narrate the answer".
 
+**Names and pairing (author, 2026-09-15).** File, chunk and example names
+are part of the question too: `defined-only.py` beside
+`defined-and-called.py`, or `return-value.py` beside `print-value.py`,
+name the very contrast the exercise asks the student to find — "the names
+make the discernment for the students". Name such programs neutrally
+(`greet1.py`, `greet2.py`; `return1.py`, `return2.py`) and let the
+`\ltnote` carry the rationale. And a contrast pair is *one* exercise
+holding both programs ("Vad skriver vart och ett av dem ut?"), never two
+consecutive exercises ("Vad skriver programmet ut?" / "Och det här?"):
+"we don't want to make the discernment for the student — merge into one
+exercise, since we want to compare them". The answer frame showing both
+outputs follows as before; the lead-in does not say what differs.
+
 ### Section Order: Ask, Show, Explain, Define
 
 A section that opens with a definition is tell-first even when an exercise
@@ -85,6 +98,12 @@ discern is
 2. **output** — the real run, in the same example environment;
 3. **explanation** — what varied and what that reveals;
 4. **definition** — last, naming what the student has now met.
+
+A behavioural claim that stands only in prose ("ett anrop ovanför
+definitionen ger NameError", "en funktion utan return lämnar None") is
+tell-only: give it the same exercise-then-run pair as everything else, and
+move the explaining sentence after the run (author, 2026-09-15: "Another
+exercise + example showing that!").
 
 Reordering an existing section usually breaks one paragraph: the lead-in
 that referred forward to the definition ("de två sista exemplen i
