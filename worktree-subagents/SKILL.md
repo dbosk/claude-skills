@@ -170,6 +170,14 @@ fix. Every item below cost an agent real time at least once.
   everything. Which agents are still reachable, and whether by name or by id,
   depends on what killed them: see "Session limits, resume and unreachable
   agents" below.
+- **Spawn agents that wait on slow commands as `subagent_type: "long-job"`**
+  (`agentType: "long-job"` in Workflow scripts; combine with
+  `isolation: "worktree"` and an explicit `model` as usual). Ordinary
+  subagents have a 5-minute prompt cache, so an agent whose build or test
+  run exceeds ~4 minutes re-reads its whole context uncached after every
+  such wait. `long-job` (`~/.claude/agents/long-job.md`) is the only type
+  with a 1-hour cache. Keep short fix agents on the ordinary types, since
+  1-hour cache writes cost more; when unsure, pick `long-job`.
 - **Agents cannot sign commits.** With `commit.gpgsign=true` the agent's
   shell has no pinentry, so `git commit` fails with `gpg: signing failed:
   Timeout`; agents then commit unsigned (`git log --format=%G?` shows `N`)
@@ -278,6 +286,8 @@ fix. Every item below cost an agent real time at least once.
 - **The Bash tool caps a command at ten minutes**, so longer work runs detached
   (`nohup script.sh > log 2>&1 &`), printing one summary line per unit and a
   final `ALL DONE` marker; watch it with the Monitor tool polling that log.
+  Make the subagent that waits on it a `long-job` agent (see "Orchestration
+  mechanics"), or its prompt cache expires during the wait.
 - **Never build two jobs of one document concurrently**: they share the build
   directory and its caches, so one job reads the other's intermediates.
 - **`du` may be an alias in the user's shell** — call `/usr/bin/du` wherever a
