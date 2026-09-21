@@ -233,6 +233,7 @@ for the `##### all done` marker.
 | "empty citation" or `??` after new bib keys | run biber by hand, touch a source, make again |
 | "Too many unprocessed floats" | `\extrafloats{200}` missing from `preamble.tex` |
 | "Float(s) lost", a `\label` gone with it | a citation inside a float |
+| `marginfix Error: lost some margin notes`, no margin column in the notes | too many `\ltnote`s for the margin; shorten or drain with `\clearpage` |
 | minted errors on `outputdir` | drop the package option |
 | Submodule missing in a fresh worktree | `git submodule update --init --checkout makefiles` |
 
