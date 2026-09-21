@@ -21,7 +21,14 @@ text: "sägen", not "folklore" (the author struck it, 2026-09-15).
 laborationen", "veckans modul". Refer to topics, deck titles and
 activities: "tidigare", "föreläsningen \emph{Funktioner}", "när du
 programmerar". An `\ltnote` may still mention the lab; the student's text
-may not.
+may not. Naming an earlier deck by its title in natural first-person
+plural is allowed and preferred: "som vi pratade om i föreläsningen
+\emph{Funktioner}", "vi mötte den i föreläsningen \emph{Algoritmiskt
+tänkande}" (author, 2026-09-20). Do not contort the sentence to avoid
+"vi": "som föreläsningen \emph{Funktioner} namnger / kallade /
+kontrasterade / tanglar" reads as contrived and is the wrong fix. The
+title points at a document the reader can open in any week; "förra
+veckan" does not, and that is the whole distinction.
 
 **Address the student as "du".** Second person singular throughout the
 student text — prose, exercises, learning objectives, appendices: "när du
@@ -107,7 +114,7 @@ The rule is a pattern; the names themselves belong to the project.
   street, 2026-09-15: "Why Kungsängen?"). The fact stays **out** of the
   student's text and is recorded, with its source, in an `\ltnote`.
 - Choose verbs that name the mental action: "värda att fundera på", not
-  "värda att stanna vid".
+  "värda att stanna vid" (author, 2026-09-20: "värt att reflektera över" is the other accepted replacement).
 - Every source has a real reference. No nicknames for sources
   ("missuppfattningsartikeln") in appendices or notes; the author's own
   manuscript gets an `@unpublished` entry with a provenance block.
