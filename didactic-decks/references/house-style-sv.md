@@ -48,10 +48,13 @@ never refer to physical position at all — "på nästa bild", "ovan" — use
 gjordes ämnesdrivet ...", not "Den gjordes ...".
 
 **The appendix pointer.** It reads "det vetenskapliga underlaget finns i
-\cref{app:...}" and stands beside the claim it backs, **once**: in the
-same sentence, as a parenthesis or a following clause. Never as a trailing
-sentence a sentence or more away, and never twice for one appendix in a
-paragraph. The pointer says what the appendix answers — "både var
+\cref{app:...}" and is a **footnote anchored at the claim** it backs,
+**once** (author, 2026-09-20: "Make it a rule to put those statements in
+a footnote"; before that date it stood in the body as a parenthesis or
+clause, and older decks are converted when next revised). The claim stays
+in the running text; the footnote never becomes a body sentence, never a
+trailing sentence further away, and never appears twice for one appendix
+in a paragraph. The pointer says what the appendix answers — "både var
 principen kommer ifrån och om den håller, med sina förbehåll" — and the
 claim is stated at the strength the appendix supports. For a claim backed
 in another deck, `\cref` cannot cross documents, so name the deck: "det

@@ -67,12 +67,18 @@ keeps the same skeleton as `\paragraph`s; a long one uses `\section`s.
 The appendix is only reachable if the main text points at it, and the pointer
 is part of the claim, not an afterthought.
 
-- **Beside the claim, once.** The pointer stands in the *same sentence* as the
-  claim it backs — a parenthesis or a following clause — so the reader meets
-  the evidence at the moment of the assertion. A pointer placed a sentence or
-  more later, as a trailing "Det vetenskapliga underlaget finns i …", reads as
-  a note about the document rather than a warrant for the claim. One pointer
-  per appendix per paragraph: repeating it is noise.
+- **At the claim, once, as a footnote** (author, 2026-09-20: "Make it a
+  rule to put those statements in a footnote"). The claim itself stays in
+  the running text, stated at the strength the appendix supports; the
+  sentence saying where the backing lives and what it answers ("Det
+  vetenskapliga underlaget finns i \cref{app:dry} …" or, across decks,
+  "… i föreläsningen \emph{Funktioner}, bilaga B") is a `\footnote`
+  anchored right after the claim — never a sentence of the body, and never
+  a trailing sentence further down, which reads as a note about the
+  document rather than a warrant. One footnote per appendix per
+  paragraph. (Before 2026-09-20 the pointer stood in the body as a
+  parenthesis or clause; decks written that way are converted when next
+  revised.)
 
 - **Say what the appendix answers.** "Se \cref{app:dry}" tells the reader
   nothing about whether to go there. Name the question the chapter settles:
