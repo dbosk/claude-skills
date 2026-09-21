@@ -147,6 +147,8 @@ GOOD: canvaslms discussions list discussions -c 12345
 This skill is **read-only** — it retrieves and presents course information.
 It does not create, modify, or delete any Canvas content. To create quiz
 content, use the `canvas-quiz` skill instead.
+To push pages, rename or place assignments, or arrange module items from
+files in a repository, use the `canvas-course-repo` skill.
 
 ## Testing Write Commands
 
