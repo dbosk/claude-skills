@@ -183,6 +183,13 @@ Each line points at the reference that explains it.
 - Long `\ltnote`s queue forward; drain them with `\mode<article>{\clearpage}`
   before the section, and before the last frame of a section that
   overflows. `floats-and-margins.md`
+- The material practises what it has taught. Once a practice is
+  introduced (functions, modules, exceptions, files), every later program
+  in every later deck follows it: a later deck that ignores a taught
+  practice teaches that the practice was optional. Once modules are
+  taught, a program that needs a function an earlier deck wrote imports
+  that file instead of re-implementing it. `build-and-gotchas.md`,
+  "Reusing a program another deck tangles"
 
 ## Building
 

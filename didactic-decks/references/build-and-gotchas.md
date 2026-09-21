@@ -334,3 +334,27 @@ nohup ~/.claude/skills/didactic-decks/scripts/build_decks_detached.sh \
 
 The script writes one log per deck and a final `##### all done` marker
 line to watch for.
+
+
+## Reusing a program another deck tangles
+
+Noweb tangles only from the deck's own `contents.nw`, so a solution that
+imports a function an earlier deck wrote (`from fraga import fraga_tal`)
+needs that deck's tangled file beside it. Build it there and copy it here;
+never commit the copy (it is generated) and never re-tangle the chunk:
+
+```make
+# fraga.py is written in the week-39 tutorial; build it there, copy it here.
+examples/fraga.py: ../../conditionals/tutorial/contents.nw
+	$(MAKE) -C $(<D) examples/fraga.py
+	cp $(<D)/examples/fraga.py $@
+EXAMPLES+=	examples/fraga.py
+```
+
+`\runpython` runs the program from `examples/`, so the plain import works.
+In the notes, show the imported file once with
+`\inputminted{python}{examples/fraga.py}` and say which deck wrote it (by
+its canonical title), so the reader sees what the import brings in and
+where to look for its explanation; the `\ltnote` records why reuse beats a
+second implementation here. A deck that has not yet taught modules cannot
+use this: it re-implements, and says nothing.
