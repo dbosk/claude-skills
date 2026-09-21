@@ -43,9 +43,9 @@ Choose the right entry point based on the question:
 |---------------|------------|
 | "What's in this course?" | `canvaslms modules list -c <id>` |
 | "What assignments exist?" | `canvaslms assignments list -c <id>` |
-| "Any announcements?" | `canvaslms discussions list -c <id> -t announcement` |
+| "Any announcements?" | `canvaslms discussions list announcements -c <id>` |
 | "What pages are available?" | `canvaslms pages list -c <id>` |
-| "What are the deadlines?" | `canvaslms calendar -c <id>` |
+| "What are the deadlines?" | `canvaslms calendar list -c <id>` |
 | "How did students do?" | `canvaslms results -c <id>` |
 
 ### Step 3: Drill into Content
@@ -53,11 +53,16 @@ Choose the right entry point based on the question:
 Use `view` subcommands to read specific items:
 
 ```bash
-canvaslms modules view -c <id> -m "module regex"
+canvaslms modules view -c <id> "module regex"
 canvaslms pages view -c <id> -p "page regex"
 canvaslms assignments view -c <id> -a "assignment regex"
-canvaslms discussions view -c <id> -d "discussion regex"
+canvaslms discussions view discussions -c <id> -t "title regex"
 ```
+
+Note the two selector forms: `pages` and `assignments` take the item regex
+as an option (`-p`, `-a`), while `modules` takes it as a positional argument
+and `discussions` takes the kind (`announcements` or `discussions`) as a
+positional argument before the options. Run `-h` when unsure.
 
 The `view` commands output full content (markdown for pages, HTML for
 assignments). The `list` commands output tab-delimited CSV summaries.
@@ -69,7 +74,7 @@ Most commands accept regex filters and additional flags. Run
 
 Common refinement patterns:
 - Combine course + item filters: `-c "DD2520" -a "lab"`
-- Filter by module: `-c <id> -m "week 3"`
+- Filter assignments or pages by module: `-c <id> -M "week 3"`
 - Filter submissions by user: `canvaslms submissions -c <id> -u "username"`
 
 ### Step 5: Synthesize and Answer
@@ -85,19 +90,19 @@ After gathering data:
 | To find... | Command | Key flags |
 |------------|---------|-----------|
 | All courses | `canvaslms courses` | regex filter, `-i` for ID only |
-| Course modules | `canvaslms modules list` | `-c`, `-m` |
-| Module contents | `canvaslms modules view` | `-c`, `-m` |
-| Assignments | `canvaslms assignments list` | `-c`, `-a`, `-m` |
+| Course modules | `canvaslms modules list` | `-c`, positional module regex |
+| Module contents | `canvaslms modules view` | `-c`, positional module regex |
+| Assignments | `canvaslms assignments list` | `-c`, `-a`, `-M` |
 | Assignment details | `canvaslms assignments view` | `-c`, `-a` |
-| Wiki pages | `canvaslms pages list` | `-c`, `-p`, `-m` |
+| Wiki pages | `canvaslms pages list` | `-c`, `-p`, `-M` |
 | Page content | `canvaslms pages view` | `-c`, `-p` |
-| Announcements | `canvaslms discussions list` | `-c`, `-t announcement` |
-| Discussions | `canvaslms discussions list` | `-c`, `-t discussion` |
-| Discussion content | `canvaslms discussions view` | `-c`, `-d` |
+| Announcements | `canvaslms discussions list announcements` | `-c` |
+| Discussions | `canvaslms discussions list discussions` | `-c` |
+| Discussion content | `canvaslms discussions view discussions` | `-c`, `-t` (title regex), `-n` (count) |
 | Quizzes | `canvaslms quizzes list` | `-c`, `-q` |
 | Submissions | `canvaslms submissions` | `-c`, `-a`, `-u` |
 | Grades/results | `canvaslms results` | `-c`, `-a` |
-| Calendar/deadlines | `canvaslms calendar` | `-c`, date range flags |
+| Calendar/deadlines | `canvaslms calendar list` | `-c`, `--start-time`, `--end-time` |
 | Users/enrollment | `canvaslms users` | `-c`, role filters |
 | Groups | `canvaslms groups` | `-c` |
 
@@ -106,7 +111,7 @@ After gathering data:
 - Course matching is case-insensitive: `"dd2520"` matches "DD2520"
 - Use anchors for precision: `"^DD2520$"` for exact match
 - Partial match works: `"crypt"` matches "Applied Cryptography"
-- Combine flags for specificity: `-c "DD2520" -m "week 3" -a "lab"`
+- Combine flags for specificity: `-c "DD2520" -M "week 3" -a "lab"`
 
 ## Output and Caching
 
@@ -130,11 +135,11 @@ GOOD: canvaslms pages list -c 12345                   # Discover available pages
       canvaslms pages view -c 12345 -p "Course Syllabus"  # Use actual name
 ```
 
-**Use the right content type flag for discussions:**
+**Name the kind of discussion as a positional argument:**
 ```
-BAD:  canvaslms discussions list -c 12345              # Missing type
-GOOD: canvaslms discussions list -c 12345 -t announcement
-GOOD: canvaslms discussions list -c 12345 -t discussion
+BAD:  canvaslms discussions list -c 12345              # Missing kind
+GOOD: canvaslms discussions list announcements -c 12345
+GOOD: canvaslms discussions list discussions -c 12345
 ```
 
 ## Scope
