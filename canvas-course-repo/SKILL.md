@@ -103,10 +103,23 @@ patterns, written in the course's `CLAUDE.md`. To apply it to a module:
 4. **Detach, do not delete.** `modules: []` plus `published: false`; old
    content stays reachable for the author.
 5. **Placeholders are text headers** (SubHeader), e.g. "Anteckningar
-   kommer", replaced when the real item exists. `canvaslms modules
-   add-item`/`remove-item` are requested in dbosk/canvaslms#486 and #487;
-   check `canvaslms modules -h` before assuming either exists, and until
-   then the headers are the author's step.
+   kommer", replaced when the real item exists. Add and remove them with
+   `canvaslms modules add-item` / `remove-item` (canvaslms > 6.21, PR
+   dbosk/canvaslms#490; run `canvaslms modules -h` to confirm they exist
+   in the installed version):
+
+   ```bash
+   canvaslms --no-cache modules add-item -c '^COURSE$' '^Module$' \
+       -t subheader --title 'Anteckningar kommer' -p 3
+   canvaslms --no-cache modules remove-item -c '^COURSE$' '^Module$' \
+       -i '^Anteckningar kommer$'
+   ```
+
+   `add-item` is idempotent (same title, or same content for `-t
+   page|assignment|quiz --content REGEX`) and moves an existing item when
+   `-p` is given, so a shape recipe can be re-run; new items are
+   unpublished unless `--publish`. `remove-item` keeps the content and
+   leaves a gap in the remaining positions.
 6. **Audit**: `canvaslms --no-cache modules view -c C --show-position
    '^Module$'` must match the shape line by line; detached items show
    `modules: []`.
