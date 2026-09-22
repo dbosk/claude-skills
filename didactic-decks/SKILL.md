@@ -180,9 +180,9 @@ Each line points at the reference that explains it.
 - Side captions only when the margin is free **and** the caption is not
   taller than the float; otherwise a normal caption with the same text. `floats-and-margins.md`
 - `\textcite` and `\autocite` never go inside a float. `floats-and-margins.md`
-- Long `\ltnote`s queue forward; drain them with `\mode<article>{\clearpage}`
-  before the section, and before the last frame of a section that
-  overflows. `floats-and-margins.md`
+- Long `\ltnote`s queue forward. Shorten, split or re-anchor them first;
+  a forced `\clearpage` or `\needspace` must never leave a page mostly
+  blank. `floats-and-margins.md`
 - The material practises what it has taught. Once a practice is
   introduced (functions, modules, exceptions, files), every later program
   in every later deck follows it: a later deck that ignores a taught
@@ -233,7 +233,7 @@ for the `##### all done` marker.
 | "empty citation" or `??` after new bib keys | run biber by hand, touch a source, make again |
 | "Too many unprocessed floats" | `\extrafloats{200}` missing from `preamble.tex` |
 | "Float(s) lost", a `\label` gone with it | a citation inside a float |
-| `marginfix Error: lost some margin notes`, no margin column in the notes | too many `\ltnote`s for the margin; shorten or drain with `\clearpage` |
+| `marginfix Error: lost some margin notes`, no margin column in the notes | too many `\ltnote`s for the margin; shorten, split or re-anchor them |
 | minted errors on `outputdir` | drop the package option |
 | Submodule missing in a fresh worktree | `git submodule update --init --checkout makefiles` |
 

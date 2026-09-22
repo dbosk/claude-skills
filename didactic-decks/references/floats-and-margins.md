@@ -68,13 +68,29 @@ notes, which anchor where they stand in the body text.
 `\ltnote`s longer than the margin queue forward and print beside the next
 section, or beside the appendix. `\clearpage` does **not** flush the queue.
 
-What works:
+What works, in this order of preference:
 
-- Put `\mode<article>{\clearpage}` before the section the notes belong to.
-- Put one before the **last** frame of a section whose notes overflow, so
-  the queue drains on a page still inside the chapter.
-- Shorten notes that merely restate the prose.
-- Anchor a note where its decision is made, not at the end of the passage.
+1. Shorten notes that merely restate the prose; state a deck-wide rule
+   once, in one short note, instead of a paragraph in several.
+2. Anchor a note where its decision is made, not at the end of the
+   passage, so it starts printing earlier.
+3. Split a long note and anchor the second half further on.
+4. Move the citation that is being pushed to the next page a few lines
+   earlier, or `\needspace{N\baselineskip}` with the smallest N that
+   works.
+5. Only then a forced break, `\mode<article>{\clearpage}` before the
+   section the notes belong to (or before the **last** frame of a section
+   whose notes overflow).
+
+**A forced break must not leave a page mostly blank** (author,
+2026-09-22, beside two such pages: "Why new page here?"). A reader sees an
+empty half page as a defect, not as layout; `\clearpage` or `\needspace`
+is acceptable only where the page it ends is already about two thirds
+full. When no option above satisfies both this and the margin rule below,
+report the conflict to the author instead of choosing silently. The same
+holds for `\needspace` used to keep examples together: keep them together
+only when the gap it leaves is small.
+
 - Never anchor a note within a few lines of a `sidecaption` figure.
 
 A margin already at capacity also pushes citation footnotes to the next

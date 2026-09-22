@@ -371,6 +371,7 @@ the missing margin column reveals it. Cause seen (2026-09-18, *Inmatning
 och felhantering*): the total `\ltnote` volume grew from about 560 to
 about 700 source lines in one round and marginfix stopped converging.
 Fix: shorten the notes (state a deck-wide rule once, in its own short
-note, instead of adding a paragraph to several), or drain the queue with
-`\mode<article>{\clearpage}` before the section that overflows. Treat
+note, instead of adding a paragraph to several); drain the queue with
+`\mode<article>{\clearpage}` only where that leaves no mostly blank page
+(`floats-and-margins.md`, "The ltnote queue"). Treat
 "no margin column detected" as a hard failure in every build log.

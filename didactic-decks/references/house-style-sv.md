@@ -70,6 +70,17 @@ bilaga B". When the paragraph carries several principles, the pointer
 names its own: "det vetenskapliga underlaget för DRY --- och de förbehåll
 som hör till --- finns i …" (author, 2026-09-16, "för DRY").
 
+**State a backed claim; do not defend it.** "ett av de vanligaste
+misstagen bland nybörjare, och det är inte något vi hittat på" — the
+author struck the second clause (2026-09-22). The citation and the
+appendix footnote carry the backing; a sentence assuring the reader that
+the claim is real reads as defensive and adds nothing.
+
+**No count in front of a list unless the count is the point.** "De
+aritmetiska operatorerna är fem:" before a list of seven (author struck
+*fem*, 2026-09-22). A count invites a check and goes stale when the list
+changes; write "De aritmetiska operatorerna är:".
+
 **A measured claim is cited where it stands.** "erfarna utvecklare är
 mätbart oense om den\autocite{Alkharabsheh2021Analysing,Hall2014Some}"
 carries its sources in the sentence even though the bilaga pointer follows

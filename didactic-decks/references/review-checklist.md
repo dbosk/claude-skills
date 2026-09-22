@@ -155,7 +155,9 @@ slide; pass the deck's own author, institute and title.
 
 Every margin footnote must print on the page that carries its marker. A
 note pushed to the next page is a defect, fixed by layout: a shorter note,
-the citation moved earlier, or `\needspace`.
+the citation moved earlier, or a small `\needspace`. A mostly blank page
+is a defect too, so the fix must not create one (`floats-and-margins.md`,
+"The ltnote queue").
 
 The mechanical check, per page, compares the superscript markers in the
 body against the note numbers in the margin:

@@ -83,6 +83,15 @@ consecutive exercises ("Vad skriver programmet ut?" / "Och det här?"):
 exercise, since we want to compare them". The answer frame showing both
 outputs follows as before; the lead-in does not say what differs.
 
+**Write the invariant once (author, 2026-09-22).** When the two cases
+differ only in a call, an argument or one line, put them in *one* program:
+the shared part (the function) written once, then both calls. "Merge them
+into one file so that we can see more easily that the function is the
+same in both" — two copies make the reader compare them line by line to
+find that they are identical, which is work the contrast should not cost.
+Keep two programs only when the cases cannot coexist in one file (one of
+them crashes before the other runs, or lacks a definition the other has).
+
 ### Section Order: Ask, Show, Explain, Define
 
 A section that opens with a definition is tell-first even when an exercise
@@ -432,6 +441,11 @@ anti-pattern and article-prose guidance.
 - Validate correct intuitions while correcting misconceptions
 - Show why the correct answer matters
 - Make critical aspects visible through the contrast
+- Say in the prose what a run has just exposed, especially a limitation
+  of the tool being presented: after `"-5".isdigit()` and
+  `"1.75".isdigit()` print `False`, write "men vi ser här att det kan
+  vara svårt att testa rätt" (author, 2026-09-22) instead of leaving the
+  reader to draw the conclusion
 
 **Never**:
 - Ask questions without providing answers

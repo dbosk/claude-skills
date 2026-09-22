@@ -39,6 +39,16 @@ it the program runs from the deck directory and the relative path misses.
 - **Program output is always a terminal run with the command line first**,
   never a bare output block. `[showcommand]` for a program that takes no
   input, `[transcript, stdin={...}]` for one that reads input.
+- **When the section is about what the user sees, the run comes before
+  the code** (author, 2026-09-22: "Show the outputs before the code"). A
+  section on prompts, messages or error output is judged from the user's
+  side: show the dialogue first, let the student judge it, then show the
+  program. Elsewhere the code comes first, as usual.
+- **Example programs do something with their input.** A program that only
+  echoes what it read is no reason to read it; let it compute something
+  small and realistic from it (length and weight → BMI; author,
+  2026-09-22: "Use these numbers in a BMI calculation"), as long as the
+  computation stays invariant across the contrast.
 - An `example` shows its own output: code and transcript in the same
   environment. An `exercise` keeps its answer separate — the delay is the
   point.
