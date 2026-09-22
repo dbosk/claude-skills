@@ -110,6 +110,17 @@ is part of the claim, not an afterthought.
   "det vetenskapliga underlaget finns i föreläsningen \emph{Funktioner},
   bilaga~B". A dangling `\cref` to another document's label prints `??`.
 
+- **Point only backwards** (author, 2026-09-22: "We should only refer to
+  appendices in previous notes or the current one"). In a series read in
+  order (a course's lecture and tutorial notes), a pointer may name the
+  current document or one the reader has already met, never one that
+  comes later. When a later document holds the backing, **move the
+  chapter to the first document that makes the claim** (with its
+  provenance blocks, bibliography entries and hit-list tables), and let
+  the document it came from point back to it. The order is the reading
+  order the course's `CLAUDE.md` defines; check it for every cross-document
+  pointer, including those in tables of Bilaga A.
+
 ## Rules the appendix must satisfy
 
 ### Self-contained
