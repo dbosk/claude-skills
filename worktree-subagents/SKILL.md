@@ -161,6 +161,15 @@ fix. Every item below cost an agent real time at least once.
 
 ## Orchestration mechanics
 
+- **Deliver long reports as SendMessage parts, not as a file or a final
+  message.** The harness refuses report files from subagents ("Subagents
+  should return findings as text"), careful agents will not route around
+  that with a heredoc, and a final message reaching the orchestrator as an
+  idle notification is cut at about 4000 characters (three readers'
+  reports were truncated this way, 2026-09-22). Tell every agent up front:
+  send the report to `team-lead` with SendMessage, numbered parts of at
+  most 3500 characters, Blockers in part 1, and end with a one-line final
+  message.
 - Agents sometimes go idle without delivering their final report. Poke them
   with SendMessage ("send me your findings/report now"); a queued message
   ("delivered at next tool round") means the agent is still running — wait.
