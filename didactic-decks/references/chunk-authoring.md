@@ -57,6 +57,22 @@ programmer works, not as a list of functions declared up front:
    means.
 4. The whole program is shown once it is refined (above).
 
+Classes are part of the layout: a program's classes get their own bucket
+between the constants and the helper functions (they may use the
+constants; the helpers and the main program use them). A class developed
+method by method first shows its shell — `class X:`, docstring, a bucket
+of X's methods named for the class — and each method is appended when
+the reasoning reaches it. A class file whose main is a test program may
+refine the test program last, since the class is the task.
+
+Only programs the text *develops* — builds up from reasoning about the
+problem — are restructured. A program the student predicts, runs or
+compares stays whole (below), and in a contrast pair invariance between
+the two programs wins over the blank-line rule: do not give one of them
+spacing the other lacks (rollout, 2026-09-23). A file whose functions
+move keeps the same lines; only the order of definitions may change,
+which is allowed, and every run must give the same output.
+
 The prose calls the sketch's named parts **pseudokod**, and their
 definitions are where "senare preciserar vi pseudokoden med pythonkod";
 never "ett namn" that "vi bestämmer sedan hur" (author, 2026-09-23,
