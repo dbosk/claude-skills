@@ -206,13 +206,18 @@ The workflow, unless the user says otherwise:
    ambiguity** — every later tool call addresses the document by its
    unique name. Never upload under a bare base name planning to rename
    afterwards.
-2. **Leave the earlier versions in place.** The tablet then holds the
+2. **Before moving or archiving an earlier version, check it for ink**
+   (`remarkable_read(doc, content_type="annotations")`; author,
+   2026-09-23: "Before moving old drafts to the old folder, check if they
+   contain any ink"). A version with ink that has not been transcribed
+   stays where the user left it, and the user is told.
+3. **Leave the earlier versions in place.** The tablet then holds the
    whole review history, each version distinguishable at a glance, and
    the user can compare against their earlier annotations. Do **not**
    delete or overwrite prior versions unless the user asks (a version
    superseded within minutes, before the user opened it, is fair to offer
    to delete — still ask).
-3. **Pick N by incrementing the last uploaded version** — from the
+4. **Pick N by incrementing the last uploaded version** — from the
    conversation, the repo's commit messages (pairing each upload with its
    commit, message noting "uploaded as draft YYYY-MM-DD, vN", keeps this
    trail in git), or by `remarkable_search`-ing the title and taking the
@@ -220,7 +225,7 @@ The workflow, unless the user says otherwise:
    document family, not per branch, so v8 on a feature branch follows v7
    from main and a later main build is v9). Version numbers are cheap: a
    same-day follow-up change gets vN+1, never a silent re-upload of vN.
-4. **Read annotations from the version the user reviewed** — usually the
+5. **Read annotations from the version the user reviewed** — usually the
    latest, but if they name an older draft, read that one. Before
    concluding a version has no annotations, remember the sync trap
    (gotcha 4): ask the user to sync rather than report "no comments".
