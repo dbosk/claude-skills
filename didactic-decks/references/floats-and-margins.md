@@ -73,6 +73,16 @@ with caption"). Define the tabular once as a macro and use it both on the
 slide and in the float. A margin table is an option only where the margin
 beside the reference is free; otherwise the float goes in the text.
 
+A truth table is laid out like a multiplication table: the operator in
+the corner, the left operand down the rows, the right operand along the
+header row, a rule under the header row and a vertical rule after the
+header column; a one-operand table (`not`) has the same shape, its
+operand in the header row and the result below (author, 2026-09-23: "We
+want the lines, just as in a multiplication table", "Then it can be read
+the same way as the others"). With booktabs, a vertical rule needs
+`\aboverulesep=0pt`, `\belowrulesep=0pt` and a little `\arraystretch`,
+or it breaks at every rule.
+
 ## The ltnote queue
 
 `\ltnote`s longer than the margin queue forward and print beside the next

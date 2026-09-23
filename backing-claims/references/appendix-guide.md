@@ -80,6 +80,15 @@ is part of the claim, not an afterthought.
   parenthesis or clause; decks written that way are converted when next
   revised.)
 
+- **A qualification goes in the pointer footnote.** When a backed claim
+  comes with a qualification (the guide as a whole is not backed, the
+  attribution cannot be verified), the running text keeps the claim at
+  the strength the appendix supports, and the qualification moves into
+  the appendix-pointer footnote, which follows the citation directly
+  (author, 2026-09-23, first for PEP 8 — "Move to footnote 8, let
+  footnote 8 follow immediately on 7" — then for KISS: "should follow the
+  same pattern").
+
 - **Say what the appendix answers.** "Se \cref{app:dry}" tells the reader
   nothing about whether to go there. Name the question the chapter settles:
 
