@@ -62,11 +62,12 @@ printf '%s\n' Malvina 1927 | python3 examples/x.py
 A program with no `\runpython` and no `stdin` is run bare. The loop for a
 whole deck first collects the files the build already ran, then runs only
 the rest. Flatten the source first: a `\runpython` call routinely wraps
-over two lines, so a line-oriented grep misses it.
+over two lines, often with a `%` after the options, so a line-oriented grep
+misses it and the pattern allows `%` and spaces before the file name.
 
 ```bash
 ran=$(tr '\n' ' ' < contents.nw \
-      | grep -o '\\runpython\(\[[^]]*\]\)\?{[^}]*}' \
+      | grep -o '\\runpython\(\[[^]]*\]\)\?%\? *{[^}]*}' \
       | sed 's/.*{//;s/}$//' | sort -u)
 for f in examples/*.py; do
   grep -qxF "$f" <<< "$ran" && continue   # the build ran it: read its transcript
