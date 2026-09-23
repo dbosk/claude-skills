@@ -180,6 +180,11 @@ Each line points at the reference that explains it.
 - Side captions only when the margin is free **and** the caption is not
   taller than the float; otherwise a normal caption with the same text. `floats-and-margins.md`
 - `\textcite` and `\autocite` never go inside a float. `floats-and-margins.md`
+- The notes' table of contents lists every chapter, appendices included,
+  with its sections: memoir's default depth. Never change `tocdepth` to
+  save a page; a table of contents that spills onto a short page is not a
+  mostly blank page to fix (author, 2026-09-23: "List all chapters with
+  sections, everywhere, the standard way").
 - Long `\ltnote`s queue forward. Shorten, split or re-anchor them first;
   a forced `\clearpage` or `\needspace` must never leave a page mostly
   blank. `floats-and-margins.md`
