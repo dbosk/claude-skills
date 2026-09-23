@@ -38,14 +38,32 @@ in varje del där dess namn står får vi hela programmet:" plus
 `\inputminted{python}{examples/x.py}`), before the run. The slides
 already show every chunk and need not repeat it.
 
-**Helper functions go in one appendable chunk** (author, 2026-09-23: "Make
-bucket chunks instead: ⟨hjälpfunktioner⟩ then append to it when we add
-functions"). Define each helper as `<<hjälpfunktioner>>=`, which noweb
-concatenates (printed ≡, then +≡), and let the root name
-`<<hjälpfunktioner>>` once; never a grouping chunk whose only content is
-references to other chunks. Say once in the prose what +≡ means, since no
-lecture teaches it. A bucket shared by two files lands in both: give a
-function that belongs to only one of them its own chunk.
+**A literate solution unfolds top-down** (author, 2026-09-23), the way a
+programmer works, not as a list of functions declared up front:
+
+1. The root first: the file's layout — docstring, imports (once taught),
+   a constants bucket, a helper-function bucket, the main program, and
+   the start call. Name the buckets for THIS program
+   (`<<vägvisarens konstanter>>`, `<<vägvisarens hjälpfunktioner>>`,
+   `<<vägvisarens huvudprogram>>`); a bucket named `<<hjälpfunktioner>>`
+   in two programs would put every function in both files. A program that
+   extends another may name the other's bucket and add its own.
+2. Then sketch the main program, with chunk names as pseudocode.
+3. Each helper is appended to the bucket (`=` again; noweb prints ≡, then
+   +≡) where the discussion first needs it, after the reasoning that
+   calls for it — never all at once before the problem's details are
+   discussed ("The problem with the current programs is that it too
+   early outlines what functions we need"). Say once in the prose what +≡
+   means.
+4. The whole program is shown once it is refined (above).
+
+**Blank lines serve the pseudocode, not the tangled file.** In the
+literate source, group related chunk references on consecutive lines and
+separate groups by a single blank line, never two: the tangle rule runs
+black, which adds PEP 8's spacing (author, 2026-09-23: "use blank lines
+for the readability of the 'pseudocode' (literate source), not the
+underlying result"). Files tangled raw, without black, keep their own
+spacing.
 
 **A program the student reads or traces is not split into chunks**
 (author, 2026-09-20 and again 2026-09-23: "Just do all of these inline,

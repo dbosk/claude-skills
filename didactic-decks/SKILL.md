@@ -185,6 +185,11 @@ Each line points at the reference that explains it.
   save a page; a table of contents that spills onto a short page is not a
   mostly blank page to fix (author, 2026-09-23: "List all chapters with
   sections, everywhere, the standard way").
+- A literate solution unfolds top-down: the file's layout with
+  per-program buckets first, then the main program sketched as
+  pseudocode, helpers appended to the bucket when the discussion needs
+  them; single blank lines group chunk references, black spaces the
+  tangled file. `chunk-authoring.md`
 - Long `\ltnote`s queue forward. Shorten, split or re-anchor them first;
   a forced `\clearpage` or `\needspace` must never leave a page mostly
   blank. `floats-and-margins.md`
