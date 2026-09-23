@@ -93,6 +93,13 @@ aritmetiska operatorerna är fem:" before a list of seven (author struck
 *fem*, 2026-09-22). A count invites a check and goes stale when the list
 changes; write "De aritmetiska operatorerna är:".
 
+**A qualification lives in the pointer footnote.** When a claim backed in
+an appendix comes with a qualification ("guiden som helhet har det
+inte …", "uttrycket tillskrivs ofta Kelly Johnson, men det går inte att
+belägga"), the qualification goes into the appendix-pointer footnote,
+which follows the citation directly ("säger.⁷,⁸"); the running text keeps
+the claim (author, 2026-09-23, for PEP 8 and then KISS).
+
 **A measured claim is cited where it stands.** "erfarna utvecklare är
 mätbart oense om den\autocite{Alkharabsheh2021Analysing,Hall2014Some}"
 carries its sources in the sentence even though the bilaga pointer follows
