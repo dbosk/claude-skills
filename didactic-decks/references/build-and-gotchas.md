@@ -375,3 +375,12 @@ note, instead of adding a paragraph to several); drain the queue with
 `\mode<article>{\clearpage}` only where that leaves no mostly blank page
 (`floats-and-margins.md`, "The ltnote queue"). Treat
 "no margin column detected" as a hard failure in every build log.
+
+## Macros the slides need
+
+`contents.nw` opens with `\mode*`, so beamer skips everything outside
+frames in the slides job. A macro defined in the notes' running text is
+therefore undefined on the slides ("Undefined control sequence" in
+`slides.log`). Define such macros inside `\mode<all>{…}`, outside any
+frame. (`ignoreframetext` is not a beamer option; the real one is
+`ignorenonframetext`.)

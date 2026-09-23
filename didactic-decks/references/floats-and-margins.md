@@ -63,6 +63,16 @@ collision avoidance and silently overprints an `\ltnote` at the same
 height; anchoring the caption at the bottom of the float moves it below the
 notes, which anchor where they stand in the body text.
 
+## Tables in the notes
+
+A table in the notes is a numbered `table` float with a caption that
+stands on its own (what the rows, columns and cells are), referenced from
+the prose with `\cref`, never a bare `tabular` carried over from a frame
+(author, 2026-09-23, beside three truth tables: "Should be a proper table
+with caption"). Define the tabular once as a macro and use it both on the
+slide and in the float. A margin table is an option only where the margin
+beside the reference is free; otherwise the float goes in the text.
+
 ## The ltnote queue
 
 `\ltnote`s longer than the margin queue forward and print beside the next

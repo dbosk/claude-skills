@@ -49,6 +49,9 @@ sju uppgifter", not "är sju uppgifter".
 **"Och till sist", not "och sist"**, at the end of an enumeration of
 answers or steps (author, 2026-09-23).
 
+**A heading names what the section builds.** "Vårt sängväljarprogram",
+not "Vårt program" (author, 2026-09-23).
+
 **Exekverar, utför, köra.** "Ett program utför en uppgift;
 processorn/datorn/tolken exekverar programmet." Whoever runs code
 *exekverar* it (noun *exekvering*); a program or a person *utför* a task.
