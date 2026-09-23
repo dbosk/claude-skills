@@ -57,6 +57,11 @@ programmer works, not as a list of functions declared up front:
    means.
 4. The whole program is shown once it is refined (above).
 
+The prose calls the sketch's named parts **pseudokod**, and their
+definitions are where "senare preciserar vi pseudokoden med pythonkod";
+never "ett namn" that "vi bestämmer sedan hur" (author, 2026-09-23,
+striking both phrases).
+
 **Blank lines serve the pseudocode, not the tangled file.** In the
 literate source, group related chunk references on consecutive lines and
 separate groups by a single blank line, never two: the tangle rule runs
