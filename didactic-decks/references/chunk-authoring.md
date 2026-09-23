@@ -30,6 +30,23 @@ pseudocode"): `funktion för instruktionen att gå`, `fråga efter målet
 tills vägvisaren känner det`, not `instruktionen att gå` or `vägvisarens
 fråga`. Say what the part does and, for a definition, that it is one.
 
+**Show the whole program once it is fully refined** (author, 2026-09-23:
+"Always show the program as a whole when we've covered it fully and
+refined all chunks"). After the last chunk of a literate program and its
+explanation, a notes-only frame shows the tangled file whole ("Sätter vi
+in varje del där dess namn står får vi hela programmet:" plus
+`\inputminted{python}{examples/x.py}`), before the run. The slides
+already show every chunk and need not repeat it.
+
+**Helper functions go in one appendable chunk** (author, 2026-09-23: "Make
+bucket chunks instead: ⟨hjälpfunktioner⟩ then append to it when we add
+functions"). Define each helper as `<<hjälpfunktioner>>=`, which noweb
+concatenates (printed ≡, then +≡), and let the root name
+`<<hjälpfunktioner>>` once; never a grouping chunk whose only content is
+references to other chunks. Say once in the prose what +≡ means, since no
+lecture teaches it. A bucket shared by two files lands in both: give a
+function that belongs to only one of them its own chunk.
+
 **A program the student reads or traces is not split into chunks**
 (author, 2026-09-20 and again 2026-09-23: "Just do all of these inline,
 not literate, since the student should practice reading code"). The
