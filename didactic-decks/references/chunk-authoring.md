@@ -23,8 +23,21 @@ print("Hello, World!")
 @
 ```
 
-Chunk names stay short and plain, in the document's language: `ta hand om
-felen`, not a sentence.
+Chunk names read as **pseudocode** for the program, in the document's
+language, so that the root chunk alone gives a useful overview (author,
+2026-09-23: "Make these chunk names a bit more descriptive. Like
+pseudocode"): `funktion för instruktionen att gå`, `fråga efter målet
+tills vägvisaren känner det`, not `instruktionen att gå` or `vägvisarens
+fråga`. Say what the part does and, for a definition, that it is one.
+
+**A program the student reads or traces is not split into chunks**
+(author, 2026-09-20 and again 2026-09-23: "Just do all of these inline,
+not literate, since the student should practice reading code"). The
+notes show it whole, as one chunk; when it is too long for one slide, the
+slides show consecutive line ranges of the tangled file on several
+presentation-only frames (`\inputminted[firstline=…,lastline=…]`), never
+a shrunk frame. Literate splitting is for solution code, where the
+decomposition is what the reader should learn.
 
 ## Frames
 
@@ -69,7 +82,9 @@ A two-line display inside an `example` must not rely on `\\` inside a
 
 To show the same code again later, **do not redefine the chunk** — noweb
 concatenates the definitions into the tangled file. Re-display the tangled
-artifact instead, always the whole file, never a line range:
+artifact instead, always the whole file, never a line range (the one
+exception is the slide view of a program the student reads, under
+"Chunks"):
 
 ```latex
 \inputminted{python}{examples/foo.py}

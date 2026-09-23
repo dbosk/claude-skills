@@ -299,6 +299,17 @@ skill, "Section Order"):
   Instances presented apart must be juxtaposed in the learner's memory
   instead: a cognitive-load argument for contrast-first, side-by-side design.
 
+## A New Construct Is Shown With and Without It
+
+When a solution introduces a construct the student has not met (the
+walrus operator `:=`, a string method, a library call), show the solution
+first without it and then with it, on the same task, so that what the
+construct changes is discernible: the duplicated line it removes, the
+branch it saves (author, 2026-09-23: "Show the solution both with and
+without := so that we can discern why it's needed (code deduplication)").
+The version without it is the contrast; without that contrast the new
+construct is only a new spelling.
+
 ## Temporal Sequencing: Examples Before Generalizations
 
 **CRITICAL**: Examples must precede generalizations. Students need concrete instances creating necessary variation before abstract principles become meaningful.

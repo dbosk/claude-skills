@@ -40,6 +40,15 @@ their own wording.
 **Förkunskaper say "tagit del av".** "Studenten bör ha tagit del av
 föreläsningen \emph{X}", never "ha sett".
 
+**"Vi" does what we do.** When the text says what happens in the
+material, the subject is "vi", not the document: "Vi börjar i det
+enklaste", not "Den börjar i det enklaste" (author, 2026-09-23, "Vi"
+written over "Den"). And a part is not its whole: "Övningen består av
+sju uppgifter", not "är sju uppgifter".
+
+**"Och till sist", not "och sist"**, at the end of an enumeration of
+answers or steps (author, 2026-09-23).
+
 **Exekverar, utför, köra.** "Ett program utför en uppgift;
 processorn/datorn/tolken exekverar programmet." Whoever runs code
 *exekverar* it (noun *exekvering*); a program or a person *utför* a task.
@@ -118,6 +127,11 @@ sentence in every chapter.
 The rule is a pattern; the names themselves belong to the project.
 
 - **Never the author's own name** in example data.
+- **Real places, real facts.** Example data taken from the real world
+  must match it, not only borrow its names: a route across campus follows
+  the real walk (author, 2026-09-23, beside a hand-drawn map: "This is what
+  it looks like in reality. Adapt to it."). Say in an `\ltnote` where the
+  facts come from and what is approximated.
 - Pick a fixed cast and use it in a fixed order, so the same person
   reappears across decks rather than a new name each time.
 - Hide a cultural fact in example data where it costs nothing — a year, a
