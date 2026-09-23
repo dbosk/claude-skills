@@ -32,7 +32,14 @@ repository's `CLAUDE.md`, not here.
    `modules view --show-position` and each item's `published` state with the
    files, and bring the *files* in line where the author's change is the
    newer decision. A stale `published: false` or `position:` undoes their
-   work on the next push.
+   work on the next push. The same holds for the **body**: the author may add
+   content in the web editor (a recording `<iframe>`, a link, a corrected
+   sentence). Before pushing a page, read its body as HTML through the API,
+   diff it against the file, and carry the author's additions into the file
+   (raw HTML passes through the Markdown) — then push. Never replace the
+   file with the pulled page: that loses the local markers and comments
+   (author, 2026-09-23: "pull it so that you can keep the embedding that I
+   added to it … I don't want to lose that one on an update").
 3. **`--no-cache` goes before the subcommand** (`canvaslms --no-cache pages
    edit ...`). Use it for every write and every verification read; the
    object cache has listed a page twice and hidden a server-side no-op.
