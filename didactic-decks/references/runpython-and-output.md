@@ -93,3 +93,57 @@ claims to run. Run the tangled programs directly to confirm:
 ```bash
 for f in examples/*.py; do python3 "$f" < /dev/null; done
 ```
+
+## Output beside test cases (`testkorningar.nw`)
+
+A class file's `tests()` grows with the class (chunk-authoring.md), and
+each test case shows its output beside it (author, 2026-09-24: "Should be
+fine … Add it to the skill"). The test lines are written once:
+
+1. In `contents.nw` each test case is a named chunk (`<<byt namn på
+   personen>>`), appended to the class's tests bucket (`<<tester för
+   [[Person]]>>`) right after the part it tests.
+2. A second noweb file in the deck, `testkorningar.nw`, is **tangled but
+   never woven**. It holds one root per printing test case,
+   `[[<stem>_test_<case>.py]]`: import the class, run the earlier cases of
+   the same `tests()` silently, then the case itself, so the objects are
+   in the state `tests()` has there and the output is exactly its lines:
+
+   ```python
+   from contextlib import redirect_stdout
+   from io import StringIO
+
+   from person import Person
+
+   with redirect_stdout(StringIO()):
+       <<skapa en person>>
+       <<skriv ut personen>>
+   <<byt namn på personen>>
+   ```
+   Open the file with a paragraph saying why it exists. It is not woven
+   because a woven root would print the harness in the notes, and a hidden
+   one leaves the chunks' "used in" references pointing at missing labels
+   (`??`).
+3. Makefile: `TESTRUNS+= examples/…_test_….py` per program,
+   `EXAMPLES+= ${TESTRUNS}` and `${TESTRUNS}: testkorningar.nw`, so the
+   tangle rule reads both files (noweb joins chunk definitions across
+   input files).
+4. In the notes: a lead-in ("Testfallet skriver ut") and
+   `\runpython[chdir, deps={examples/<stem>.py}]{examples/…_test_….py}`,
+   without `showcommand`: the file name means nothing to the reader.
+5. A case whose output answers a later try-first exercise gets no run
+   beside it; show it after the exercise, or leave it to the exercise's
+   final run.
+6. To show a class at an earlier stage than the tangled file (a
+   pseudokod step not yet refined, e.g. a constructor that does not yet
+   simplify), the harness may switch that step off
+   (`Fraction._Fraction__simplify = lambda self: None`) with a comment
+   saying why, and the prose beside the run must say the step is not
+   there yet.
+
+Costs, accepted: the harness lines repeat per program; renaming a test
+chunk means following it in `testkorningar.nw` (noweb warns about an
+undefined chunk); the shown output depends on the order of the earlier
+cases, as `tests()` does. The alternative, independent test cases that
+build their own objects, was considered and not chosen (2026-09-24).
+

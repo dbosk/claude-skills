@@ -74,7 +74,8 @@ it is not written last: sketch it as the class is designed, appending the
 tests of each part to the tests bucket right after that part, as in
 ordinary literate programming, and show the output of those test lines
 beside them with PythonTeX, importing the class and running just those
-operations (author, 2026-09-24).
+operations (author, 2026-09-24). The mechanism is in `runpython-and-output.md`,
+"Output beside test cases".
 
 Only programs the text *develops* — builds up from reasoning about the
 problem — are restructured. A program the student predicts, runs or
