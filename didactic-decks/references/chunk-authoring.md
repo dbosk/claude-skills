@@ -50,7 +50,9 @@ programmer works, not as a list of functions declared up front:
    main program is the root's last part. Name the buckets for THIS program
    (`<<vägvisarens konstanter>>`, `<<vägvisarens hjälpfunktioner>>`,
    `<<vägvisarens huvudprogram>>`); a bucket named `<<hjälpfunktioner>>`
-   in two programs would put every function in both files. A program that
+   in two programs would put every function in both files. Choose the
+   shortest name that is sufficiently clear; look-alike programs in one
+   deck may need the file name (author, 2026-09-24). A program that
    extends another may name the other's bucket and add its own.
 2. Then sketch the main program, with chunk names as pseudocode.
 3. Each helper is appended to the bucket (`=` again; noweb prints ≡, then
@@ -66,8 +68,13 @@ between the constants and the helper functions (they may use the
 constants; the helpers and the main program use them). A class developed
 method by method first shows its shell — `class X:`, docstring, a bucket
 of X's methods named for the class — and each method is appended when
-the reasoning reaches it. A class file whose main is a test program may
-refine the test program last, since the class is the task.
+the reasoning reaches it. A class file's test program is called
+`tests()`, not `main()` (the start call is `tests()` under the guard), and
+it is not written last: sketch it as the class is designed, appending the
+tests of each part to the tests bucket right after that part, as in
+ordinary literate programming, and show the output of those test lines
+beside them with PythonTeX, importing the class and running just those
+operations (author, 2026-09-24).
 
 Only programs the text *develops* — builds up from reasoning about the
 problem — are restructured. A program the student predicts, runs or
