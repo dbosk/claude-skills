@@ -42,8 +42,12 @@ already show every chunk and need not repeat it.
 programmer works, not as a list of functions declared up front:
 
 1. The root first: the file's layout — docstring, imports (once taught),
-   a constants bucket, a helper-function bucket, the main program, and
-   the start call. Name the buckets for THIS program
+   a constants bucket, a helper-function bucket and the main program. The
+   start call is not in the root: it stands right after `def main` in the
+   main program's own chunk, so the definition and its call are read
+   together (author, 2026-09-24, on two decks: "Keep the definition and
+   call close to each other"). The tangled file is the same, since the
+   main program is the root's last part. Name the buckets for THIS program
    (`<<vägvisarens konstanter>>`, `<<vägvisarens hjälpfunktioner>>`,
    `<<vägvisarens huvudprogram>>`); a bucket named `<<hjälpfunktioner>>`
    in two programs would put every function in both files. A program that
