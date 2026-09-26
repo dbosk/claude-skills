@@ -92,8 +92,9 @@ What works, in this order of preference:
 
 1. Shorten notes that merely restate the prose; state a deck-wide rule
    once, in one short note, instead of a paragraph in several.
-2. Anchor a note where its decision is made, not at the end of the
-   passage, so it starts printing earlier.
+2. Anchor a note just before the passage it discusses (the
+   didactic-notes rule, "Placement"), never after it, so it starts
+   printing beside the passage.
 3. Split a long note and anchor the second half further on.
 4. Move the citation that is being pushed to the next page a few lines
    earlier, or `\needspace{N\baselineskip}` with the smallest N that

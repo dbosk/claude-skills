@@ -57,6 +57,21 @@ article's in-frame margin footnotes to the foot. See
 
 Just as literate programming makes code reasoning explicit, didactic notes make pedagogical reasoning explicit using `\ltnote{...}` from the LaTeX `didactic` package.
 
+## Placement: the note comes *before* what it discusses
+
+Write the `\ltnote` immediately **before** the passage, exercise, example or
+frame it discusses — as a literate program's documentation chunk precedes
+its code — never after it. A margin note starts at its anchor, so a note
+anchored before the passage has its top aligned with the passage and
+prints beside it (when the margin is not crowded); anchored after, it
+starts where the passage ends and hangs below what it talks about
+(author, 2026-09-26: "I've always wondered why the learning theory notes
+are so low … They should be written just before"). A note about a whole
+section goes right after the section heading, before the first
+paragraph; a note about a frame goes before the frame in the article
+flow (or at the top of the frame body if it must stay inside). Moving
+a note never changes the student text.
+
 ## Scope: `\ltnote` documents the *material's* design, not the subject
 
 `\ltnote` is meta-commentary about **how and why the teaching text itself is
