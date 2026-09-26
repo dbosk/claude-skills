@@ -72,11 +72,16 @@ paragraph; a note about a frame goes before the frame in the article
 flow (or at the top of the frame body if it must stay inside). Moving
 a note never changes the student text.
 
-A note right after `\section`/`\subsection` must not stand before the
-first paragraph: `\ltnote` starts a paragraph of its own and uses up the
-heading's no-indent flag, so the paragraph gets indented. Put it after
-the paragraph's first word instead (`Nu\ltnote{%…}` and the rest on the
-next line); the note is still top-aligned with the paragraph (found
+**The form**: `\leavevmode\ltnote{%…}%` on the lines immediately before the
+first word of what the note discusses — the paragraph, or the body of the
+exercise/example environment (inside it, before its first word). The
+`\leavevmode` starts the paragraph first, so the note is top-aligned with
+it, a paragraph right after a heading stays flush (a bare `\ltnote` there
+uses up the heading's no-indent flag and indents it), no heading is
+stranded at a page foot, and no extra `\topsep` gap appears before an
+environment. A bare note between two paragraphs (vertical mode) aligns
+one line too high. If a `\needspace` precedes a heading the note is about,
+the note may stand after the `\needspace`, before the heading (found
 2026-09-26; a fix in didactic has been requested).
 
 ## Scope: `\ltnote` documents the *material's* design, not the subject
