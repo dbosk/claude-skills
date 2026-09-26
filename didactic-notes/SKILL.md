@@ -84,6 +84,16 @@ one line too high. If a `\needspace` precedes a heading the note is about,
 the note may stand after the `\needspace`, before the heading (found
 2026-09-26; a fix in didactic has been requested).
 
+**Name what the note is about**: an `\ltnote` that discusses a particular
+exercise, example, definition or program refers to it with `\cref`
+(`\cref{ovn:reflektion}`, `\cref{ex:bank}`), adding the `\label` if it
+is missing. A queued note that prints a page later, or one of several
+notes side by side, is then unambiguous (author, 2026-09-26: "please
+add a \cref so that we know which one is means. In fact, make that a
+general rule"). `\ltnote` prints only in the article, so the beamer
+"sats" problem of `\cref` to an `example` does not arise there; `\cref`
+to an unnumbered environment still prints `??`, so check the build.
+
 ## Scope: `\ltnote` documents the *material's* design, not the subject
 
 `\ltnote` is meta-commentary about **how and why the teaching text itself is
