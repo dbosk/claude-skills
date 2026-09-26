@@ -72,6 +72,13 @@ paragraph; a note about a frame goes before the frame in the article
 flow (or at the top of the frame body if it must stay inside). Moving
 a note never changes the student text.
 
+A note right after `\section`/`\subsection` must not stand before the
+first paragraph: `\ltnote` starts a paragraph of its own and uses up the
+heading's no-indent flag, so the paragraph gets indented. Put it after
+the paragraph's first word instead (`Nu\ltnote{%…}` and the rest on the
+next line); the note is still top-aligned with the paragraph (found
+2026-09-26; a fix in didactic has been requested).
+
 ## Scope: `\ltnote` documents the *material's* design, not the subject
 
 `\ltnote` is meta-commentary about **how and why the teaching text itself is
