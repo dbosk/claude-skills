@@ -1,6 +1,6 @@
 ---
 name: didactic-decks
-description: Build and revise lecture decks that produce slides.pdf (beamer) and notes.pdf (memoir + beamerarticle) from one literate contents.nw with the didactic package, PythonTeX transcripts and a noweb/minted weave. Use proactively when (1) creating, converting or revising a directory holding contents.nw plus slides.tex plus notes.tex, (2) such a build fails or the two PDFs disagree (missing or wrong transcripts, literal MINTED placeholders, blank table-of-contents frames, "Float(s) lost", stuck latexmk, margin notes on the wrong page), (3) running the pre-review checks, (4) the user mentions deck, lecture notes, ltnote, runpython, beamerarticle, sidecaption, or "the deck standard", (5) writing or reviewing a Swedish-language deck (house style in references/house-style-sv.md), (6) writing an agent brief that converts or sweeps decks. Owns the composition, build and checks; load literate-programming for .nw editing, didactic-notes, variation-theory and try-first-tell-later for pedagogy, backing-claims for citations; project wording rules stay in the project's CLAUDE.md.
+description: Build and revise lecture decks that produce slides.pdf (beamer) and notes.pdf (memoir + beamerarticle) from one literate contents.nw with the didactic package, PythonTeX transcripts and a noweb/minted weave. Use proactively when (1) creating, converting or revising a directory holding contents.nw plus slides.tex plus notes.tex, (2) such a build fails or the two PDFs disagree (missing or wrong transcripts, literal MINTED placeholders, blank table-of-contents frames, "Float(s) lost", stuck latexmk, margin notes on the wrong page), (3) running the pre-review checks, (4) the user mentions deck, lecture notes, ltnote, runpython, beamerarticle, sidecaption, or "the deck standard", (5) writing or reviewing a Swedish-language deck (house style in references/house-style-sv.md), (6) writing an agent brief that converts or sweeps decks, (7) binding several decks into one book (teacher and student editions, \deck, book-body.tex). Owns the composition, build and checks; load literate-programming for .nw editing, didactic-notes, variation-theory and try-first-tell-later for pedagogy, backing-claims for citations; project wording rules stay in the project's CLAUDE.md.
 ---
 
 # Didactic decks: one source, two PDFs
@@ -64,6 +64,7 @@ Read the one you need; do not read them all.
 | `references/floats-and-margins.md` | float placement, captions, the side-caption decision, the `\ltnote` queue |
 | `references/review-checklist.md` | the checks with their exact commands and thresholds |
 | `references/house-style-sv.md` | Swedish wording rules (load only for a Swedish deck) |
+| `references/book-binding.md` | binding a set of decks into one book: layout, the `\deck` macro, paths, unique names, Makefile, adding a deck |
 
 Quick ways in: `grep -n 'MINTED\|pytxcode\|_minted\|fdb_latexmk\|Mentipy' references/build-and-gotchas.md`
 for a build symptom; `grep -n 'sidecaption\|extrafloats\|Float(s) lost' references/*.md`
@@ -313,6 +314,17 @@ warnings that are known to be harmless.
 from and carries a `diff -ru` one-liner. Re-sync when a project's build
 wiring changes, and carry over build wiring only: content differences are
 expected and must not be copied back.
+
+## Binding decks into a book
+
+A set of finished decks can be bound into one memoir book, a teacher
+edition with the `\ltnote`s and a student edition with `\ltnoteoff`,
+one chapter per deck, the backing appendices gathered in a final part
+with their standalone letters. The book `\subimport`s the decks' own
+woven files, so each deck keeps building standalone; the deck-side
+changes (weave under the deck's path, per-deck labels, reconciled bib
+keys) go into the deck itself. Everything is in
+`references/book-binding.md`.
 
 ## The review loop lives elsewhere
 
