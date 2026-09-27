@@ -34,6 +34,11 @@ student* into the body; keep the *why for the teacher* — which learning
 objective, which critical aspect, which misconception, which variation
 pattern — in the note.
 
+The notes-off reading is not hypothetical: a student edition is made
+exactly that way, by `\ltnoteoff` before the body (e.g. a book bound from
+decks, `didactic-decks/references/book-binding.md`), so a note doing the
+prose's work leaves a gap in a text students actually read.
+
 ---
 
 ## Anchor the note where the decision is made
