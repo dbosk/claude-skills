@@ -81,8 +81,8 @@ STRINGS = {
             "no-abstract-title-only": "bedömd på titel, sammanfattning saknas",
         },
         "head": ("Titel", "År", "Databas", "Skäl"),
-        "cont": "forts.",
-        "next": "forts.\\ på nästa sida",
+        "cont": "\\GetTranslation{continued}",
+        "next": "\\GetTranslation{continued on the next page}",
         "caption": ("Fullständig träfflista, %(track)s: %(n)d unika poster, "
                     "varav %(cit)d citerade, %(sup)d stöder påståendet, "
                     "%(qual)d kvalificerar eller motsäger det, %(adj)d "
@@ -123,8 +123,8 @@ STRINGS = {
             "no-abstract-title-only": "judged on title, no abstract available",
         },
         "head": ("Title", "Year", "Provider", "Reason"),
-        "cont": "cont.",
-        "next": "continued on next page",
+        "cont": "\\GetTranslation{continued}",
+        "next": "\\GetTranslation{continued on the next page}",
         "caption": ("Full hit list, %(track)s: %(n)d unique records, of which "
                     "%(cit)d cited, %(sup)d support the claim, %(qual)d "
                     "qualify or contradict it, %(adj)d adjacent and %(off)d "
