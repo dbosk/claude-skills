@@ -161,6 +161,13 @@ fix. Every item below cost an agent real time at least once.
 
 ## Orchestration mechanics
 
+- **A bare `git push` can push SIBLING agents' branches.** Worktrees share one
+  repo config; with `push.default=matching` (check `git config push.default`)
+  a plain `git push` from any worktree pushes every local branch whose name
+  exists on the remote — observed: two agents found "Everything up-to-date"
+  because a sibling's push had already sent their unfinished branch, and a
+  local `master` ahead of origin would go out the same way. Brief every agent
+  to push by explicit refspec only: `git push origin <branch>`.
 - **Deliver long reports as SendMessage parts, not as a file or a final
   message.** The harness refuses report files from subagents ("Subagents
   should return findings as text"), careful agents will not route around
