@@ -273,3 +273,10 @@ checks below.
   flushing floats inside a chapter; the book's preamble copy drifts from
   the decks' until the joint preamble exists; the `\deck`-list parsers
   (Makefile, both scripts) only match the two forms above.
+
+**Build trap: a book build right after standalone deck builds.** minted
+finds a deck's highlight cache in `<deck>/ltxobj/_minted` through the
+import path and the book build dies with "TeX capacity exceeded
+[grouping levels=255]" at the first `\mintinline`. Delete the decks'
+`ltxobj/_minted` before building the book (or make the book Makefile do
+it).

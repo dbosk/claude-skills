@@ -151,3 +151,11 @@ The rule is a pattern; the names themselves belong to the project.
 - Every source has a real reference. No nicknames for sources
   ("missuppfattningsartikeln") in appendices or notes; the author's own
   manuscript gets an `@unpublished` entry with a provenance block.
+
+**Boilerplate is not repeated deck after deck.** A student-facing
+paragraph that restates a course convention (e.g. "Alla program här är
+skrivna i den form du känner från föreläsningen *Funktioner* …") appears
+once, where the convention is introduced or first applied; later decks
+refer to it in at most one short clause, if at all (author, 2026-09-28:
+"Trim everywhere, not just in the book, if it's repetitive"). The same
+holds for repeated `\ltnote`s stating a deck-wide rule.

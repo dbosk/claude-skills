@@ -94,6 +94,19 @@ general rule"). `\ltnote` prints only in the article, so the beamer
 "sats" problem of `\cref` to an `example` does not arise there; `\cref`
 to an unnumbered environment still prints `??`, so check the build.
 
+**Notes in the author's voice are Swedish prose, not quotes.** A review
+comment that motivated a design decision is paraphrased in the note's own
+language, without a date stamp in parentheses; do not paste the author's
+English review words into a published teacher edition (author,
+2026-09-28: "Paraphrase in Swedish").
+
+**Text that only makes sense with the notes shown is teacher-only.** A
+passage outside an `\ltnote` that refers to what only the notes say (e.g.
+an appendix checklist naming "marginalens lärarnoter", a quote or claim
+that appears only in a note) is wrapped so it prints only when notes are
+on (`\ifbool{ltnote}{…}{}` or the deck's equivalent), so the student
+edition never points at text it lacks (author, 2026-09-28).
+
 ## Scope: `\ltnote` documents the *material's* design, not the subject
 
 `\ltnote` is meta-commentary about **how and why the teaching text itself is
