@@ -100,6 +100,16 @@ language, without a date stamp in parentheses; do not paste the author's
 English review words into a published teacher edition (author,
 2026-09-28: "Paraphrase in Swedish").
 
+**Give the reason, not the revision history.** A note states why the
+material is as it is, not how it got there: no "i den tidigare
+versionen", "stod förr", "är struken/tillagd", "den gamla övningens …" —
+that history is in Git. Mention an earlier design only when the contrast
+is itself a point for the teacher (e.g. it failed in class in a way worth
+knowing), and then state that point, not the edit (author, 2026-09-28:
+"only give the reasons without the history, we can find the history in
+Git---unless there is a good point in bringing up we did things
+differently before").
+
 **Text that only makes sense with the notes shown is teacher-only.** A
 passage outside an `\ltnote` that refers to what only the notes say (e.g.
 an appendix checklist naming "marginalens lärarnoter", a quote or claim

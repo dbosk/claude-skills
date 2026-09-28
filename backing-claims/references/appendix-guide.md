@@ -170,6 +170,20 @@ is part of the claim, not an afterthought.
   each source's provenance is recorded in the bibliography's source file
   with fixed fields — and explain the fields there.
 
+### One method chapter across a collection
+
+In a collection of decks (a course, a book), Chapter A's generic
+description — turning the claim into a question, choosing the right kind
+of source, searching so you can be wrong, reading in full text, drawing
+the hedged conclusion — is written in full once, in the first deck in
+reading order. Every later deck's Chapter A keeps its opening, its
+summary of that deck's claims as questions with answers and where each is
+answered, and anything specific to the deck, and replaces the generic
+sections with one paragraph pointing at the first deck's Chapter A and
+saying what it describes (author, 2026-09-28: "shorten appendix A: I like
+that it summarizes the questions and answers for that chapter (the other
+appendices), so we can keep that part").
+
 ### The method names its sources
 
 A Metod section that says the sources come from an earlier review ("hämtade

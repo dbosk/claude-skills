@@ -247,6 +247,12 @@ to the students. Then, in the deck (committed there, one commit per deck):
 4. Anything its preamble adds goes into the book's preamble; a setting
    that conflicts with another deck goes into its `\deck` `<setup>`.
 5. The standalone build still passes `scripts/build_deck.sh`.
+6. Harmonise for the collection: shorten the deck's Chapter A to a
+   pointer if it is not the first in reading order
+   (`backing-claims/references/appendix-guide.md`, "One method chapter
+   across a collection"), and check its `\ltnote`s give reasons, not
+   revision history (`didactic-notes` `SKILL.md`, "Give the reason, not
+   the revision history").
 
 In the book: add the `\deck` line in reading order under its unit's
 `\part` (a new unit gets a new `\part`), build both editions, run the
