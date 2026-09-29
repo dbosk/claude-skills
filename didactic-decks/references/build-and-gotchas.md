@@ -352,7 +352,12 @@ EXAMPLES+=	examples/fraga.py
 ```
 
 `\runpython` runs the program from `examples/`, so the plain import works.
-In the notes, show the imported file once with
+To list only the imported function, not the whole file, use didactic's
+PythonTeX helpers `didactic_import(module_name, module_path)` and
+`didactic_source(function)` (author, 2026-09-30: "Import it! But we can
+list it so that the student doesn't have to look it up to recall it.");
+`didactic_import` executes the file, so it must have the `__name__` guard.
+Otherwise, show the imported file once with
 `\inputminted{python}{examples/fraga.py}` and say which deck wrote it (by
 its canonical title), so the reader sees what the import brings in and
 where to look for its explanation; the `\ltnote` records why reuse beats a

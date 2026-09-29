@@ -47,7 +47,11 @@ programmer works, not as a list of functions declared up front:
    main program's own chunk, so the definition and its call are read
    together (author, 2026-09-24, on two decks: "Keep the definition and
    call close to each other"). The tangled file is the same, since the
-   main program is the root's last part. Name the buckets for THIS program
+   main program is the root's last part. The layout is not explained to the
+   student: a sentence like "Direkt efter definitionen av main står anropet,
+   så att definitionen och anropet läses tillsammans" narrates the authoring
+   rule and confuses (author, 2026-09-30, beside it: "I don't really
+   understand that."); a reason belongs in an `\ltnote` if anywhere. Name the buckets for THIS program
    (`<<vägvisarens konstanter>>`, `<<vägvisarens hjälpfunktioner>>`,
    `<<vägvisarens huvudprogram>>`); a bucket named `<<hjälpfunktioner>>`
    in two programs would put every function in both files. Choose the
