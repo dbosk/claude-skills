@@ -95,8 +95,11 @@ literate source, group related chunk references on consecutive lines and
 separate groups by a single blank line, never two: the tangle rule runs
 black, which adds PEP 8's spacing (author, 2026-09-23: "use blank lines
 for the readability of the 'pseudocode' (literate source), not the
-underlying result"). Files tangled raw, without black, keep their own
-spacing.
+underlying result"). The same holds for minted blocks, not only chunk
+references (author, 2026-09-29: "Don't do double blanks."; asked about
+black restoring PEP 8's two: "Single blank in the literate source. It's
+fine that black makes it double blanks again in the tangled file."). Files
+tangled raw, without black, keep their own spacing.
 
 **A program the student reads or traces is not split into chunks**
 (author, 2026-09-20 and again 2026-09-23: "Just do all of these inline,
@@ -133,6 +136,14 @@ print("Hej!")
 
 One `example` or `exercise` environment per case, adjacent, never merged.
 
+**A solution follows its exercise as one environment holding every run of
+it.** Add a second `solution` only for a genuine alternative approach, and
+say in the prose that it is one (author, 2026-09-29: "One solution per
+assignment. Unless there are alternative solutions, in which case we point
+that out."; asked about an exercise with two valid approaches worth
+keeping: "Maybe one solution that keeps both. Just as for the exercise
+itself.").
+
 A two-line display inside an `example` must not rely on `\\` inside a
 `center`: the article job collapses it to one line. Use a one-column
 `tabular`, or a `\par` between the lines.
@@ -157,6 +168,11 @@ exception is the slide view of a program the student reads, under
 ```latex
 \inputminted{python}{examples/foo.py}
 ```
+
+Name the file in the example's title or lead-in, so the reader knows which
+artifact is shown again: "En lista (\texttt{loop2.py})", not a bare
+`\inputminted` with no title (author, 2026-09-29, beside an unnamed
+re-display: "loop2.py?").
 
 The Makefile's `EXAMPLES` dependency guarantees the file is current.
 

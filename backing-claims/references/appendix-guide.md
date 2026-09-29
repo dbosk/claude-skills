@@ -119,6 +119,13 @@ is part of the claim, not an afterthought.
   "det vetenskapliga underlaget finns i föreläsningen \emph{Funktioner},
   bilaga~B". A dangling `\cref` to another document's label prints `??`.
 
+- **A reused pointer states the finding, not the reuse.** When the
+  backing lives in another document, the footnote says what that
+  appendix found, same as "Say what the appendix answers" above — never
+  that this material chose not to repeat the search: the author struck
+  "Vi återanvänder svaret här i stället för att pröva det på nytt."
+  (2026-09-29).
+
 - **Point only backwards** (author, 2026-09-22: "We should only refer to
   appendices in previous notes or the current one"). In a series read in
   order (a course's lecture and tutorial notes), a pointer may name the

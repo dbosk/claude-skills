@@ -30,6 +30,14 @@ kontrasterade / tanglar" reads as contrived and is the wrong fix. The
 title points at a document the reader can open in any week; "förra
 veckan" does not, and that is the whole distinction.
 
+**Do not present as new what an earlier deck already taught.** Build on
+it and point back by title, cutting a repeat rather than re-explaining it
+or re-running a near-verbatim exercise (author, 2026-09-29, beside
+"Hittills har våra program gjort varje sak en gång": "Not entirely true,
+we've done 'while True' for inputs, until the user gets it right."; asked
+about an exercise that nearly repeated an earlier deck's: "build on the
+earlier deck, cut repeats").
+
 **Address the student as "du".** Second person singular throughout the
 student text — prose, exercises, learning objectives, appendices: "när du
 programmerar", "din kod", "ditt program", "dina svar". Never "ni"/"er"
@@ -92,6 +100,15 @@ the claim is real reads as defensive and adds nothing.
 aritmetiska operatorerna är fem:" before a list of seven (author struck
 *fem*, 2026-09-22). A count invites a check and goes stale when the list
 changes; write "De aritmetiska operatorerna är:".
+
+**Numbers: ett till tolv i ord, 13 och uppåt i siffror** (Språkrådet's
+rule; author, 2026-09-29, beside "åttioen": "Skrivregler: ett till tolv,
+13 till oändligheten."). A round number (femtio, hundra, tusen) may stay
+in words past twelve — the author's choice when asked. A literal value a
+program reads or prints keeps its code markup regardless of magnitude:
+`\texttt{13}`, not "13" or "tretton" set as running text.
+
+**"En range", not "ett range".** Common gender (author, 2026-09-29).
 
 **A qualification lives in the pointer footnote**: the rule is in
 `backing-claims/references/appendix-guide.md`; in Swedish it reads

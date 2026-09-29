@@ -101,16 +101,21 @@ What works, in this order of preference:
    works.
 5. Only then a forced break, `\mode<article>{\clearpage}` before the
    section the notes belong to (or before the **last** frame of a section
-   whose notes overflow).
+   whose notes overflow) — a **last resort**, not a default fix.
 
-**A forced break must not leave a page mostly blank** (author,
-2026-09-22, beside two such pages: "Why new page here?"). A reader sees an
-empty half page as a defect, not as layout; `\clearpage` or `\needspace`
-is acceptable only where the page it ends is already about two thirds
-full. When no option above satisfies both this and the margin rule below,
-report the conflict to the author instead of choosing silently. The same
-holds for `\needspace` used to keep examples together: keep them together
-only when the gap it leaves is small.
+**No forced page break or large `\needspace` in the notes without need.**
+The queue is meant to be drained by shortening, re-anchoring or splitting
+a note (didactic's `notepriority=split`, where available, over a
+`\clearpage`), not by pushing pages apart. **A forced break must not leave
+a page mostly blank** (author, 2026-09-22, beside two such pages: "Why new
+page here?"; the same complaint recurred in a later review, 2026-09-29:
+"Why new page?"). A reader sees an empty half page as a defect, not as
+layout; `\clearpage` or `\needspace` is acceptable only where the page it
+ends is already about two thirds full. When no option above satisfies
+both this and the margin rule below, report the conflict to the author
+instead of choosing silently. The same holds for `\needspace` used to
+keep examples together: keep them together only when the gap it leaves is
+small.
 
 - Never anchor a note within a few lines of a `sidecaption` figure.
 

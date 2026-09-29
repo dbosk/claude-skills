@@ -94,6 +94,14 @@ general rule"). `\ltnote` prints only in the article, so the beamer
 "sats" problem of `\cref` to an `example` does not arise there; `\cref`
 to an unnumbered environment still prints `??`, so check the build.
 
+**A variation-pattern note names every side it contrasts.** A note built
+on "Vad som varierar" / "Vad som hålls invariant" `\cref`s, in its first
+lines, the exercises, examples **and solutions** it contrasts, not only
+one side — and the solutions themselves need a `\label` to be reachable,
+since `solution` is otherwise unnumbered (`chunk-authoring.md`, "cref
+traps") (author, repeating an earlier comment, 2026-09-29: "What is this
+about? \cref to examples and exercises.").
+
 **Notes in the author's voice are Swedish prose, not quotes.** A review
 comment that motivated a design decision is paraphrased in the note's own
 language, without a date stamp in parentheses; do not paste the author's
