@@ -140,8 +140,8 @@ One `example` or `exercise` environment per case, adjacent, never merged.
 it.** Add a second `solution` only for a genuine alternative approach, and
 say in the prose that it is one (author, 2026-09-29: "One solution per
 assignment. Unless there are alternative solutions, in which case we point
-that out."; asked about an exercise with two valid approaches worth
-keeping: "Maybe one solution that keeps both. Just as for the exercise
+that out."; beside two separate solutions to one exercise that
+holds two programs: "Maybe one solution that keeps both. Just as for the exercise
 itself.").
 
 A two-line display inside an `example` must not rely on `\\` inside a
