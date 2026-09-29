@@ -359,6 +359,16 @@ where to look for its explanation; the `\ltnote` records why reuse beats a
 second implementation here. A deck that has not yet taught modules cannot
 use this: it re-implements, and says nothing.
 
+**Name the source example at every import.** Wherever an example imports a
+course-made module, its text says which example's file the module is, so the
+reader can find it: within one deck "modulen `fraga` är filen från
+\cref{ex:fraga}"; across decks by deck title and example title, never by
+number ("filen från exemplet *Fråga efter ett tal* i föreläsningen
+*Inmatning och felhantering*"), since the numbers differ between the
+standalone notes and a bound book (author, 2026-09-29: "We must point out in
+the example text though that the module is the file from example X, to make
+it easier for the reader to find which file a module corresponds to").
+
 
 ## marginfix drops every margin note when the budget is exceeded
 
