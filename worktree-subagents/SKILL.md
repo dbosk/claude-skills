@@ -290,6 +290,12 @@ fix. Every item below cost an agent real time at least once.
 - **`pkill -f <pattern>` kills the tool's own shell** when the pattern also
   occurs in the command line running it (twice, exit 144, mid-round). Use the
   bracket trick in a command with no other literal copy: `pkill -f '[p]dflatex'`.
+- **`pkill -f` also kills SIBLING agents' jobs.** Parallel agents run the same
+  commands (`make book.pdf`, `latexmk`), so a name pattern matches every
+  worktree's process. Observed: one agent stopping its own book build killed
+  another worktree's `make`, whose build chain then silently ended early.
+  Brief agents to stop processes by pid only, after checking the process's
+  cwd (`readlink /proc/<pid>/cwd`) is inside their own worktree.
 - **A backslash pattern in `grep` can silently match nothing.**
   `grep -c "Overfull \vbox"` reports 0 against a log full of them — and single
   quotes fail identically: the shell passes `\v` through and the regex engine
