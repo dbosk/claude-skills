@@ -274,7 +274,15 @@ checks below.
 - **Margin-note spills** (a note printed on the page after its marker):
   run `scripts/check_margin_notes.py` on **each book PDF**. A clean
   standalone deck says nothing about the book: its pages fall elsewhere
-  and its `\clearpage`s are gone.
+  and its `\clearpage`s are gone. On a long, dense teacher edition (about
+  600 pages) the script may say "no margin column detected" and check
+  nothing: that is not a pass. Split the PDF into ranges of about 100
+  pages (`pdftk in.pdf cat 1-100 output part1.pdf`, …) and run it on each.
+- **Stale minted caches kill the book build.** After standalone deck
+  builds, the book stops at its first `\mintinline` with "TeX capacity
+  exceeded [grouping levels=255]", and a failed run leaves stray output
+  files in `book/`. Delete every included deck's `ltxobj/_minted` (and
+  `book/ltxobj` for a clean build) before each book build.
 - **Teacher-edition crowding**: with every `\ltnote` on, dense pages run
   out of margin and notes queue forward; a didactic-side remedy is under
   investigation. Do not bring back forced page breaks to fix it.
