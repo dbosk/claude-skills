@@ -123,7 +123,14 @@ passage outside an `\ltnote` that refers to what only the notes say (e.g.
 an appendix checklist naming "marginalens lärarnoter", a quote or claim
 that appears only in a note) is wrapped so it prints only when notes are
 on (`\ifbool{ltnote}{…}{}` or the deck's equivalent), so the student
-edition never points at text it lacks (author, 2026-09-28).
+edition never points at text it lacks (author, 2026-09-28). The reverse
+holds for a design principle the material applies (SRP, KISS, DRY): it is
+subject matter the student is meant to learn, so it is named in the prose
+where it is applied, with its reference in a footnote (a pointer to the
+appendix that backs it), not only in an `\ltnote` (author, 2026-10-02:
+"just name them in the prose, with footnotes for references, as it's
+intended the students read those"). The note may still say why the
+principle is applied *here*.
 
 ## Scope: `\ltnote` documents the *material's* design, not the subject
 
