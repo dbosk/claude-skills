@@ -161,6 +161,13 @@ for j in "${JOBLIST[@]}"; do
   [ "$errors" -eq 0 ]   || bad "$j: $errors LaTeX errors (^! in the log)"
   [ "$qq" -eq 0 ]       || bad "$j: $qq unresolved references (??)"
   [ "$emptycit" -eq 0 ] || bad "$j: $emptycit empty citations"
+  # A malformed bib entry (e.g. an unclosed brace) makes biber skip it:
+  # the citations then print as bold keys, with no "empty citation" in
+  # the LaTeX log. biber's own log says ERROR.
+  if [ -f "ltxobj/$j.blg" ]; then
+    biberr=$(LC_ALL=C grep -a -c '^\[[0-9]*\] .*ERROR\|> ERROR' "ltxobj/$j.blg" || true)
+    [ "$biberr" -eq 0 ] || bad "$j: $biberr biber errors (ltxobj/$j.blg)"
+  fi
   # An Overfull \vbox on a slide is content off the bottom of the frame;
   # in the notes it is ordinary typesetting.
   if [ "$j" = slides ] && [ "$vbox" -ne 0 ]; then
