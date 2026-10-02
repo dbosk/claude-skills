@@ -111,7 +111,12 @@ highlights. For correct output there, use reMarkable's **own on-device export**:
    Signs it hasn't: the document's `modified` time still equals the upload time;
    `render_merged`/`content_type=annotations` show no ink or highlights. Do not
    conclude there is no annotation — ask the user to sync (Wi-Fi, wake the device
-   / manual sync), then retry.
+   / manual sync), then retry. The same trap applies before moving a version
+   aside: an empty annotation check proves nothing about a document the user
+   may be reading right now. Observed: a version moved to "Äldre versioner"
+   after an empty check, its ink synced an hour later. When the user has just
+   said they will read a document, upload the new version beside it and leave
+   the old one in place until they confirm they are done with it.
 
 5. **Image results come back as an MCP resource blob.** In the `tools/call`
    result, `content[]` holds an item of type `resource` with base64 in
