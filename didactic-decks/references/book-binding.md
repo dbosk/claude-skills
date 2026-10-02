@@ -35,10 +35,11 @@ The author's decisions, with the reason each was taken:
   the flush-left typography); `\clearpage`; the chapter's own full-depth
   ToC (etoc `\localtableofcontents*`, starred so it adds no ToC line);
   `\clearpage`; the text.
-- **No forced page breaks inside a chapter.** The decks' `\clearpage`s
-  were placed to drain the margin queue at standalone page positions; in
-  the book they only leave short pages, so `\deck` neutralises them
-  locally.
+- **No forced page breaks inside a chapter.** A deck's `\clearpage`s
+  sit at standalone page positions; in the book they only leave short
+  pages, so `\deck` neutralises them locally. (With didactic ≥ 2.6 and
+  marginfix ≥ 1.5, which split a crowded note, the decks no longer need
+  breaks to drain the margin queue; the example removed them, 2026-10-01.)
 - **Main ToC: parts and chapters only** (`\etocsetnexttocdepth{chapter}`
   before `\tableofcontents*`). This is the book's deliberate exception to
   the decks' "memoir's default depth" rule: each chapter carries its own
@@ -164,15 +165,17 @@ directory is the main document's directory. With the deck-standard
 didactic writes its transcript files (`didactic_output_*.txt`) in the
 directory PythonTeX started in (the book's), whatever the base directory.
 
-**Fallback only**, for a Mentipy without `\mentipybasedir`: change the
-whole PythonTeX session into the deck's directory for each chapter
-(`\pyc{book_enter_deck('../modules/#2')}` after the heading,
+**Fallback only**, for a Mentipy without `\mentipybasedir` (0.12 has
+none): change the whole PythonTeX session into the deck's directory for
+each chapter (`\pyc{book_enter_deck('../modules/#2')}` after the heading,
 `\pyc{book_leave_deck()}` before `\end{refsection}`, the functions
 `os.chdir`-ing relative to the book's directory saved at the first
 `pycode`). PythonTeX runs all of a session's code in document order, so
-the change holds until the next one. Drop it once the Mentipy release
-has the base directory; didactic ≥ 2.6 no longer needs it, and its
-`didactic_track` already makes the reported paths absolute.
+the change holds until the next one. It coexists with
+`\runbasedir{auto}`: didactic resolves a relative base directory against
+`DIDACTIC_WORKDIR`, not the current directory. Drop it once the Mentipy
+release has the base directory. Do not override `didactic_track` to make
+paths absolute: didactic ≥ 2.6 does that itself.
 
 ## Unique names across decks
 
@@ -227,9 +230,9 @@ the deck, so the standalone build and the book agree:
   a book-local venv made by `mentipy init --venv` as in the decks.
 - **Raise latexmk's `max_repeat`.** didactic's citation-footnote reuse
   decides from the previous pass, so the book needs many passes from a
-  clean `.aux` (example: 13 and 14 passes for eight decks, limit set to
-  20; it grows with the book). The example overrides tex.mk's `PDFLATEX`
-  with `-e '$$max_repeat=20'`. For a quick draft, load didactic with
+  clean `.aux` (example: 13 and 14 passes for eight decks; it grows with
+  the book), so set the limit to at least 30. The example overrides
+  tex.mk's `PDFLATEX` with `-e '$$max_repeat=30'`. For a quick draft, load didactic with
   `footnotereuse=off` (the default under `draft`, which also blanks
   graphics): no extra passes. The final build keeps the default `fast`.
 - **One job at a time**: never build the two editions concurrently; they
