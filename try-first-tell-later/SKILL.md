@@ -82,6 +82,9 @@ consecutive exercises ("Vad skriver programmet ut?" / "Och det här?"):
 "we don't want to make the discernment for the student — merge into one
 exercise, since we want to compare them". The answer frame showing both
 outputs follows as before; the lead-in does not say what differs.
+When the second program may only appear *after* the prediction and the
+first is by then far behind, the answer re-displays the first beside the
+second (variation-theory skill, "Why contrast must come first").
 
 **Write the invariant once (author, 2026-09-22).** When the two cases
 differ only in a call, an argument or one line, put them in *one* program:

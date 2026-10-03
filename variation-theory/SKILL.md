@@ -298,6 +298,14 @@ skill, "Section Order"):
   the try-first-tell-later skill, "Names and pairing").
   Instances presented apart must be juxtaposed in the learner's memory
   instead: a cognitive-load argument for contrast-first, side-by-side design.
+- **When the second instance must wait for a try-first reveal**, and the
+  first is pages away by then, repeat the first beside the second after
+  the reveal (the author, 2026-10-03: "if they're far apart we can repeat
+  the first one next to the second"). The try-first keeps its single
+  program; the pair comes with the answer, with the first side re-displayed
+  from its tangled file (never a second chunk definition) so the two
+  cannot drift. A pair the learner has already seen stays in sequence
+  only when it is on the same page or frame.
 
 ## A New Construct Is Shown With and Without It
 
