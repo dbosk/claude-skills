@@ -306,6 +306,13 @@ skill, "Section Order"):
   from its tangled file (never a second chunk definition) so the two
   cannot drift. A pair the learner has already seen stays in sequence
   only when it is on the same page or frame.
+- **A code pair gets the full width in the notes** (the author,
+  2026-10-03: "remember that we can use full width for those
+  side-by-side"): the margin is for notes, but a pair of programs is
+  wider than the text block, so it spans text block plus margin, and the
+  margin notes keep clear of it. Slides keep the frame width with a
+  smaller font. The decks do this with one didactic tool, never a
+  per-deck helper.
 
 ## A New Construct Is Shown With and Without It
 
