@@ -272,12 +272,12 @@ files on re-displays), `width=`. It reads the tangled file as text with
 `ast` and never runs it, so bare-`main()` programs are safe. Notes: full
 width by default with the margin blocked (inline is safe since the
 marginfix fix of 2026-10-03; no float needed). Slides: the frame at
-`\tiny`. Known limits (2026-10-03): the column widths are shares of each
-side's longest line with no check that the sum fits the frame, and an
-overflow is silent — add `breaklines` per side when the sides together
-exceed ~80 characters, and check the slide by eye (didactic #51 will
-warn); `shrink=10` widens the frame only by 11 %, too little for such a
-pair; the labels are set at the frame's normal size (didactic #52). The
+`\tiny`. The column widths are shares of each side's longest line; since
+didactic 2.7.1 a side wider than its column logs `Package didactic
+Warning: A line of code side by side is … wider than its column` (grep
+the logs for `than its column`; sides with `breaklines` are not checked
+since they wrap). Fix an overflow with per-side `breaklines` or
+`nodocstring`/`lines=`; `shrink=10` widens the frame only by 11 %. The
 `didactic_pair_*.txt` files it writes are build output (gitignored). The
 runs of two programs go side by side with `\runbyrun` (a `shell` key for
 a shell command side); stateful runs (a file after "w" vs after "a")

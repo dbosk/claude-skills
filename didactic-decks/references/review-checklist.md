@@ -208,3 +208,5 @@ figure in `sokprotokoll.tex`.
 - A permanent two-cycle of "Rerun to get cross-references right" caused by
   a margin citation at a page boundary, **as long as `??` is 0**.
 - `Overfull \hbox` warnings in the notes: ordinary typesetting.
+
+- **Side-by-side overflow** (didactic ≥ 2.7.1): `grep -c 'than its column' ltxobj/*.log` must be 0 for both jobs.
