@@ -275,8 +275,9 @@ marginfix fix of 2026-10-03; no float needed). Slides: the frame at
 `\tiny`. Known limits (2026-10-03): the column widths are shares of each
 side's longest line with no check that the sum fits the frame, and an
 overflow is silent — add `breaklines` per side when the sides together
-exceed ~80 characters, and check the slide by eye; `shrink` does not
-widen the pair; the labels are set at the frame's normal size. The
+exceed ~80 characters, and check the slide by eye (didactic #51 will
+warn); `shrink=10` widens the frame only by 11 %, too little for such a
+pair; the labels are set at the frame's normal size (didactic #52). The
 `didactic_pair_*.txt` files it writes are build output (gitignored). The
 runs of two programs go side by side with `\runbyrun` (a `shell` key for
 a shell command side); stateful runs (a file after "w" vs after "a")
