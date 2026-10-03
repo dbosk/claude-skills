@@ -131,6 +131,16 @@ fix. Every item below cost an agent real time at least once.
    (`make … INCLUDE_MAKEFILES=<clone>`), so the repository is never
    modified and merge time sees nothing unusual.
 
+
+10. **An isolated agent cannot work in an EXISTING worktree.** With
+    `isolation: "worktree"` the harness refuses every git command outside
+    the worktree it created, with `cd` and with `git -C` alike; a fallback
+    branch plus a push to the shared branch is then denied as modifying a
+    shared resource, and the agent is stuck. To continue a branch that
+    already has a worktree (a second round, a resumed task), spawn the agent
+    WITHOUT isolation and name the worktree path in the brief; use isolation
+    only for a fresh branch.
+
 ## Prompt-engineering the fix agents
 
 - Include a SETUP preamble with the ten traps above. Agents without it each
