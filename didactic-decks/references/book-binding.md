@@ -67,7 +67,7 @@ The author's decisions, with the reason each was taken:
 | `preamble.tex` | the decks' union preamble, plus `beamerarticle`, `noweb`, etoc and the binding macros |
 | `Makefile` | deck weave/tangle, bib merge, checks, both editions |
 | `check_labels.py`, `check_bib.py` | cross-deck collision checks (below) |
-| `.gitignore` | both PDFs, merged `ltnotes.bib`, `latexmkrc`, `*.pytxcode`, `pythontex-files-*`, `.venv/`, `didactic_output_*.txt` |
+| `.gitignore` | both PDFs, merged `ltnotes.bib`, `latexmkrc`, `*.pytxcode`, `pythontex-files-*`, `.venv/`, `didactic_output_*.txt`, `didactic_pair_*.txt` |
 
 The driver class line: `\documentclass[a4paper,10pt,oneside,openany,oldfontcommands]{memoir}`.
 

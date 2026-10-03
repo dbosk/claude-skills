@@ -259,3 +259,27 @@ Never put `\textcite` or `\autocite` inside a `table` or `figure` float:
 the citation becomes a `\marginpar` and the float is lost ("Float(s)
 lost"), taking its `\label` with it. Use `\parencite` in floats and put the
 footnoted first mention in the prose outside the float.
+
+## Two versions side by side: `\codebycode` (didactic 2.7)
+
+A contrast between two versions of the same program or function is shown
+side by side with `\codebycode[opts]{lang}{file}[opts]{lang}{file}`,
+never by hand (no per-deck `pycode` helper, no `tabular` of
+`\inputminted`). Per side: `name=` (a def, class or `Person.__eq__`),
+`lines=3-10`, `from=`/`to=` (text delimiters; braces as `\{`/`\}`),
+`nodocstring`, `label={\texttt{greet1.py}}` (always: the decks name
+files on re-displays), `width=`. It reads the tangled file as text with
+`ast` and never runs it, so bare-`main()` programs are safe. Notes: full
+width by default with the margin blocked (inline is safe since the
+marginfix fix of 2026-10-03; no float needed). Slides: the frame at
+`\tiny`. Known limits (2026-10-03): the column widths are shares of each
+side's longest line with no check that the sum fits the frame, and an
+overflow is silent — add `breaklines` per side when the sides together
+exceed ~80 characters, and check the slide by eye; `shrink` does not
+widen the pair; the labels are set at the frame's normal size. The
+`didactic_pair_*.txt` files it writes are build output (gitignored). The
+runs of two programs go side by side with `\runbyrun` (a `shell` key for
+a shell command side); stateful runs (a file after "w" vs after "a")
+cannot be re-run side by side. `\textbytext` stays for prose. When the
+second version may only appear after a try-first reveal and the first is
+pages back, repeat the first beside the second (variation-theory skill).
