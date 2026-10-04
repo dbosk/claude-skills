@@ -280,7 +280,12 @@ since they wrap). Fix an overflow with per-side `breaklines` or
 `nodocstring`/`lines=`; `shrink=10` widens the frame only by 11 %. The
 `didactic_pair_*.txt` files it writes are build output (gitignored). The
 runs of two programs go side by side with `\runbyrun` (a `shell` key for
-a shell command side); stateful runs (a file after "w" vs after "a")
-cannot be re-run side by side. `\textbytext` stays for prose. When the
+a shell command side); stateful runs (a file after "w" vs after "a") are
+written by hand with the documented environment (didactic 2.8):
+`\begin{didacticpair}[runs]{2} \didacticpairlabel{…} & … \\ <left runs>
+& <right runs> \end{didacticpair}` — runs execute left column first, top
+to bottom, so the right column sees the left column's files. Since 2.8
+transcripts no longer quote words with åäö (`$ python3 greet.py Åsa`), so a
+rebuild under 2.8 changes such transcripts. `\textbytext` stays for prose. When the
 second version may only appear after a try-first reveal and the first is
 pages back, repeat the first beside the second (variation-theory skill).
