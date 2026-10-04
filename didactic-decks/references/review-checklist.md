@@ -210,3 +210,4 @@ figure in `sokprotokoll.tex`.
 - `Overfull \hbox` warnings in the notes: ordinary typesetting.
 
 - **Side-by-side overflow** (didactic ≥ 2.7.1): `grep -c 'than its column' ltxobj/*.log` must be 0 for both jobs.
+- **Margin check on a long book**: split with `pdftk <pdf> cat A-B output part.pdf` into ~100-page ranges; never `pdfseparate` (one file per page fills the `/tmp` quota and killed two book builds, 2026-10-04).

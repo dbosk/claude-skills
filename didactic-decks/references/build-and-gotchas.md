@@ -399,3 +399,11 @@ therefore undefined on the slides ("Undefined control sequence" in
 `slides.log`). Define such macros inside `\mode<all>{…}`, outside any
 frame. (`ignoreframetext` is not a beamer option; the real one is
 `ignorenonframetext`.)
+
+## After inserting a `\runpython`/`\runbyrun`: rebuild clean
+
+An incremental build after a new run is inserted can shift every later
+transcript by one (the output of `value1.py` printed under `value2.py`,
+and so on) without any error. After adding, removing or reordering runs,
+delete `ltxobj/*.pytx*`, `ltxobj/*.fdb_latexmk` and `didactic_*.txt` and
+rebuild, then read the transcripts against their programs (2026-10-04).
