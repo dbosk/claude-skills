@@ -93,6 +93,18 @@ canvaslms --no-cache assignments edit -c '^COURSE$' \
 course links as they are; together the round trip gives an empty JSON diff.
 Never round-trip through `assignments view` Markdown: it is lossy.
 
+### Renaming a classic quiz
+
+`quizzes edit -f` with a settings JSON holding only `regex` and `title`
+**wipes the quiz description** (the empty-body hazard, for quizzes too).
+Always send `title` together with the `description` from a fresh snapshot,
+with `--html --no-link-translation`. Saving a classic quiz also
+regenerates its saved version: `points_possible` and `question_count` are
+recomputed from the current questions (question groups count once), so an
+unpublished quiz's stale points change; a published quiz whose saved
+version is current is unaffected. A New Quiz is renamed through its
+assignment (`assignments edit`).
+
 ## Module shapes
 
 A module has a declared **shape**: an ordered list of item kinds and naming
