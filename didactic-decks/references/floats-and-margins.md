@@ -44,7 +44,6 @@ Use didactic's `sidecaption` environment when *both* hold:
 
 ```latex
 \begin{figure}[htbp]
-  \centering
   \begin{sidecaption}{The full caption text.}[fig:label]
     \includegraphics[width=0.7\textwidth]{figs/x.png}
   \end{sidecaption}
@@ -52,6 +51,14 @@ Use didactic's `sidecaption` environment when *both* hold:
 ```
 
 No compatibility macros: the environment is didactic's own.
+
+The float's contents sit against the margin that holds the caption.
+didactic ≥ 2.9 does this by default (`sidecapalign=caption`), so write no
+`\centering` (it never centred the contents anyway, which memoir boxes at
+full width) and no `\flushscap`. A narrow figure flush left with its
+caption far off on the right means an older didactic or
+`sidecapalign=off`; see the latex-writing skill, \enquote{Push the content
+towards its sidecaption}.
 
 Otherwise use a normal `\caption` with the same full text. A side caption
 that towers over a short table goes below it instead. A `longtable` cannot

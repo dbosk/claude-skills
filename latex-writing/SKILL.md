@@ -521,6 +521,31 @@ When using the memoir document class, prefer `sidecaption` over traditional `\ca
 - **Accessibility**: Clear semantic separation between caption text and content
 - **Consistent labeling**: Label goes in optional second argument `[fig:label]`
 
+**Push the content towards its sidecaption.** A narrow figure or table
+must sit against the margin that holds its caption — flush right when the
+caption is in the right margin, flush left when it is in the left — never
+flush left with the caption far away on the right, and never centred.
+memoir does not do this by itself: it typesets the body in a full-width
+box, left-aligned.
+
+- **With didactic ≥ 2.9** (option `sidecapalign=caption`, the default) this
+  is automatic: write no `\centering`, `\raggedleft` or `\flushscap` in the
+  body. Caveats: stretchable space collapses (`A\hfill B` ends up side by
+  side; spread it with `\makebox[\linewidth]{A\hfill B}`), and footnotes in
+  the body can make varwidth give up (\enquote{Failed to reprocess entire
+  contents} in the log), leaving the body where memoir puts it.
+- **With `sidecapalign=off` or an older didactic**, put `\flushscap` first in
+  the sidecaption body. Before 2.9 it read the *previous* float's side, so in
+  two-sided documents with outer/inner captions it could flush the wrong way.
+- **Without didactic**, `\raggedleft` in the body works only when captions
+  are always in the right margin (oneside or `\sidecapmargin{right}`).
+
+Check the built PDF for a gap between the float and its caption. If it is
+still there, check which `didactic.sty` the log loads
+(`grep -n 'didactic.sty' *.log`): projects often vendor didactic as a git
+submodule (e.g. `doc/didactic`, symlinked as `doc/didactic.sty`) pinned at an
+older version, which shadows the one in `~/texmf`. Bump the submodule.
+
 **When to use sidecaption:**
 - Medium-sized figures/tables that don't need full text width
 - Educational materials where caption-content proximity aids understanding
