@@ -6,7 +6,8 @@ description: |
   (3) literate-programming skill is active and working with .nw files, (4) user mentions LaTeX, BibTeX, Mentipy
   in a Beamer/article/PythonTeX context, interactive slide questions in LaTeX, or document formatting,
   (5) reviewing LaTeX code quality. Ensures proper use of semantic environments (description vs itemize), csquotes (\enquote{} not 
-  ``...''), and cleveref (\cref{} not \S\ref{}).
+  ``...''), cleveref (\cref{} not \S\ref{}), and a caption on every table
+  and figure (a float, never a bare tabular).
 ---
 
 # LaTeX Writing Best Practices
@@ -439,6 +440,51 @@ The \emph{benefits} of classes are clear.
 ### Floats: Figures and Tables
 
 **Core principle**: An image is not a figure, but a figure can contain an image. Use proper figure and table environments with captions and labels.
+
+**Every table and figure gets a caption — no exceptions.** Never leave a
+bare `tabular` or `\includegraphics` in `center` or in running text, however
+small: wrap it in a `table`/`figure` float with a caption and a label, and
+refer to it with `\cref`. The caption states what the reader should take
+from the table or figure (the rule it encodes, the point it shows), not
+just its topic. Watch for this when porting text from elsewhere — an
+uncaptioned table in the source is not a precedent.
+
+**BAD** — bare tabular, no caption, referred to by position:
+```latex
+The slot length follows from the title:
+\begin{center}
+\begin{tabular}{lr}
+  Title & Minutes \\ \hline
+  Redovisning & 15 \\
+  Redovisning spec & 30 \\
+\end{tabular}
+\end{center}
+The table above is the specification.
+```
+
+**GOOD** — captioned float, referenced with `\cref`:
+```latex
+The slot length follows from the title, see \cref{tab:slot-durations}.
+\begin{table}
+  \begin{sidecaption}{%
+    The slot length that a title gives: 30 minutes for
+    \enquote{Redovisning spec}, 15 for any other title.
+  }[tab:slot-durations]
+    \begin{tabular}{lr}
+      \toprule
+      \textbf{Title} & \textbf{Minutes} \\
+      \midrule
+      Redovisning & 15 \\
+      Redovisning spec & 30 \\
+      \bottomrule
+    \end{tabular}
+  \end{sidecaption}
+\end{table}
+\Cref{tab:slot-durations} is the specification.
+```
+
+Floats move, so never point at one with \enquote{above}, \enquote{below}
+or \enquote{the following table}; use `\cref`.
 
 #### Using sidecaption (memoir class)
 

@@ -775,6 +775,12 @@ Apply `latex-writing` skill. Most common anti-patterns in .nw files:
 
 **Manual cross-references**: Use `\cref{...}`, NOT `Section~\ref{...}`
 
+**Uncaptioned tables and figures**: Every table and figure is a `table`/
+`figure` float with a caption and label (`sidecaption` under memoir),
+referenced with `\cref`, NOT a bare `tabular` or `\includegraphics` in
+`center`, and NOT \enquote{the table above}.  See the `latex-writing`
+skill, \enquote{Floats: Figures and Tables}.
+
 **TikZ without preamble support**: If a `.nw` file introduces a TikZ
 diagram, add `\usepackage{tikz}` to the project's `preamble.tex`.
 
