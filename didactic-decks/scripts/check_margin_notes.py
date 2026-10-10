@@ -203,6 +203,9 @@ def main():
                     help="check only this page (1-based)")
     ap.add_argument("--verbose", action="store_true",
                     help="report every page, not just the defective ones")
+    ap.add_argument("--no-margin-ok", action="store_true",
+                    help="exit 0 when no margin column is detected (only for "
+                         "a PDF that really has no margin notes)")
     args = ap.parse_args()
 
     pages = parse_pages(run_pdftotext(args.pdf))
@@ -211,9 +214,13 @@ def main():
 
     split = margin_start(pages)
     if split is None:
-        print("no margin column detected: this PDF has no margin notes "
-              "(nothing to check)")
-        return 0
+        # A notes PDF always has margin notes, so failing to find the
+        # column means the detection failed (e.g. long hit-list tables
+        # swamp it), not that the PDF is clean: never pass silently.
+        print("no margin column detected: either this PDF has no margin "
+              "notes, or the detection failed; check it in page ranges "
+              "with --page, or pass --no-margin-ok if it really has none")
+        return 0 if args.no_margin_ok else 2
 
     note_h = margin_text_height(pages, split)
     print(f"{args.pdf}: {len(pages)} pages, margin column starts at "
