@@ -2,6 +2,10 @@
 name: backing-claims
 description: |
   Back factual and empirical claims with a small two-sided literature review — searches for literature that supports AND refutes/qualifies the claim (COUNTER) — verify sources in full text, and record provenance (how found, why picked, quote, counter-search outcome). Format-independent: papers, reports, memos, evidence logs, survey answers — any output resting on a factual claim, not just TeX. Use proactively when: (1) adding OR reusing a citation, page number, or attribution for a factual/empirical claim (inherited citations are NOT pre-verified), (2) attributing a claim to a source ("X found that…"), (3) the user asks to find a reference or check a citation — or wants an answer or decision backed by evidence, research, or literature, (4) writing related-work, background, or claims sections, (5) mentions of scholar, BibTeX, DOI, arXiv, OpenAlex, Crossref, or a literature search, (6) writing or reviewing ADVICE — rules, conventions, best practices, "do X because Y" — or a statement that a text "makes no claims needing a search": advice asserts a benefit, and that benefit is an empirical claim to audit even when nobody planned to cite anything. (7) DELEGATING literature research to a subagent or teammate — the subagent prompt must tell it to load this skill, run every search under a named scholar session, and document alphaXiv/WebSearch complements in the appendix (see "Delegating research to subagents"). Trigger BEFORE citing; this skill owns finding/verifying/justifying the reference (markup: writing-crypto/latex-writing).
+allowed-tools:
+  - Bash(ssh -o BatchMode=yes -o ExitOnForwardFailure=yes -f -N -D 127.0.0.1:1081 faculty-shell.sys.kth.se)
+  - Bash(HTTPS_PROXY=socks5h://127.0.0.1:1081 HTTP_PROXY=socks5h://127.0.0.1:1081 ~/.claude/skills/backing-claims/scripts/fetch_pdf.py:*)
+  - Bash(curl -sL --max-time 40 -x socks5h://127.0.0.1:1081:*)
 ---
 
 # Backing Claims with Verified References
