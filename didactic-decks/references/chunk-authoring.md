@@ -253,7 +253,13 @@ Prose between frames is article-only and may `\cref` freely.
 ## Citations
 
 `\parencite` is used **only** inside `\ltnote`s; the student-facing prose
-cites with `\autocite`, which didactic sets as a margin footnote.
+cites with `\autocite`, which didactic sets as a margin footnote. This
+holds in the appendices too: a crowded margin is never fixed by turning
+citations into `\parencite`. A repeat citation adds nothing to the margin,
+because didactic reuses the existing footnote (option `footnotereuse`;
+author, 2026-10-10: "Don't use inline citations, repeat citations
+shouldn't add anything to the margin"). Remaining overflow is a layout
+problem: fix it with paragraph order or a `\clearpage`.
 
 Never put `\textcite` or `\autocite` inside a `table` or `figure` float:
 the citation becomes a `\marginpar` and the float is lost ("Float(s)
