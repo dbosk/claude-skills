@@ -32,7 +32,9 @@ must print a KTH address (2001:6b0:…).
 
 ## What works and what does not (fetch round 2026-10-10, 41 sources)
 
-- **Prefer 2a, fall back to 2b.** `fetch_pdf.py` uses Python `requests`,
+- **Prefer 2a, fall back to 2b.** (dbosk/scholar#105 asks for first-class
+  proxy and User-Agent settings in scholar; when it ships, 2a should do.)
+  `fetch_pdf.py` uses Python `requests`,
   which most publishers refuse (403, or an HTML page instead of the PDF)
   whatever the address. curl got through where Python did not.
 - **Keep curl's own user agent.** Setting a browser `-A` string made
