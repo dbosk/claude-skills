@@ -14,6 +14,7 @@ reordering, and is invisible in the compiled document. The validator
 - [Reusing a source across documents](#reusing-a-source-across-documents)
 - [Every source gets an entry — no nicknames](#every-source-gets-an-entry--no-nicknames)
 - [Generating the block instead of typing it](#generating-the-block-instead-of-typing-it)
+- [Bib hygiene the reader sees](#bib-hygiene-the-reader-sees)
 - [Validating](#validating)
 
 ## Schema
@@ -178,6 +179,30 @@ surfaces them as a ready-to-paste line, e.g.:
 
 See `scholar-cookbook.md` for the full `prov`, `verify`, and `pdf quote`
 recipes.
+
+## Bib hygiene the reader sees
+
+- A title containing quotes gets `\mkbibquote{…}` around the inner quote
+  (biblatex then nests it as single quotes; raw `` `` `` inside a quoted
+  title prints `""…"`).
+- A source read only in abstract, an edition other than the one cited, or
+  a page number *inferred* from a folio-less copy is said so in
+  `VERIFIED` — and the appendix's limitations paragraph repeats it.
+- **Citation keys.** Every `.bib` scholar writes (`search -f bibtex` and
+  `bibtex+prov`, `sessions export`, `llm synthesize`) uses one scheme
+  (dbosk/scholar#115): the first author's surname reduced to letters and
+  digits — the part before the comma in "Smith, John" — then the year or
+  `nd`, with `a`, `b`, … on a clash: `smith2024`, `smith2024a`,
+  `obrien2024` for O'Brien. DBLP's homonym numbers ("Wei Wang 0001") are
+  stripped at ingest (#125), so keys like `00012024` no longer appear.
+  A `.bib` from an older scholar may carry other keys for the same works
+  (`john2024_0`, `smith2024b` for the first clash). Do not merge the two
+  blindly: keep the keys the prose already cites, or rename them in the
+  prose and the `% === provenance: <key> ===` header together
+  (`check_provenance.py` warns on a header that no longer matches).
+  `scholar prov import/export` match a block to its entry by paper id
+  (DOI, else a title+author hash), not by key, so provenance follows the
+  paper through a rename.
 
 ## Validating
 

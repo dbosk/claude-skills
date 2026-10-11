@@ -4,6 +4,7 @@ description: |
   Back factual and empirical claims with a small two-sided literature review — searches for literature that supports AND refutes/qualifies the claim (COUNTER) — verify sources in full text, and record provenance (how found, why picked, quote, counter-search outcome). Format-independent: papers, reports, memos, evidence logs, survey answers — any output resting on a factual claim, not just TeX. Use proactively when: (1) adding OR reusing a citation, page number, or attribution for a factual/empirical claim (inherited citations are NOT pre-verified), (2) attributing a claim to a source ("X found that…"), (3) the user asks to find a reference or check a citation — or wants an answer or decision backed by evidence, research, or literature, (4) writing related-work, background, or claims sections, (5) mentions of scholar, BibTeX, DOI, arXiv, OpenAlex, Crossref, or a literature search, (6) writing or reviewing ADVICE — rules, conventions, best practices, "do X because Y" — or a statement that a text "makes no claims needing a search": advice asserts a benefit, and that benefit is an empirical claim to audit even when nobody planned to cite anything. (7) DELEGATING literature research to a subagent or teammate — the subagent prompt must tell it to load this skill, run every search under a named scholar session, and document alphaXiv/WebSearch complements in the appendix (see "Delegating research to subagents"). Trigger BEFORE citing; this skill owns finding/verifying/justifying the reference (markup: writing-crypto/latex-writing).
 allowed-tools:
   - Bash(ssh -o BatchMode=yes -o ExitOnForwardFailure=yes -f -N -D 127.0.0.1:1081 faculty-shell.sys.kth.se)
+  - Bash(SCHOLAR_PROXY=socks5h://127.0.0.1:1081 ~/.claude/skills/backing-claims/scripts/fetch_pdf.py:*)
   - Bash(HTTPS_PROXY=socks5h://127.0.0.1:1081 HTTP_PROXY=socks5h://127.0.0.1:1081 ~/.claude/skills/backing-claims/scripts/fetch_pdf.py:*)
   - Bash(curl -sL --max-time 40 -x socks5h://127.0.0.1:1081:*)
 ---
@@ -111,53 +112,41 @@ scholar search "authenticated encryption composition insecure attacks" -p s2 -p 
 scholar rq "How do LLMs support novice programming?" -p openalex -p dblp --count 20
 ```
 
-**Query several providers, and check they are actually alive.** `scholar`
-exposes `s2`, `openalex`, `dblp`, `wos`, `ieee`, `scopus`, `arxiv`. Do not
-settle for one or two — a claim "not found" under a narrow or *silently
-degraded* provider set is not a real negative. Run **`scholar providers
-check`** first and note any provider reporting `key rejected` / not `ok`: a
-dead key (e.g. an expired `S2_API_KEY` returning HTTP 403) silently drops
-that database's coverage with only a warning, so you can spend a whole
-session blind to Semantic Scholar without realizing it. For a claim that
-matters, query at least s2 + openalex + dblp, and add wos/scopus (strong for
-older and non-CS/education literature) when keys are configured.
+**Query several providers, and check they are actually alive.** A "not
+found" under a narrow or degraded provider set is not a real negative.
+Run **`scholar providers check`** first and record its output; it exits 1
+when a configured provider is unusable. Since September 2026 **DBLP
+answers API clients with an anti-bot page**, so a failing `dblp` is
+expected: proceed with the others and record DBLP as unavailable. Query
+at least s2 + openalex (+ dblp while it answers), plus wos/scopus (strong
+for older and non-CS/education literature) when keys are configured.
+**A failed search reads as failed, never as 0**: `sessions show` and the
+CSV's `# Results:` line give each query × provider cell as a count,
+`failed (reason)`, `N, incomplete (reason)` or `N after k retries`; copy
+a failed cell as *failed* — it was not searched, and a negative resting
+on it is unsupported. Details: `references/scholar-cookbook.md`.
 
 **Keyword search is for discovery; use field/DOI retrieval for a known
-item.** Relevance-ranked keyword search buries older and grey-literature
-works under recent hits — the same paper you *know* exists can sit off the
-first page on every provider. When you already know the title or DOI, retrieve
-it directly instead:
-
-```bash
-# by DOI (works even when keyword ranking buried it)
-curl -s "https://api.openalex.org/works/doi:10.2190/689T-1R2A-X4W4-29J2"   # OpenAlex
-curl -s "https://api.crossref.org/works/10.2190/689T-1R2A-X4W4-29J2"       # Crossref
-# by exact title, via provider field-search syntax (see `scholar syntax`)
-scholar search 'TI=(language-independent conceptual bugs)' -p wos            # WoS: TI= TS= AU=
-scholar search 'TITLE("Language-Independent Conceptual Bugs")' -p scopus     # Scopus: TITLE() AUTH()
-scholar search 'ti:"visual program simulation"' -p arxiv                     # arXiv: ti: au:
-```
+item.** Relevance ranking buries older and grey-literature works under
+recent hits, so a paper you *know* exists can sit off the first page on
+every provider. Retrieve it directly: OpenAlex `works/doi:<doi>`, Crossref
+`works/<doi>`, or a field search (WoS `TI=`, Scopus `TITLE()`, arXiv
+`ti:`) — recipes in the cookbook, "Known items".
 
 **The user's own library may hold it.** Before declaring a book or a
-closed-access paper unobtainable, search the user's reMarkable library
+closed-access paper unobtainable, search the user's reMarkable
 (`remarkable_browse(query=…)`, then `remarkable_read(…, content_type="raw",
-grep=…)` to locate the passage and its printed page). Books cited by chapter
-or page (Gamma et al., Marton, Martin) and closed journal articles the user
-has read are often there; delegate the page-by-page reading to a subagent.
-Record such a retrieval as `FOUND-VIA: known item, read on the user's
+grep=…)` for the passage and printed page; delegate page-by-page reading
+to a subagent). Record it as `FOUND-VIA: known item, read on the user's
 reMarkable (<tablet path>)`.
 
-**Grey literature may be in none of them.** Conference papers without a DOI
-(e.g. AERA/education proceedings), dissertations, and tech reports are often
-absent from OpenAlex, DBLP, WoS *and* Scopus — a `TI=`/`TITLE()` field search
-returning empty on all of them means "not indexed here", not "does not
-exist". Reach those via **Google Scholar** (WebSearch/`scholarly`), **citation
-chaining** (find a paper you already have that cites the target and walk its
-reference list — the most reliable route to a specific known work, but only
-through a provider that indexes the target), or the **author's/publisher's
-own copy**. Record such a retrieval honestly in `FOUND-VIA` (e.g. "not
-returned by provider search; retrieved from author copy") — do not imply it
-came from a database that does not hold it.
+**Grey literature may be in none of them.** DOI-less conference papers,
+dissertations and tech reports are often absent from every provider — an
+empty `TI=`/`TITLE()` search everywhere means "not indexed here", not "does
+not exist". Reach them via **Google Scholar**, **citation chaining** (walk
+the reference list of a paper that cites the target), or the
+**author's/publisher's own copy**, and say so in `FOUND-VIA` ("not returned
+by provider search; retrieved from author copy").
 
 To get the BibTeX **already wrapped in provenance blocks** with `FOUND-VIA`
 pre-filled from the query, use `-f bibtex+prov` (this is the easiest start —
@@ -180,11 +169,9 @@ down did not happen; a complement that is written down is as good as a
 `scholar` session. `references/scholar-cookbook.md` shows how to phrase each
 source's `FOUND-VIA` line.
 
-Two operational notes from real sessions: run **`scholar providers check`**
-before searching and record its output (a rejected `s2` key or a 429-throttled
-`openalex` silently drops coverage); and phrase **counter-searches with field
-syntax** (WoS `TS=("cyclomatic complexity" AND (critique OR criticism))`,
-Scopus `TITLE-ABS-KEY(...)`) — natural-language counter-queries such as
+Phrase **counter-searches with field syntax** (WoS
+`TS=("cyclomatic complexity" AND (critique OR criticism))`, Scopus
+`TITLE-ABS-KEY(...)`): natural-language counter-queries such as
 "maintainability index criticism limitations" returned only off-topic hits
 on WoS/OpenAlex, so a "nothing found" from them is not a real negative.
 
@@ -194,7 +181,8 @@ Two rules that a reviewer had to add after a real appendix broke them:
   on the *same* full set of live providers. When a provider needs field
   syntax, translate the *same* keywords into it; never one keyword set on
   WoS and a different one on Scopus. Record a query × provider × hits
-  matrix; a cell may be empty only because a provider was down.
+  matrix; a cell may be empty only because a provider failed, and then
+  it says so.
 - **Vocabulary symmetry.** The counter-search uses every concept term the
   support search used, plus the field's indexed names for the concept (the
   practitioner name — "DRY" — is often unindexed; the academic name — "code
@@ -209,9 +197,8 @@ direct API/page retrieval — `api.crossref.org/works/<doi>`,
 organization's own page. A source whose existence cannot be verified this way is
 **dropped and recorded as dropped**, never cited.
 
-`scholar snowball`, `scholar tuxedo`, and `scholar search --review` are
-interactive TUIs — **do not** drive them from an agent; use the non-interactive
-subcommands instead.
+`scholar snowball`, `scholar tuxedo` and `scholar search --review` are
+interactive TUIs — **do not** drive them from an agent.
 
 ### 3. Screen into supporting / refuting / qualifying, then pick
 
@@ -255,24 +242,22 @@ scholar verify "<session>"            # flag retracted/corrected/superseded pape
 ```
 
 **Fetch every full text through scholar's cache, never with a bare `curl` or
-WebFetch into a scratch directory.** `scripts/fetch_pdf.py` calls scholar's
-own downloader, so the file lands in the PDF cache (`scholar pdf path`,
-keyed by the URL) and a later session asking for the same URL or DOI gets it
-without fetching again; with `--text` it also leaves a `pdftotext -layout`
-extraction beside the PDF for grepping. It accepts DOIs (resolved via
-Unpaywall / Semantic Scholar) and direct URLs, and prints one TSV line per
-source. Do not use `scholar pdf open` from an agent: it always launches the
-system viewer. A source that only exists as plain text (an RFC `.txt`, an
-HTML documentation page) is not a PDF and cannot be cached this way — record
-its URL and access date in the provenance block instead.
+WebFetch into a scratch directory.** `scripts/fetch_pdf.py` (DOIs or URLs;
+one TSV line per source) calls scholar's own downloader, so the file lands
+in the PDF cache (`scholar pdf path`) for every later session, and `--text`
+leaves a `pdftotext -layout` extraction beside it. Never `scholar pdf open`
+from an agent: it launches the system viewer. A plain-text source (an RFC
+`.txt`, an HTML page) cannot be cached this way — record its URL and access
+date in the provenance block instead.
 
 **A closed-access paper is fetched through the university network**, via
-a SOCKS tunnel whose three commands are this skill's `allowed-tools`.
-Try `fetch_pdf.py` through the tunnel first. Most publishers refuse its
-Python client, and only then is curl through the tunnel the one allowed
-exception to the rule above. Which publishers answer, where curl's
-downloads go, and what to do with the rest:
-`references/closed-access.md`.
+a SOCKS tunnel whose commands are this skill's `allowed-tools`. Try
+`fetch_pdf.py` through the tunnel first (`SCHOLAR_PROXY=socks5h://…`).
+Only when the publisher refuses it is curl through the tunnel the one
+allowed exception to the rule above. A bot check (Cloudflare, a login
+page) is a stopping point, never something to get around. Which
+publishers answer, where curl's downloads go, and what to do with the
+rest: `references/closed-access.md`.
 
 `scholar pdf quote` proposes candidate supporting passages (with location) — the
 **judgement stays yours**; read the passage and confirm it entails the claim.
@@ -338,12 +323,9 @@ co-author name is the canonical failure here. After any bib work, run
 `check_metadata.py` over the touched files; treat diacritic and subtitle
 differences as benign, investigate everything else.
 
-**Bib hygiene the reader sees.** A title containing quotes gets
-`\mkbibquote{…}` around the inner quote (biblatex then nests it as single
-quotes; raw `` `` `` inside a quoted title prints `""…"`). A source read
-only in abstract, an edition other than the one cited, or a page number
-*inferred* from a folio-less copy is said so in `VERIFIED` — and the
-appendix's limitations paragraph repeats it.
+**Bib hygiene the reader sees** (quotes inside titles, abstract-only
+reading, inferred page numbers, citation keys that changed between
+scholar versions): `references/provenance-format.md`.
 
 ## Mirror the searches into a paper appendix
 
@@ -389,17 +371,21 @@ repository can follow. `references/appendix-guide.md` is the authority
 - **The hit list is classified and included.** `scholar llm context` +
   `scholar llm classify --no-examples` over the whole session (two-sided
   tags: supports-claim / qualifies-claim / adjacent-subtopic /
-  off-topic-false-hit; theme tags on the cited ones), read the
-  low-confidence and every qualifying row yourself, then generate the table
-  with `scholar sessions export <session> -f table --bearing-only --lang sv
-  --label … --track … --theme TAG=NAME -o <base>` (fallback for older
-  scholar: `scripts/session_table.py --csv <export.csv>`, same output).
-  Model confidence shows per row; the caption counts both sides.
+  off-topic-false-hit, exactly one per paper; theme tags on the cited
+  ones). Papers the run lists as "Left pending" get their decision with
+  `sessions decide`. Read the low-confidence and every qualifying row
+  yourself, then generate the table with `scholar sessions export
+  <session> -f table --bearing-only --lang sv --label … --track … --theme
+  TAG=NAME -o <base>` (fallback for older scholar:
+  `scripts/session_table.py --csv <export.csv>`, same rows). A discarded
+  row never counts as evidence; the caption counts both sides.
 
 Run each round's searches under one named `scholar` session per paper and
 commit the `sessions export` output to the repo — the export is the audit
 record, the table in the appendix is what the reader gets. Update the
-appendix in the same commit as the search.
+appendix in the same commit as the search. If scholar reports a session
+file it cannot read, restore `<name>.json.bak` (the previous version,
+beside it); never recreate the session over it.
 
 ## Delegating research to subagents
 
@@ -414,13 +400,16 @@ subagent prompt with this preamble (adapt the slug and paths):
 ```
 Load the `backing-claims` skill (Skill tool: skill="backing-claims") and
 follow it. Run `scholar providers check` first and record which providers
-are alive. Run EVERY search under one named session:
+are alive (a failing dblp is expected while DBLP blocks API clients:
+proceed without it and record it as unavailable). Run EVERY search under
+one named session:
   scholar search "<topic query>" -n <claim-slug> -p dblp -p wos -p ieee
     -p openalex -p scopus -f bibtex+prov
 Run every query -- support AND counter -- on the SAME full set of live
 providers (translate the same keywords into WoS TS=(...) / Scopus
 TITLE-ABS-KEY(...) where needed; never different keyword sets per
-provider) and record a query x provider x hits matrix. If an earlier
+provider) and record a query x provider x hits matrix, copying failed
+cells from `scholar sessions show` as failed, never 0. If an earlier
 query in the session was author-driven, partial or malformed, rerun it
 properly and mark the old one superseded; a redo must recover every
 relevant result of the search it replaces -- close gaps by improving the
@@ -438,7 +427,8 @@ recorded verbatim (tool, query, outcome) in FOUND-VIA/COUNTER and in a
 "Search protocol" section of your report. Classify the WHOLE session
 (scholar llm context; scholar llm classify --no-examples; tags
 supports-claim / qualifies-claim / adjacent-subtopic / off-topic-false-hit,
-theme tags on cited papers; read low-confidence and qualifying rows
+theme tags on cited papers; decide papers it leaves pending with
+scholar sessions decide; read low-confidence and qualifying rows
 yourself) and export it (scholar sessions export) so the audit table can
 be generated. Write a .bib with a provenance block (CLAIM / FOUND-VIA /
 PICKED / QUOTE / VERIFIED / COUNTER / DATE) above every entry to
@@ -448,13 +438,11 @@ the COMPLETE report to <scratchpad>/<slug>-report.md (agent replies are
 truncated at ~4 KB) and reply with a one-paragraph summary plus the paths.
 ```
 
-Then, when the reports arrive: read the `.bib` files rather than the
-summaries, merge them into the deliverable's bibliography (deduplicating
-keys — the same work often surfaces in two agents' sessions under different
-keys), and build the appendix from the reports' search-protocol sections.
-Papers the agents could not obtain are the user's to fetch: hand them over
-as todos (the `nytid-todo` skill has the pattern), ordered load-bearing
-first.
+When the reports arrive, read the `.bib` files, not the summaries; merge
+them into the deliverable's bibliography (deduplicate: one work often comes
+back from two agents under different keys) and build the appendix from the
+reports' search-protocol sections. Papers the agents could not obtain go to
+the user as todos (`nytid-todo`), load-bearing first.
 
 ## Anti-patterns
 
@@ -475,11 +463,9 @@ first.
 | Back "X is an *established* method" with a quote from X's originator. | The originator shows X was *proposed*, not *adopted*; investigate establishment (formalization, textbooks, adoption, descendants) AND counter-search for criticism — a two-sided review. |
 | "Document" a counter-search by naming its session in passing. | A Method paragraph with the verbatim queries, providers, date, and export path — reproducible from the appendix text alone. |
 | Chapter's answer buried mid-chapter; it ends on raw hit-list tables. | A Conclusion answers the research question explicitly; the tables follow it as audit data. |
-| Search one or two providers; trust a "not found". | Query several (`s2 openalex dblp wos scopus`); run `scholar providers check` first — a dead key (S2 403) silently drops a database. |
+| Search one or two providers; trust a "not found"; record a failed search as 0. | Query several (`s2 openalex dblp wos scopus`); run `scholar providers check` first; copy `failed (reason)` cells as failed — a failed cell is "not searched". |
 | Delegate a literature search with "use WebSearch/alphaXiv" and no protocol. | Load this skill first; the subagent prompt carries the preamble above (named `scholar` session, counter-searches, provenance `.bib`, documented complements, report to a file). |
 | Use alphaXiv/WebSearch and mention it in passing. | Record the tool and verbatim query in `FOUND-VIA`/`COUNTER` **and** in the search-protocol appendix — undocumented complements are unbacked. |
-| Keyword-search for a paper whose title/DOI you already know. | Retrieve known items by DOI (OpenAlex `works/doi:`, Crossref) or field search (WoS `TI=`, Scopus `TITLE()`); Google Scholar / citation-chain / author copy for grey lit. |
-| One counter-query on WoS, a different one on Scopus. | The same query on every live provider (same keywords, translated into each field syntax); a query × provider × hits matrix in the appendix. |
 | "Six further studies agree — they are in the export." | Each corroborating study verified, in the bib, and cited with its one-clause finding. |
 | "The export lies in `litteratursokning/x.csv`" in the compiled appendix; URLs inline in prose. | Hit-list table `\input` at the end of the chapter; sources cited with bib entries/footnotes; paths only in `%` comments. |
 
@@ -490,9 +476,9 @@ first.
 | `references/provenance-format.md` | Full provenance schema, field semantics, worked examples, migrating a `scholar rq` session into `FOUND-VIA` | `FOUND-VIA`, `QUOTE`, `VERIFIED`, `multi-line` |
 | `references/claim-audit.md` | Finding the claims that carry no citation: advice, conventions, "because" clauses, "no claims" statements; the PEP 8 case | `imperative`, `benefit`, `because`, `no claims` |
 | `references/verification-checklist.md` | Applicability tests for deciding whether a source really supports a claim | `scope`, `primary vs secondary`, `over-claim`, `retraction`, `venue` |
-| `references/scholar-cookbook.md` | Non-interactive `scholar` recipes (incl. `bibtex+prov`, `prov`, `verify`, `pdf quote`) + how to phrase `FOUND-VIA` for non-`scholar` sources | `bibtex+prov`, `prov found-via`, `pdf quote`, `verify`, `WebFetch`, `Crossref` |
-| `references/closed-access.md` | Fetching subscribed full texts through the KTH SOCKS tunnel: the allowed commands, which publishers answer, curl vs `fetch_pdf.py`, leftovers as todos | `tunnel`, `socks5h`, `Cloudflare`, `Springer`, `user agent` |
-| `references/scholar-enhancements.md` | Record of shipped provenance support (#49–#53) and a place for future ideas | `shipped`, `gh issue`, `future ideas` |
+| `references/scholar-cookbook.md` | Non-interactive `scholar` recipes (incl. `bibtex+prov`, `prov`, `verify`, `pdf quote`), provider health and failed searches, sessions and `.bak`, proxy, cache, citation keys + how to phrase `FOUND-VIA` for non-`scholar` sources | `providers check`, `failed (`, `.json.bak`, `--proxy`, `cache clear`, `citation keys`, `bibtex+prov`, `WebFetch` |
+| `references/closed-access.md` | Fetching subscribed full texts through the KTH SOCKS tunnel: the allowed commands, `SCHOLAR_PROXY`, which publishers answer, curl vs `fetch_pdf.py`, bot checks, leftovers as todos | `tunnel`, `SCHOLAR_PROXY`, `socks5h`, `Cloudflare`, `user agent` |
+| `references/scholar-enhancements.md` | Record of what shipped in scholar for this skill (provenance, audit table, honest failures, session integrity, proxy) and a place for future ideas | `shipped`, `PR`, `gh issue`, `future ideas` |
 | `references/appendix-guide.md` | The backing appendix as a short reproducible paper: skeleton, self-containment rules, query-table template, hit-list table generation, checklist | `Self-contained`, `Same queries`, `Vocabulary symmetry`, `Query table`, `session_table` |
 | `scripts/session_table.py` | Fallback for `scholar sessions export -f table`: classified session CSV → the same auditable `longtable` (`--bearing-only`, `--lang sv|en`, `--theme`) | `--csv`, `--label`, `--theme` |
 
@@ -509,5 +495,5 @@ first.
 - [ ] Verbatim supporting quote captured, entails the claim
 - [ ] Provenance block written above the entry; `check_provenance.py` passes
 - [ ] Citation emitted in the project's markup style (writing-crypto / latex-writing)
-- [ ] Every query run on every live provider; counter vocabulary mirrors support (matrix recorded)
+- [ ] Every query run on every live provider; counter vocabulary mirrors support (matrix recorded, failed cells marked failed, never 0)
 - [ ] Appendix self-contained: claim cited at first mention, corroborations cited, classified hit-list table included, no export paths/URLs in the compiled text (`references/appendix-guide.md` checklist)
