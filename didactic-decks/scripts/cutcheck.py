@@ -7,6 +7,9 @@ Two detectors, because either alone misses cases:
      prefix of a line in the deck's tangled programs or PythonTeX
      transcripts.  Catches text clipped clean off the page, which the
      bbox test cannot see (the clipped word never reaches pdftotext).
+     A line minted wrapped (breaklines, continued behind a mark on the
+     next line) is not a cut: when the line and the next one joined are
+     still the source line's prefix, the hit is dropped.
   B. bbox test -- a word's xMax exceeds the page width.  Catches a line
      that hangs over the edge and is only partly drawn.
 
@@ -36,6 +39,12 @@ def sources(deck):
     return out
 
 
+def squash(text):
+    """Text without spaces: a wrapped line's halves lose the space at the
+    break, or gain one, depending on where minted broke it."""
+    return re.sub(r"\s+", "", text)
+
+
 def check(pdf, src):
     info = subprocess.run(["pdfinfo", pdf], capture_output=True, text=True).stdout
     n = int(info.split("Pages:")[1].split()[0])
@@ -47,11 +56,22 @@ def check(pdf, src):
         txt = subprocess.run(
             ["pdftotext", "-layout", "-f", str(p), "-l", str(p), pdf, "-"],
             capture_output=True, text=True).stdout
-        for line in txt.splitlines():
-            line = line.strip()
+        lines = [ln.strip() for ln in txt.splitlines()]
+        for i, line in enumerate(lines):
             if len(line) < 25 or line in src:
                 continue
             hits = [s for s in src if s.startswith(line) and s != line]
+            # A line minted wrapped (breaklines) goes on in the next line,
+            # behind a continuation mark: the joined text is still the
+            # source line's prefix, so the line is not cut.
+            nxt = lines[i + 1] if i + 1 < len(lines) else ""
+            if hits and nxt:
+                # pdftotext gives the mark as "↪" or ",→"; try the next
+                # line with and without it, since a line may begin with ","
+                tails = {nxt, re.sub(r"^[,↪→\s]+", "", nxt)}
+                joined = [squash(line + t) for t in tails]
+                hits = [s for s in hits
+                        if not any(squash(s).startswith(j) for j in joined)]
             if hits:
                 bad += 1
                 print(f"  CUT   p{p}: {line!r}")
