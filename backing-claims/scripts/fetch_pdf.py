@@ -24,6 +24,15 @@ With --text the PDF is also extracted with `pdftotext -layout` to
 full text can be grepped for QUOTE passages; the text path is printed as
 a fourth column.  Exit status is 1 if any source failed.
 
+Downloads take scholar's network route: SCHOLAR_PROXY (a
+`socks5h://` URL for the university tunnel; SOCKS needs PySocks in
+scholar's venv), else requests' own HTTPS_PROXY/HTTP_PROXY.  The route
+is printed to stderr as a `# route:` line, and a proxy URL that cannot
+work stops the script with exit status 2 before any request.  A scholar
+older than its network layer (dbosk/scholar#118) ignores SCHOLAR_PROXY;
+the script then refuses to run unless HTTPS_PROXY is set too, so a
+download never silently leaves from the wrong address.
+
 The script re-executes itself under the interpreter of the installed
 `scholar` command (a pipx venv) when the `scholar` package is not
 importable from the current Python.
@@ -64,6 +73,33 @@ except ImportError:
     reexec_under_scholar_python()
 
 
+def check_route(quiet: bool) -> None:
+    """Validate scholar's proxy setting and report the route on stderr."""
+    try:
+        from scholar import network  # type: ignore
+    except ImportError:  # scholar before --proxy/SCHOLAR_PROXY
+        if os.environ.get("SCHOLAR_PROXY") and not (
+            os.environ.get("HTTPS_PROXY") or os.environ.get("https_proxy")
+        ):
+            print(
+                "fetch_pdf.py: the installed scholar ignores SCHOLAR_PROXY "
+                "(it predates dbosk/scholar#118); set HTTPS_PROXY and "
+                "HTTP_PROXY to the same URL instead",
+                file=sys.stderr,
+            )
+            sys.exit(2)
+        return
+    proxy = network.proxy_url()
+    if proxy:
+        try:
+            network.validate_proxy(proxy)
+        except network.ProxyConfigError as exc:
+            print(f"fetch_pdf.py: SCHOLAR_PROXY: {exc}", file=sys.stderr)
+            sys.exit(2)
+    if not quiet:
+        print(f"# route: {network.describe_route()}", file=sys.stderr)
+
+
 def extract_text(pdf_path: Path) -> Path | None:
     """Write pdftotext -layout output beside the PDF; return its path."""
     txt_path = pdf_path.with_suffix(".txt")
@@ -87,6 +123,7 @@ def main(argv: list[str]) -> int:
     sources = [a for a in argv if not a.startswith("--")]
     if not sources:
         sources = [line.strip() for line in sys.stdin if line.strip()]
+    check_route(quiet)
     failures = 0
     for source in sources:
         if source.startswith("#"):
