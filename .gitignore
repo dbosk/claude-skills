@@ -1,1 +1,5 @@
 __pycache__/
+
+# Claude Code skill-sync cache: machine-managed, and it holds
+# Anthropic skills that are not ours to publish.
+synced/
