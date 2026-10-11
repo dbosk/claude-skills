@@ -266,6 +266,14 @@ system viewer. A source that only exists as plain text (an RFC `.txt`, an
 HTML documentation page) is not a PDF and cannot be cached this way — record
 its URL and access date in the provenance block instead.
 
+**A closed-access paper is fetched through the university network**, via
+a SOCKS tunnel whose three commands are this skill's `allowed-tools`.
+Try `fetch_pdf.py` through the tunnel first. Most publishers refuse its
+Python client, and only then is curl through the tunnel the one allowed
+exception to the rule above. Which publishers answer, where curl's
+downloads go, and what to do with the rest:
+`references/closed-access.md`.
+
 `scholar pdf quote` proposes candidate supporting passages (with location) — the
 **judgement stays yours**; read the passage and confirm it entails the claim.
 `scholar verify` runs the currency/retraction test for you via Crossref.
@@ -483,6 +491,7 @@ first.
 | `references/claim-audit.md` | Finding the claims that carry no citation: advice, conventions, "because" clauses, "no claims" statements; the PEP 8 case | `imperative`, `benefit`, `because`, `no claims` |
 | `references/verification-checklist.md` | Applicability tests for deciding whether a source really supports a claim | `scope`, `primary vs secondary`, `over-claim`, `retraction`, `venue` |
 | `references/scholar-cookbook.md` | Non-interactive `scholar` recipes (incl. `bibtex+prov`, `prov`, `verify`, `pdf quote`) + how to phrase `FOUND-VIA` for non-`scholar` sources | `bibtex+prov`, `prov found-via`, `pdf quote`, `verify`, `WebFetch`, `Crossref` |
+| `references/closed-access.md` | Fetching subscribed full texts through the KTH SOCKS tunnel: the allowed commands, which publishers answer, curl vs `fetch_pdf.py`, leftovers as todos | `tunnel`, `socks5h`, `Cloudflare`, `Springer`, `user agent` |
 | `references/scholar-enhancements.md` | Record of shipped provenance support (#49–#53) and a place for future ideas | `shipped`, `gh issue`, `future ideas` |
 | `references/appendix-guide.md` | The backing appendix as a short reproducible paper: skeleton, self-containment rules, query-table template, hit-list table generation, checklist | `Self-contained`, `Same queries`, `Vocabulary symmetry`, `Query table`, `session_table` |
 | `scripts/session_table.py` | Fallback for `scholar sessions export -f table`: classified session CSV → the same auditable `longtable` (`--bearing-only`, `--lang sv|en`, `--theme`) | `--csv`, `--label`, `--theme` |
