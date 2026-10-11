@@ -67,8 +67,12 @@ def check(pdf, src):
             nxt = lines[i + 1] if i + 1 < len(lines) else ""
             if hits and nxt:
                 # pdftotext gives the mark as "↪" or ",→"; try the next
-                # line with and without it, since a line may begin with ","
-                tails = {nxt, re.sub(r"^[,↪→\s]+", "", nxt)}
+                # line with and without it, since a line may begin with ",".
+                # A margin note beside the continuation follows it on the
+                # same layout line after a wide gap: try the part before.
+                body = re.split(r"\s{3,}", nxt)[0]
+                tails = {t for b in (nxt, body)
+                         for t in (b, re.sub(r"^[,↪→\s]+", "", b))}
                 joined = [squash(line + t) for t in tails]
                 hits = [s for s in hits
                         if not any(squash(s).startswith(j) for j in joined)]
