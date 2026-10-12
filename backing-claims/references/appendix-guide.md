@@ -17,7 +17,9 @@ provenance fields — goes into **source comments**, never into the PDF.
    (two-sided review).
 2. **Method** — reproducible from the text alone: search date, tool,
    databases and their health that day, and a **query × database × hits
-   table** (template below). Say which items were retrieved as known
+   table** (template below), its cells copied from `scholar sessions
+   show`, where a failed search reads `failed (reason)`: such a cell is
+   *failed*, never 0. Say which items were retrieved as known
    documents, why that is the right method for them (a pre-DOI journal,
    DOI-less proceedings, a book) and how each was verified (full text;
    OCR of a scan; abstract only). Session names, export paths and bib
@@ -159,7 +161,8 @@ is part of the claim, not an afterthought.
   %   scholar session : dry-principle
   %   exports         : litteratursokning/dry-principle.{csv,bib,tex}
   %   searched        : 2026-09-02; providers openalex dblp wos scopus ieee
-  %                     (s2: key rejected, HTTP 403 -- absent)
+  %                     (s2: key rejected, HTTP 403 -- absent; dblp:
+  %                     failed, anti-bot page, every query)
   %   classification  : scholar llm context + llm classify --no-examples,
   %                     model github_copilot/gpt-5.4; 53 human overrides via
   %                     scholar sessions decide (read: every qualifies row,
@@ -206,14 +209,24 @@ live providers** (`scholar providers check` first). When a provider needs
 field syntax (WoS `TS=`, Scopus `TITLE-ABS-KEY`), translate the *same*
 keywords into it; never one keyword set on WoS and a different one on
 Scopus. The query table makes this auditable: a row is a query, the
-columns are providers, the cells are hit counts (or "—" when the query was
-not run there, which the text must justify).
+columns are providers, the cells are hit counts — or a mark for a search
+that failed or was not run there, which the caption explains. A failed
+search is never written as 0: scholar records it as `failed (reason)`
+(`sessions show`, the CSV's `# Results:` line), and that is what the cell
+reports.
 
 ### Provider quirks that fake a negative
 
-- **DBLP** indexes titles only, applies an implicit AND, and when
-  throttled answers *zero with no error*. Re-query every DBLP zero before
-  recording it; keep DBLP queries to two or three terms.
+- **DBLP** has answered every API request with an anti-bot (Anubis)
+  page since September 2026; scholar records each such search as
+  `failed (non-JSON response (HTTP 200, text/html))` and `providers check`
+  fails on it. Record DBLP as unavailable — in the method, the query
+  table's DBLP column and the limitations — never as a column of zeros.
+  When it answers, it indexes titles only and applies an implicit AND
+  (keep queries to two or three terms), and a throttled DBLP answers *zero
+  with no error*: scholar paces it and repeats empty multi-term answers
+  itself, recording `N after k retries`, so a recorded DBLP 0 is one that
+  survived the repeats.
 - **OpenAlex** is metered ($0.001 per request against a daily free
   budget shared by everything run that day, reset at midnight UTC) and
   answers HTTP 429 with a JSON body (`dailyRemainingUsd`, `retryAfter`)
@@ -228,8 +241,11 @@ not run there, which the text must justify).
   Without one, plan a thorough chapter (a hundred-odd queries) against
   the free budget, or run it across two days.
 - **IEEE Xplore** has a daily quota; **Scopus** may reject every query
-  (HTTP 400) on a bad day. Record such cells as "provider down/limited"
-  with the reason and rerun when the provider is back — never as 0.
+  (HTTP 400) on a bad day; an unkeyed **Semantic Scholar** shares a public
+  pool and answers 429 when it is busy. Scholar records these searches as
+  `failed (reason)`; report them as failed with the reason and rerun them
+  when the provider is back — never as 0. (An empty Scopus answer is now
+  0 papers; no placeholder record appears in the session.)
 - **Relevance ranking buries old papers.** For a bare-concept query whose
   subject *is* the classic paper ("stepwise refinement", "literate
   programming"), take the full result set rather than the top 40, and say
@@ -296,10 +312,15 @@ scholar llm classify <session> --no-examples -n <all pending>
 scholar sessions export <session>          # csv with tags, confidence, source
 ```
 
-Read the low-confidence rows and every `qualifies-claim` row yourself and
-override with `scholar sessions decide` where the model is wrong; tag the
-sources you cite with a theme tag (`decide … -t dry-origin`) so they show
-as *cited* with a reason. Then generate the table with scholar:
+Seed the four category tags (`llm classify -t supports-claim -t
+qualifies-claim …`) if the session has none yet: with categories in the
+vocabulary the model must give each paper exactly one, and a paper it
+fails on after one retry is left pending and listed at the end of the
+run — decide those with `scholar sessions decide`. Read the low-confidence
+rows and every `qualifies-claim` row yourself and override with `scholar
+sessions decide` where the model is wrong; tag the sources you cite with a
+theme tag (`decide … -t dry-origin`) so they show as *cited* with a
+reason. Then generate the table with scholar:
 
 ```bash
 scholar sessions export dry-principle -f table --bearing-only --lang sv \
@@ -310,15 +331,28 @@ scholar sessions export dry-principle -f table --bearing-only --lang sv \
 
 Cited = a human-decided kept row whose first non-category tag is in the
 `--theme` allowlist; other non-category tags are audit notes shown in
-parentheses; LLM keeps show their category and confidence. Omit
-`--bearing-only` for the full list. If the installed scholar predates
-this (no `-f table`), `scripts/session_table.py --csv <export.csv> …`
-produces the same table from the CSV export.
+parentheses; machine-labelled rows show their category and the model's
+confidence, or "n/a" ("saknas") when none was recorded. The status wins:
+a discarded row never counts as supporting or qualifying, whatever its
+category; it reads "supports the claim, excluded" ("…, utesluten"), is
+not listed under `--bearing-only`, and the caption counts it separately.
+Omit `--bearing-only` for the full list. If the installed scholar
+predates `-f table`, `scripts/session_table.py --csv <export.csv> …`
+gives the same rows from the CSV export; its database sentence cannot
+know zero-hit or failed providers, so fix that sentence by hand.
 
 Rows are grouped cited → supports → qualifies/contradicts → adjacent →
-off-topic → still pending, with the model's confidence per machine-decided
-row. Two-sided category names must appear in the caption counts so the
-reader sees at a glance how much refuting/qualifying work there was.
+off-topic → still pending → other (duplicates, excluded), with the model's
+confidence per machine-labelled row. Two-sided category names must appear
+in the caption counts so the reader sees at a glance how much
+refuting/qualifying work there was.
+
+The caption's "Databases:" sentence is the coverage statement: it names,
+full name first, every database that answered at least one query (one
+that answered with zero hits included), and notes partial failures —
+"DBLP (failed for 4 of 5 queries)". A database that failed *every* query
+is not named at all, since it was not searched; say so in the method and
+the limitations ("DBLP could not be searched: …").
 
 ## Query table template
 
@@ -337,18 +371,20 @@ not open access)", "Web of Science (WoS)". No session name.
     K = känt dokument.  Databaser: OpenAlex (OA; inte
     \foreignlanguage{english}{open access}), DBLP, IEEE Xplore (IEEE),
     Web of Science (WoS), Scopus.  Högst 40 träffar per databas och fråga,
-    så 40 betyder \enquote{minst 40}.  DBLP kräver att varje ord matchar.
-    Web of Science fick nyckelorden som \texttt{TS=(\dots)}, Scopus som
-    \texttt{TITLE-ABS-KEY(\dots)}, OpenAlex och IEEE som boolesk fritext,
-    DBLP som ordlista.}[tab:dry-queries]
+    så 40 betyder \enquote{minst 40}.  \enquote{--} betyder att sökningen
+    misslyckades: DBLP svarade på varje fråga med en sida som stoppar
+    automatiserade klienter i stället för med data, så DBLP kunde inte
+    genomsökas.  Web of Science fick nyckelorden som
+    \texttt{TS=(\dots)}, Scopus som \texttt{TITLE-ABS-KEY(\dots)},
+    OpenAlex och IEEE som boolesk fritext.}[tab:dry-queries]
     \centering\footnotesize
     \begin{tabular}{@{}lp{0.5\linewidth}rrrrr@{}}
       \toprule
       & Nyckelord & OA & DBLP & IEEE & WoS & Scopus \\
       \midrule
-      S1 & \enquote{code clones} inconsistent changes faults & 40 & 0 & 14 & 2 & 4 \\
+      S1 & \enquote{code clones} inconsistent changes faults & 40 & -- & 14 & 2 & 4 \\
       … \\
-      M1 & \enquote{code clones} (beneficial, harmless eller \enquote{considered harmful}) & 40 & 0 & 40 & 19 & 31 \\
+      M1 & \enquote{code clones} (beneficial, harmless eller \enquote{considered harmful}) & 40 & -- & 40 & 19 & 31 \\
       \bottomrule
     \end{tabular}
   \end{sidecaption}
@@ -356,7 +392,9 @@ not open access)", "Web of Science (WoS)". No session name.
 ```
 
 Prefix support queries S, counter queries M (motsökning) or C, known-item
-retrievals K, and refer to them by label in the prose.
+retrievals K, and refer to them by label in the prose. A failed cell gets a
+mark the caption explains ("--" above), never 0; a cell answered only
+in part gets its lower bound and the same kind of explanation.
 
 ## Checklist for the appendix
 
@@ -365,6 +403,9 @@ retrievals K, and refer to them by label in the prose.
       database × hits table with the abbreviations defined; known-item
       retrievals justified and their verification mode stated
 - [ ] Every query on every live provider; counter vocabulary mirrors support
+- [ ] Failed searches reported as failed (query table, method,
+      limitations), never as 0; a database that failed every query is
+      named as not searched
 - [ ] Redone searches recover every baseline item (coverage checked);
       no narration of earlier attempts; no session names in the text
 - [ ] Results cite every source (load-bearing ones with verbatim quote and
