@@ -274,6 +274,21 @@ Use `import` to pull GitHub issues/PRs into the todo system and `sync` to keep
 them updated. Both support `--help` for repository, type, and metadata options.
 Always pass `--who dan-claude` when importing to ensure correct assignment.
 
+**A GitHub-linked item writes to GitHub at once** (the `github` field in
+`ls -f json`): `note` posts the text as a comment on the issue, and `done`
+closes the issue, both immediately and under the user's account, not at the
+next `sync`. Before a batch of notes or closes, list which items are linked,
+word their notes for the issue's readers (or skip the note), and tell the user
+which issues the batch will comment on or close.
+
+**Batch adds while the user has a task active.** Auto-parenting also applies
+to the user's own active stack when you act as `dbosk`: a batch `add`
+without `--parent`/`--top-level` lands under their in-progress item and
+copies its labels. Always pass `--parent` or `--top-level` (and
+`--no-discovered-from`) in scripts, and parse the new id from the
+`Added todo #N` line, not the first `#N` in the output (a "Discovered from:
+#M" line comes first).
+
 ## Quick reference
 
 | Intent | Subcommand | Key flags to check |
