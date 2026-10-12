@@ -1,0 +1,3 @@
+S1	("mock objects" OR mocking OR "interaction testing" OR "behavior verification" OR "state verification") AND ("unit test" OR "unit testing" OR "software testing" OR "test code") AND (refactoring OR fragile OR brittle OR "test breakage")
+S2	("test breakage" OR "broken tests" OR "test repair" OR "fragile tests" OR "test smells") AND refactoring AND ("unit test" OR "unit testing" OR "software testing" OR "test code")
+C1	("mock objects" OR mocking OR "interaction testing" OR "behavior verification" OR "state verification") AND ("unit test" OR "unit testing" OR "software testing" OR "test code") AND (refactoring OR "test maintenance" OR robustness) AND (comparison OR empirical OR benefits)

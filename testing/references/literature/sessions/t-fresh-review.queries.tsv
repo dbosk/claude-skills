@@ -1,0 +1,4 @@
+S1	("large language models" OR LLM) AND ("self-preference" OR "self-evaluation" OR "self-bias" OR "self-recognition" OR "self-correction") AND (bias OR evaluation OR review)
+S2	("code review" OR "code inspection" OR "peer review") AND (defects OR "defect detection" OR effectiveness) AND (author OR "independent reviewer" OR "self-review" OR "fresh eyes")
+C1	("large language models" OR LLM) AND ("self-correction" OR "self-refine" OR "self-review" OR "self-evaluation") AND (improves OR effective OR "intrinsic self-correction")
+C2	("code review" OR "code inspection" OR "peer review") AND (defects OR "defect detection" OR bugs) AND (effectiveness OR usefulness OR "do not find" OR outcomes)

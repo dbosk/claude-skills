@@ -1,0 +1,3 @@
+S1	("mutation testing" OR "mutation analysis" OR mutants OR "mutation score") AND ("real faults" OR "fault detection" OR "test suite effectiveness" OR "test adequacy")
+S2	("pseudo-tested" OR "extreme mutation" OR "oracle gap" OR "checked coverage" OR "test-first" OR "failing test") AND ("test suite" OR "unit tests") AND (mutation OR "fault detection" OR effectiveness)
+C1	("mutation testing" OR "mutation analysis" OR mutants OR "mutation score") AND ("real faults" OR "fault detection") AND (correlation OR "coupling effect" OR validity OR "test suite size")

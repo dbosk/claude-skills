@@ -1,0 +1,2 @@
+S1	("exploratory testing" OR "manual testing" OR "session-based testing") AND (defects OR "defect detection" OR effectiveness OR efficiency)
+C1	("exploratory testing" OR "manual testing" OR "session-based testing") AND ("test case based" OR "scripted testing" OR "automated testing") AND (comparison OR experiment OR effectiveness)

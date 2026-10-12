@@ -1,0 +1,2 @@
+S1	("test oracle" OR assertions OR "property-based testing" OR invariants OR "metamorphic testing") AND ("unit test" OR "software testing" OR "test suite") AND (brittle OR fragile OR flaky OR "changing data" OR "non-deterministic")
+C1	("test oracle" OR assertions OR "property-based testing" OR invariants OR "metamorphic testing" OR "oracle strength") AND ("unit test" OR "software testing" OR "test suite") AND ("fault detection" OR "mutation score" OR effectiveness OR "oracle quality")

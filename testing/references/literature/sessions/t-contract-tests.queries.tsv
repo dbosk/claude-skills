@@ -1,0 +1,2 @@
+S1	("contract testing" OR "consumer-driven contract" OR "consumer-driven contracts" OR "contract tests") AND (microservices OR API OR "web service" OR integration)
+C1	("contract testing" OR "consumer-driven contract" OR "consumer-driven contracts" OR "contract tests") AND (limitations OR challenges OR "integration testing" OR "end-to-end testing" OR effectiveness)
