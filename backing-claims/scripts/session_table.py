@@ -13,20 +13,39 @@ and machine-decided rows show the model's confidence.
 
 Input: the CSV written by `scholar sessions export <session>` after the
 session was classified with `scholar llm classify` (columns used: status,
-title, year, provider, tags, decision_source, llm_confidence).  Tags may
-be separated by ";" or "|".  A row is
+title, year, provider, tags, decision_source, llm_confidence,
+llm_review_outcome).  Tags may be separated by ";" or "|".  A row is
 
-  * cited      -- status kept and a THEME tag (any tag that is neither a
-                  category nor a bookkeeping tag); --theme maps it to text;
-  * a category -- first of supports-claim / qualifies-claim /
-                  adjacent-subtopic / off-topic-false-hit present;
+  * cited      -- kept by a human decision (decision_source human or
+                  llm_reviewed) with a THEME tag (any tag that is neither a
+                  category nor a bookkeeping tag) or no tag at all; --theme
+                  maps the tag to text and, when given, is the allowlist
+                  of theme tags (other free tags are shown as notes);
+  * a category -- the LAST of supports-claim / qualifies-claim /
+                  adjacent-subtopic / off-topic-false-hit present
+                  (`sessions decide -t` appends, so the last one decides);
+  * excluded   -- discarded although its category bears on the claim
+                  (supports/qualifies): the status wins, so the row reads
+                  "supports the claim, excluded", sorts among the other
+                  rows and is counted on its own in the caption;
   * bookkeeping-- duplicate-record-of-cited-source, reprint, extended
                   report, earlier version, thesis, erratum, no-abstract:
                   shown as a parenthesised note, or as the reason when
                   nothing else applies.
 
-Interim implementation of the proposed `scholar sessions export --format
-table`; drop this script when that command exists.
+Machine-labelled rows (decision_source llm, or an LLM decision a human
+confirmed unchanged) show the model's confidence, or "n/a"/"saknas" when
+none was recorded.
+
+The caption's database sentence names the providers that occur in the
+rows.  A session CSV records neither the searches that found nothing nor
+those that failed, so a provider that answered every query with zero
+hits is missing from the sentence, and partial failures are not noted:
+`scholar sessions export -f table`, which reads the session's search
+records, gets both right.
+
+Fallback for a scholar without `sessions export -f table`; the rules
+above follow that command.
 
 Example:
   session_table.py --csv litteratursokning/dry-principle.csv \
@@ -58,6 +77,7 @@ CATEGORY_ORDER = {
     "adjacent-subtopic": 3,
     "off-topic-false-hit": 4,
 }
+BEARING_ORDER = 2   # categories up to this one bear on the claim
 PENDING_ORDER = 5
 OTHER_ORDER = 6
 
@@ -69,6 +89,8 @@ STRINGS = {
         "adjacent-subtopic": "angränsande delämne",
         "off-topic-false-hit": "annat ämne (felträff)",
         "pending": "ej klassad",
+        "excluded": "utesluten",
+        "no_confidence": "saknas",
         "notes": {
             "duplicate-record-of-cited-source": "dubblettpost av citerad källa",
             "duplicate-reprint-of-cited-source": "omtryck av citerad källa",
@@ -80,7 +102,7 @@ STRINGS = {
             "recorded-not-cited": "noterad, inte citerad",
             "no-abstract-title-only": "bedömd på titel, sammanfattning saknas",
         },
-        "head": ("Titel", "År", "Databas", "Skäl"),
+        "head": ("Titel", "År", "Leverantör", "Skäl"),
         "cont": "\\GetTranslation{continued}",
         "next": "\\GetTranslation{continued on the next page}",
         "caption": ("Fullständig träfflista, %(track)s: %(n)d unika poster, "
@@ -89,9 +111,7 @@ STRINGS = {
                     "angränsande och %(off)d felträffar%(pend)s%(oth)s.  "
                     "Skälet till varje in- eller uteslutning står i sista "
                     "kolumnen; för maskinklassade rader anges modellens "
-                    "konfidens.  Databaser: OpenAlex (OA; inte "
-                    "\\foreignlanguage{english}{open access}), DBLP, IEEE "
-                    "Xplore (IEEE), Web of Science (WoS), Scopus."),
+                    "konfidens.  %(databases)s"),
         "pendcap": ", %d ej klassade",
         "othcap": ", %d dubbletter eller andra versioner av citerade källor",
         "bearing": ("Träffar som rör påståendet, %(track)s: %(cit)d citerade, "
@@ -100,17 +120,21 @@ STRINGS = {
                     "de %(adj)d angränsande och %(off)d felträffarna%(pend)s"
                     "%(oth)s listas inte.  Skälet står i sista kolumnen; för "
                     "maskinklassade rader anges modellens konfidens.  "
-                    "Databaser: OpenAlex (OA; inte "
-                    "\\foreignlanguage{english}{open access}), DBLP, IEEE "
-                    "Xplore (IEEE), Web of Science (WoS), Scopus."),
+                    "%(databases)s"),
+        "exclcap": ", %d uteslutna trots att de klassats som relevanta för "
+                   "påståendet",
+        "databases": "Databaser: %s.",
+        "openalex_note": "inte \\foreignlanguage{english}{open access}",
     },
     "en": {
         "cited": "cited",
         "supports-claim": "supports the claim",
         "qualifies-claim": "qualifies or contradicts the claim",
         "adjacent-subtopic": "adjacent subtopic",
-        "off-topic-false-hit": "other field (false hit)",
-        "pending": "unclassified",
+        "off-topic-false-hit": "other topic (false hit)",
+        "pending": "pending, unclassified",
+        "excluded": "excluded",
+        "no_confidence": "n/a",
         "notes": {
             "duplicate-record-of-cited-source": "duplicate record of a cited source",
             "duplicate-reprint-of-cited-source": "reprint of a cited source",
@@ -130,9 +154,7 @@ STRINGS = {
                     "qualify or contradict it, %(adj)d adjacent and %(off)d "
                     "false hits%(pend)s%(oth)s.  The last column gives the "
                     "reason for inclusion or exclusion; machine-classified "
-                    "rows show the model's confidence.  Databases: OpenAlex "
-                    "(OA; not open access), DBLP, IEEE Xplore (IEEE), Web of "
-                    "Science (WoS), Scopus."),
+                    "rows show the model's confidence.  %(databases)s"),
         "pendcap": ", %d unclassified",
         "othcap": ", %d duplicates or other versions of cited sources",
         "bearing": ("Records bearing on the claim, %(track)s: %(cit)d cited, "
@@ -141,13 +163,34 @@ STRINGS = {
                     "%(adj)d adjacent and %(off)d false hits%(pend)s%(oth)s "
                     "are not listed.  The last column gives the reason; "
                     "machine-classified rows show the model's confidence.  "
-                    "Databases: OpenAlex (OA; not open access), DBLP, IEEE "
-                    "Xplore (IEEE), Web of Science (WoS), Scopus."),
+                    "%(databases)s"),
+        "exclcap": ", %d excluded although classified as bearing on the "
+                   "claim",
+        "databases": "Databases: %s.",
+        "openalex_note": "not open access",
     },
 }
 
-PROVIDER_SHORT = {"openalex": "OA", "dblp": "DBLP", "scopus": "Scopus",
-                  "wos": "WoS", "ieee": "IEEE", "s2": "S2", "arxiv": "arXiv"}
+# provider -> (code in the Provider column, full name), in caption order;
+# the same names as `scholar sessions export -f table`.
+PROVIDERS = {
+    "openalex": ("OA", "OpenAlex"),
+    "dblp": ("DBLP", "DBLP"),
+    "ieee": ("IEEE", "IEEE Xplore"),
+    "wos": ("WoS", "Web of Science"),
+    "scopus": ("Scopus", "Scopus"),
+    "s2": ("S2", "Semantic Scholar"),
+    "arxiv": ("arXiv", "arXiv"),
+    "hal": ("HAL", "HAL"),
+    "ssrn": ("SSRN", "SSRN"),
+    "biorxiv": ("bioRxiv", "bioRxiv"),
+    "medrxiv": ("medRxiv", "medRxiv"),
+    "chemrxiv": ("ChemRxiv", "ChemRxiv"),
+    "researchsquare": ("RSq", "Research Square"),
+    "preprintsorg": ("Preprints", "Preprints.org"),
+    "iacr": ("IACR", "IACR Cryptology ePrint Archive"),
+}
+PROVIDER_SHORT = {k: short for k, (short, _) in PROVIDERS.items()}
 
 TABLE = r"""\begingroup\footnotesize
 \begin{longtable}{@{}%%
@@ -192,40 +235,82 @@ def short_provider(p):
     return [PROVIDER_SHORT.get(x.lower(), x) for x in parts]
 
 
+def confidence_for(row, strings):
+    """" (0.83)" for a machine-labelled row, " (n/a)" without a value, else ""."""
+    src = (row.get("decision_source") or "").strip().lower()
+    outcome = (row.get("llm_review_outcome") or "").strip().lower()
+    if not (src == "llm" or (src == "llm_reviewed" and outcome != "changed")):
+        return ""
+    try:
+        return " (%.2f)" % float((row.get("llm_confidence") or "").strip())
+    except ValueError:
+        return " (%s)" % strings["no_confidence"]
+
+
 def reason_for(row, strings, themes):
-    """(reason label, sort order) for one CSV row."""
+    """(reason label, sort order, excluded) for one CSV row."""
     status = (row.get("status") or "").strip().lower()
     tags = [t.strip() for t in re.split(r"[;|]", row.get("tags") or "") if t.strip()]
-    conf = (row.get("llm_confidence") or "").strip()
     src = (row.get("decision_source") or "").strip().lower()
     notes = strings["notes"]
-    category = next((t for t in tags if t in CATEGORY_ORDER), None)
+    category = next((t for t in reversed(tags) if t in CATEGORY_ORDER), None)
     note_texts = [notes[t] for t in tags if t in notes]
     theme_tags = [t for t in tags if t not in CATEGORY_ORDER and t not in notes]
+    if themes:   # --theme is an allowlist; other free tags become notes
+        note_texts += [tex(t) for t in theme_tags if t not in themes]
+        theme_tags = [t for t in theme_tags if t in themes]
+    human = src != "llm"     # human, or an LLM decision a human reviewed
+    conf = confidence_for(row, strings)
 
-    # A row the human kept with a theme tag is a cited source even if the
-    # model's category tag is still attached (`scholar sessions decide -t`
-    # appends rather than replaces).  A theme tag on an LLM-decided row is
-    # a copied tag, not a citation.
-    if status == "kept" and theme_tags and (category is None or src == "human"):
-        theme = themes.get(theme_tags[0], theme_tags[0])
-        label, order = "\\emph{%s}: %s" % (strings["cited"], tex(theme)), 0
+    # A row a human kept with a theme tag (or no tag) is a cited source,
+    # even if the model's category tag is still attached (`scholar
+    # sessions decide -t` appends rather than replaces).  A theme tag on
+    # an unreviewed LLM row is a copied tag, not a citation.
+    if status == "pending":
+        return strings["pending"], PENDING_ORDER, False
+    if status == "kept" and human and (theme_tags or not tags):
+        label = "\\emph{%s}" % strings["cited"]
+        if theme_tags:
+            label += ": " + tex(themes.get(theme_tags[0], theme_tags[0]))
+        order = 0
+    elif (status == "discarded" and category is not None
+          and CATEGORY_ORDER[category] <= BEARING_ORDER):
+        # The status wins: a discarded row never counts as evidence.
+        label = "%s%s, %s" % (strings[category], conf, strings["excluded"])
+        if note_texts:
+            label += " (" + "; ".join(note_texts) + ")"
+        return label, OTHER_ORDER, True
     elif category is not None:
-        label, order = strings[category], CATEGORY_ORDER[category]
-        if src == "llm" and conf:
-            try:
-                label += " (%.2f)" % float(conf)
-            except ValueError:
-                pass
+        label, order = strings[category] + conf, CATEGORY_ORDER[category]
     elif note_texts:
-        return note_texts[0], OTHER_ORDER
-    elif status == "pending" or not tags:
-        return strings["pending"], PENDING_ORDER
+        return "; ".join(note_texts), OTHER_ORDER, False
+    elif not tags:
+        return strings["pending"], PENDING_ORDER, False
     else:
-        return tex(tags[0]), OTHER_ORDER
+        return tex(tags[0]) + conf, OTHER_ORDER, False
     if note_texts:
         label += " (" + "; ".join(note_texts) + ")"
-    return label, order
+    return label, order, False
+
+
+def databases_sentence(rows, strings):
+    """Name the providers in the rows, full name first, in caption order."""
+    used = []
+    for r in rows:
+        for p in r["prov"]:
+            if p not in used:
+                used.append(p)
+    names = []
+    for key, (short, full) in PROVIDERS.items():
+        if short not in used:
+            continue
+        notes = [] if full == short else [short]
+        if key == "openalex":
+            notes.append(strings["openalex_note"])
+        names.append("%s (%s)" % (full, "; ".join(notes)) if notes else full)
+        used.remove(short)
+    names += [tex(p) for p in used]
+    return strings["databases"] % ", ".join(names) if names else ""
 
 
 def rows_for(csv_path, strings, themes):
@@ -238,7 +323,7 @@ def rows_for(csv_path, strings, themes):
             year = tex(r.get("year", ""))
             prov = short_provider(r.get("provider", ""))
             status = (r.get("status") or "").strip().lower()
-            reason, order = reason_for(r, strings, themes)
+            reason, order, excluded = reason_for(r, strings, themes)
             key = (title.lower(), year)
             if key in seen:                   # merge provider duplicates
                 cur = seen[key]
@@ -246,10 +331,12 @@ def rows_for(csv_path, strings, themes):
                     if p and p not in cur["prov"]:
                         cur["prov"].append(p)
                 if order < cur["order"]:      # the better-placed decision wins
-                    cur.update(status=status, reason=reason, order=order)
+                    cur.update(status=status, reason=reason, order=order,
+                               excluded=excluded)
             else:
                 seen[key] = dict(title=tex(title)[:180], year=year, prov=prov,
-                                 status=status, reason=reason, order=order)
+                                 status=status, reason=reason, order=order,
+                                 excluded=excluded)
     return list(seen.values())
 
 
@@ -284,6 +371,7 @@ def main():
         sys.exit(f"no rows with a title in {csv_path}")
     rows.sort(key=lambda r: (r["order"], r["title"].lower()))
     counts = {o: sum(1 for r in rows if r["order"] == o) for o in range(0, 7)}
+    excluded = sum(1 for r in rows if r["excluded"])
     listed = [r for r in rows if r["order"] <= 2] if args.bearing_only else rows
     body = "\n".join("%s & %s & %s & %s \\\\" % (
         r["title"], r["year"], ", ".join(r["prov"]), r["reason"]) for r in listed)
@@ -292,7 +380,10 @@ def main():
         "n": len(rows), "cit": counts[0], "sup": counts[1], "qual": counts[2],
         "adj": counts[3], "off": counts[4],
         "pend": (strings["pendcap"] % counts[5]) if counts[5] else "",
-        "oth": (strings["othcap"] % counts[6]) if counts[6] else ""}
+        "oth": ((strings["othcap"] % (counts[6] - excluded))
+                if counts[6] - excluded else "")
+               + ((strings["exclcap"] % excluded) if excluded else ""),
+        "databases": databases_sentence(rows, strings)}
     h0, h1, h2, h3 = strings["head"]
     pathlib.Path(args.out).write_text(TABLE % {
         "caption": caption, "label": args.label, "h0": h0, "h1": h1, "h2": h2,
@@ -301,7 +392,7 @@ def main():
     print(f"{csv_path.name}: {len(rows)} rows ({len(listed)} listed) | cited "
           f"{counts[0]}, supports {counts[1]}, qualifies {counts[2]}, adjacent "
           f"{counts[3]}, off-topic {counts[4]}, pending {counts[5]}, other "
-          f"{counts[6]} -> {args.out}")
+          f"{counts[6]} (excluded {excluded}) -> {args.out}")
 
 
 if __name__ == "__main__":
