@@ -115,7 +115,10 @@ still runs on both.
 
 - **During recording**, every original the pseudonymizer replaced is
   appended to an originals file. The default is
-  `$TMPDIR/vcr-originals-<hash>.txt`, mode 0600, outside the repo; override
+  `vcr-originals-<uid>/<hash>.txt` under `$XDG_RUNTIME_DIR` or the temp
+  dir: a directory of mode 0700, a file of mode 0600, opened without
+  following symlinks, and refused if anyone else owns it or can read it
+  (the temp dir is shared on multi-user machines); override
   it with `TEST_ORIGINALS_FILE`. The file holds full values, name parts of
   three characters or more, and email local parts.
 - **At session end**, the template scans every cassette it wrote for those

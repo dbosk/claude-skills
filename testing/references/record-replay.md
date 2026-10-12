@@ -70,8 +70,9 @@ replay. Practical consequences:
 ## The `--live` mechanics in the template
 
 1. `pytest_configure` sets the record mode to `all` and points the cassette
-   directory at `$TMPDIR/<project>-<hash>-live-cassettes/<same relative
-   path>`, or at `--live-dir=PATH` (write it with `=`: pytest would take a
+   directory at `<private dir>/<project>-<hash>-live-cassettes/<same
+   relative path>` (the same per-user 0700 directory as the originals
+   file), or at `--live-dir=PATH` (write it with `=`: pytest would take a
    separate PATH for a test path). The directory is emptied first, so a
    stale run cannot mask drift, but only if it is empty or holds the
    `.pytest-live-cassettes` marker an earlier live run wrote; any other

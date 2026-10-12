@@ -138,3 +138,26 @@ def test_placeholder_domains_match_whole_domains():
     assert p.email("anna@notexample.com") != "anna@notexample.com"
     assert p.email("someone@example.com") == "someone@example.com"
     assert p.email("someone@lms.test") == "someone@lms.test"
+
+
+def test_originals_file_refuses_symlinks_and_shared_files(tmp_path):
+    import os
+    import pytest
+    target = tmp_path / "elsewhere.txt"
+    link = tmp_path / "originals.txt"
+    link.symlink_to(target)
+    with pytest.raises(OSError):
+        Pseudonymizer(b"k", link).name("Anna Svensson")
+    assert not target.exists()
+    shared = tmp_path / "shared.txt"
+    shared.write_text("")
+    shared.chmod(0o644)
+    with pytest.raises(PermissionError):
+        Pseudonymizer(b"k", shared).name("Anna Svensson")
+
+
+def test_default_originals_path_is_in_a_private_directory(tmp_path):
+    import os
+    path = vcr_support.default_originals_path(tmp_path)
+    assert stat.S_IMODE(path.parent.stat().st_mode) == 0o700
+    assert path.parent.stat().st_uid == os.getuid()

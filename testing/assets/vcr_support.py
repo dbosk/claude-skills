@@ -24,6 +24,7 @@ import hmac
 import json
 import os
 import re
+import stat
 import tempfile
 import urllib.parse
 from pathlib import Path
@@ -132,10 +133,27 @@ def personnummer_spans(text: str) -> list[tuple[int, int]]:
     return [m.span() for m in PNR_RE.finditer(text) if is_personnummer(m)]
 
 
+def private_dir() -> Path:
+    """A directory only we can enter: $XDG_RUNTIME_DIR, else one in the temp dir.
+
+    The temp dir is shared on multi-user machines, so a predictable file
+    name there could be created first by someone else.
+    """
+    runtime = os.environ.get("XDG_RUNTIME_DIR")
+    base = Path(runtime) if runtime and Path(runtime).is_dir() else Path(tempfile.gettempdir())
+    directory = base / f"vcr-originals-{os.getuid()}"
+    directory.mkdir(mode=0o700, exist_ok=True)
+    info = os.lstat(directory)
+    if not stat.S_ISDIR(info.st_mode) or info.st_uid != os.getuid() \
+            or stat.S_IMODE(info.st_mode) & 0o077:
+        raise PermissionError(f"{directory} is not a private directory of ours")
+    return directory
+
+
 def default_originals_path(root: str | os.PathLike = ".") -> Path:
     """A per-project file outside the repository, readable only by us."""
     tag = hashlib.sha256(str(Path(root).resolve()).encode()).hexdigest()[:10]
-    return Path(tempfile.gettempdir()) / f"vcr-originals-{tag}.txt"
+    return private_dir() / f"{tag}.txt"
 
 
 class Pseudonymizer:
@@ -202,7 +220,14 @@ class Pseudonymizer:
         self._recorded.update(new)
         if self.originals_path is None:
             return
-        fd = os.open(self.originals_path, os.O_WRONLY | os.O_CREAT | os.O_APPEND, 0o600)
+        fd = os.open(self.originals_path,
+                     os.O_WRONLY | os.O_CREAT | os.O_APPEND | getattr(os, "O_NOFOLLOW", 0),
+                     0o600)
+        info = os.fstat(fd)
+        if info.st_uid != os.getuid() or stat.S_IMODE(info.st_mode) & 0o077:
+            os.close(fd)
+            raise PermissionError(f"{self.originals_path} must be ours and mode 0600: "
+                                  "it holds the real values")
         with os.fdopen(fd, "a", encoding="utf-8") as f:
             for v in new:
                 f.write(v.replace("\n", " ") + "\n")

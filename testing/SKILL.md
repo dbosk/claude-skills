@@ -186,7 +186,7 @@ In literate programs (`.nw`), tests are *written* first (red/green) but
 | Check for drift | `pytest --live` (`--live-writes` to include `mutates` tests) |
 | Re-record after drift | `pytest --record-mode=rewrite -k test_x` |
 | Leak scan | `uv run --with vcrpy ~/.claude/skills/testing/scripts/scan_leaks.py tests --denylist ~/private/roster.txt` |
-| Compare shapes by hand | `uv run --with vcrpy ~/.claude/skills/testing/scripts/cassette_shape_diff.py tests/cassettes /tmp/…-live-cassettes` |
+| Compare shapes by hand | `uv run --with vcrpy ~/.claude/skills/testing/scripts/cassette_shape_diff.py tests/cassettes <live dir printed by pytest --live>` |
 
 ## References
 

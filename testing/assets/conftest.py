@@ -37,7 +37,6 @@ import hashlib
 import os
 import shutil
 import sys
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -62,7 +61,7 @@ def pytest_addoption(parser):
                          "report cassette drift")
     group.addoption("--live-dir", default=None,
                     help="where --live writes fresh cassettes; give it as "
-                         "--live-dir=PATH (default: under the system temp dir)")
+                         "--live-dir=PATH (default: a private directory under the temp dir)")
     group.addoption("--live-writes", action="store_true",
                     help="under --live, also run tests marked `mutates`")
 
@@ -82,8 +81,8 @@ def pytest_configure(config):
         config.option.block_network = False
         root = Path(str(config.rootpath))
         tag = hashlib.sha256(str(root.resolve()).encode()).hexdigest()[:10]
-        config._live_dir = Path(config.getoption("--live-dir") or Path(
-            tempfile.gettempdir()) / f"{root.name}-{tag}-live-cassettes").resolve()
+        config._live_dir = Path(config.getoption("--live-dir") or vcr_support.private_dir()
+                                / f"{root.name}-{tag}-live-cassettes").resolve()
         prepare_live_dir(config._live_dir, root.resolve())
     if record_mode_of(config) != "none" and not os.environ.get(vcr_support.KEY_ENV):
         pytest.exit(f"refusing to record: set {vcr_support.KEY_ENV} so that "
