@@ -39,7 +39,9 @@ Red/green works as usual, with tangling in the loop:
 3. Change the code chunk, run the target again, and see it pass.
 
 Never edit the tangled `tests/test_*.py`: the next tangle overwrites it,
-and the change never reaches the repository.
+and the change never reaches the repository. And judge tests from the
+`.nw`, not the tangled file: a test chunk may include production chunks,
+so what looks like a copy of the logic can be the real code.
 
 ## The templates
 

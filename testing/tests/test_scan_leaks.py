@@ -119,3 +119,17 @@ def test_dash_scans_standard_input(tmp_path):
                             input="Kontakt: anna.svensson@uni.example.se\n",
                             capture_output=True, text=True)
     assert result.returncode == 1 and "<stdin>:1: email" in result.stdout, result.stdout
+
+
+def test_email_hits_show_the_domain_but_not_the_person(tmp_path):
+    (tmp_path / "c.py").write_text('STAFF = "anna.svensson@uni.example.se"\n')
+    out = scan(tmp_path, "--originals", tmp_path / "x").stdout
+    assert "@uni.example.se" in out and "anna.svensson" not in out
+
+
+def test_no_originals_warning_unless_one_was_asked_for(tmp_path):
+    (tmp_path / "c.py").write_text("x = 1\n")
+    env = {k: v for k, v in __import__("os").environ.items() if k != "TEST_ORIGINALS_FILE"}
+    result = subprocess.run([sys.executable, str(SCRIPT), "c.py"], capture_output=True,
+                            text=True, cwd=tmp_path, env=env)
+    assert result.returncode == 0 and "originals" not in result.stderr

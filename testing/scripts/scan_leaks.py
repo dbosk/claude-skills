@@ -53,15 +53,16 @@ def default_paths() -> list[str]:
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
     parser.add_argument("paths", nargs="*")
-    parser.add_argument("--originals", default=os.environ.get(vcr_support.ORIGINALS_ENV)
-                        or vcr_support.default_originals_path("."))
+    parser.add_argument("--originals")
     parser.add_argument("--denylist")
     parser.add_argument("--allow")
     parser.add_argument("--warn-names", action="store_true")
     parser.add_argument("--allow-names")
     args = parser.parse_args(argv)
 
-    if args.originals and not Path(args.originals).exists():
+    asked = args.originals or os.environ.get(vcr_support.ORIGINALS_ENV)
+    args.originals = asked or vcr_support.default_originals_path(".")
+    if asked and not Path(asked).exists():
         print(f"warning: originals file not found ({args.originals}); only "
               "patterns and the denylist are checked. It is written while "
               "recording and lives in the temp dir, so record again or pass "

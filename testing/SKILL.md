@@ -153,9 +153,11 @@ reasoning.
 - **First run the tests** at the start of a session (Willison's prompt), so
   you know the baseline, the runner and the size of the suite. Run an
   unfamiliar suite through `scripts/offline_run.py -- <test command>`
-  first: its tests may log in to a service or write to it, and this blocks
-  the network for every Python process, disables the keyring, and keeps
-  collecting past modules that fail to import.
+  first: its tests may log in to a service or write to it. It blocks the
+  network for every Python process, removes credential variables (naming
+  them, so never list the environment yourself), disables the keyring,
+  keeps collecting past modules that fail to import, and stops a run that
+  hangs.
 - **Red/green.** Write the test first, from the spec or the bug report
   rather than from the implementation, and watch it fail *for the right
   reason* before writing the fix. A test that already passed before the
@@ -174,13 +176,18 @@ reasoning.
   red/green test.
 - **Check that the test can fail.** After a green run that came too
   easily, break the code on purpose (a mutation) and confirm the test goes
-  red: `scripts/mutate.py FILE OLD NEW -- <test command>` makes the change,
-  runs the tests and restores the file. This shows the test catches that
-  break, not that the suite is adequate.
+  red: `scripts/mutate.py FILE OLD NEW -- <test command>` checks that the
+  command passes as is, makes the change, runs it again and restores the
+  file. This shows the test catches that break, not that the suite is
+  adequate.
 - **Fresh-context review** for larger changes: a subagent that sees only
   the diff checks whether the tests exercise behaviour or just mirror the
   implementation. Ask it for checks it can run (break the code: does a
   test go red?), not for an opinion.
+- **Reviewing an existing suite**: work in a copy, contact no service,
+  report personal data as file:line and kind only, and follow the steps
+  in `references/reviewing.md` (baseline, inventory, greps, mutations,
+  privacy sweep, report).
 
 `references/agent-practices.md` has the prompt phrasings and the reasoning.
 
@@ -239,6 +246,8 @@ Read when needed:
 - `references/agent-practices.md`: when writing prompts for a subagent or
   explaining the working rules.
 - `references/literate.md`: in a literate (`.nw`) project.
+- `references/reviewing.md`: when reviewing or auditing an existing suite
+  (baseline, inventory, greps, mutations, privacy sweep, report).
 - `tests/`: the skill's own tests (real local HTTP server, real files,
   real subprocesses, no mocks). Run them after changing the assets:
   `uv run --no-project --with pytest,pytest-recording,pyyaml pytest ~/.claude/skills/testing/tests`.

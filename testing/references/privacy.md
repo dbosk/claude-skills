@@ -197,6 +197,9 @@ itself safe to show.
   remove misses every key nobody thought of, free text included. Prefer
   keeping only the keys the output needs; otherwise run its output through
   `scan_leaks.py`, and extend it from the key lists here.
+- Agents: never list the environment (`env`, `printenv`) to check for
+  credentials; test one variable with `[ -n "$VAR" ]`. A listing prints
+  every secret into the transcript.
 - Agents: never `cat` a live response or a freshly recorded cassette before
   the scan has passed. Inspect structure with
   `vcr_support.json_shape(...)` or the shape diff. Anything printed lands
@@ -208,7 +211,7 @@ itself safe to show.
 |---|---|---|
 | `TEST_PSEUDONYM_KEY` | keyring or password manager, exported for a recording session | in the repo, CI, or a dotfile in the project |
 | service token | env var named in `SERVICE_TOKEN_ENV`, from the keyring | in a cassette (filtered) or the repo |
-| originals file | system temp dir, 0600 | in the repo; delete it after committing (`scan_leaks.py` warns when it is missing) |
+| originals file | private temp dir, 0600 | in the repo; delete it after committing (`scan_leaks.py` warns when one passed with `--originals` is missing) |
 | denylist / roster | private directory outside any repo | in the repo |
 | `--allow` list | the repo is fine: it holds placeholders, not people | real values, to silence a true hit |
 

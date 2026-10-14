@@ -519,8 +519,15 @@ def redact_cookie(header: str) -> str:
 
 # -- leak scanning ------------------------------------------------------------
 
-def redact(value: str) -> str:
-    """Describe a hit without repeating it."""
+def redact(value: str, kind: str = "") -> str:
+    """Describe a hit without repeating it.
+
+    An email keeps its domain, which tells a placeholder or a staff
+    address apart without showing whose it is.
+    """
+    if kind == "email" and "@" in value:
+        local, domain = value.rsplit("@", 1)
+        return f"{local[:2]}…({len(local)} chars)@{domain}"
     return f"{value[:2]}…({len(value)} chars)"
 
 
@@ -586,7 +593,7 @@ def scan_text(text: str, originals: Iterable[str] = (), denylist: Iterable[str] 
                     continue
                 if (kind, value.lower()) not in seen:
                     seen.add((kind, value.lower()))
-                    yield no, kind, redact(value)
+                    yield no, kind, redact(value, kind)
 
 
 def cassette_strings(path: Path) -> Iterator[str]:

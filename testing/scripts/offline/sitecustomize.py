@@ -6,6 +6,7 @@ module at startup.  Then the sitecustomize it shadows (e.g. the
 distribution's) is run as usual.
 """
 
+import importlib.util
 import ipaddress
 import socket
 import sys
@@ -27,11 +28,14 @@ def _loopback(address) -> bool:
         return False
 
 
+class NetworkBlocked(RuntimeError):
+    """Not an OSError: HTTP clients retry those with backoff, for hours."""
+
+
 def _guard(original):
     def connect(self, address):
         if self.family in (socket.AF_INET, socket.AF_INET6) and not _loopback(address):
-            raise ConnectionRefusedError(
-                f"blocked by offline_run: {address!r} is not loopback")
+            raise NetworkBlocked(f"blocked by offline_run: {address!r} is not loopback")
         return original(self, address)
     return connect
 
@@ -43,5 +47,4 @@ socket.socket.connect_ex = _guard(socket.socket.connect_ex)
 _others = [p for p in sys.path if Path(p or ".").resolve() != _HERE]
 _spec = PathFinder.find_spec("sitecustomize", _others)
 if _spec and _spec.loader:
-    _module = type(sys)("_shadowed_sitecustomize")
-    _spec.loader.exec_module(_module)
+    _spec.loader.exec_module(importlib.util.module_from_spec(_spec))
