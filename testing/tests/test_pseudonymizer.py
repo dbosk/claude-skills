@@ -165,7 +165,8 @@ def test_default_originals_path_is_in_a_private_directory(tmp_path):
 
 def test_ladok_record_is_scrubbed_by_key():
     # LADOK's Swedish keys: names, personnummer, contact data, the staff
-    # member in SenastAndradAv, and free-text notes (Anteckning).
+    # member in SenastAndradAv, the decision maker (Beslutsfattare) and
+    # free-text notes (Anteckning).
     record = {"Student": {
         "Uid": "6f1c2d3e-0a1b-11ee-8c2d-0242ac120002",
         "Fornamn": "Anna", "Efternamn": "Svensson",
@@ -173,12 +174,14 @@ def test_ladok_record_is_scrubbed_by_key():
         "Anvandarnamn": "annasv", "Utdelningsadress": "Storgatan 1",
         "Postnummer": "11122", "Postort": "Ankeborg", "Telefonnummer": "0701112233"},
         "SenastAndradAv": "larare@uni.example.se",
+        "Beslutsfattare": "Bertil Beslutsson",
         "Anteckning": "Anna missade tentan på grund av sjukdom."}
     p = Pseudonymizer(b"k")
     out = p.scrub_json(record)
     text = everything_text(out)
     for original in ("Anna", "Svensson", "209903151018", "annasv", "Storgatan",
-                     "11122", "Ankeborg", "0701112233", "larare", "sjukdom"):
+                     "11122", "Ankeborg", "0701112233", "larare", "sjukdom",
+                     "Bertil", "Beslutsson"):
         assert original not in text
     assert out["Student"]["Postort"] == vcr_support.CONTACT_PLACEHOLDER
     assert out["Anteckning"] == vcr_support.FREE_TEXT_PLACEHOLDER

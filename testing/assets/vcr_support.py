@@ -40,6 +40,7 @@ NAME_KEYS = {
     "first_name", "last_name", "given_name", "family_name", "surname",
     "firstname", "lastname", "fornamn", "efternamn", "author", "author_name",
     "user_name", "student_name", "teacher_name",
+    "beslutsfattare",  # LADOK: who decided a result or credit transfer
 }
 # Keys such as "name" also name courses, repos and files.  They are
 # pseudonymized only in person-shaped objects: objects that also carry an
@@ -124,6 +125,7 @@ BEARER_RE = re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]{12,}")
 ASSIGNED_SECRET_RE = re.compile(  # also access_token, csrf_token, ...
     r"(?i)(?<![A-Za-z0-9])(?:[a-z_-]*token|[a-z_-]*secret|api[_-]?key|password|passwd)"
     r"[\"']?\s*[:=]\s*[\"']?([A-Za-z0-9_\-./+=]{16,})"
+    r"(?![A-Za-z0-9_\-./+=(])"  # a call (keyring.get_password(...)) is not a value
 )
 # SAMLResponse=..., "SAMLResponse": "...", or <input name="SAMLResponse" value="...">
 SAML_RE = re.compile(
@@ -643,6 +645,26 @@ def name_like(text: str, allow: Iterable[str] = ()) -> Iterator[tuple[int, str]]
         for m in NAME_PAIR_RE.finditer(line):
             if m.group(0).lower() not in allowed:
                 yield no, redact(m.group(0))
+
+
+# "key": "value" in JSON or 'key': 'value' in a Python repr (PythonTeX output)
+KEY_VALUE_RE = re.compile(
+    r"""(["'])([A-Za-z_][\w-]*)\1\s*:\s*(["'])((?:\\.|(?!\3)[^\\])*)\3""")
+
+
+def key_census(texts: Iterable[str]) -> list[tuple[str, int, int]]:
+    """(key, distinct string values, longest value) over all texts.
+
+    Finds free text and names that no pattern recognizes: a scrubbed key
+    has one distinct value (its placeholder), a leaking one has many long
+    ones.  Sorted with the longest values first; the values themselves
+    are never returned."""
+    values: dict[str, set[str]] = {}
+    for text in texts:
+        for m in KEY_VALUE_RE.finditer(text):
+            values.setdefault(m.group(2), set()).add(m.group(4))
+    rows = [(k, len(v), max(map(len, v))) for k, v in values.items()]
+    return sorted(rows, key=lambda r: (-r[2], -r[1], r[0]))
 
 
 def iter_files(paths: Iterable[str | os.PathLike]) -> Iterator[Path]:

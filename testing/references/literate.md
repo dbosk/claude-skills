@@ -88,7 +88,7 @@ Cassettes are recorded data, not generated code. They must survive
     hooks:
       - id: scan-test-data
         name: scan sources and test data for personal data and secrets
-        entry: uv run --with vcrpy ~/.claude/skills/testing/scripts/scan_leaks.py
+        entry: python3 ~/.claude/skills/testing/scripts/scan_leaks.py
         language: system
         files: (\.nw$|^tests/)
   ```
@@ -107,7 +107,10 @@ sense of layer 4 (SKILL.md section 4), and it reaches more readers:
 - if whole records must be shown, scrub them with the same
   `Pseudonymizer` the cassettes use, so free text (LADOK's `Anteckning`)
   is redacted too;
-- before publishing, scan the generated output, for example
+- recorded responses pasted into the prose as examples are published
+  data: replace them with synthetic records, as for cassettes;
+- before publishing, run `scan_leaks.py --key-census` on the generated
+  output to see which keys carry free text, then scan it, for example
   `scan_leaks.py pythontex-files-*/ doc/*.stdout`, and the PDF itself
   with `pdftotext doc.pdf - | scan_leaks.py -`;
 - a weave that calls the service live depends on credentials and on the

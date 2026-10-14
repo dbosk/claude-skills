@@ -3,6 +3,7 @@
 
     scan_leaks.py [PATH ...] [--originals FILE] [--denylist FILE]
                   [--allow FILE] [--warn-names] [--allow-names FILE]
+                  [--key-census]
 
 Scans files and directories for emails outside the example.* domains,
 valid Swedish personnummer, JWTs, bearer tokens, SAML responses and
@@ -26,6 +27,10 @@ Cassettes are also scanned unfolded ("file:unfolded"), because the YAML
 dumper can split a name across two lines.
 --warn-names also reports capitalized word pairs ("Anna Svensson") that
 are not in --allow-names; these are warnings and do not fail the run.
+--key-census prints, instead of scanning, each JSON or Python-repr key
+with its number of distinct values and the length of the longest, never
+the values: a scrubbed key has one value, a free-text or name field that
+leaks has many long ones (run it on generated docs and fixtures).
 
 Exit status: 0 clean, 1 leaks found.  Usable as a pre-commit hook.
 """
@@ -58,6 +63,7 @@ def main(argv=None) -> int:
     parser.add_argument("--allow")
     parser.add_argument("--warn-names", action="store_true")
     parser.add_argument("--allow-names")
+    parser.add_argument("--key-census", action="store_true")
     args = parser.parse_args(argv)
 
     asked = args.originals or os.environ.get(vcr_support.ORIGINALS_ENV)
@@ -73,6 +79,15 @@ def main(argv=None) -> int:
     allow = vcr_support.read_list(args.allow)
     leaks = 0
     paths = args.paths or default_paths()
+    if args.key_census:
+        texts = [f.read_text(encoding="utf-8", errors="replace")
+                 for f in vcr_support.iter_files(p for p in paths if p != "-")
+                 if f.suffix not in BINARY_SUFFIXES and "__pycache__" not in f.parts]
+        if "-" in paths:
+            texts.append(sys.stdin.read())
+        for key, distinct, longest in vcr_support.key_census(texts):
+            print(f"{key} distinct={distinct} longest={longest}")
+        return 0
     if "-" in paths:
         paths = [p for p in paths if p != "-"]
         for no, kind, hit in vcr_support.scan_text(sys.stdin.read(), originals,

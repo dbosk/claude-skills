@@ -54,8 +54,11 @@ in files under HOME, add `--isolate-home`; a tool that keeps its virtual
 environments there (poetry) then needs the venv's python called directly.
 
 Report the counts (passed, failed, errors, skipped) and the reason for
-each group. A failure that was there before the review is a finding in
-its own right; do not "fix" it by loosening the test.
+each group. A collection error hides every test in its module, and
+pytest reports it as one error: count those tests from the source and
+report them as "not collected". A failure that was there before the
+review is a finding in its own right; do not "fix" it by loosening the
+test.
 
 ## 3. Inventory
 
@@ -92,7 +95,17 @@ Pick the weakest-looking tests and break the code they claim to cover:
 
 `mutate.py` first runs the command unmutated and refuses a red
 baseline, since then every mutant would look killed. Narrow the command
-to tests that pass (`pytest -k`, or `PYTESTFLAGS=...` for a make target).
+to tests that pass, with `--ignore` for modules that fail to collect and
+`-k` for failing tests:
+
+    mutate.py src/pkg/mod.nw OLD NEW -- make test \
+        "PYTESTFLAGS=-q --ignore=test_api.py -k 'not test_known_red'"
+
+Keep the inner quotes: make hands the flags to a shell. Node IDs for
+`--deselect` are relative to pytest's rootdir, not to the directory make
+runs in, so `-k` is the safer choice. For a batch of mutants, run the
+first one normally and the rest with `--no-baseline`: the baseline does
+not change between them.
 Report killed and surviving mutants alike: a killed mutant shows a test
 earns its keep. Tests that need the service cannot be mutated offline;
 say so instead of guessing.
@@ -105,8 +118,16 @@ say so instead of guessing.
   and the PDF (`pdftotext doc.pdf - | scan_leaks.py -`). Check which
   record keys reach the output, for example by counting keys in the
   generated JSON, rather than reading the values.
-- For a hit, `git log -S` tells how long it has been public. Whether to
-  rewrite history is the user's decision.
+- Free text and names match no pattern. `scan_leaks.py --key-census
+  <paths>` lists every JSON or Python-repr key with its number of
+  distinct values and the longest, never the values: a scrubbed key has
+  one value, a leaking note or name field has many long ones.
+- Recorded responses pasted into prose or docstrings as examples are
+  data too: read them as you would a cassette.
+- For a hit, find how long it has been public without typing the value,
+  since the command line lands in the transcript too:
+  `git log --reverse --format='%h %ad' -S"$(sed -n 120p src/mod.nw | grep -oE '[0-9]{8}-?[0-9]{4}')" | head -1`.
+  Whether to rewrite history is the user's decision.
 
 ## 7. The report
 
@@ -129,8 +150,17 @@ say so instead of guessing.
   then imports the original, and every mutation "survives". Run the
   venv's python with `PYTHONPATH=<copy>/src` first, and check with one
   mutation that must be killed.
-- `poetry run` in a copy creates a new virtual environment. Call the
-  existing venv's python directly instead.
+- `poetry run` in a copy creates a new virtual environment (and contacts
+  PyPI). Call the existing venv's python directly instead. When a make
+  target hard-codes `poetry run`, put an executable `poetry` shim in a
+  scratch `bin/` and that first on PATH
+  (`PATH=<scratch>/bin:$PATH offline_run.py -- make test`):
+
+      #!/bin/sh
+      [ "$1" = run ] || exit 1; shift
+      PATH=<venv>/bin:$PATH PYTHONPATH=<copy>/src exec "$@"
+
+  `poetry env info -p`, run in the original, prints `<venv>`.
 
 ## Migration order
 

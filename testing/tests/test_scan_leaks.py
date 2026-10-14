@@ -133,3 +133,26 @@ def test_no_originals_warning_unless_one_was_asked_for(tmp_path):
     result = subprocess.run([sys.executable, str(SCRIPT), "c.py"], capture_output=True,
                             text=True, cwd=tmp_path, env=env)
     assert result.returncode == 0 and "originals" not in result.stderr
+
+
+def test_secret_assigned_from_a_call_is_not_a_leak(tmp_path):
+    (tmp_path / "c.py").write_text(
+        "password = keyring.get_password('svc', user)\n"
+        "token = os.environ.get_api_token_value()\n")
+    result = scan(tmp_path, "--originals", tmp_path / "none.txt")
+    assert result.returncode == 0, result.stdout
+
+
+def test_key_census_counts_values_without_printing_them(tmp_path):
+    (tmp_path / "out.stdout").write_text(
+        "{'Anteckning': 'Granted after review by the board', 'Alias': 'Person-ab'}\n"
+        '{"Anteckning": "Second free-text note", "Alias": "Person-ab"}\n'
+        "{'Anteckning': \"It's a third note\", 'Alias': 'Person-ab'}\n")
+    result = scan(tmp_path, "--originals", tmp_path / "none.txt", "--key-census")
+    lines = result.stdout.splitlines()
+    assert any(l.split()[:2] == ["Anteckning", "distinct=3"] for l in lines), lines
+    assert any(l.split()[:2] == ["Alias", "distinct=1"] for l in lines), lines
+    assert lines.index(next(l for l in lines if l.startswith("Anteckning"))) < \
+        lines.index(next(l for l in lines if l.startswith("Alias")))
+    for value in ("Granted", "Second", "third", "Person-ab"):
+        assert value not in result.stdout

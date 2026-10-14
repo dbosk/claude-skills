@@ -159,7 +159,10 @@ still runs on both.
   people the recording never saw, such as a name typed into a hand-written
   fixture. `--warn-names` adds a heuristic for capitalized word pairs,
   which is noisy and only warns: on Swedish data most hits are course
-  names. Known false positives, such as a fixture's placeholder address,
+  names. `--key-census` is the sharper tool for free text: it lists each
+  key with its number of distinct values and the longest, never the
+  values, so a note or name field that escaped scrubbing stands out
+  (many long values where a placeholder should be). Known false positives, such as a fixture's placeholder address,
   go in a file passed with `--allow` (exact values, or `re:REGEX`), which
   may be committed since it holds no personal data. With no paths, the
   scan covers `tests/` and every `.nw` file git tracks; `-` reads
@@ -170,7 +173,7 @@ still runs on both.
     hooks:
       - id: scan-test-data
         name: scan test data for personal data and secrets
-        entry: uv run --with vcrpy ~/.claude/skills/testing/scripts/scan_leaks.py
+        entry: python3 ~/.claude/skills/testing/scripts/scan_leaks.py
         language: system
         files: ^tests/
   ```
