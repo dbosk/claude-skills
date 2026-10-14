@@ -81,6 +81,19 @@ beside them with PythonTeX, importing the class and running just those
 operations (author, 2026-09-24). The mechanism is in `runpython-and-output.md`,
 "Output beside test cases".
 
+**No pass-through chunks.** Never append a new chunk name to a bucket (or
+put one in a root) and then refine that chunk right after: the reader meets
+a name that only forwards to the next display. Write the content in place
+instead: the class shell `class X:` straight in the file's root when the
+classes bucket would hold only that class, the method's code straight in
+the `+≡` of the methods bucket instead of `<<metoden m>>` followed by its
+definition (author, 2026-10-12, striking `<<book.py:s klasser>>` and
+arrowing it to `class Book:`: "The rule is to not append a new chunk to the
+bucket chunk and then refine that chunk immediately afterwards. Then skip
+that indirection."). A name earns its place only when its definition comes
+later, after reasoning the reader must meet first: that is the pseudocode
+of rule 2.
+
 Only programs the text *develops* — builds up from reasoning about the
 problem — are restructured. A program the student predicts, runs or
 compares stays whole (below), and in a contrast pair invariance between
