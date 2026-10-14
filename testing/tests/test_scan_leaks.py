@@ -21,7 +21,7 @@ def test_clean_data_passes(tmp_path):
 
 
 def test_planted_leaks_fail_and_are_not_echoed(tmp_path):
-    secrets = ["anna.svensson@kth.se", "19900101-0017",
+    secrets = ["anna.svensson@uni.example.se", "20990315-1018",
                "Bearer abcdefghijklmnop1234",
                "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjM0NTY3ODkwIn0.c2lnbmF0dXJlLXZhbHVl"]
     (tmp_path / "c.yaml").write_text("\n".join(f"v: {s}" for s in secrets))
@@ -52,7 +52,7 @@ def test_name_heuristic_only_warns(tmp_path):
 def test_token_assignments_and_encoded_emails_are_found(tmp_path):
     (tmp_path / "c.yaml").write_text(
         "body: access_token=AbCdEfGhIjKlMnOpQrSt12\n"
-        "uri: https://lms.example/users?search_term=anna.svensson%40kth.se\n")
+        "uri: https://lms.example/users?search_term=anna.svensson%40uni.example.se\n")
     out = scan(tmp_path, "--originals", tmp_path / "none.txt").stdout
     assert "assigned-secret" in out and "email" in out
 
@@ -78,3 +78,44 @@ def test_originals_inside_url_hosts_are_not_hits():
     hits = list(vcr_support.scan_text("uri: https://canvas.kth.se/api/v1/users\n", ["KTH"]))
     assert hits == []
     assert list(vcr_support.scan_text("teacher: KTH Support\n", ["KTH"]))
+
+
+def test_known_fictive_personnummer_pass(tmp_path):
+    # Tolvan Tolvansson, Skatteverket's test identity, in its usual forms.
+    (tmp_path / "c.py").write_text('PNR = "19121212-1212"\nOTHER = "121212-1212"\n')
+    assert scan(tmp_path, "--originals", tmp_path / "x").returncode == 0
+
+
+def test_allow_file_takes_exact_values_and_regexes(tmp_path):
+    (tmp_path / "c.py").write_text('MAIL = "user@domain.se"\nPNR = "20990315-1018"\n')
+    assert scan(tmp_path, "--originals", tmp_path / "x").returncode == 1
+    allow = tmp_path / "allow.txt"
+    allow.write_text("# fixtures\nuser@domain.se\nre:2099\\d{4}-?\\d{4}\n")
+    result = scan(tmp_path / "c.py", "--originals", tmp_path / "x", "--allow", allow)
+    assert result.returncode == 0, result.stdout
+
+
+def test_saml_response_is_a_leak(tmp_path):
+    blob = "PHNhbWxwOlJlc3BvbnNlIHhtbG5zOnNhbWxwPSJ1cm46b2FzaXM" * 3
+    (tmp_path / "c.yaml").write_text(f"body: SAMLResponse={blob}\n")
+    out = scan(tmp_path, "--originals", tmp_path / "x").stdout
+    assert "saml-response" in out and blob not in out
+
+
+def test_default_paths_cover_tracked_literate_sources(tmp_path):
+    # In a literate project tests/ is generated; the .nw files are the truth.
+    subprocess.run(["git", "init", "-q", str(tmp_path)], check=True)
+    (tmp_path / "src").mkdir()
+    (tmp_path / "src" / "mod.nw").write_text("<<test>>=\nassert f('20990315-1018')\n@\n")
+    subprocess.run(["git", "-C", str(tmp_path), "add", "src/mod.nw"], check=True)
+    result = subprocess.run([sys.executable, str(SCRIPT), "--originals", "none"],
+                            capture_output=True, text=True, cwd=tmp_path)
+    assert result.returncode == 1 and "mod.nw" in result.stdout
+
+
+def test_dash_scans_standard_input(tmp_path):
+    # pdftotext doc.pdf - | scan_leaks.py -
+    result = subprocess.run([sys.executable, str(SCRIPT), "-", "--originals", tmp_path / "x"],
+                            input="Kontakt: anna.svensson@uni.example.se\n",
+                            capture_output=True, text=True)
+    assert result.returncode == 1 and "<stdin>:1: email" in result.stdout, result.stdout

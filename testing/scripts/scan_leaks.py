@@ -2,14 +2,24 @@
 """Fail if test data contains secrets or personal data.
 
     scan_leaks.py [PATH ...] [--originals FILE] [--denylist FILE]
-                  [--warn-names] [--allow-names FILE]
+                  [--allow FILE] [--warn-names] [--allow-names FILE]
 
-Scans files and directories (default: tests/) for emails outside the
-example.* domains, valid Swedish personnummer, JWTs, bearer tokens and
+Scans files and directories for emails outside the example.* domains,
+valid Swedish personnummer, JWTs, bearer tokens, SAML responses and
 assigned secrets; plus every line of --originals (the values the
 pseudonymizer replaced while recording; default: the file vcr_support
 writes for the current directory, if it exists) and of --denylist (a
 private list kept OUTSIDE the repo, e.g. names from a class roster).
+
+A path of - reads standard input (pdftotext doc.pdf - | scan_leaks.py -).
+Default paths: tests/ and, in a git repository, every tracked literate
+source (*.nw), since in a literate project tests/ is generated and the
+.nw files are what gets committed.  Generated documentation (PythonTeX
+*.stdout, notebooks) must be passed explicitly.
+
+--allow FILE lists hits that are not leaks, one per line: an exact value
+(any case) or `re:REGEX` matched against the whole hit.  The fictive
+Tolvan personnummer (19121212-1212) is always allowed.
 
 Hits are printed as file:line: kind and a redacted stub, never the value.
 Cassettes are also scanned unfolded ("file:unfolded"), because the YAML
@@ -22,6 +32,7 @@ Exit status: 0 clean, 1 leaks found.  Usable as a pre-commit hook.
 
 import argparse
 import os
+import subprocess
 import sys
 from pathlib import Path
 
@@ -31,12 +42,21 @@ import vcr_support  # noqa: E402
 BINARY_SUFFIXES = {".png", ".jpg", ".jpeg", ".gif", ".pdf", ".zip", ".gz", ".pyc"}
 
 
+def default_paths() -> list[str]:
+    paths = ["tests"] if Path("tests").exists() else []
+    tracked = subprocess.run(["git", "ls-files", "*.nw"], capture_output=True, text=True)
+    if tracked.returncode == 0:
+        paths += tracked.stdout.split()
+    return paths
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n\n")[0])
-    parser.add_argument("paths", nargs="*", default=["tests"])
+    parser.add_argument("paths", nargs="*")
     parser.add_argument("--originals", default=os.environ.get(vcr_support.ORIGINALS_ENV)
                         or vcr_support.default_originals_path("."))
     parser.add_argument("--denylist")
+    parser.add_argument("--allow")
     parser.add_argument("--warn-names", action="store_true")
     parser.add_argument("--allow-names")
     args = parser.parse_args(argv)
@@ -49,11 +69,19 @@ def main(argv=None) -> int:
     originals = vcr_support.read_list(args.originals)
     denylist = vcr_support.read_list(args.denylist)
     allowed = vcr_support.read_list(args.allow_names)
+    allow = vcr_support.read_list(args.allow)
     leaks = 0
-    for f in vcr_support.iter_files(args.paths):
+    paths = args.paths or default_paths()
+    if "-" in paths:
+        paths = [p for p in paths if p != "-"]
+        for no, kind, hit in vcr_support.scan_text(sys.stdin.read(), originals,
+                                                   denylist, allow):
+            print(f"<stdin>:{no}: {kind} {hit}")
+            leaks += 1
+    for f in vcr_support.iter_files(paths):
         if f.suffix in BINARY_SUFFIXES or "__pycache__" in f.parts:
             continue
-        for where, kind, hit in vcr_support.scan_file(f, originals, denylist):
+        for where, kind, hit in vcr_support.scan_file(f, originals, denylist, allow):
             print(f"{f}:{where}: {kind} {hit}")
             leaks += 1
         if args.warn_names:

@@ -18,6 +18,22 @@ Why:
 - it gives a **baseline**, so a failure that was already there is not
   blamed on the new change, and is not "fixed" by weakening it.
 
+Taken literally, the prompt can do harm in an unfamiliar repository. A
+suite may log in to a service with the user's stored credentials, prompt
+for MFA, or write to the service, and a test environment can hold copies
+of real people's records. So
+read how the tests are run first (Makefile, `pyproject.toml`, CI config,
+`CLAUDE.md`), and make the first run a safe one:
+
+    ~/.claude/skills/testing/scripts/offline_run.py -- make test
+
+It refuses every non-loopback connection in Python processes, disables
+the keyring, writes no caches, and keeps collecting after a module fails
+to import, so the report shows which tests need the service. Run the
+service-facing tests for real only when the user asks, knowing what they
+write. Report the baseline as counts (passed, failed, errors, skipped)
+with the reason for each group.
+
 ## Red/green
 
 Prompt suffix: "Use red/green TDD."
@@ -91,9 +107,22 @@ sandbox, never against production records (privacy layer 4).
 When a new test goes green on the first run, or a suite passes suspiciously
 easily, mutate the code on purpose: invert a condition, drop a filter,
 return early. Confirm that some test goes red, then restore the code.
-Doing it in a scratch copy keeps the working tree clean. The skill's own
+
+    ~/.claude/skills/testing/scripts/mutate.py src/mod.py "if x > 0" "if x >= 0" -- pytest -q
+
+makes one replacement, runs the command, restores the file byte for
+byte, and exits 0 if the mutant was killed and 1 if it survived. In a
+review of someone else's code, run it in a scratch copy. The skill's own
 tests were checked this way, and one mutation (gzip decoding switched off)
 survived until a gzip test was added.
+
+Mutations are also the quickest way to expose two common weak tests:
+
+- assertions that cannot fail, such as `assert json.dumps(r)` (a non-empty
+  string is always true) or `assert type(r) == dict`: mutate the function
+  to return an empty value and watch the test stay green;
+- tests that never call the code under test: change the code's behaviour
+  and nothing goes red.
 
 ## Fresh-context review
 
@@ -136,4 +165,5 @@ With noweb (`.nw`), red/green still governs the *order of work*: write the
 test chunk, tangle, see it fail, then write the implementation chunk. The
 *woven document* still places each test after the code it verifies, as the
 literate-programming skill requires. One is the order of writing, the other
-the order of reading.
+the order of reading. Run, mutate and scan through the `.nw` files; see
+`literate.md`.

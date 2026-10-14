@@ -57,15 +57,30 @@ PERSON_PARENT_KEYS = {
 }
 # An object with one of these "type" values is not a person (GitHub).
 NON_PERSON_TYPES = {"organization", "bot"}
-EMAIL_KEYS = {"email", "primary_email", "login_email", "email_address", "mail"}
+# The defaults include the Swedish keys of LADOK (Fornamn, Epostadress,
+# SenastAndradAv: the staff member who last changed a record, ...).
+EMAIL_KEYS = {
+    "email", "primary_email", "login_email", "email_address", "mail",
+    "epost", "epostadress", "senastandradav",
+}
 LOGIN_KEYS = {
     "login_id", "username", "login", "sis_user_id", "integration_id",
-    "sis_login_id", "uid", "user_login",
+    "sis_login_id", "uid", "user_login", "anvandarnamn",
+}
+# Replaced by key, valid checksum or not (the text scan needs a valid one).
+PNR_KEYS = {"personnummer", "samordningsnummer", "personal_identity_number", "ssn"}
+# Postal address and phone: replaced wholesale, like free text.
+CONTACT_KEYS = {
+    "address", "street_address", "postal_address", "postal_code", "zip",
+    "zip_code", "city", "phone", "phone_number", "mobile", "mobile_phone",
+    "utdelningsadress", "coadress", "postnummer", "postort", "telefonnummer",
+    "mobilnummer",
 }
 # Prose can mention anyone, so it is replaced wholesale.
 FREE_TEXT_KEYS = {
     "body", "message", "comment", "comments", "text_comment", "description",
     "subject", "bio", "notes", "note", "signature",
+    "anteckning", "kommentar", "meddelande",
 }
 # Identifier fields to pseudonymize, keeping the type (int stays int with
 # the same number of digits).  Empty by default: replay matching breaks
@@ -78,16 +93,24 @@ URL_IDENTITY_KEYS = {"avatar_url", "avatar_image_url", "profile_url", "photo_url
 
 SECRET_HEADERS = [
     "authorization", "proxy-authorization", "cookie", "x-api-key",
-    "x-auth-token", "private-token",
+    "x-auth-token", "private-token", "x-xsrf-token", "x-csrf-token",
+    "x-csrftoken",
 ]
-SECRET_RESPONSE_HEADERS = {"set-cookie", "x-auth-token", "authorization"}
+SECRET_RESPONSE_HEADERS = {"x-auth-token", "authorization"}
+# Set-Cookie is kept with its values replaced: session services (LADOK's
+# XSRF-TOKEN) need the cookie to exist in replay, not its value.
+COOKIE_RESPONSE_HEADERS = {"set-cookie"}
 SECRET_QUERY_PARAMS = [
     "access_token", "refresh_token", "id_token", "auth_token", "csrf_token",
     "session_token", "private_token", "token", "api_key", "apikey", "key",
     "client_secret", "password", "secret", "sig", "signature",
+    # A SAML response is the signed identity of the user who logged in.
+    "SAMLResponse", "SAMLart", "j_password",
 ]
 
 FREE_TEXT_PLACEHOLDER = "[redacted free text]"
+CONTACT_PLACEHOLDER = "[redacted contact]"
+SECRET_PLACEHOLDER = "redacted"
 URL_PLACEHOLDER = "https://example.invalid/redacted"
 # RFC 2606 names: addresses there belong to nobody.
 PLACEHOLDER_DOMAINS = ("example.invalid", "example.com", "example.org", "example.net")
@@ -102,6 +125,24 @@ ASSIGNED_SECRET_RE = re.compile(  # also access_token, csrf_token, ...
     r"(?i)(?<![A-Za-z0-9])(?:[a-z_-]*token|[a-z_-]*secret|api[_-]?key|password|passwd)"
     r"[\"']?\s*[:=]\s*[\"']?([A-Za-z0-9_\-./+=]{16,})"
 )
+# SAMLResponse=..., "SAMLResponse": "...", or <input name="SAMLResponse" value="...">
+SAML_RE = re.compile(
+    r"(?i)SAML(?:Response|art)[\"']?(?:\s*[=:]\s*|[^>]{0,40}?value\s*=\s*)[\"']?"
+    r"([A-Za-z0-9+/%]{40,}=*)")
+UUID_RE = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.I)
+# Well-known fictive personnummer, not reported by the scan: Tolvan
+# Tolvansson (Skatteverket's test identity).  Add more with --allow.
+KNOWN_FICTIVE_PNR = {"1212121212"}
+
+
+def _form_field_re(names: Iterable[str]) -> re.Pattern:
+    alternation = "|".join(map(re.escape, names))
+    return re.compile(  # name="X" ... value="v", or X=v in a form body
+        rf'''(?i)(name\s*=\s*["']?(?:{alternation})["']?[^>]*?value\s*=\s*["']?)([^"'>\s]+)'''
+        rf"|((?:^|&)(?:{alternation})=)([^&\s]+)")
+
+
+SECRET_FORM_RE = _form_field_re(SECRET_QUERY_PARAMS)
 
 
 def is_placeholder_email(address: str) -> bool:
@@ -174,7 +215,9 @@ class Pseudonymizer:
                  url_identity_keys: Iterable[str] = URL_IDENTITY_KEYS,
                  id_keys: Iterable[str] = ID_KEYS,
                  ambiguous_name_keys: Iterable[str] = AMBIGUOUS_NAME_KEYS,
-                 person_parent_keys: Iterable[str] = PERSON_PARENT_KEYS):
+                 person_parent_keys: Iterable[str] = PERSON_PARENT_KEYS,
+                 pnr_keys: Iterable[str] = PNR_KEYS,
+                 contact_keys: Iterable[str] = CONTACT_KEYS):
         if not key:
             raise ValueError("an empty pseudonymization key is not allowed")
         self.key = key
@@ -187,7 +230,9 @@ class Pseudonymizer:
         self.id_keys = {k.lower() for k in id_keys}
         self.ambiguous_name_keys = {k.lower() for k in ambiguous_name_keys}
         self.person_parent_keys = {k.lower() for k in person_parent_keys}
-        self.person_marker_keys = (self.name_keys | self.email_keys
+        self.pnr_keys = {k.lower() for k in pnr_keys}
+        self.contact_keys = {k.lower() for k in contact_keys}
+        self.person_marker_keys = (self.name_keys | self.email_keys | self.pnr_keys
                                    | self.login_keys | self.url_identity_keys)
         # Free-text keys to record verbatim for the current test only: set
         # by the template's `synthetic_text` marker for sandbox prose.
@@ -255,8 +300,15 @@ class Pseudonymizer:
         self._remember(value, pseudonym, [local])
         return pseudonym
 
+    def _uuid(self, kind: str, value: str) -> str:
+        h = hmac.new(self.key, f"{kind}:{value.lower()}".encode(), hashlib.sha256).hexdigest()
+        return f"{h[:8]}-{h[8:12]}-{h[12:16]}-{h[16:20]}-{h[20:32]}"
+
     def login(self, value: str) -> str:
-        pseudonym = f"user-{self._tag('login', value.lower())}"
+        if UUID_RE.fullmatch(value):  # keep the shape: code may parse it
+            pseudonym = self._uuid("login", value)
+        else:
+            pseudonym = f"user-{self._tag('login', value.lower())}"
         self._remember(value, pseudonym)
         return pseudonym
 
@@ -267,6 +319,8 @@ class Pseudonymizer:
             width = len(digits)
             low = 10 ** (width - 1) if width > 1 else 0
             pseudonym: int | str = low + tag % (10 ** width - low)
+        elif UUID_RE.fullmatch(digits):
+            pseudonym = self._uuid("id", digits)
         else:
             pseudonym = f"id-{tag % 16 ** 8:08x}"
         if len(digits) >= 4:  # short numbers are too common to replace in text
@@ -342,6 +396,11 @@ class Pseudonymizer:
                         v = self.name(v)
                     elif lk in self.email_keys:
                         v = self.email(v)
+                    elif lk in self.pnr_keys:
+                        v = self.personnummer(v)
+                    elif lk in self.contact_keys:
+                        self._log(v)
+                        v = CONTACT_PLACEHOLDER
                     elif lk in self.login_keys and person:
                         v = self.login(v)
                     elif lk in self.free_text_keys and lk not in self.keep_text:
@@ -386,7 +445,7 @@ class Pseudonymizer:
         try:
             data = json.loads(text)
         except ValueError:
-            scrubbed = self.scrub_text(text)
+            scrubbed = self.scrub_text(scrub_form_secrets(text))
         else:
             scrubbed = json.dumps(self.scrub_json(data), ensure_ascii=False)
         return scrubbed.encode("utf-8") if was_bytes else scrubbed
@@ -417,6 +476,8 @@ class Pseudonymizer:
         for name in list(headers):
             if name.lower() in SECRET_RESPONSE_HEADERS:
                 del headers[name]
+            elif name.lower() in COOKIE_RESPONSE_HEADERS:
+                headers[name] = [redact_cookie(v) for v in headers[name]]
             else:
                 headers[name] = [self.scrub_text(v) if isinstance(v, str) else v
                                  for v in headers[name]]
@@ -439,6 +500,21 @@ class Pseudonymizer:
             "before_record_request": self.before_record_request,
             "before_record_response": self.before_record_response,
         }
+
+
+def scrub_form_secrets(text: str) -> str:
+    """Redact secret fields in HTML forms and form-encoded bodies (SAML)."""
+    def repl(m: re.Match) -> str:
+        prefix = m.group(1) if m.group(1) is not None else m.group(3)
+        return prefix + SECRET_PLACEHOLDER
+    return SECRET_FORM_RE.sub(repl, text)
+
+
+def redact_cookie(header: str) -> str:
+    """name=value; attrs -> name=redacted; attrs (the name is kept)."""
+    pair, sep, attributes = header.partition(";")
+    name = pair.split("=", 1)[0].strip()
+    return f"{name}={SECRET_PLACEHOLDER}{sep}{attributes}"
 
 
 # -- leak scanning ------------------------------------------------------------
@@ -465,13 +541,26 @@ def _needle_pattern(needles: Iterable[str]) -> re.Pattern | None:
     return re.compile(r"(?<!\w)(?:" + "|".join(map(re.escape, words)) + r")(?!\w)", re.I)
 
 
-def scan_text(text: str, originals: Iterable[str] = (), denylist: Iterable[str] = ()
-              ) -> Iterator[tuple[int, str, str]]:
+def allowed(value: str, allow: Iterable[str]) -> bool:
+    """True if `value` is on the allowlist: exact (any case) or `re:` regex."""
+    for entry in allow:
+        if entry.startswith("re:"):
+            if re.fullmatch(entry[3:], value):
+                return True
+        elif entry.lower() == value.lower():
+            return True
+    return False
+
+
+def scan_text(text: str, originals: Iterable[str] = (), denylist: Iterable[str] = (),
+              allow: Iterable[str] = ()) -> Iterator[tuple[int, str, str]]:
     """Yield (line number, kind, redacted hit) for every leak in `text`.
 
     Each line is also checked percent-decoded, so that an email in a query
-    string (anna%40kth.se) is found too.
+    string (anna%40uni.example.se) is found too.  Hits on the allowlist
+    and well-known fictive personnummer (Tolvan) are not reported.
     """
+    allow = list(allow)
     patterns = [(p, kind) for p, kind in ((_needle_pattern(originals), "original"),
                                           (_needle_pattern(denylist), "denylist")) if p]
     for no, raw in enumerate(text.splitlines(), 1):
@@ -483,7 +572,9 @@ def scan_text(text: str, originals: Iterable[str] = (), denylist: Iterable[str] 
             for m in EMAIL_RE.finditer(line):
                 if not is_placeholder_email(m.group(0)):
                     hits.append(("email", m.group(0)))
-            hits += [("personnummer", line[a:b]) for a, b in personnummer_spans(line)]
+            hits += [("personnummer", line[a:b]) for a, b in personnummer_spans(line)
+                     if re.sub(r"\D", "", line[a:b])[-10:] not in KNOWN_FICTIVE_PNR]
+            hits += [("saml-response", m.group(1)) for m in SAML_RE.finditer(line)]
             hits += [("jwt", m.group(0)) for m in JWT_RE.finditer(line)]
             hits += [("bearer-token", m.group(0)) for m in BEARER_RE.finditer(line)]
             hits += [("assigned-secret", m.group(1)) for m in ASSIGNED_SECRET_RE.finditer(line)]
@@ -491,6 +582,8 @@ def scan_text(text: str, originals: Iterable[str] = (), denylist: Iterable[str] 
                 hits += [(kind, m.group(0)) for m in pattern.finditer(line)
                          if not any(a <= m.start() and m.end() <= b for a, b in hosts)]
             for kind, value in hits:
+                if allowed(value, allow):
+                    continue
                 if (kind, value.lower()) not in seen:
                     seen.add((kind, value.lower()))
                     yield no, kind, redact(value)
@@ -517,18 +610,18 @@ def cassette_strings(path: Path) -> Iterator[str]:
                 yield text
 
 
-def scan_file(path: Path, originals: Iterable[str] = (), denylist: Iterable[str] = ()
-              ) -> Iterator[tuple[str, str, str]]:
+def scan_file(path: Path, originals: Iterable[str] = (), denylist: Iterable[str] = (),
+              allow: Iterable[str] = ()) -> Iterator[tuple[str, str, str]]:
     """Yield (location, kind, redacted hit) for a file; cassettes also unfolded."""
-    originals, denylist = list(originals), list(denylist)
+    originals, denylist, allow = list(originals), list(denylist), list(allow)
     text = path.read_text(encoding="utf-8", errors="replace")
     found = set()
-    for no, kind, hit in scan_text(text, originals, denylist):
+    for no, kind, hit in scan_text(text, originals, denylist, allow):
         found.add((kind, hit))
         yield str(no), kind, hit
     if path.suffix in (".yaml", ".yml", ".json"):
         for value in cassette_strings(path):
-            for _, kind, hit in scan_text(" ".join(value.split()), originals, denylist):
+            for _, kind, hit in scan_text(" ".join(value.split()), originals, denylist, allow):
                 if (kind, hit) not in found:
                     found.add((kind, hit))
                     yield "unfolded", kind, hit

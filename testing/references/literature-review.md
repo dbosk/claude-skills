@@ -213,7 +213,7 @@ No study was found that measures breakage of interaction versus state assertions
 
 Not as stated: the claim that interaction assertions break on every refactor is practitioner experience, not a measured result, and mock assertions catch faults that state assertions miss, mainly for calls to external resources. Verdict: **Practitioner-only** for the brittleness, **contested** as a blanket rule. The skill's own qualifier (prefer results and state *when they can be checked*) is the defensible form; replace "break on every refactor" with "tie a test to how the code works, so refactoring tends to break them" and keep interaction assertions for effects that cannot be observed otherwise.
 
-**Wording in the skill after this review.** §1 now reads: "Interaction assertions tie a test to how the code works, so refactoring tends to break them; keep them for effects that cannot be observed otherwise, such as a call to an external service." The "Never" rule keeps its qualifier "when a result or state can be checked instead".
+**Wording in the skill after this review.** §1 now reads: "Interaction assertions tie a test to how the code works, so refactoring tends to break them; keep them for effects that cannot be observed otherwise, such as a call to an external service." The "Never" rule keeps its qualifier "when a result or state can be checked instead". A later revision, made after the skill was tried on a real test suite, adds: "Assert such effects at the outermost owned boundary, on the recorded requests or the fake's state, not on calls to our own domain objects." This narrows where the remaining interaction assertions go; it rests on the same practitioner sources and was not searched separately.
 
 ### Future work
 

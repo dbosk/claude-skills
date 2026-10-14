@@ -65,3 +65,31 @@ def test_gzip_bodies_are_scrubbed_too(tmp_path, fake_service, roster):
     text = cassette.read_text()
     assert "!!binary" not in text  # stored decoded, so it was scrubbed and is reviewable
     assert list(vcr_support.scan_text(text, vcr_support.read_list(originals))) == []
+
+
+def test_cookies_replay_with_redacted_values(tmp_path, fake_service, roster):
+    # Session services (LADOK's XSRF-TOKEN) need the cookie to exist in
+    # replay; only its value is a secret.
+    import http.cookiejar
+    fake_service.routes["/login"] = (200, roster)
+    config = Pseudonymizer(b"k", tmp_path / "o.txt").vcr_config()
+    cassette = tmp_path / "c.yaml"
+    with vcr.VCR(record_mode="once", **config).use_cassette(str(cassette)):
+        fetch(fake_service.url + "/login")
+    assert "s3cr3t" not in cassette.read_text()
+    jar = http.cookiejar.CookieJar()
+    opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(jar))
+    with vcr.VCR(record_mode="none", **config).use_cassette(str(cassette)):
+        opener.open(fake_service.url + "/login").read()
+    assert {c.name: c.value for c in jar} == {"session": vcr_support.SECRET_PLACEHOLDER}
+
+
+def test_csrf_headers_are_not_recorded(tmp_path, fake_service, roster):
+    fake_service.routes["/x"] = (200, roster)
+    config = Pseudonymizer(b"k", tmp_path / "o.txt").vcr_config()
+    cassette = tmp_path / "c.yaml"
+    req = urllib.request.Request(fake_service.url + "/x",
+                                 headers={"X-XSRF-TOKEN": "csrf-secret-value-123"})
+    with vcr.VCR(record_mode="once", **config).use_cassette(str(cassette)):
+        urllib.request.urlopen(req).read()
+    assert "csrf-secret-value-123" not in cassette.read_text()

@@ -55,16 +55,19 @@ def fake_service():
         yield service
 
 
+# Synthetic people that the scrubber and the scan must still catch: the
+# personnummer passes the checksum but is dated 2099, and uni.example.se is
+# not a reserved domain, so neither belongs to anyone yet both look real.
 ROSTER = [
     {"id": 101, "name": "Anna Svensson", "sortable_name": "Svensson, Anna",
-     "email": "anna.svensson@kth.se", "login_id": "annasv",
+     "email": "anna.svensson@uni.example.se", "login_id": "annasv",
      "avatar_url": "https://cdn.example.net/avatars/annasv.png"},
     {"id": 102, "name": "Erik Lindqvist", "sortable_name": "Lindqvist, Erik",
-     "email": "erikl@kth.se", "login_id": "erikl", "avatar_url": None},
+     "email": "erikl@uni.example.se", "login_id": "erikl", "avatar_url": None},
 ]
 SUBMISSIONS = [
     {"id": 7, "user_id": 101, "score": 4.5, "grader": {"name": "Anna Svensson"},
-     "body": "Hej! Jag heter Anna Svensson, personnummer 19900101-0017.",
+     "body": "Hej! Jag heter Anna Svensson, personnummer 20990315-1018.",
      "preview_url": "https://canvas.example/courses/1/users/annasv/preview"},
 ]
 

@@ -1,6 +1,6 @@
 ---
 name: testing
-description: Write, run, review and maintain automated tests so that a green run means the real thing works: real code before fakes, recorded live data before hand-written mocks, live drift checks, and no personal data in test data. Use proactively when (1) writing, fixing, reviewing or deleting tests, adding tests or coverage, doing TDD or red/green, or making failing tests pass; (2) mock, MagicMock, patch, monkeypatch, responses, VCR, vcrpy, pytest-recording, cassettes or snapshots come up; (3) code under test calls an external service or API (Canvas, LADOK, GitHub, an LLM, a database); (4) tests are flaky, pass while the code is broken, or break on every refactor; (5) test data may hold names, emails, personnummer or tokens; (6) starting work in a repository that has tests (run them first). Pytest-centred, with principles for any language.
+description: Write, run, review and maintain automated tests so that a green run means the real thing works: real code before fakes, recorded live data before hand-written mocks, live drift checks, and no personal data in test data. Use proactively when (1) writing, fixing, reviewing or deleting tests, adding tests or coverage, doing TDD or red/green, or making failing tests pass; (2) mock, MagicMock, patch, monkeypatch, responses, VCR, vcrpy, pytest-recording, cassettes or snapshots come up; (3) code under test calls an external service or API (Canvas, LADOK, GitHub, an LLM, a database); (4) tests are flaky, pass while the code is broken, or break on every refactor; (5) test data may hold names, emails, personnummer or tokens; (6) starting work in a repository that has tests (run them first). Pytest-centred, with principles for any language; covers literate (.nw) projects too.
 ---
 
 # Testing
@@ -20,7 +20,7 @@ or docstring).
 | 1. Real code | Default. Sociable tests through our real collaborators; assert on outputs and state, not on which functions were called. | pure functions, parsers, our own classes wired together |
 | 2. Real local instance | When a dependency can run locally. | `tmp_path` files, SQLite or an in-memory DB, a real `git init` in tmp, `http.server` on localhost, a container |
 | 3. Recorded replay | When the dependency is a remote service. Record the **live** responses once, pseudonymized (section 4), and replay them offline. A recording covers only what was recorded: error paths and edge cases need an injected failure (rung 5) or a fake (rung 4). | pytest-recording/vcrpy cassettes; JSON fixtures captured at our wrapper for non-HTTP SDKs |
-| 4. Hand-written fake | Only when replay cannot express the case, for example a state machine across many calls. Put the fake behind our own thin wrapper (Shore's *Nullables*), and cover it with the live check in section 3. | `FakeCanvas` implementing our `CanvasClient` interface |
+| 4. Hand-written fake | Only when replay cannot express the case, for example a state machine across many calls. Put the fake behind our own thin wrapper (Shore's *Nullables*), and cover it with the live check in section 3. The wrapper is the owned code whose only job is I/O: one method per request, no decisions. Fake that layer only; everything with logic above it runs for real. | `FakeCanvas` implementing our `CanvasClient` interface |
 | 5. Mock/patch | Only for things that cannot be recorded or made real: the clock, randomness, injected failures (timeouts, 500s, disk full). Even then, prefer passing the dependency in (a `now` parameter, a seeded `random.Random`) over `patch`. | `freezegun`, a seeded RNG, an injected 503 (`responses`, `respx`, or the rung-4 fake) |
 
 Never:
@@ -28,11 +28,19 @@ Never:
 - assert on call sequences (`assert_called_with`) when a result or state can be checked instead;
 - hand-write a response body that we could have recorded from the live service;
 - let tests share state: each test sets up what it needs, so order and
-  parallel runs do not change the outcome.
+  parallel runs do not change the outcome;
+- write a test that never calls the code under test, such as one that
+  re-implements the logic or checks Python's arithmetic on a hand-built
+  input: it passes whatever the code does;
+- create a service session or log in at import time: take it from a
+  fixture, so missing credentials skip those tests instead of aborting
+  the whole run.
 
 Interaction assertions tie a test to how the code works, so refactoring
 tends to break them; keep them for effects that cannot be observed
-otherwise, such as a call to an external service. A hand-written body
+otherwise, such as a call to an external service. Assert such effects at
+the outermost owned boundary, on the recorded requests or the fake's
+state, not on calls to our own domain objects. A hand-written body
 encodes what we *believe* the service returns, and keeping such doubles in
 step with the real service is a known, reported problem.
 
@@ -62,7 +70,14 @@ A live run repeats every request, writes included. Mark a test that changes
 the service (POST, PUT, DELETE: publishing a page, setting a grade) with
 `@pytest.mark.mutates`. It replays normally, but runs live only with
 `pytest --live --live-writes`, against a sandbox, and it must be safe to
-repeat.
+repeat: a fixture creates a fresh object and removes it in its teardown,
+so a failure halfway leaves nothing behind. Never chain write tests
+through module globals.
+
+The template assumes an API token. Services with cookies, a CSRF token,
+SSO or MFA (LADOK, KTH login) need a session fixture instead, a login
+outside the cassette, and attended live runs: see
+`references/record-replay.md`.
 
 ## 3. Detecting outdated recordings
 
@@ -100,7 +115,11 @@ what the one before missed:
 
 1. **Source.** Record against a sandbox or test account filled with
    synthetic data whenever one exists. Drive tests with identifiers of
-   synthetic objects, never of real people.
+   synthetic objects, never of real people. Check that the sandbox really
+   is synthetic: some test environments are copies of production (LADOK's
+   is re-synced from production every week), and then every person in it
+   is real and layers 2 and 3 carry the whole load. In code, use the
+   fictive Tolvan personnummer 19121212-1212, which the scan allows.
 2. **Scrub at record time** (`assets/vcr_support.py`; recording refuses
    to start without the `TEST_PSEUDONYM_KEY` secret). Secrets are filtered;
    identities in person-shaped objects become keyed-HMAC pseudonyms, the
@@ -115,12 +134,14 @@ what the one before missed:
    redacted stubs. Before committing, run `scripts/scan_leaks.py` with
    `--denylist` pointing at a roster kept *outside* the repo: it catches
    people the scrubber never recognised, for example in XML bodies, which
-   are not scrubbed by key.
+   are not scrubbed by key. Known false positives go in an `--allow` file.
 4. **Output hygiene.** Live assertions must not echo records: assert on
    keys, counts and booleans, since pytest prints the compared values on
    failure. Do not `print` or `cat` live responses to inspect them, because
    whatever the agent reads ends up in its transcript. Use the shape diff
-   instead.
+   instead. Generated documentation that runs live calls (PythonTeX,
+   notebooks, README transcripts) is output too: print only the keys it
+   needs, and scan the generated files before publishing.
 
 For us, as holders of the key, pseudonymized data are still personal data,
 so the key never goes into the repo. If a leak is ever committed, treat it
@@ -130,7 +151,11 @@ reasoning.
 ## 5. Working rules for agents
 
 - **First run the tests** at the start of a session (Willison's prompt), so
-  you know the baseline, the runner and the size of the suite.
+  you know the baseline, the runner and the size of the suite. Run an
+  unfamiliar suite through `scripts/offline_run.py -- <test command>`
+  first: its tests may log in to a service or write to it, and this blocks
+  the network for every Python process, disables the keyring, and keeps
+  collecting past modules that fail to import.
 - **Red/green.** Write the test first, from the spec or the bug report
   rather than from the implementation, and watch it fail *for the right
   reason* before writing the fix. A test that already passed before the
@@ -149,7 +174,8 @@ reasoning.
   red/green test.
 - **Check that the test can fail.** After a green run that came too
   easily, break the code on purpose (a mutation) and confirm the test goes
-  red. Restore the code afterwards. This shows the test catches that
+  red: `scripts/mutate.py FILE OLD NEW -- <test command>` makes the change,
+  runs the tests and restores the file. This shows the test catches that
   break, not that the suite is adequate.
 - **Fresh-context review** for larger changes: a subagent that sees only
   the diff checks whether the tests exercise behaviour or just mirror the
@@ -158,9 +184,21 @@ reasoning.
 
 `references/agent-practices.md` has the prompt phrasings and the reasoning.
 
-In literate programs (`.nw`), tests are *written* first (red/green) but
-*placed* after the code they verify in the woven document; load the
-`literate-programming` skill.
+### Literate programs
+
+Everything above applies to literate (`.nw`) projects, with the `.nw`
+file as the place where tests live:
+
+- tests are chunks in the `.nw`, *written* first (red/green) but *placed*
+  after the code they verify in the woven document; the reason for
+  stepping down the ladder goes in the prose before the chunk;
+- edit and mutate the `.nw`, never the tangled `.py`; give the command
+  that tangles and tests (`make test`) to `offline_run.py` and `mutate.py`;
+- scan the `.nw` sources (the default of `scan_leaks.py`) and the woven
+  outputs, not only the generated `tests/`.
+
+Load the `literate-programming` skill, and see `references/literate.md`
+for the templates, cassettes and `make clean`.
 
 ## 6. Setting up a project (pytest)
 
@@ -181,11 +219,13 @@ In literate programs (`.nw`), tests are *written* first (red/green) but
 
 | Task | Command |
 |---|---|
+| First run of an unfamiliar suite | `~/.claude/skills/testing/scripts/offline_run.py -- make test` (or `-- uv run pytest`) |
 | Offline run | `pytest` |
 | Record a new test | `pytest --record-mode=once -k test_x` |
 | Check for drift | `pytest --live` (`--live-writes` to include `mutates` tests) |
 | Re-record after drift | `pytest --record-mode=rewrite -k test_x` |
 | Leak scan | `uv run --with vcrpy ~/.claude/skills/testing/scripts/scan_leaks.py tests --denylist ~/private/roster.txt` |
+| Does a test catch this break? | `~/.claude/skills/testing/scripts/mutate.py src/mod.py "a + b" "a - b" -- pytest -q` |
 | Compare shapes by hand | `uv run --with vcrpy ~/.claude/skills/testing/scripts/cassette_shape_diff.py tests/cassettes <live dir printed by pytest --live>` |
 
 ## References
@@ -198,6 +238,7 @@ Read when needed:
   service, or when something leaked.
 - `references/agent-practices.md`: when writing prompts for a subagent or
   explaining the working rules.
+- `references/literate.md`: in a literate (`.nw`) project.
 - `tests/`: the skill's own tests (real local HTTP server, real files,
   real subprocesses, no mocks). Run them after changing the assets:
   `uv run --no-project --with pytest,pytest-recording,pyyaml pytest ~/.claude/skills/testing/tests`.

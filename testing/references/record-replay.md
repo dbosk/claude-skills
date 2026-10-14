@@ -5,6 +5,8 @@
 - Record modes
 - Request matching
 - The `--live` mechanics in the template
+- Services with sessions, SSO and MFA
+- Tests that write
 - Gotchas
 - Non-HTTP services
 - Snapshots of our own output
@@ -110,14 +112,91 @@ Two kinds of signal come out of a live run:
 
 Both mean "re-record and review".
 
+## Services with sessions, SSO and MFA
+
+The template's `service_token` fixture fits an API token in a header.
+Many university services instead log in through a browser-style SSO flow
+(SAML or OIDC, often with MFA), then keep a cookie session with a CSRF
+token. LADOK and anything behind KTH's login work like this. Four
+changes:
+
+1. **A session fixture instead of `service_token`.** In replay, build the
+   client offline, without logging in, and give it whatever state the
+   client reads before its first request, such as LADOK's `XSRF-TOKEN`
+   cookie. Under recording or `--live`, log in for real; skip if no
+   credentials are available.
+
+   ```python
+   @pytest.fixture(scope="session")
+   def client(recording):
+       if not recording:  # replay: no login, no credentials needed
+           http = requests.Session()
+           http.cookies.set("XSRF-TOKEN", "redacted")
+           return ServiceClient(http)
+       try:
+           return ServiceClient.logged_in()  # SSO, cached session, MFA
+       except CredentialsMissing as err:
+           pytest.skip(f"cannot log in: {type(err).__name__}")
+   ```
+
+   Never create the session at module level: an import that logs in turns
+   "no credentials" into a collection error that aborts the whole run.
+2. **Log in outside the cassette.** The fixture above logs in before any
+   test's cassette opens, so the login is never recorded. That matters:
+   the SAML response posted back to the service is the signed identity of
+   the user, base64-encoded, and is neither readable by the key-based
+   scrubber nor recognisable to the originals scan. The template also
+   redacts `SAMLResponse` in query strings, form bodies and HTML forms,
+   and the scan reports one as `saml-response`, but keep the login out of
+   the cassette in the first place.
+3. **Cookies are kept, values are not.** The template rewrites
+   `Set-Cookie: XSRF-TOKEN=<secret>; Path=/` to
+   `XSRF-TOKEN=redacted; Path=/`, so the cookie exists in replay. The
+   `X-XSRF-TOKEN` request header is filtered. Headers are not part of
+   request matching, so replay works with the placeholder.
+4. **Live runs are attended.** MFA needs a person, so `pytest --live` is
+   run by hand, never scheduled. Reusing a cached SSO session, as
+   `ladok3.test_session` does, avoids most prompts.
+
+## Tests that write
+
+A `mutates` test runs against the real service under
+`--live --live-writes`, so it must clean up after itself even when it
+fails halfway. Use a fixture with teardown, and give each test its own
+object:
+
+```python
+@pytest.fixture
+def draft(client, sandbox_student):
+    created = client.create_draft(sandbox_student, grade="P")
+    yield created
+    client.delete_draft(created["id"])  # runs on failure too
+
+
+@pytest.mark.vcr
+@pytest.mark.mutates
+def test_finalize_draft(client, draft):
+    finalized = client.finalize(draft["id"])
+    assert finalized["id"] == draft["id"] and finalized["status"] == "final"
+```
+
+Do not chain tests through module globals (`create` stores an ID, `update`
+reads it, `remove` deletes it): the chain only works in file order, a
+single test cannot run alone, and a failure in the middle leaves the
+object on the service. If the service has no delete, undo in the
+teardown with whatever restores the state (back to draft, then remove). A test environment that is a copy of production
+holds real students, so a leftover write touches a real person's record
+until the next sync.
+
 ## Gotchas
 
 - **gzip**: without `decode_compressed_response=True`, bodies are stored
   as `!!binary` and the scrubbers never see them. The template sets it,
   and a test in `tests/test_recording.py` guards it.
 - **Response headers**: vcrpy's `filter_headers` only touches *request*
-  headers. `Set-Cookie` and similar response headers are dropped in
-  `before_record_response`.
+  headers. In `before_record_response` the template drops `X-Auth-Token`
+  and `Authorization` from responses, and keeps `Set-Cookie` with each
+  value replaced by `redacted`.
 - **Content-Length**: scrubbing changes the body length, so the template
   rewrites `Content-Length` to match. Otherwise some clients truncate the
   body or hang on replay.
