@@ -158,3 +158,26 @@ def test_isolate_home_hides_the_users_files():
     out = run("offline_run.py", "--isolate-home", "--", sys.executable, "-c", code).stdout
     home, cache = out.split()
     assert home != os.path.expanduser("~") and cache.startswith(home)
+
+
+HANG = ("return a + b", "while True: pass")
+
+
+def test_a_timeout_in_offline_run_still_restores_the_mutated_file(tmp_path):
+    mod = make_project(tmp_path, "assert add(2, 3) == 5")
+    before = mod.read_bytes()
+    run("offline_run.py", "--timeout", "4", "--", sys.executable,
+        SCRIPTS / "mutate.py", "--no-baseline", mod, *HANG, "--", *PYTEST, cwd=tmp_path)
+    assert mod.read_bytes() == before
+
+
+def test_mutate_counts_a_hang_as_killed_and_restores(tmp_path):
+    import time
+    mod = make_project(tmp_path, "assert add(2, 3) == 5")
+    before = mod.read_bytes()
+    start = time.monotonic()
+    result = run("mutate.py", "--timeout", "3", mod, *HANG, "--", *PYTEST, cwd=tmp_path)
+    assert result.returncode == 0 and "killed" in result.stdout, result.stdout
+    assert "timeout" in result.stdout
+    assert mod.read_bytes() == before
+    assert time.monotonic() - start < 30

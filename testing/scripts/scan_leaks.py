@@ -73,8 +73,13 @@ def main(argv=None) -> int:
               "patterns and the denylist are checked. It is written while "
               "recording and lives in the temp dir, so record again or pass "
               "--originals.", file=sys.stderr)
-    originals = vcr_support.read_list(args.originals)
-    denylist = vcr_support.read_list(args.denylist)
+    elif not asked and Path(args.originals).exists():
+        print(f"scan_leaks: also matching the originals of the last recording here "
+              f"({args.originals}); pass --originals /dev/null to scan without them",
+              file=sys.stderr)
+    # built once: matching thousands of originals is the slow part
+    originals = vcr_support.Needles(vcr_support.read_list(args.originals))
+    denylist = vcr_support.Needles(vcr_support.read_list(args.denylist))
     allowed = vcr_support.read_list(args.allow_names)
     allow = vcr_support.read_list(args.allow)
     leaks = 0

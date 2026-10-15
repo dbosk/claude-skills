@@ -156,3 +156,61 @@ def test_key_census_counts_values_without_printing_them(tmp_path):
         lines.index(next(l for l in lines if l.startswith("Alias")))
     for value in ("Granted", "Second", "third", "Person-ab"):
         assert value not in result.stdout
+
+
+def test_many_originals_scan_quickly(tmp_path):
+    # Real recordings append thousands of originals; the scan must stay
+    # linear in the data, not rebuild a huge alternation per string.
+    import time
+    sys.path.insert(0, str(SCRIPT.parent.parent / "assets"))
+    import vcr_support
+    originals = [f"Person{i:05d} Efternamn{i:05d}" for i in range(4000)]
+    originals += [f"Efternamn{i:05d}" for i in range(4000)]
+    body = " ".join(f"word{i} Ankeborg" for i in range(200))
+    interactions = "".join(
+        f"- request:\n    body: null\n    headers: {{}}\n    method: GET\n"
+        f"    uri: https://lms.example/api/{i}\n"
+        f"  response:\n    body:\n      string: '{body}'\n    headers:\n"
+        f"      Content-Type:\n      - application/json\n    status:\n      code: 200\n"
+        for i in range(300))
+    cassette = tmp_path / "c.yaml"
+    cassette.write_text("interactions:\n" + interactions + "version: 1\n")
+    start = time.monotonic()
+    hits = list(vcr_support.scan_file(cassette, originals + ["word7"]))
+    assert time.monotonic() - start < 10
+    assert {kind for _, kind, _ in hits} == {"original"}
+
+
+def test_originals_match_whole_words_longest_first():
+    sys.path.insert(0, str(SCRIPT.parent.parent / "assets"))
+    import vcr_support
+    originals = ["Anna", "Anna Svensson"]
+    assert not list(vcr_support.scan_text("Annalena and anna_b went home", originals))
+    assert not list(vcr_support.scan_text("Anna Svenssonberg", ["Anna Svensson"]))
+    hits = list(vcr_support.scan_text("graded by ANNA SVENSSON today", originals))
+    assert [kind for _, kind, _ in hits] == ["original"]
+
+
+def test_the_default_originals_file_is_announced(tmp_path):
+    # After a recording, a scan of the sources silently matching its
+    # originals (author names, common words) is confusing: say so.
+    import os
+    run_dir = tmp_path / "run"
+    run_dir.mkdir(mode=0o700)
+    project = tmp_path / "proj"
+    (project / "tests").mkdir(parents=True)
+    (project / "tests" / "data.yaml").write_text("x: 1\n")
+    env = {k: v for k, v in os.environ.items() if k != "TEST_ORIGINALS_FILE"}
+    env["XDG_RUNTIME_DIR"] = str(run_dir)
+    sys.path.insert(0, str(SCRIPT.parent.parent / "assets"))
+    import vcr_support
+    old = os.environ.get("XDG_RUNTIME_DIR")
+    os.environ["XDG_RUNTIME_DIR"] = str(run_dir)
+    try:
+        default = vcr_support.default_originals_path(project)
+    finally:
+        os.environ.pop("XDG_RUNTIME_DIR") if old is None else os.environ.update(XDG_RUNTIME_DIR=old)
+    default.write_text("Svensson\n")
+    result = subprocess.run([sys.executable, str(SCRIPT)], cwd=project, env=env,
+                            capture_output=True, text=True)
+    assert str(default) in result.stderr and "--originals /dev/null" in result.stderr

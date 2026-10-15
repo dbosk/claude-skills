@@ -33,6 +33,12 @@ class FakeService:
                 self.end_headers()
                 self.wfile.write(body)
 
+            def do_PUT(self):
+                self.rfile.read(int(self.headers.get("Content-Length") or 0))
+                self.do_GET()
+
+            do_POST = do_DELETE = do_PUT
+
             def log_message(self, *args):
                 pass
 

@@ -157,6 +157,20 @@ def vcr_config(request, pseudonymizer):
     pseudonymizer.keep_text = set()
 
 
+@pytest.fixture(autouse=True)
+def cassette_fully_played(vcr, recording):
+    """In replay, every recorded request must be made again.
+
+    Otherwise a test that skips a DELETE or its cleanup still passes.
+    """
+    yield
+    if vcr is not None and not recording and not vcr.all_played:
+        unplayed = [f"{r.method} {r.path}" for i, r in enumerate(vcr.requests)
+                    if not vcr.play_counts[i]]
+        pytest.fail(f"{len(unplayed)} recorded request(s) not made in replay: "
+                    + ", ".join(unplayed), pytrace=False)
+
+
 @pytest.fixture(scope="session")
 def service_token(recording):
     """The real credential when talking to the service, a dummy in replay.
@@ -185,7 +199,8 @@ def pytest_sessionfinish(session, exitstatus):
         else:
             print(message)
 
-    originals = vcr_support.read_list(getattr(config, "_originals_path", None))
+    originals = vcr_support.Needles(
+        vcr_support.read_list(getattr(config, "_originals_path", None)))
 
     leaks = []
     for _, written in sorted(pairs):

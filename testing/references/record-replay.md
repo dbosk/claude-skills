@@ -44,9 +44,10 @@ that `live`-marked tests without a cassette reach the service.
 
 ## Request matching
 
-The default `match_on` is method, scheme, host, port, path and query.
-Headers are not matched, so filtering `Authorization` does not break
-replay. Practical consequences:
+vcrpy's default `match_on` is method, scheme, host, port, path and
+query; the template adds the **body**, so a test that sends the wrong
+data fails in replay. Headers are not matched, so filtering
+`Authorization` does not break replay. Practical consequences:
 
 - **Test inputs must be stable and non-personal.** If a test asks for
   `/users/<a real student's id>`, the request URL carries personal data.
@@ -62,9 +63,13 @@ replay. Practical consequences:
   response, both the response body and the next request URL are rewritten
   through the same pseudonym map. Replay then requests the pseudonymized
   URL, which matches the recorded one.
-- Volatile query parameters (timestamps, nonces) break matching. Strip
-  them in `before_record_request` and in the code path, or match on a
-  custom subset: `vcr_config = {"match_on": ["method", "path"]}`.
+- The same holds for a request **body** that carries a personal value:
+  it is scrubbed with the key before matching.
+- Volatile query parameters or body fields (timestamps, nonces, multipart
+  boundaries) break matching. Inject the clock, strip them in
+  `before_record_request`, or register a custom matcher for that
+  request. Dropping `body` from `match_on` gives up the check on what
+  write tests send; do it per test, not globally.
 - Pagination: a live run may fetch more pages than the recording. The shape
   diff groups requests by method plus path (numeric segments become
   `{n}`), so an extra page is not reported as drift.
@@ -117,38 +122,55 @@ Both mean "re-record and review".
 The template's `service_token` fixture fits an API token in a header.
 Many university services instead log in through a browser-style SSO flow
 (SAML or OIDC, often with MFA), then keep a cookie session with a CSRF
-token. LADOK and anything behind KTH's login work like this. Four
+token. LADOK and anything behind KTH's login work like this. Five
 changes:
 
 1. **A session fixture instead of `service_token`.** In replay, build the
    client offline, without logging in, and give it whatever state the
    client reads before its first request, such as LADOK's `XSRF-TOKEN`
-   cookie. Under recording or `--live`, log in for real; skip if no
-   credentials are available.
+   cookie. Under recording or `--live`, use the session that the `login`
+   fixture (item 2) opened, and skip if it has none.
 
    ```python
    @pytest.fixture(scope="session")
-   def client(recording):
+   def client(login, recording):
        if not recording:  # replay: no login, no credentials needed
            http = requests.Session()
            http.cookies.set("XSRF-TOKEN", "redacted")
            return ServiceClient(http)
-       try:
-           return ServiceClient.logged_in()  # SSO, cached session, MFA
-       except CredentialsMissing as err:
-           pytest.skip(f"cannot log in: {type(err).__name__}")
+       if isinstance(login, str):
+           pytest.skip(login)
+       return login
    ```
 
    Never create the session at module level: an import that logs in turns
    "no credentials" into a collection error that aborts the whole run.
-2. **Log in outside the cassette.** The fixture above logs in before any
-   test's cassette opens, so the login is never recorded. That matters:
-   the SAML response posted back to the service is the signed identity of
-   the user, base64-encoded, and is neither readable by the key-based
-   scrubber nor recognisable to the originals scan. The template also
-   redacts `SAMLResponse` in query strings, form bodies and HTML forms,
-   and the scan reports one as `saml-response`, but keep the login out of
-   the cassette in the first place.
+2. **Log in outside the cassette.** pytest-recording's `vcr` fixture is
+   autouse, so it can open the cassette before a fixture that a test
+   merely requests by name. Make the login fixture session-scoped *and*
+   autouse, so it runs first. It must not call `pytest.skip`: skipping an
+   autouse session fixture skips every test, the offline ones too. Return
+   the session, or the reason there is none, and let `client` skip:
+
+   ```python
+   @pytest.fixture(scope="session", autouse=True)
+   def login(recording):
+       if not recording:
+           return None
+       try:
+           return ServiceClient.logged_in()  # SSO, cached session, MFA
+       except CredentialsMissing as err:
+           return f"cannot log in: {type(err).__name__}"  # a reason, not a skip
+   ```
+
+   Keeping the login out of the cassette matters: the SAML response
+   posted back to the service is the signed identity of the user,
+   base64-encoded, and is neither readable by the key-based scrubber nor
+   recognisable to the originals scan. The template also redacts
+   `SAMLResponse` in query strings, form bodies and HTML forms, and the
+   scan reports one as `saml-response`. That redaction still matters: a
+   session that expires during a long run logs in again inside some
+   test's cassette.
 3. **Cookies are kept, values are not.** The template rewrites
    `Set-Cookie: XSRF-TOKEN=<secret>; Path=/` to
    `XSRF-TOKEN=redacted; Path=/`, so the cookie exists in replay. The
@@ -157,6 +179,20 @@ changes:
 4. **Live runs are attended.** MFA needs a person, so `pytest --live` is
    run by hand, never scheduled. Reusing a cached SSO session, as
    `ladok3.test_session` does, avoids most prompts.
+5. **Reset per-client state for every test.** A session-scoped client
+   carries state between tests, and a cassette records what one test
+   needed *given what ran before it*. A response cache warmed by an
+   earlier test leaves a later test's cassette without that request, so
+   the test fails when run alone. A session that was warm while recording
+   but is fresh in replay (or the reverse) makes extra requests, for
+   example a CSRF-token refresh after the service's idle timeout. Clear
+   caches in a function-scoped fixture, and put the replay client in the
+   state the recording had (mark the session fresh). After recording,
+   run each test alone in replay to prove the cassettes are independent:
+
+   ```sh
+   pytest --collect-only -q | grep :: | while read t; do pytest -q "$t" || echo "FAILS ALONE: $t"; done
+   ```
 
 ## Tests that write
 
@@ -179,6 +215,11 @@ def test_finalize_draft(client, draft):
     finalized = client.finalize(draft["id"])
     assert finalized["id"] == draft["id"] and finalized["status"] == "final"
 ```
+
+In replay the template checks what a write test sends: requests match on
+their body, and a test fails when a recorded request was not made again
+(`cassette_fully_played`), so a wrong grade in a PUT or a skipped DELETE
+or cleanup step is caught offline, not only under `--live-writes`.
 
 Do not chain tests through module globals (`create` stores an ID, `update`
 reads it, `remove` deletes it): the chain only works in file order, a
