@@ -1,0 +1,6 @@
+\usepackage[style=authoryear,backend=biber,maxcitenames=2,uniquename=false,uniquelist=false,dashed=false,date=year,isbn=false]{biblatex}
+\DeclareSourcemap{\maps[datatype=bibtex]{
+  \map{\step[fieldset=issn, null]}
+  \map[overwrite]{\step[fieldsource=doi, final]\step[fieldset=url, null]}
+}}
+\addbibresource{testing-claims.bib}

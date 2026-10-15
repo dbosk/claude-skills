@@ -35,7 +35,7 @@ Each database returned at most 20 hits per query, so 20 means "at least 20". S1,
 | Contested | Studies disagree, or the better evidence points the other way. |
 | Practitioner-only | Experienced practitioners recommend it; no empirical study was found. |
 
-**Audit trail.** The [literature](literature/) directory holds the bibliography with a provenance record for every source ([testing-claims.bib](literature/testing-claims.bib): how it was found, why it was picked, the verbatim quote, how it was verified, the counter-search) and, for each chapter's search session, the full classified hit list ([sessions](literature/sessions/): `.csv`), its BibTeX, the query list and a LaTeX audit table.
+**Audit trail.** The [literature](literature/) directory holds the bibliography with a provenance record for every source ([testing-claims.bib](literature/testing-claims.bib): how it was found, why it was picked, the verbatim quote, how it was verified, the counter-search) and, for each chapter's search session, the full classified hit list ([sessions](literature/sessions/): `.csv`), its BibTeX, the query list and a LaTeX audit table. Running `make` in that directory typesets this review as a LaTeX article.
 
 ## Summary
 
