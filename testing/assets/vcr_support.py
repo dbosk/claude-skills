@@ -135,6 +135,15 @@ ASSIGNED_SECRET_RE = re.compile(  # also access_token, csrf_token, ...
 SAML_RE = re.compile(
     r"(?i)SAML(?:Response|art)[\"']?(?:\s*[=:]\s*|[^>]{0,40}?value\s*=\s*)[\"']?"
     r"([A-Za-z0-9+/%]{40,}=*)")
+# Links that are themselves the secret: whoever holds one can read the data.
+URL_RE = re.compile(r"\b[A-Za-z][A-Za-z0-9+.-]*://[^\s'\"<>()\[\]]+")
+CAPABILITY_RE = re.compile(r"/private-[0-9a-f]{16,}", re.I)  # Google Calendar's secret iCal
+URL_SECRET_RE = re.compile(
+    r"(?i)[?&;](?:" + "|".join(map(re.escape, SECRET_QUERY_PARAMS)) + r")=([^&#\s]{8,})")
+URL_PART_RE = re.compile(r"[A-Za-z0-9_-]{32,}")  # a long token in a path or query
+URL_ID_RE = re.compile(  # numeric user IDs: pseudonymous, warned about on request
+    r"(?i)/(?:users?|students?|people|persons?|submissions)/(\d{3,})(?!\d)"
+    r"|[?&](?:user|student|person)_?id=(\d{3,})(?!\d)")
 UUID_RE = re.compile(r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}", re.I)
 # Well-known fictive personnummer, not reported by the scan: Tolvan
 # Tolvansson (Skatteverket's test identity).  Add more with --allow.
@@ -174,6 +183,40 @@ def is_personnummer(match: re.Match) -> bool:
     if not (1 <= day <= 31 or 61 <= day <= 91):  # 61-91: samordningsnummer
         return False
     return luhn_ok(yy + mm + dd + tail)
+
+
+GIT_OBJECT_RE = re.compile(r"[0-9a-f]{40}|[0-9a-f]{64}")  # commit links are not secrets
+
+
+def looks_random(value: str, strict: bool = False) -> bool:
+    """A token has digits or mixed case; prose and placeholders do not.
+
+    strict, for long parts of a URL: digits and letters, and not a git
+    object name, so that words, numeric IDs and commit links pass.
+    """
+    digit = any(c.isdigit() for c in value)
+    if strict:
+        return digit and any(c.isalpha() for c in value) and not GIT_OBJECT_RE.fullmatch(value)
+    return digit or (any(c.islower() for c in value) and any(c.isupper() for c in value))
+
+
+def slug(part: str) -> bool:
+    """Readable words joined by hyphens (a page title in a URL), not a token."""
+    return sum(w.isalpha() and len(w) >= 3 for w in part.split("-")) >= 2
+
+
+def url_hits(line: str) -> list[tuple[str, str]]:
+    hits = []
+    for url in URL_RE.finditer(line):
+        url = url.group(0)
+        hits += [("capability-url", m.group(0)) for m in CAPABILITY_RE.finditer(url)]
+        secrets = [m.group(1) for m in URL_SECRET_RE.finditer(url) if looks_random(m.group(1))]
+        hits += [("url-secret", v) for v in secrets]
+        known = secrets + [h for _, h in hits]
+        hits += [("url-token", m.group(0)) for m in URL_PART_RE.finditer(url)
+                 if looks_random(m.group(0), strict=True) and not slug(m.group(0))
+                 and not any(m.group(0) in v or v in m.group(0) for v in known)]
+    return hits
 
 
 def personnummer_spans(text: str) -> list[tuple[int, int]]:
@@ -635,8 +678,11 @@ def scan_text(text: str, originals: Iterable[str] | Needles = (),
                      if re.sub(r"\D", "", line[a:b])[-10:] not in KNOWN_FICTIVE_PNR]
             hits += [("saml-response", m.group(1)) for m in SAML_RE.finditer(line)]
             hits += [("jwt", m.group(0)) for m in JWT_RE.finditer(line)]
-            hits += [("bearer-token", m.group(0)) for m in BEARER_RE.finditer(line)]
-            hits += [("assigned-secret", m.group(1)) for m in ASSIGNED_SECRET_RE.finditer(line)]
+            hits += [("bearer-token", m.group(0)) for m in BEARER_RE.finditer(line)
+                     if looks_random(m.group(0).split()[-1])]
+            hits += [("assigned-secret", m.group(1)) for m in ASSIGNED_SECRET_RE.finditer(line)
+                     if looks_random(m.group(1))]
+            hits += url_hits(line)
             for pattern, kind in patterns:  # a name part in a host is not a leak
                 hits += [(kind, text) for start, end, text in pattern.finditer(line)
                          if not any(a <= start and end <= b for a, b in hosts)]
@@ -685,6 +731,13 @@ def scan_file(path: Path, originals: Iterable[str] | Needles = (),
                 if (kind, hit) not in found:
                     found.add((kind, hit))
                     yield "unfolded", kind, hit
+
+
+def url_ids(text: str) -> Iterator[tuple[int, str]]:
+    """Numeric user IDs in URLs (/users/N, ?student_id=N), redacted."""
+    for no, line in enumerate(text.splitlines(), 1):
+        for m in URL_ID_RE.finditer(line):
+            yield no, redact(m.group(1) or m.group(2))
 
 
 NAME_PAIR_RE = re.compile(r"\b[A-ZÅÄÖÉ][a-zåäöéü]+ [A-ZÅÄÖÉ][a-zåäöéü]+\b")

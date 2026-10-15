@@ -181,3 +181,72 @@ def test_mutate_counts_a_hang_as_killed_and_restores(tmp_path):
     assert "timeout" in result.stdout
     assert mod.read_bytes() == before
     assert time.monotonic() - start < 30
+
+
+def test_isolate_home_names_the_kept_home_so_writes_can_be_inspected():
+    code = "import os, pathlib; pathlib.Path(os.environ['HOME'], 'wrote').write_text('x')"
+    result = run("offline_run.py", "--isolate-home", "--", sys.executable, "-c", code)
+    home = result.stderr.split("HOME=")[1].split()[0].rstrip(";")
+    assert (Path(home) / "wrote").exists(), result.stderr
+
+
+def shell(script, *args):
+    return run("offline_run.py", "--", "sh", "-c", script, "sh", *args)
+
+
+def test_offline_run_refuses_programs_that_reach_services_themselves():
+    # Not only Python: gh, ssh, curl and AFS's pts talk to the network, and
+    # are refused before they start, whether installed or not.  The commands
+    # stay local (or name hosts that cannot resolve) in case the refusal is
+    # missing: a red test must not reach a service either.
+    for program in ("gh --version", "ssh -V", "curl https://host.invalid",
+                    "pts help", "fs help"):
+        result = shell(program + '; echo "rc=$?"')
+        assert "rc=0" not in result.stdout, program
+        assert f"refused to run {program.split()[0]}" in result.stderr, (program, result.stderr)
+
+
+def test_offline_run_lets_git_and_rsync_work_locally_but_not_remotely(tmp_path):
+    local = shell('git init -q "$1/repo" && git -C "$1/repo" status --short && echo local-ok',
+                  tmp_path)
+    assert "local-ok" in local.stdout, local.stderr
+    clone = shell('git clone -q "$1/repo" "$1/copy" && echo clone-ok', tmp_path)
+    assert "clone-ok" in clone.stdout, clone.stderr
+    for remote in ('git -C "$1/repo" push origin main', 'git -C "$1/repo" fetch',
+                   "git clone https://host.invalid/x/y", "git clone git@host.invalid:x/y",
+                   'rsync -a "$1/repo" host.invalid:backup', "rsync rsync://host.invalid/m ."):
+        result = shell(remote + '; echo "rc=$?"', tmp_path)
+        assert "rc=0" not in result.stdout, remote
+        assert "refused to run " + remote.split()[0] in result.stderr, (remote, result.stderr)
+
+
+def test_offline_run_hides_the_kerberos_ticket():
+    code = "import os; print(os.environ.get('KRB5CCNAME'))"
+    env = {**os.environ, "KRB5CCNAME": "KEYRING:persistent:1000"}
+    result = subprocess.run([sys.executable, str(SCRIPTS / "offline_run.py"), "--",
+                             sys.executable, "-c", code],
+                            capture_output=True, text=True, env=env, timeout=60)
+    ccache = result.stdout.strip()
+    assert ccache.startswith("FILE:") and not Path(ccache[5:]).exists()
+
+
+def test_offline_run_drops_afs_tokens_with_a_fresh_pag():
+    # AFS tokens live in the kernel, tied to the login's PAG, so a fake HOME
+    # does not hide them; a new PAG (an extra group) starts without tokens.
+    import shutil
+    import pytest
+    if not shutil.which("pagsh"):
+        pytest.skip("no pagsh: not an AFS client")
+    outside = set(subprocess.run(["id", "-G"], capture_output=True, text=True).stdout.split())
+    inside = set(shell("id -G").stdout.split())
+    assert inside - outside, "the command did not get a PAG of its own"
+
+
+def test_mutate_does_not_count_an_empty_selection_as_killed(tmp_path):
+    # pytest exits 5 when -k selects nothing: no test ran, so nothing was
+    # shown about the mutant, even with --no-baseline.
+    mod = make_project(tmp_path, "assert add(0, 0) == 0")
+    result = run("mutate.py", "--no-baseline", mod, "a + b", "a - b", "--", *PYTEST,
+                 "-k", "no_such_test", cwd=tmp_path)
+    assert result.returncode == 2 and "killed" not in result.stdout, result.stdout
+    assert "no tests" in result.stderr

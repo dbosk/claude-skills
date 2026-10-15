@@ -214,3 +214,45 @@ def test_the_default_originals_file_is_announced(tmp_path):
     result = subprocess.run([sys.executable, str(SCRIPT)], cwd=project, env=env,
                             capture_output=True, text=True)
     assert str(default) in result.stderr and "--originals /dev/null" in result.stderr
+
+
+def test_capability_urls_are_leaks(tmp_path):
+    # Anyone holding such a link can read the calendar or schedule: a secret,
+    # even though it looks like configuration.  (Synthetic values.)
+    urls = ["https://calendar.google.com/calendar/ical/x%40group.calendar.google.com/"
+            "private-0123456789abcdef0123456789abcdef/basic.ics",
+            "https://cloud.timeedit.example/uni/web/s/ri.html?h=t&sid=3"
+            "&x=Qx7Zk2Lm9Pq4Rt6Vw8Yz1Ab3Cd5Ef7Gh",
+            "https://cloud.timeedit.example/uni/web/s/ri.html?p=0A1B2C3D4E5F60718293A4B5C6D7E8F901",
+            "https://api.example.org/feed?api_key=Zx81Kq0LmWw2"]
+    (tmp_path / "config.stdout").write_text("\n".join(f"url = {u}" for u in urls))
+    result = scan(tmp_path, "--originals", tmp_path / "none.txt")
+    assert result.returncode == 1
+    for kind in ("capability-url", "url-token", "url-secret"):
+        assert kind in result.stdout, result.stdout
+    assert result.stdout.count("url-token") == 2, result.stdout
+    for secret in ("0123456789abcdef0123456789abcdef", "Qx7Zk2Lm9Pq4Rt6Vw8Yz1Ab3Cd5Ef7Gh",
+                   "Zx81Kq0LmWw2"):
+        assert secret not in result.stdout
+
+
+def test_prose_placeholders_and_commit_links_are_not_secrets(tmp_path):
+    (tmp_path / "doc.nw").write_text(
+        "The token is a bearer credential---anyone holding it can log in.\n"
+        'token = "your-canvas-token"\n'
+        "API_KEY=YOUR_API_KEY_GOES_HERE\n"
+        "See https://github.com/x/y/commit/0123456789abcdef0123456789abcdef01234567\n"
+        "and https://blog.example/how-we-test-3-services-without-mocks-in-2024/\n"
+        "and https://rfc.example/New-Properties-for-iCalendar-RFC-7986.html\n")
+    result = scan(tmp_path, "--originals", tmp_path / "none.txt")
+    assert result.returncode == 0, result.stdout
+
+
+def test_user_ids_in_urls_are_warnings_on_request(tmp_path):
+    (tmp_path / "t.nw").write_text(
+        "preview = 'https://lms.example/courses/1/assignments/2/submissions/123456?x=1'\n")
+    quiet = scan(tmp_path, "--originals", tmp_path / "none.txt")
+    assert quiet.returncode == 0 and "url-id" not in quiet.stdout
+    warned = scan(tmp_path, "--originals", tmp_path / "none.txt", "--warn-ids")
+    assert warned.returncode == 0 and "warning: url-id" in warned.stdout
+    assert "123456" not in warned.stdout

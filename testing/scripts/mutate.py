@@ -22,7 +22,10 @@ SIGHUP (offline_run.py's timeout sends SIGTERM first).
 
 Exit status: 0 the mutant was killed (the command failed), 1 it survived
 (the command passed: no test noticed the change), 2 usage error (OLD not
-found, or found more than once: make it longer) or a red baseline.  If the process is
+found, or found more than once: make it longer), a red baseline, or a
+command that ran no tests (pytest's exit 5; a make target may hide it,
+which the baseline catches).  OLD and NEW may span lines ($'a\nb' in bash).
+The backup goes to $TMPDIR (default /tmp).  If the process is
 killed hard (SIGKILL), the original is in the backup file this script names.
 In a literate project the tangled files still hold the mutant after a
 run, until the next build: rebuild before trying anything by hand.
@@ -36,6 +39,7 @@ import tempfile
 from pathlib import Path
 
 HUNG = None  # run()'s result when the command timed out
+NO_TESTS = 5  # pytest's exit status when the selection (-k, paths) is empty
 
 
 def stop(signum, frame):
@@ -101,6 +105,10 @@ def main(argv=None) -> int:
     finally:
         path.write_bytes(original)
         os.unlink(backup)
+    if status == NO_TESTS:
+        print("mutate: the command ran no tests (pytest exit 5: check -k and the "
+              "paths), so the mutant was not tried", file=sys.stderr)
+        return 2
     if status == 0:
         print(f"mutant SURVIVED: {path}: {old!r} -> {new!r}; no test noticed")
         return 1

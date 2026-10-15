@@ -2,12 +2,14 @@
 """Fail if test data contains secrets or personal data.
 
     scan_leaks.py [PATH ...] [--originals FILE] [--denylist FILE]
-                  [--allow FILE] [--warn-names] [--allow-names FILE]
+                  [--allow FILE] [--warn-names] [--allow-names FILE] [--warn-ids]
                   [--key-census]
 
 Scans files and directories for emails outside the example.* domains,
-valid Swedish personnummer, JWTs, bearer tokens, SAML responses and
-assigned secrets; plus every line of --originals (the values the
+valid Swedish personnummer, JWTs, bearer tokens, SAML responses,
+assigned secrets and links that are secrets themselves (a Google
+Calendar private address, a secret-named query parameter, a long mixed
+token in a URL: TimeEdit, shared documents); plus every line of --originals (the values the
 pseudonymizer replaced while recording; default: the file vcr_support
 writes for the current directory, if it exists) and of --denylist (a
 private list kept OUTSIDE the repo, e.g. names from a class roster).
@@ -25,8 +27,16 @@ Tolvan personnummer (19121212-1212) is always allowed.
 Hits are printed as file:line: kind and a redacted stub, never the value.
 Cassettes are also scanned unfolded ("file:unfolded"), because the YAML
 dumper can split a name across two lines.
+Tokens must look random (digits or mixed case), so prose ("a bearer
+credential") and placeholders ("your-api-token") pass.  A YYYYMMDD-HHMM
+timestamp passes the personnummer checksum one time in ten: allow such
+names with --allow 're:20[0-9]{6}-[0-9]{4}' only after checking them, since
+students' files are named by personnummer too.
 --warn-names also reports capitalized word pairs ("Anna Svensson") that
 are not in --allow-names; these are warnings and do not fail the run.
+--warn-ids warns about numeric user IDs in URLs (/users/N, /submissions/N,
+?student_id=N): pseudonymous, not anonymous, if they come from a real
+service.
 --key-census prints, instead of scanning, each JSON or Python-repr key
 with its number of distinct values and the length of the longest, never
 the values: a scrubbed key has one value, a free-text or name field that
@@ -63,6 +73,7 @@ def main(argv=None) -> int:
     parser.add_argument("--allow")
     parser.add_argument("--warn-names", action="store_true")
     parser.add_argument("--allow-names")
+    parser.add_argument("--warn-ids", action="store_true")
     parser.add_argument("--key-census", action="store_true")
     args = parser.parse_args(argv)
 
@@ -105,10 +116,14 @@ def main(argv=None) -> int:
         for where, kind, hit in vcr_support.scan_file(f, originals, denylist, allow):
             print(f"{f}:{where}: {kind} {hit}")
             leaks += 1
-        if args.warn_names:
+        if args.warn_names or args.warn_ids:
             text = f.read_text(encoding="utf-8", errors="replace")
+        if args.warn_names:
             for no, hit in vcr_support.name_like(text, allowed):
                 print(f"{f}:{no}: warning: name-like {hit}")
+        if args.warn_ids:
+            for no, hit in vcr_support.url_ids(text):
+                print(f"{f}:{no}: warning: url-id {hit}")
     if leaks:
         print(f"{leaks} leak(s) found; scrub or delete the data, and if it was "
               "ever committed, treat it as published (rotate secrets, ask before "
