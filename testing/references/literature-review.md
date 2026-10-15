@@ -62,6 +62,110 @@ Each database returned at most 20 hits per query, so 20 means "at least 20". S1,
 | 19 | [Does exploratory, manual trying find defects scripted tests miss?](#ch-exploratory) | §5 | Contested |
 | 20 | [Do hand-written fakes need verifying against the real implementation?](#ch-verified-fakes) | §1 | Practitioner-only |
 
+## The answers in brief
+
+Each answer condenses the chapter's conclusion; the chapter gives the
+sources and the counter-evidence.
+
+1. **Do hand-written test doubles drift from the real dependency?**
+   Yes, they can, and developers report keeping them in step as a key
+   challenge. Nothing shows that a hand-written body is *the most likely*
+   thing to be wrong, so the skill dropped that superlative. *Qualified.*
+2. **Do interaction assertions break on refactoring more than state
+   assertions?** That they break on refactoring is practitioner
+   experience, not a measured result, and mock assertions do catch faults
+   that state assertions miss, mainly for calls to external resources.
+   Prefer results and state when they can be checked; keep interaction
+   assertions for effects that cannot be observed otherwise.
+   *Practitioner-only; contested as a blanket rule.*
+3. **Do sociable tests find more defects than solitary, mocked unit
+   tests?** No study shows it: the two kinds find partly different faults,
+   and the largest study found no difference by defect type. Real
+   collaborators stay the default because they cannot drift, not because
+   they find more. *Contested.*
+4. **Do real local instances catch defects that mocks miss?** Unknown: no
+   study compares them. The advice rests on practice, and slowness, setup
+   and shared-resource flakiness are the reasons developers give for
+   mocking instead. *Practitioner-only.*
+5. **Are recorded responses more realistic than hand-written stubs?** For
+   what was recorded, yes, and recordings are used in industry. But they
+   cover nothing outside the recording, so error paths and edge cases
+   need an injected failure or a fake. No study compares the two.
+   *Qualified.*
+6. **Do web APIs change often enough for recordings to go stale?** Yes
+   for evolving APIs: breaking changes are common and often arrive
+   without a major version bump. A sizeable minority of APIs never break.
+   *Supported.*
+7. **Do periodic checks against the real service detect drift in test
+   doubles?** Yes, on thin evidence: contract tests caught every seeded
+   integration defect in the one case study found, and an action-research
+   study agrees. Nothing points the other way. *Qualified (thin).*
+8. **Do invariant and shape assertions keep tests valid without losing
+   fault detection?** Both effects are real: exact values on changing
+   data are brittle, but assertions that check too little miss faults.
+   Relational properties keep most of the detection power, so assert the
+   strongest invariant that holds on live data, not merely the shape.
+   *Qualified.*
+9. **Are time, randomness and the network major causes of flaky tests?**
+   They are documented causes, and the network leads in JavaScript, but
+   in Java and Python asynchronous waits, concurrency and test-order
+   dependency dominate. Isolating each test addresses the larger share.
+   *Qualified.*
+10. **Is keyed-hash pseudonymised test data still personal data?** Yes for
+    whoever holds the key, and an unkeyed hash can be reversed by hashing
+    candidate names. For a recipient without the key, the Court of Justice
+    has held that pseudonymised data are not always personal data.
+    *Supported for the key holder; qualified for others.*
+11. **Do secrets and personal data leak through repositories?** Yes:
+    leaked secrets on GitHub are pervasive, found within seconds and
+    rarely cleaned from history, so a pushed secret is published. Personal
+    data in test fixtures has not been studied. *Supported.*
+12. **Does free text carry identifiers that pattern-based scrubbing
+    misses?** Yes: automated scrubbing misses identifiers by a wide margin,
+    and even fully masked text can be re-identified from context.
+    Replacing free text wholesale avoids the problem. *Supported (clinical
+    and biographical text).*
+13. **Does writing tests first improve quality or productivity?** Not in
+    general: the evidence is mixed, with a small quality gain at best and
+    no clear effect of the order itself. For LLM work, tests written from
+    faulty code inherit its faults, so the skill justifies red/green by
+    test independence, not by TDD's general benefits. *Contested.*
+14. **Does seeing a test fail on a deliberate break show it can detect
+    faults?** Yes, for that kind of fault: detecting mutants correlates
+    with detecting real faults, though weakly once suite size is
+    controlled, and tests that pass whatever the code does are common. A
+    red result shows the test catches that break, not that the suite is
+    adequate. *Supported (qualified).*
+15. **Do LLM coding agents do better when they can run tests?** Yes, when
+    the tests are reliable and independent of the code. Self-repair gains
+    are often modest once cost is counted, and tests the model writes for
+    its own code bias the result. *Supported (qualified).*
+16. **Do coding agents game tests to make them pass?** Yes: agents,
+    including widely used commercial ones, have been seen deleting,
+    editing and special-casing tests. How often depends on the task, test
+    access and instructions, and explicit instructions reduce it.
+    *Supported.*
+17. **Does running the existing tests first help a coding agent?**
+    Unknown: no study was found, so the rule is attributed as practice.
+    Keep agent instructions short, since verbose testing instructions made
+    a small agent worse in one study. *Practitioner-only.*
+18. **Does a reviewer in a fresh context find what the author missed?**
+    Partly: one small experiment found a second review helps only in a
+    fresh session, but not significantly more than a single review.
+    Models correct themselves poorly without external feedback, so ask
+    the reviewer for runnable checks (break the code: does a test go
+    red?), not an opinion. *Qualified.*
+19. **Does exploratory, manual trying find defects scripted tests miss?**
+    Mixed: one replicated experiment found it finds more than scripted
+    manual testing, an earlier one found no difference, and none studies
+    it alongside an automated suite. The skill only asks to turn surprises
+    into tests, which does not depend on the answer. *Contested.*
+20. **Do hand-written fakes need verifying against the real
+    implementation?** No study tests it; it is practitioner advice,
+    supported indirectly by the evidence that doubles drift (question 1)
+    and that static doubles cover only what they encode.
+    *Practitioner-only.*
+
 <a id="ch-mocks-diverge"></a>
 
 ## 1. Do hand-written test doubles drift from the real dependency?
