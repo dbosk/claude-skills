@@ -250,3 +250,45 @@ def test_mutate_does_not_count_an_empty_selection_as_killed(tmp_path):
                  "-k", "no_such_test", cwd=tmp_path)
     assert result.returncode == 2 and "killed" not in result.stdout, result.stdout
     assert "no tests" in result.stderr
+
+
+def test_mutate_batch_runs_each_mutant_once_and_reports_a_table(tmp_path):
+    mod = make_project(tmp_path, "assert add(2, 3) == 5")
+    mod.write_text('def add(a, b):\n    return a + b\n\n\ndef sep():\n    return "\\n"\n')
+    before = mod.read_bytes()
+    batch = tmp_path / "mutants.txt"
+    batch.write_text(  # code with backslashes and several lines needs no escaping
+        "# label file, then - lines (old) and + lines (new)\n"
+        "minus mod.py\n- a + b\n+ a - b\n\n"
+        'tab mod.py\n- return "\\n"\n+ return "\\t"\n\n'
+        "mod.py\n- def add(a, b):\n-     return a + b\n+ def add(a, b):\n+     return b + a + 1\n")
+    result = run("mutate.py", "--batch", batch, "--", *PYTEST, cwd=tmp_path)
+    out = result.stdout
+    assert result.returncode == 1, out + result.stderr  # "tab" survives: no test uses sep()
+    rows = [line.split("\t") for line in out.splitlines() if "\t" in line]
+    assert [r[:2] for r in rows] == [["minus", "mod.py:2"], ["tab", "mod.py:6"], ["M3", "mod.py:1"]]
+    assert [r[2].split()[0] for r in rows] == ["killed", "SURVIVED", "killed"]
+    assert "2 of 3 killed" in out
+    assert mod.read_bytes() == before
+    # the test runs' own output goes to one log per mutant, not the table
+    assert "test_add" not in out
+    logs = Path(out.split("logs in ")[1].split()[0])
+    assert "assert -1 == 5" in (logs / "minus.log").read_text()
+
+
+def test_mutate_batch_checks_every_mutant_before_running_any(tmp_path):
+    mod = make_project(tmp_path, "assert add(2, 3) == 5")
+    marker = tmp_path / "ran"
+    batch = tmp_path / "mutants.txt"
+    batch.write_text("M1 mod.py\n- a + b\n+ a - b\n\nM2 mod.py\n- not in the file\n+ x\n")
+    result = run("mutate.py", "--no-baseline", "--batch", batch, "--", "touch", marker,
+                 cwd=tmp_path)
+    assert result.returncode == 2 and "M2" in result.stderr, result.stderr
+    assert not marker.exists()
+
+
+def test_mutate_names_the_lines_of_an_ambiguous_old(tmp_path):
+    mod = make_project(tmp_path, "assert add(2, 3) == 5")
+    mod.write_text("x = 1\ny = 2\nx = 1\n")
+    result = run("mutate.py", mod, "x = 1", "x = 2", "--", "true")
+    assert result.returncode == 2 and "lines 1, 3" in result.stderr, result.stderr
