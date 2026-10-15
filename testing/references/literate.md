@@ -78,7 +78,9 @@ Cassettes are recorded data, not generated code. They must survive
 - **Mutations**: mutate the `.nw` and give the command that tangles and
   tests, so the check runs on what will be committed:
   `mutate.py src/pkg/mod.nw "logger.info(" "logger.debug(" -- make test`.
-  A fix found this way also goes into the `.nw`.
+  A fix found this way also goes into the `.nw`. `mutate.py` restores
+  the `.nw`, but the tangled files keep the mutant until the next build:
+  run `make` before trying anything by hand.
 - **Scanning**: with no paths, `scan_leaks.py` scans `tests/` and every
   `.nw` file git tracks. As a pre-commit hook, let it run on the
   committed `.nw` files:

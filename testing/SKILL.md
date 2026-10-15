@@ -72,7 +72,9 @@ the service (POST, PUT, DELETE: publishing a page, setting a grade) with
 `pytest --live --live-writes`, against a sandbox, and it must be safe to
 repeat: a fixture creates a fresh object and removes it in its teardown,
 so a failure halfway leaves nothing behind. Never chain write tests
-through module globals.
+through module globals. In replay the template matches request bodies
+and fails a test that skips a recorded request, so a wrong PUT body or a
+missing DELETE is caught offline too.
 
 The template assumes an API token. Services with cookies, a CSRF token,
 SSO or MFA (LADOK, KTH login) need a session fixture instead, a login
@@ -179,7 +181,8 @@ reasoning.
   red: `scripts/mutate.py FILE OLD NEW -- <test command>` checks that the
   command passes as is, makes the change, runs it again and restores the
   file. This shows the test catches that break, not that the suite is
-  adequate.
+  adequate. Pass `--timeout` above the suite's run time, so a mutant that
+  hangs counts as killed and is restored.
 - **Fresh-context review** for larger changes: a subagent that sees only
   the diff checks whether the tests exercise behaviour or just mirror the
   implementation. Ask it for checks it can run (break the code: does a

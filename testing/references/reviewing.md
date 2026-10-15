@@ -105,7 +105,12 @@ Keep the inner quotes: make hands the flags to a shell. Node IDs for
 `--deselect` are relative to pytest's rootdir, not to the directory make
 runs in, so `-k` is the safer choice. For a batch of mutants, run the
 first one normally and the rest with `--no-baseline`: the baseline does
-not change between them.
+not change between them. Give `mutate.py` its own `--timeout`, a little
+above the suite's normal run time: a mutant that makes a test loop
+forever then counts as killed and the file is restored. (`offline_run.py`
+stops it with SIGTERM first, which `mutate.py` also survives, but its
+default limit is long.) In a literate project, rebuild after a batch: the
+tangled files still hold the last mutant.
 Report killed and surviving mutants alike: a killed mutant shows a test
 earns its keep. Tests that need the service cannot be mutated offline;
 say so instead of guessing.

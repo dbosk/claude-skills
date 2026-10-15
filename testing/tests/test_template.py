@@ -151,3 +151,48 @@ def test_template_modes_markers_and_layout(project, fake_service, roster):
                     "tests/test_more.py")
     assert code != 0 and "refusing" in out, out
     assert (precious / "keep.txt").exists()
+
+
+WRITE_TEST = '''
+import json, os, urllib.request
+import pytest
+
+URL = os.environ["SERVICE_URL"]
+
+def call(method, path, body=None):
+    data = None if body is None else json.dumps(body).encode()
+    request = urllib.request.Request(URL + path, data=data, method=method,
+                                     headers={"Content-Type": "application/json"})
+    return urllib.request.urlopen(request).read()
+
+@pytest.mark.vcr
+@pytest.mark.mutates
+def test_set_grade():
+    call("PUT", "/api/v1/results/7", {"grade": GRADE})
+    if CLEANUP:
+        call("DELETE", "/api/v1/results/7")
+'''
+
+
+def test_replay_checks_what_a_write_test_sends(project, fake_service):
+    # Matching on method and URL alone lets a wrong body or a skipped request
+    # (a cleanup step, a DELETE) pass in replay.
+    fake_service.routes["/api/v1/results/7"] = (200, {"ok": True})
+    test = project / "tests" / "test_service.py"
+
+    def write(grade, cleanup):
+        test.write_text(WRITE_TEST.replace("GRADE", repr(grade)).replace("CLEANUP", str(cleanup)))
+
+    write("P", True)
+    code, out = run(project, fake_service, "--record-mode=once")
+    assert code == 0, out
+    code, out = run(project, fake_service, secrets=False)
+    assert code == 0, out
+
+    write("F", True)  # sends the wrong grade
+    code, out = run(project, fake_service, secrets=False)
+    assert code != 0, out
+
+    write("P", False)  # skips the cleanup
+    code, out = run(project, fake_service, secrets=False)
+    assert code != 0 and "not made" in out, out

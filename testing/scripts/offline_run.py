@@ -22,8 +22,8 @@ the command starts (and their Python subprocesses) gets:
   -p no:cacheprovider), and --continue-on-collection-errors, so that a
   module that logs in at import time does not hide the other tests' results;
 - UV_OFFLINE=1, so `uv run` does not try to download;
-- a time limit (default 600 s) after which the whole process group is
-  killed.
+- a time limit (default 600 s) after which the whole process group gets
+  SIGTERM, and SIGKILL 10 s later (so mutate.py can restore its file).
 
 --isolate-home also points HOME and the XDG directories at an empty temp
 directory, hiding config files and cached sessions.  Tools that keep
@@ -43,6 +43,7 @@ import sys
 import tempfile
 from pathlib import Path
 
+GRACE = 10  # seconds between SIGTERM and SIGKILL after --timeout
 OFFLINE_DIR = Path(__file__).resolve().parent / "offline"
 CREDENTIAL_NAME = re.compile(
     r"TOKEN|SECRET|PASS|API_?KEY|_KEY$|^KEY|LOGIN|_USER$|^USER_|AUTH|SESSION|CREDENTIAL",
@@ -95,8 +96,14 @@ def main(argv=None) -> int:
     try:
         return process.wait(timeout=args.timeout)
     except subprocess.TimeoutExpired:
-        os.killpg(process.pid, signal.SIGKILL)
-        process.wait()
+        # SIGTERM first, so a wrapper such as mutate.py can restore the file
+        # it changed; SIGKILL whatever is still running after a grace period
+        os.killpg(process.pid, signal.SIGTERM)
+        try:
+            process.wait(timeout=GRACE)
+        except subprocess.TimeoutExpired:
+            os.killpg(process.pid, signal.SIGKILL)
+            process.wait()
         print(f"offline_run: killed after {args.timeout:g} s; a test is probably "
               "waiting on the network or a prompt", file=sys.stderr)
         return 124

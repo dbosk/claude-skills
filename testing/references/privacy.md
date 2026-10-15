@@ -80,7 +80,7 @@ does not report it.
 | `EMAIL_KEYS` | `person-<hmac6>@example.invalid` |
 | `LOGIN_KEYS` | `user-<hmac6>` (numbers too); a UUID becomes another UUID |
 | `PNR_KEYS` | a fake personnummer `000000-NNNN`, by key, whether or not the checksum is valid |
-| `CONTACT_KEYS` | postal address, postcode, city and phone: `[redacted contact]` |
+| `CONTACT_KEYS` | postal address, postcode, city and phone: `[redacted contact]`. City and postcode (`UNLOGGED_CONTACT_KEYS`) are not added to the originals file: they also name courses and fill code tables |
 | `ID_KEYS` (opt-in, empty by default) | same-type pseudonymous IDs; long ones also rewritten in URLs |
 | `FREE_TEXT_KEYS` | replaced by `[redacted free text]`, except the keys a test names in `@pytest.mark.synthetic_text(...)` |
 | `URL_IDENTITY_KEYS` | replaced by `https://example.invalid/redacted` |
@@ -92,9 +92,15 @@ The defaults cover Canvas, GitHub and LADOK. LADOK's keys are
 `Fornamn`, `Efternamn`, `Personnummer`, `Epostadress`, `Epost`,
 `Anvandarnamn`, `SenastAndradAv` (the staff member who last changed a
 record, as an email), `Utdelningsadress`, `Postnummer`, `Postort`,
-`Telefonnummer` and the free-text `Anteckning`. A person's `Uid` is
-pseudonymized as a login when the object is person-shaped, keeping its
-UUID shape.
+`Telefonnummer`, the decision maker `Beslutsfattare` and the free-text
+`Anteckning`. A person's `Uid` is pseudonymized as a login when the
+object is person-shaped, keeping its UUID shape. But in LADOK the `Uid`
+is also the opaque record ID that tests request by, so pseudonymizing it
+breaks replay of any test that names one. To keep UIDs, pass
+`login_keys=vcr_support.LOGIN_KEYS - {"uid"}` to the `Pseudonymizer` in
+the copied `conftest.py`, and treat the cassettes as pseudonymous
+personal data (chapter 10 of the literature review): a project may then
+decide to keep them local and gitignored rather than commit them.
 
 Configure per service by editing the key sets at the top of the copied
 `vcr_support.py`. A person object that has only a `name` and sits under a
@@ -154,6 +160,21 @@ still runs on both.
   name part that is also an ordinary word (Max, Will) can still give a
   false hit: check the stub, and if it is a false positive, delete that
   line from the originals file and run the scan again.
+- **On real data the originals check can be noisy.** A first name such
+  as Max matches `Cache-Control: max-age=0`, a surname matches a place
+  name in a code table. The originals file also grows with every
+  recording. If deleting lines by hand stops scaling, allow, *per
+  cassette*, the originals that occur in that cassette's public text:
+  translation and code-table keys (LADOK's `sv`, `en`, `Text`,
+  `Benamning`, `Kod`), whole responses from endpoints that list no
+  people (code tables, i18n, course information, but not a staff list on
+  the same service) and header values other than cookies and
+  credentials. Allowing globally would hide real hits, because a
+  place-name table holds many surnames. Two traps in such a pass: the
+  raw YAML has escapes, so `X` in `X\xF6` reads as a word, and an
+  escaped `\n` glues an `n` onto the next word; split on the parsed
+  strings instead. (The ladok3 project's `public_originals()` is a worked
+  example.)
 - **Before committing**, run
   `scan_leaks.py tests --denylist <private roster>`. The denylist catches
   people the recording never saw, such as a name typed into a hand-written
@@ -162,7 +183,9 @@ still runs on both.
   names. `--key-census` is the sharper tool for free text: it lists each
   key with its number of distinct values and the longest, never the
   values, so a note or name field that escaped scrubbing stands out
-  (many long values where a placeholder should be). Known false positives, such as a fixture's placeholder address,
+  (many long values where a placeholder should be). After a recording,
+  `scan_leaks.py` also matches that recording's originals file and says
+  so; pass `--originals /dev/null` to scan sources without it. Known false positives, such as a fixture's placeholder address,
   go in a file passed with `--allow` (exact values, or `re:REGEX`), which
   may be committed since it holds no personal data. With no paths, the
   scan covers `tests/` and every `.nw` file git tracks; `-` reads
@@ -219,7 +242,14 @@ itself safe to show.
 | `--allow` list | the repo is fine: it holds placeholders, not people | real values, to silence a true hit |
 
 Keep the key stable across recordings. A new key changes every pseudonym,
-which makes re-record diffs unreadable.
+which makes re-record diffs unreadable. Create it once without printing
+it, and export it from the keyring for a recording session:
+
+```sh
+python3 -c "import secrets; print(secrets.token_urlsafe(32), end='')" \
+  | secret-tool store --label="test pseudonym key" service myproject key test-pseudonym
+export TEST_PSEUDONYM_KEY="$(secret-tool lookup service myproject key test-pseudonym)"
+```
 
 ## When something leaked anyway
 

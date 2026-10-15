@@ -208,3 +208,16 @@ def test_saml_responses_and_form_secrets_are_redacted():
     assert blob not in Pseudonymizer(b"k").scrub_body(html)
     form = f"SAMLResponse={blob}&RelayState=abc"
     assert blob not in Pseudonymizer(b"k").scrub_body(form.encode()).decode()
+
+
+def test_city_and_postal_code_are_replaced_but_not_logged(tmp_path):
+    # Place names and postal codes also name courses, code tables and
+    # numbers, so as originals they only make the leak scan cry wolf.
+    log = tmp_path / "originals.txt"
+    p = Pseudonymizer(b"k", log)
+    out = p.scrub_json({"Postort": "Ankeborg", "Postnummer": "11122",
+                        "Utdelningsadress": "Storgatan 1", "Telefonnummer": "0701112233"})
+    assert set(out.values()) == {vcr_support.CONTACT_PLACEHOLDER}
+    logged = log.read_text().splitlines()
+    assert "Storgatan 1" in logged and "0701112233" in logged
+    assert "Ankeborg" not in logged and "11122" not in logged
