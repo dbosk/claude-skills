@@ -1,0 +1,2 @@
+S1	("test doubles" OR fakes OR "fake objects" OR "mock objects" OR stubs) AND ("contract tests" OR "contract testing" OR conformance OR "differential testing" OR fidelity OR validation) AND ("real implementation" OR production OR dependency OR service)
+C1	("test doubles" OR fakes OR "fake objects" OR "mock objects" OR stubs) AND (automatic OR generated OR "mock generation" OR synthesis) AND (validity OR fidelity OR accuracy OR realistic)

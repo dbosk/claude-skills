@@ -1,0 +1,4 @@
+S0-superseded	(mock OR mocking OR "mock objects" OR "test doubles") AND (evolution OR "co-evolution" OR outdated OR inconsistent OR divergence) AND (test OR testing)
+S1	("mock objects" OR mocking OR "test doubles" OR stubs) AND ("unit test" OR "unit testing" OR "software testing" OR "test code") AND (evolution OR "co-evolution" OR maintenance OR inconsistency OR outdated)
+S2	("mock objects" OR mocking OR "test doubles" OR stubs) AND ("unit test" OR "unit testing" OR "software testing" OR "test code") AND (integration OR "false confidence" OR "missed faults" OR "fault detection")
+C1	("mock objects" OR mocking OR "test doubles" OR stubs) AND ("unit test" OR "unit testing" OR "software testing" OR "test code") AND (benefits OR advantages OR effectiveness OR "test isolation")

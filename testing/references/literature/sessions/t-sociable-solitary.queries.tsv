@@ -1,0 +1,3 @@
+S1	("unit tests" OR "unit testing") AND ("integration tests" OR "integration testing") AND ("fault detection" OR defects OR effectiveness OR "mutation score")
+S2	("sociable tests" OR "solitary tests" OR "test isolation" OR mocking OR "mock objects") AND ("unit test" OR "unit testing" OR "software testing" OR "test code") AND ("fault detection" OR "mutation score" OR "defect detection")
+C1	("unit tests" OR "unit testing" OR "test isolation" OR mocking) AND ("integration tests" OR "integration testing") AND ("fault localization" OR "execution time" OR maintenance OR cost OR flakiness)

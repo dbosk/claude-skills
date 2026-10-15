@@ -1,0 +1,2491 @@
+% testing-claims.bib -- backing-claims audit of the testing skill, 2026-10-12
+% Sessions t-* (scholar, ~/.local/share/scholar/review_sessions); exports in scratchpad/ta/exports
+
+% === provenance: Spadini2019 ===
+% CLAIM: Hand-written mocks can diverge from the real dependency: developers find keeping a mock's
+%   behaviour compatible with the real class hard, and production changes force mock changes.
+% FOUND-VIA: scholar search '("mock objects" OR mocking OR "test doubles" OR stubs) AND ("unit test"
+%   OR "unit testing" OR "software testing" OR "test code") AND (evolution OR "co-evolution" OR
+%   maintenance OR inconsistency OR outdated)' -n t-mocks-diverge -p dblp -p ieee -p openalex -p
+%   arxiv -l 20 -f bibtex+prov (session t-mocks-diverge, query S1); also returned by
+%   t-interaction-brittle/C1/plain, t-interaction-brittle/S1/plain,
+%   t-mocks-diverge/S0-superseded/plain, t-mocks-diverge/S1/scopus, t-mocks-diverge/S1/wos,
+%   t-verified-fakes/C1/plain, t-verified-fakes/S1/plain
+% PICKED: Primary mixed-methods study (2,000+ mock usages, 4 systems, 105-developer survey,
+%   mock-evolution history); journal extension of Spadini et al. 2017, the starting point named in
+%   the brief.
+% QUOTE (p. 1479, 'Unstable dependencies'): "A problem when using mocks is maintaining the behavior of
+%   the mock compatible with the behavior of the original class, especially when the original class
+%   is poorly designed or highly coupled. As the production class tends to change often, the mock
+%   object becomes unstable and, as a consequence, more prone to change."
+% VERIFIED: full-text (Springer PDF via KTH tunnel); applies at 'can diverge' strength:
+%   developer-reported challenge confirmed by mock-change data (p. 1482: 51% of mock changes induced
+%   by production code); it does not measure tests passing while integration breaks.
+% COUNTER: session t-mocks-diverge, query C1 (same mock/test-double + unit-testing terms AND
+%   benefits/advantages/effectiveness/'test isolation') on ieee+openalex+arxiv+wos+scopus (dblp
+%   failed): surfaced mocking-usage and mock-generation studies and Zhu et al. 2025 (mock assertions
+%   add fault detection), none showing that mocks stay in sync with the real dependency; claim
+%   narrowed to 'can diverge' (developer-reported challenge plus one seeded-defect case study), not
+%   'usually diverge'.
+% DATE: 2026-10-12
+@article{Spadini2019,
+  title = {Mock objects for testing java systems: Why and how developers use them, and how they evolve},
+  volume = {24},
+  issn = {1573-7616},
+  url = {http://dx.doi.org/10.1007/s10664-018-9663-0},
+  doi = {10.1007/s10664-018-9663-0},
+  number = {3},
+  journal = {Empirical Software Engineering},
+  publisher = {Springer Science and Business Media LLC},
+  author = {Spadini, Davide and Aniche, Maurício and Bruntink, Magiel and Bacchelli, Alberto},
+  year = {2019},
+  month = Nov,
+  pages = {1461–1498}
+}
+
+% === provenance: Spadini2017 ===
+% CLAIM: Developers report that keeping mock behaviour compatible with the real class is a key mocking
+%   challenge.
+% FOUND-VIA: scholar search '("mock objects" OR mocking OR "test doubles" OR stubs) AND ("unit test"
+%   OR "unit testing" OR "software testing" OR "test code") AND (evolution OR "co-evolution" OR
+%   maintenance OR inconsistency OR outdated)' -n t-mocks-diverge -p dblp -p ieee -p openalex -p
+%   arxiv -l 20 -f bibtex+prov (session t-mocks-diverge, query S1); also returned by
+%   t-interaction-brittle/C1/plain, t-interaction-brittle/S1/plain, t-mocks-diverge/C1/plain,
+%   t-mocks-diverge/S0-superseded/plain, t-mocks-diverge/S2/plain, t-verified-fakes/C1/plain,
+%   t-verified-fakes/S1/plain
+% PICKED: Conference original of Spadini et al. 2019 (named in the brief); cited for the same finding
+%   at abstract level.
+% QUOTE (abstract): "Among the key challenges, developers report that maintaining the behavior of the
+%   mock compatible with the behavior of original class is hard and that mocking increases the
+%   coupling between the test and the production code."
+% VERIFIED: abstract only (OpenAlex; ZORA author copy returned an HTML page); corroborated by the
+%   full-text journal version.
+% COUNTER: session t-mocks-diverge, query C1 (same mock/test-double + unit-testing terms AND
+%   benefits/advantages/effectiveness/'test isolation') on ieee+openalex+arxiv+wos+scopus (dblp
+%   failed): surfaced mocking-usage and mock-generation studies and Zhu et al. 2025 (mock assertions
+%   add fault detection), none showing that mocks stay in sync with the real dependency; claim
+%   narrowed to 'can diverge' (developer-reported challenge plus one seeded-defect case study), not
+%   'usually diverge'.
+% DATE: 2026-10-12
+@inproceedings{Spadini2017,
+  title = {To Mock or Not to Mock? An Empirical Study on Mocking Practices},
+  url = {http://dx.doi.org/10.1109/MSR.2017.61},
+  doi = {10.1109/msr.2017.61},
+  booktitle = {2017 IEEE/ACM 14th International Conference on Mining Software Repositories (MSR)},
+  publisher = {IEEE},
+  author = {Spadini, Davide and Aniche, Mauricio and Bruntink, Magiel and Bacchelli, Alberto},
+  year = {2017},
+  month = May,
+  pages = {402–412}
+}
+
+% === provenance: Lehva2019 ===
+% CLAIM: Component tests with test doubles let integration defects slip through while staying green;
+%   consumer-driven contract tests caught all seeded integration defects in one case study.
+% FOUND-VIA: scholar search '("contract testing" OR "consumer-driven contract" OR "consumer-driven
+%   contracts" OR "contract tests") AND (microservices OR API OR "web service" OR integration)' -n
+%   t-contract-tests -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session
+%   t-contract-tests, query S1); also returned by t-contract-tests/C1/plain,
+%   t-contract-tests/C1/wos, t-contract-tests/S1/wos
+% PICKED: Only study found with a seeded-defect comparison of contract tests against component and
+%   end-to-end tests; also directly shows the 'green while integration broken' failure mode of claim
+%   1.
+% QUOTE (p. 507, §4.1): "The comparison of the testing methods revealed that the consumer-driven
+%   contract tests were able to catch every single defect from the 23 different interactions. That
+%   was not the case with the component tests; they allowed the defects to slip through."
+% VERIFIED: full-text (Springer PDF via KTH tunnel); applies as single-system case study (23
+%   interactions); same page: 'That leaves the integration broken while the component tests are
+%   still passing.'
+% COUNTER: session t-contract-tests, query C1 (same contract-testing terms AND
+%   limitations/challenges/integration/end-to-end testing/effectiveness): evidence is a single
+%   seeded-defect case study and an action-research study; no negative results found, but also no
+%   multi-project evaluation. Claim stands as 'can detect', evidence thin.
+% DATE: 2026-10-12
+@inbook{Lehva2019,
+  title = {Consumer-Driven Contract Tests for Microservices: A Case Study},
+  isbn = {9783030353339},
+  issn = {1611-3349},
+  url = {http://dx.doi.org/10.1007/978-3-030-35333-9_35},
+  doi = {10.1007/978-3-030-35333-9_35},
+  booktitle = {Product-Focused Software Process Improvement},
+  publisher = {Springer International Publishing},
+  author = {Lehvä, Jyri and Mäkitalo, Niko and Mikkonen, Tommi},
+  year = {2019},
+  pages = {497–512}
+}
+
+% === provenance: Zhu2023 ===
+% CLAIM: Stub code for mock objects breaks and has to be repaired as code evolves (corroboration that
+%   doubles go out of date).
+% FOUND-VIA: scholar search '("mock objects" OR mocking OR "test doubles" OR stubs) AND ("unit test"
+%   OR "unit testing" OR "software testing" OR "test code") AND (evolution OR "co-evolution" OR
+%   maintenance OR inconsistency OR outdated)' -n t-mocks-diverge -p dblp -p ieee -p openalex -p
+%   arxiv -l 20 -f bibtex+prov (session t-mocks-diverge, query S1); also returned by
+%   t-interaction-brittle/C1/plain, t-interaction-brittle/S1/plain, t-mocks-diverge/C1/plain,
+%   t-mocks-diverge/S0-superseded/plain, t-mocks-diverge/S2/plain, t-record-replay/S1/plain,
+%   t-sociable-solitary/S2/plain, t-verified-fakes/C1/plain, t-verified-fakes/S1/plain
+% PICKED: Tool paper whose evaluation repairs obsolete stub code in 13 projects; corroborating, weaker
+%   than Spadini.
+% QUOTE (abstract): "developing and maintaining stub code is labor-intensive and error-prone"
+% VERIFIED: abstract only (OpenAlex); applies weakly: shows stubs become obsolete, but broken stubs
+%   make tests fail rather than pass silently.
+% COUNTER: session t-mocks-diverge, query C1 (same mock/test-double + unit-testing terms AND
+%   benefits/advantages/effectiveness/'test isolation') on ieee+openalex+arxiv+wos+scopus (dblp
+%   failed): surfaced mocking-usage and mock-generation studies and Zhu et al. 2025 (mock assertions
+%   add fault detection), none showing that mocks stay in sync with the real dependency; claim
+%   narrowed to 'can diverge' (developer-reported challenge plus one seeded-defect case study), not
+%   'usually diverge'.
+% DATE: 2026-10-12
+@article{Zhu2023,
+  title = {StubCoder : Automated Generation and Repair of Stub Code for Mock Objects},
+  volume = {33},
+  issn = {1557-7392},
+  url = {http://dx.doi.org/10.1145/3617171},
+  doi = {10.1145/3617171},
+  number = {1},
+  journal = {ACM Transactions on Software Engineering and Methodology},
+  publisher = {Association for Computing Machinery (ACM)},
+  author = {Zhu, Hengcheng and Wei, Lili and Terragni, Valerio and Liu, Yepang and Cheung, Shing-Chi and Wu, Jiarong and Sheng, Qin and Zhang, Bing and Song, Lihong},
+  year = {2023},
+  month = Nov,
+  pages = {1–31}
+}
+
+% === provenance: Zhu2025 ===
+% CLAIM: COUNTER to 'never assert on call sequences': mock (interaction) assertions detect faults that
+%   state assertions miss, mainly for calls to external resources.
+% FOUND-VIA: scholar search '("mock objects" OR mocking OR "interaction testing" OR "behavior
+%   verification" OR "state verification") AND ("unit test" OR "unit testing" OR "software testing"
+%   OR "test code") AND (refactoring OR "test maintenance" OR robustness) AND (comparison OR
+%   empirical OR benefits)' -n t-interaction-brittle -p dblp -p ieee -p openalex -p arxiv -l 20 -f
+%   bibtex+prov (session t-interaction-brittle, query C1); also returned by
+%   t-invariant-assertions/C1/plain, t-mocks-diverge/C1/plain, t-mocks-diverge/S1/plain,
+%   t-mocks-diverge/S2/plain, t-sociable-solitary/S2/plain
+% PICKED: Only empirical study found that measures what interaction assertions add (mutation analysis,
+%   4,652 tests, 11 Java projects); counter-evidence for claim 2.
+% QUOTE (p. FSE026:16, §7): "782 of 1,557 (50%) of the injected faults detected by mock assertions
+%   were not detected by test assertions, and the Jaccard similarity between M_MA and M_TA is only
+%   32%. The result shows that mock assertions can complement test assertions in detecting potential
+%   faults."
+% VERIFIED: full-text (arXiv 2503.19284v1); applies: qualifies the rule to 'when a result or state can
+%   be checked instead', as SKILL.md already says.
+% COUNTER: session t-interaction-brittle, query C1 (mock/interaction/behaviour/state-verification +
+%   unit-test terms AND refactoring/'test maintenance'/robustness AND
+%   comparison/empirical/benefits): no study measuring breakage of interaction vs state assertions
+%   under refactoring; counter-evidence Zhu et al. 2025: mock assertions catch faults test
+%   assertions miss. Brittleness benefit stays practitioner-reported.
+% DATE: 2026-10-12
+@article{Zhu2025,
+  title = {Understanding and Characterizing Mock Assertions in Unit Tests},
+  volume = {2},
+  issn = {2994-970X},
+  url = {http://dx.doi.org/10.1145/3715741},
+  doi = {10.1145/3715741},
+  number = {FSE},
+  journal = {Proceedings of the ACM on Software Engineering},
+  publisher = {Association for Computing Machinery (ACM)},
+  author = {Zhu, Hengcheng and Terragni, Valerio and Wei, Lili and Cheung, Shing-Chi and Wu, Jiarong and Liu, Yepang},
+  year = {2025},
+  month = June,
+  pages = {554–575}
+}
+
+% === provenance: Knight2025 ===
+% CLAIM: Developers report frustration with fragile unit tests that break during refactoring.
+% FOUND-VIA: scholar search '("test breakage" OR "broken tests" OR "test repair" OR "fragile tests" OR
+%   "test smells") AND refactoring AND ("unit test" OR "unit testing" OR "software testing" OR "test
+%   code")' -n t-interaction-brittle -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov
+%   (session t-interaction-brittle, query S2); also returned by t-interaction-brittle/S2/scopus,
+%   t-interaction-brittle/S2/wos
+% PICKED: Only item surfaced that reports refactoring breakage from developers (109 professionals);
+%   doctoral-symposium paper, perception data, does not separate interaction from state tests.
+% QUOTE (abstract): "The findings reveal developer expectations that unit test suites should enable
+%   safe, productive change, but also frustrations with fragile tests that break during
+%   refactoring."
+% VERIFIED: abstract only (OpenAlex); applies to fragility in general, not to interaction assertions
+%   specifically.
+% COUNTER: session t-interaction-brittle, query C1 (mock/interaction/behaviour/state-verification +
+%   unit-test terms AND refactoring/'test maintenance'/robustness AND
+%   comparison/empirical/benefits): no study measuring breakage of interaction vs state assertions
+%   under refactoring; counter-evidence Zhu et al. 2025: mock assertions catch faults test
+%   assertions miss. Brittleness benefit stays practitioner-reported.
+% DATE: 2026-10-12
+@inproceedings{Knight2025,
+  title = {Toward a Resilience-Oriented Understanding of Unit Test Suites and Refactoring in Software Evolution},
+  url = {http://dx.doi.org/10.1109/ICSME64153.2025.00092},
+  doi = {10.1109/icsme64153.2025.00092},
+  booktitle = {2025 IEEE International Conference on Software Maintenance and Evolution (ICSME)},
+  publisher = {IEEE},
+  author = {Knight, Daniel and Bhowmik, Tanmay},
+  year = {2025},
+  month = Sept,
+  pages = {857–859}
+}
+
+% === provenance: TaheriGhazvini2025 ===
+% CLAIM: Unit tests with stubs and integration tests through real calls detect different faults;
+%   neither dominates.
+% FOUND-VIA: scholar search '("unit tests" OR "unit testing") AND ("integration tests" OR "integration
+%   testing") AND ("fault detection" OR defects OR effectiveness OR "mutation score")' -n
+%   t-sociable-solitary -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session
+%   t-sociable-solitary, query S1); also returned by t-mocks-diverge/S2/plain
+% PICKED: Most direct comparison found: same test cases run as stubbed unit tests and as integration
+%   tests (C programs); master's thesis (journal version IST 2026 not obtained).
+% QUOTE (abstract, p. iii): "Some faults were only exposed in integration, others only through unit
+%   testing. The results show that the unit testing and integration testing exercise different
+%   aspects of the integrated functions and carry distinct tradeoffs, reinforcing their
+%   complementary roles in practice."
+% VERIFIED: full-text (Carleton e-thesis PDF); applies as QUALIFIER: sociable tests do not dominate
+%   solitary ones.
+% COUNTER: session t-sociable-solitary, query C1 (unit/integration + isolation/mocking AND fault
+%   localization/execution time/maintenance/cost/flakiness): found unit/integration comparisons
+%   showing complementary fault detection (Taheri Ghazvini 2025) and differences in build breakage
+%   (Orellana et al. 2017); no study shows sociable tests dominate.
+% DATE: 2026-10-12
+@mastersthesis{TaheriGhazvini2025,
+  author = {Taheri Ghazvini, Ehsan},
+  title = {From Isolation to Integration: An empirical study on differences between unit and integration testing with applications to C programs},
+  school = {Carleton University},
+  type = {Master of Applied Science thesis},
+  year = {2025},
+  doi = {10.22215/etd/2025-16598}
+}
+
+% === provenance: Orellana2017 ===
+% CLAIM: Unit and integration tests behave differently in CI: unit tests cause more breaking builds
+%   and their defects take longer to fix.
+% FOUND-VIA: scholar search '("unit tests" OR "unit testing") AND ("integration tests" OR "integration
+%   testing") AND ("fault detection" OR defects OR effectiveness OR "mutation score")' -n
+%   t-sociable-solitary -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session
+%   t-sociable-solitary, query S1); also returned by t-sociable-solitary/S1/wos
+% PICKED: Surfaced by S1 on WoS and the plain providers; mining study on TravisTorrent; adjacent
+%   evidence that the two kinds differ.
+% QUOTE (abstract): "we discovered that unit tests cause more breaking builds, that fixing the defects
+%   exposed by unit tests takes longer and implies more coordination between team members."
+% VERIFIED: abstract only (OpenAlex); applies weakly (does not separate mocked from sociable unit
+%   tests).
+% COUNTER: session t-sociable-solitary, query C1 (unit/integration + isolation/mocking AND fault
+%   localization/execution time/maintenance/cost/flakiness): found unit/integration comparisons
+%   showing complementary fault detection (Taheri Ghazvini 2025) and differences in build breakage
+%   (Orellana et al. 2017); no study shows sociable tests dominate.
+% DATE: 2026-10-12
+@inproceedings{Orellana2017,
+  title = {On the Differences between Unit and Integration Testing in the TravisTorrent Dataset},
+  url = {http://dx.doi.org/10.1109/MSR.2017.25},
+  doi = {10.1109/msr.2017.25},
+  booktitle = {2017 IEEE/ACM 14th International Conference on Mining Software Repositories (MSR)},
+  publisher = {IEEE},
+  author = {Orellana, Gerardo and Laghari, Gulsher and Murgia, Alessandro and Demeyer, Serge},
+  year = {2017},
+  month = May,
+  pages = {451–454}
+}
+
+% === provenance: Luo2014 ===
+% CLAIM: Async wait, concurrency and test-order dependency are the top root causes of flaky tests;
+%   network, time, I/O and randomness are minority causes; many order-dependent flaky tests stem
+%   from external resources.
+% FOUND-VIA: scholar search '("flaky tests" OR "flaky test" OR "test flakiness") AND ("root causes" OR
+%   causes OR "empirical study" OR taxonomy)' -n t-flaky -p dblp -p ieee -p openalex -p arxiv -l 20
+%   -f bibtex+prov (session t-flaky, query S1)
+% PICKED: Primary, most-cited root-cause study (201 commits, 51 projects); starting point named in the
+%   brief.
+% QUOTE (summary of findings, F.1; §3.1; Table 2): "The top three categories of flaky tests are Async
+%   Wait, Concurrency, and Test Order Dependency."
+% VERIFIED: full-text (author copy mir.cs.illinois.edu); Table 2: Network 10, Time 5, IO 4, Randomness
+%   4 of 161 classified commits vs Async Wait 74, Concurrency 32, Test Order Dependency 19; F.7:
+%   'Many Test Order Dependency flaky tests (47%) are caused by dependency on external resources.'
+%   Applies as QUALIFIER of claim 9 and as indirect trade-off evidence for claim 4.
+% COUNTER: session t-flaky, query C1 (flaky-test terms AND async wait/concurrency/order-dependent/test
+%   order dependency): async wait, concurrency and test-order dependency dominate in Java (Luo et
+%   al. 2014) and order dependency in Python (Gruber et al. 2021); network/time/randomness are
+%   recognised but minority causes. Claim qualified.
+% DATE: 2026-10-12
+@inproceedings{Luo2014,
+  series = {SIGSOFT/FSE′14},
+  title = {An empirical analysis of flaky tests},
+  url = {http://dx.doi.org/10.1145/2635868.2635920},
+  doi = {10.1145/2635868.2635920},
+  booktitle = {Proceedings of the 22nd ACM SIGSOFT International Symposium on Foundations of Software Engineering},
+  publisher = {ACM},
+  author = {Luo, Qingzhou and Hariri, Farah and Eloussi, Lamyaa and Marinov, Darko},
+  year = {2014},
+  month = Nov,
+  pages = {643–653},
+  collection = {SIGSOFT/FSE′14}
+}
+
+% === provenance: Hora2026 ===
+% CLAIM: Coding agents add mocks to tests more often than human developers.
+% FOUND-VIA: scholar search '("in-memory database" OR "embedded database" OR testcontainers OR docker
+%   OR container OR "local instance") AND ("integration testing" OR "integration tests" OR "unit
+%   testing" OR "software testing") AND (mock OR mocking OR "test doubles" OR database)' -n
+%   t-real-local -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session t-real-local,
+%   query S1); also returned by t-mocks-diverge/C1/plain
+% PICKED: Context for the skill's motivation; mining study of 1.2M commits; adjacent (does not measure
+%   defect detection).
+% QUOTE (abstract): "36% of commits made by coding agents add mocks to tests, compared with 26% by
+%   non-agents"
+% VERIFIED: abstract only (arXiv listing via OpenAlex); applies to agent behaviour, not to the benefit
+%   of real instances.
+% COUNTER: session t-real-local, query C1 (in-memory/embedded DB, containers, local instance +
+%   integration/unit testing AND flaky/slow/execution time/cost): no empirical comparison of real
+%   local instances vs mocks for defect detection found; trade-off evidence only indirect (slowness
+%   reason for mocking in Spadini et al. 2019; external resources behind order-dependent flakiness
+%   in Luo et al. 2014).
+% DATE: 2026-10-12
+@misc{Hora2026,
+  doi = {10.48550/ARXIV.2602.00409},
+  url = {https://arxiv.org/abs/2602.00409},
+  author = {Hora, Andre and Robbes, Romain},
+  title = {Are Coding Agents Generating Over-Mocked Tests? An Empirical Study},
+  publisher = {arXiv},
+  year = {2026}
+}
+
+% === provenance: Tiwari2024 ===
+% CLAIM: Mocks generated from production observations reproduce realistic execution contexts and their
+%   oracles detect regressions.
+% FOUND-VIA: scholar search '("record and replay" OR "record-replay" OR "capture and replay" OR
+%   "service virtualization" OR "traffic recording" OR "generated mocks") AND (testing OR "unit
+%   tests" OR "integration tests") AND (mock OR stub OR "web service" OR API)' -n t-record-replay -p
+%   dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session t-record-replay, query S1); also
+%   returned by t-record-replay/S1/scopus, t-record-replay/S1/wos, t-verified-fakes/C1/plain
+% PICKED: Starting point named in the brief (arXiv 2208.01321, published TSE 2024); primary evaluation
+%   on 3 Java applications.
+% QUOTE (abstract): "All the generated test cases are executable, and 52.4% of them successfully mimic
+%   the complete execution context of the target methods observed in production. The mock-based
+%   oracles are also effective at detecting regressions within the target methods"
+% VERIFIED: full-text (arXiv 2208.01321v4); applies at feasibility strength: no comparison against
+%   hand-written stubs; method-level mocks, not HTTP cassettes.
+% COUNTER: session t-record-replay, query C1 (same
+%   record-and-replay/service-virtualisation/generated-mock terms AND
+%   limitations/maintenance/outdated/brittle/'false positives'): recorded traffic often cannot be
+%   replayed without handling environment dependencies (Liu et al. 2022); record-and-replay 'limited
+%   in accuracy' (Versteeg et al. 2016); no controlled comparison with hand-written stubs found.
+% DATE: 2026-10-12
+@article{Tiwari2024,
+  title = {Mimicking Production Behavior With Generated Mocks},
+  volume = {50},
+  issn = {2326-3881},
+  url = {http://dx.doi.org/10.1109/tse.2024.3458448},
+  doi = {10.1109/tse.2024.3458448},
+  number = {11},
+  journal = {IEEE Transactions on Software Engineering},
+  publisher = {Institute of Electrical and Electronics Engineers (IEEE)},
+  author = {Tiwari, Deepika and Monperrus, Martin and Baudry, Benoit},
+  year = {2024},
+  month = Nov,
+  pages = {2921–2946}
+}
+
+% === provenance: Liu2022 ===
+% CLAIM: Replaying recorded online traffic is common industrial regression-testing practice but needs
+%   environment dependencies to be mocked to replay at all.
+% FOUND-VIA: scholar search '("record and replay" OR "record-replay" OR "capture and replay" OR
+%   "service virtualization" OR "traffic recording" OR "generated mocks") AND (testing OR "unit
+%   tests" OR "integration tests") AND (mock OR stub OR "web service" OR API)' -n t-record-replay -p
+%   dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session t-record-replay, query S1)
+% PICKED: Industrial (Ant Group) record-and-replay paper surfaced by S1; both supports adoption and
+%   qualifies fidelity.
+% QUOTE (abstract): "Using recorded online traffic for the regression testing of web applications has
+%   become a common practice in industry. However, this “record and replay” on microservices is
+%   challenging because simply recorded online traffic (i.e., values for variables or input/output
+%   for function calls) often cannot be successfully replayed"
+% VERIFIED: abstract only (OpenAlex); applies as QUALIFIER (replay fidelity needs dependency
+%   handling).
+% COUNTER: session t-record-replay, query C1 (same
+%   record-and-replay/service-virtualisation/generated-mock terms AND
+%   limitations/maintenance/outdated/brittle/'false positives'): recorded traffic often cannot be
+%   replayed without handling environment dependencies (Liu et al. 2022); record-and-replay 'limited
+%   in accuracy' (Versteeg et al. 2016); no controlled comparison with hand-written stubs found.
+% DATE: 2026-10-12
+@inproceedings{Liu2022,
+  title = {Record and Replay of Online Traffic for Microservices with Automatic Mocking Point Identification},
+  url = {http://dx.doi.org/10.1109/icse-seip55303.2022.9793867},
+  doi = {10.1109/icse-seip55303.2022.9793867},
+  booktitle = {2022 IEEE/ACM 44th International Conference on Software Engineering: Software Engineering in Practice (ICSE-SEIP)},
+  publisher = {IEEE},
+  author = {Liu, Jiangchao and Liu, Jierui and Di, Peng and Liu, Alex X. and Zhong, Zexin},
+  year = {2022},
+  month = May,
+  pages = {221–230}
+}
+
+% === provenance: Versteeg2016 ===
+% CLAIM: Record-and-replay service emulation is limited in accuracy.
+% FOUND-VIA: scholar search '("record and replay" OR "record-replay" OR "capture and replay" OR
+%   "service virtualization" OR "traffic recording" OR "generated mocks") AND (testing OR "unit
+%   tests" OR "integration tests") AND (limitations OR maintenance OR outdated OR brittle OR "false
+%   positives")' -n t-record-replay -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov
+%   (session t-record-replay, query C1)
+% PICKED: Service-virtualisation paper surfaced by counter query C1; one-sentence qualifier.
+% QUOTE (abstract): "Models require deep knowledge of the target services while record-and-replay is
+%   limited in accuracy."
+% VERIFIED: abstract only (OpenAlex); applies as QUALIFIER (enterprise message protocols, not
+%   REST/JSON).
+% COUNTER: session t-record-replay, query C1 (same
+%   record-and-replay/service-virtualisation/generated-mock terms AND
+%   limitations/maintenance/outdated/brittle/'false positives'): recorded traffic often cannot be
+%   replayed without handling environment dependencies (Liu et al. 2022); record-and-replay 'limited
+%   in accuracy' (Versteeg et al. 2016); no controlled comparison with hand-written stubs found.
+% DATE: 2026-10-12
+@inproceedings{Versteeg2016,
+  series = {ICSE ’16},
+  title = {Opaque service virtualisation: a practical tool for emulating endpoint systems},
+  url = {http://dx.doi.org/10.1145/2889160.2889242},
+  doi = {10.1145/2889160.2889242},
+  booktitle = {Proceedings of the 38th International Conference on Software Engineering Companion},
+  publisher = {ACM},
+  author = {Versteeg, Steve and Du, Miao and Schneider, Jean-Guy and Grundy, John and Han, Jun and Goyal, Menka},
+  year = {2016},
+  month = May,
+  pages = {202–211},
+  collection = {ICSE ’16}
+}
+
+% === provenance: Serbout2024 ===
+% CLAIM: Many evolving Web APIs ship breaking changes, often without signalling them in the version
+%   number; about 30% never break.
+% FOUND-VIA: scholar search '("web API" OR "web APIs" OR "REST API" OR "RESTful API" OR "web service")
+%   AND (evolution OR "breaking changes" OR "API changes")' -n t-api-evolution -p dblp -p ieee -p
+%   openalex -p arxiv -l 20 -f bibtex+prov (session t-api-evolution, query S1); also returned by
+%   t-api-evolution/C1/plain, t-api-evolution/C1/scopus, t-api-evolution/C1/wos
+% PICKED: Largest study found (3,075 APIs, 506,273 changes); supports and qualifies in one source.
+% QUOTE (abstract, p. 344): "only 517 APIs consistently release major upgrades when introducing
+%   breaking changes, while 1970 APIs will not always correctly inform their clients about breaking
+%   changes released as part of minor or patch-level upgrades. We also detected 927 APIs which use a
+%   backwards-compatible evolution strategy, as they never introduce any breaking change throughout
+%   their history."
+% VERIFIED: full-text (Springer PDF via KTH tunnel); applies: breaking changes are common but not
+%   universal.
+% COUNTER: session t-api-evolution, query C1 (same web/REST API + evolution/breaking-change terms AND
+%   backward compatibility/stability/versioning/deprecation): Serbout & Pautasso 2024 found 927 of
+%   3075 versioned APIs never introduced a breaking change; Di Lauro et al. 2021: only a subset of
+%   APIs change. Claim qualified: drift is common but not universal.
+% DATE: 2026-10-12
+@inbook{Serbout2024,
+  title = {How Many Web APIs Evolve Following Semantic Versioning?},
+  isbn = {9783031623622},
+  issn = {1611-3349},
+  url = {http://dx.doi.org/10.1007/978-3-031-62362-2_25},
+  doi = {10.1007/978-3-031-62362-2_25},
+  booktitle = {Web Engineering},
+  publisher = {Springer Nature Switzerland},
+  author = {Serbout, Souhaila and Pautasso, Cesare},
+  year = {2024},
+  pages = {344–359}
+}
+
+% === provenance: DiLauro2022 ===
+% CLAIM: A quarter of evolving OpenAPI-described APIs remove operations without deprecating them
+%   first.
+% FOUND-VIA: scholar search 'TITLE-ABS-KEY(("web API" OR "web APIs" OR "REST API" OR "RESTful API" OR
+%   "web service") AND (evolution OR "breaking changes" OR "API changes") AND ("backward
+%   compatibility" OR stability OR versioning OR deprecation))' -n t-api-evolution -p scopus -l 20
+%   -f bibtex+prov (session t-api-evolution, query C1); also returned by t-api-evolution/C1/wos
+% PICKED: Large-scale corroboration (41,627 APIs), surfaced by counter query C1 on WoS/Scopus.
+% QUOTE (abstract, p. 38): "Out of the 41,627 APIs considered, we found only 263 (0.6%) in which some
+%   operations are deprecated before being removed, while the developers of 10,242 (24.6%) of them
+%   directly remove operations without first informing their clients about the potentially breaking
+%   change."
+% VERIFIED: full-text (Springer PDF via KTH tunnel); applies.
+% COUNTER: session t-api-evolution, query C1 (same web/REST API + evolution/breaking-change terms AND
+%   backward compatibility/stability/versioning/deprecation): Serbout & Pautasso 2024 found 927 of
+%   3075 versioned APIs never introduced a breaking change; Di Lauro et al. 2021: only a subset of
+%   APIs change. Claim qualified: drift is common but not universal.
+% DATE: 2026-10-12
+@inbook{DiLauro2022,
+  title = {To Deprecate or to Simply Drop Operations? An Empirical Study on the Evolution of a Large OpenAPI Collection},
+  isbn = {9783031166976},
+  issn = {1611-3349},
+  url = {http://dx.doi.org/10.1007/978-3-031-16697-6_3},
+  doi = {10.1007/978-3-031-16697-6_3},
+  booktitle = {Software Architecture},
+  publisher = {Springer International Publishing},
+  author = {Di Lauro, Fabio and Serbout, Souhaila and Pautasso, Cesare},
+  year = {2022},
+  pages = {38–46}
+}
+
+% === provenance: Wang2014 ===
+% CLAIM: RESTful web APIs change a larger share of their elements between versions than Java APIs and
+%   WSDL services.
+% FOUND-VIA: scholar search '("web API" OR "web APIs" OR "REST API" OR "RESTful API" OR "web service")
+%   AND (evolution OR "breaking changes" OR "API changes")' -n t-api-evolution -p dblp -p ieee -p
+%   openalex -p arxiv -l 20 -f bibtex+prov (session t-api-evolution, query S1); also returned by
+%   t-api-evolution/C1/plain
+% PICKED: Corroborating empirical study surfaced by S1.
+% QUOTE (abstract, p. 245): "We find that a larger portion of RESTful web API elements are changed
+%   between versions compared with Java APIs and WSDL services."
+% VERIFIED: full-text (Springer PDF via KTH tunnel); applies.
+% COUNTER: session t-api-evolution, query C1 (same web/REST API + evolution/breaking-change terms AND
+%   backward compatibility/stability/versioning/deprecation): Serbout & Pautasso 2024 found 927 of
+%   3075 versioned APIs never introduced a breaking change; Di Lauro et al. 2021: only a subset of
+%   APIs change. Claim qualified: drift is common but not universal.
+% DATE: 2026-10-12
+@inbook{Wang2014,
+  title = {How Do Developers React to RESTful API Evolution?},
+  isbn = {9783662453919},
+  issn = {1611-3349},
+  url = {http://dx.doi.org/10.1007/978-3-662-45391-9_17},
+  doi = {10.1007/978-3-662-45391-9_17},
+  booktitle = {Service-Oriented Computing},
+  publisher = {Springer Berlin Heidelberg},
+  author = {Wang, Shaohua and Keivanloo, Iman and Zou, Ying},
+  year = {2014},
+  pages = {245–259}
+}
+
+% === provenance: Li2013 ===
+% CLAIM: Clients of web APIs cannot avoid upgrading because old API versions stop being served.
+% FOUND-VIA: scholar search '("web API" OR "web APIs" OR "REST API" OR "RESTful API" OR "web service")
+%   AND (evolution OR "breaking changes" OR "API changes")' -n t-api-evolution -p dblp -p ieee -p
+%   openalex -p arxiv -l 20 -f bibtex+prov (session t-api-evolution, query S1); also returned by
+%   t-api-evolution/C1/plain
+% PICKED: Early empirical study (5 web APIs, 256 changed elements) surfaced by S1; corroboration.
+% QUOTE (abstract): "clients of a web API often do not have the option not to upgrade, since the old
+%   version of the API may not be provided as a service anymore."
+% VERIFIED: abstract only (OpenAlex); applies.
+% COUNTER: session t-api-evolution, query C1 (same web/REST API + evolution/breaking-change terms AND
+%   backward compatibility/stability/versioning/deprecation): Serbout & Pautasso 2024 found 927 of
+%   3075 versioned APIs never introduced a breaking change; Di Lauro et al. 2021: only a subset of
+%   APIs change. Claim qualified: drift is common but not universal.
+% DATE: 2026-10-12
+@inproceedings{Li2013,
+  title = {How Does Web Service API Evolution Affect Clients?},
+  url = {http://dx.doi.org/10.1109/ICWS.2013.48},
+  doi = {10.1109/icws.2013.48},
+  booktitle = {2013 IEEE 20th International Conference on Web Services},
+  publisher = {IEEE},
+  author = {Li, Jun and Xiong, Yingfei and Liu, Xuanzhe and Zhang, Lu},
+  year = {2013},
+  month = June,
+  pages = {300–307}
+}
+
+% === provenance: DiLauro2021 ===
+% CLAIM: COUNTER/qualifier: only a subset of Web APIs change over time.
+% FOUND-VIA: scholar search 'TITLE-ABS-KEY(("web API" OR "web APIs" OR "REST API" OR "RESTful API" OR
+%   "web service") AND (evolution OR "breaking changes" OR "API changes") AND ("backward
+%   compatibility" OR stability OR versioning OR deprecation))' -n t-api-evolution -p scopus -l 20
+%   -f bibtex+prov (session t-api-evolution, query C1); also returned by t-api-evolution/C1/wos
+% PICKED: Same group's earlier large-scale feasibility study, surfaced by C1.
+% QUOTE (abstract, p. 124): "Our preliminary results indicate that only a subset of the APIs changes,
+%   but as opposed to the expectation that APIs should only grow to maintain backward compatibility
+%   we also detected a number of APIs with a more variable history."
+% VERIFIED: full-text (Springer PDF via KTH tunnel); applies as QUALIFIER.
+% COUNTER: session t-api-evolution, query C1 (same web/REST API + evolution/breaking-change terms AND
+%   backward compatibility/stability/versioning/deprecation): Serbout & Pautasso 2024 found 927 of
+%   3075 versioned APIs never introduced a breaking change; Di Lauro et al. 2021: only a subset of
+%   APIs change. Claim qualified: drift is common but not universal.
+% DATE: 2026-10-12
+@inbook{DiLauro2021,
+  title = {Towards Large-Scale Empirical Assessment of Web APIs Evolution},
+  isbn = {9783030742966},
+  issn = {1611-3349},
+  url = {http://dx.doi.org/10.1007/978-3-030-74296-6_10},
+  doi = {10.1007/978-3-030-74296-6_10},
+  booktitle = {Web Engineering},
+  publisher = {Springer International Publishing},
+  author = {Di Lauro, Fabio and Serbout, Souhaila and Pautasso, Cesare},
+  year = {2021},
+  pages = {124–138}
+}
+
+% === provenance: Schwarz2025 ===
+% CLAIM: Consumer-driven contract testing ensures syntactic interoperability between services and
+%   complements other tests.
+% FOUND-VIA: scholar search '("contract testing" OR "consumer-driven contract" OR "consumer-driven
+%   contracts" OR "contract tests") AND (microservices OR API OR "web service" OR integration)' -n
+%   t-contract-tests -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session
+%   t-contract-tests, query S1); also returned by t-contract-tests/C1/plain,
+%   t-contract-tests/C1/scopus, t-contract-tests/C1/wos, t-contract-tests/S1/scopus,
+%   t-contract-tests/S1/wos
+% PICKED: Systematic literature review plus action research, surfaced by S1 and C1 on all live
+%   providers; corroborates Lehvä et al.
+% QUOTE (abstract): "Our theory posits that consumer‐driven contract testing can ensure syntactic
+%   interoperability between microservices and complement the testing strategy of such systems. The
+%   action research study confirmed this"
+% VERIFIED: abstract only (OpenAlex; Wiley PDF returned 403); applies at 'can detect interface drift'
+%   strength.
+% COUNTER: session t-contract-tests, query C1 (same contract-testing terms AND
+%   limitations/challenges/integration/end-to-end testing/effectiveness): evidence is a single
+%   seeded-defect case study and an action-research study; no negative results found, but also no
+%   multi-project evaluation. Claim stands as 'can detect', evidence thin.
+% DATE: 2026-10-12
+@article{Schwarz2025,
+  title = {Ensuring Syntactic Interoperability Using Consumer‐Driven Contract Testing},
+  volume = {35},
+  issn = {1099-1689},
+  url = {http://dx.doi.org/10.1002/stvr.70006},
+  doi = {10.1002/stvr.70006},
+  number = {5},
+  journal = {Software Testing, Verification and Reliability},
+  publisher = {Wiley},
+  author = {Schwarz, Georg‐Daniel and Quast, Felix and Riehle, Dirk},
+  year = {2025},
+  month = June
+}
+
+% === provenance: Huo2014 ===
+% CLAIM: Assertions can check too much (brittle, depending on uncontrolled inputs) or too little
+%   (unable to detect failures).
+% FOUND-VIA: scholar search '("test oracle" OR assertions OR "property-based testing" OR invariants OR
+%   "metamorphic testing") AND ("unit test" OR "software testing" OR "test suite") AND (brittle OR
+%   fragile OR flaky OR "changing data" OR "non-deterministic")' -n t-invariant-assertions -p dblp
+%   -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session t-invariant-assertions, query S1)
+% PICKED: Primary study naming both failure modes of oracles; 4,000+ real JUnit tests.
+% QUOTE (abstract): "developers often create oracles that check too little, resulting in tests that
+%   are unable to detect failures, or check too much, resulting in tests that are brittle and
+%   difficult to maintain."
+% VERIFIED: abstract only (OpenAlex); applies two-sidedly: brittle exact assertions exist (164 tests),
+%   and weak oracles miss failures.
+% COUNTER: session t-invariant-assertions, query C1 (same
+%   oracle/assertion/property/invariant/metamorphic terms AND fault detection/mutation
+%   score/effectiveness/oracle quality): weaker oracles miss faults (Jahangirova et al. 2016:
+%   improved oracles detect 48.6% more), but metamorphic relations reach fault detection similar to
+%   a full oracle (Liu et al. 2014). Claim qualified: shape-only assertions trade fault detection
+%   for robustness.
+% DATE: 2026-10-12
+@inproceedings{Huo2014,
+  series = {SIGSOFT/FSE′14},
+  title = {Improving oracle quality by detecting brittle assertions and unused inputs in tests},
+  url = {http://dx.doi.org/10.1145/2635868.2635917},
+  doi = {10.1145/2635868.2635917},
+  booktitle = {Proceedings of the 22nd ACM SIGSOFT International Symposium on Foundations of Software Engineering},
+  publisher = {ACM},
+  author = {Huo, Chen and Clause, James},
+  year = {2014},
+  month = Nov,
+  pages = {621–631},
+  collection = {SIGSOFT/FSE′14}
+}
+
+% === provenance: Liu2014 ===
+% CLAIM: Relational (metamorphic) properties can detect faults about as well as a full test oracle.
+% FOUND-VIA: scholar search '("test oracle" OR assertions OR "property-based testing" OR invariants OR
+%   "metamorphic testing" OR "oracle strength") AND ("unit test" OR "software testing" OR "test
+%   suite") AND ("fault detection" OR "mutation score" OR effectiveness OR "oracle quality")' -n
+%   t-invariant-assertions -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session
+%   t-invariant-assertions, query C1)
+% PICKED: TSE empirical study surfaced by C1; supports that property-style assertions need not lose
+%   much fault detection.
+% QUOTE (abstract): "a small number of diverse metamorphic relations, even those identified in an ad
+%   hoc manner, had a similar fault-detection capability to a test oracle"
+% VERIFIED: abstract only (OpenAlex); applies by analogy (metamorphic relations, not schema/shape
+%   checks).
+% COUNTER: session t-invariant-assertions, query C1 (same
+%   oracle/assertion/property/invariant/metamorphic terms AND fault detection/mutation
+%   score/effectiveness/oracle quality): weaker oracles miss faults (Jahangirova et al. 2016:
+%   improved oracles detect 48.6% more), but metamorphic relations reach fault detection similar to
+%   a full oracle (Liu et al. 2014). Claim qualified: shape-only assertions trade fault detection
+%   for robustness.
+% DATE: 2026-10-12
+@article{Liu2014,
+  title = {How Effectively Does Metamorphic Testing Alleviate the Oracle Problem?},
+  volume = {40},
+  issn = {1939-3520},
+  url = {http://dx.doi.org/10.1109/tse.2013.46},
+  doi = {10.1109/tse.2013.46},
+  number = {1},
+  journal = {IEEE Transactions on Software Engineering},
+  publisher = {Institute of Electrical and Electronics Engineers (IEEE)},
+  author = {Liu, Huai and Kuo, Fei-Ching and Towey, Dave and Chen, Tsong Yueh},
+  year = {2014},
+  month = Jan,
+  pages = {4–22}
+}
+
+% === provenance: Jahangirova2016 ===
+% CLAIM: COUNTER: strengthening oracles substantially raises fault detection, so weaker oracles miss
+%   faults.
+% FOUND-VIA: scholar search '("test oracle" OR assertions OR "property-based testing" OR invariants OR
+%   "metamorphic testing") AND ("unit test" OR "software testing" OR "test suite") AND (brittle OR
+%   fragile OR flaky OR "changing data" OR "non-deterministic")' -n t-invariant-assertions -p dblp
+%   -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session t-invariant-assertions, query S1);
+%   also returned by t-invariant-assertions/C1/plain
+% PICKED: Oracle-improvement study surfaced by S1 and C1; quantifies the cost of weak oracles.
+% QUOTE (abstract): "The experimental results show that the fault detection rate of the oracles after
+%   improvement increases, on average, by 48.6% (86% over the implicit oracle)."
+% VERIFIED: abstract only (OpenAlex); applies as COUNTER.
+% COUNTER: session t-invariant-assertions, query C1 (same
+%   oracle/assertion/property/invariant/metamorphic terms AND fault detection/mutation
+%   score/effectiveness/oracle quality): weaker oracles miss faults (Jahangirova et al. 2016:
+%   improved oracles detect 48.6% more), but metamorphic relations reach fault detection similar to
+%   a full oracle (Liu et al. 2014). Claim qualified: shape-only assertions trade fault detection
+%   for robustness.
+% DATE: 2026-10-12
+@inproceedings{Jahangirova2016,
+  series = {ISSTA ’16},
+  title = {Test oracle assessment and improvement},
+  url = {http://dx.doi.org/10.1145/2931037.2931062},
+  doi = {10.1145/2931037.2931062},
+  booktitle = {Proceedings of the 25th International Symposium on Software Testing and Analysis},
+  publisher = {ACM},
+  author = {Jahangirova, Gunel and Clark, David and Harman, Mark and Tonella, Paolo},
+  year = {2016},
+  month = July,
+  pages = {247–258},
+  collection = {ISSTA ’16}
+}
+
+% === provenance: Gruber2021 ===
+% CLAIM: In Python, order dependency causes most flaky tests; network and randomness account for most
+%   of the rest.
+% FOUND-VIA: scholar search '("flaky tests" OR "flaky test" OR "test flakiness") AND ("root causes" OR
+%   causes OR "empirical study" OR taxonomy)' -n t-flaky -p dblp -p ieee -p openalex -p arxiv -l 20
+%   -f bibtex+prov (session t-flaky, query S1); also returned by t-flaky/C1/plain, t-flaky/S2/plain
+% PICKED: Largest dynamic study (22,352 projects, 7,571 flaky tests) surfaced by S1, S2 and C1.
+% QUOTE (abstract): "Order dependency is a much more dominant problem in Python, causing 59 % of the 7
+%   571 flaky tests in our dataset. Another 28 % were caused by test infrastructure problems, which
+%   represent a previously undocumented cause of flakiness. The remaining 13 % can mostly be
+%   attributed to the use of network and randomness APIs"
+% VERIFIED: full-text (arXiv 2101.09077); applies as QUALIFIER.
+% COUNTER: session t-flaky, query C1 (flaky-test terms AND async wait/concurrency/order-dependent/test
+%   order dependency): async wait, concurrency and test-order dependency dominate in Java (Luo et
+%   al. 2014) and order dependency in Python (Gruber et al. 2021); network/time/randomness are
+%   recognised but minority causes. Claim qualified.
+% DATE: 2026-10-12
+@inproceedings{Gruber2021,
+  title = {An Empirical Study of Flaky Tests in Python},
+  url = {http://dx.doi.org/10.1109/ICST49551.2021.00026},
+  doi = {10.1109/icst49551.2021.00026},
+  booktitle = {2021 14th IEEE Conference on Software Testing, Verification and Validation (ICST)},
+  publisher = {IEEE},
+  author = {Gruber, Martin and Lukasczyk, Stephan and Krois, Florian and Fraser, Gordon},
+  year = {2021},
+  month = Apr,
+  pages = {148–158}
+}
+
+% === provenance: Hashemi2022 ===
+% CLAIM: In JavaScript, concurrency is the dominant flakiness cause, with OS-specific features and
+%   network stability next.
+% FOUND-VIA: scholar search '("flaky tests" OR "flaky test" OR "test flakiness") AND ("root causes" OR
+%   causes OR "empirical study" OR taxonomy)' -n t-flaky -p dblp -p ieee -p openalex -p arxiv -l 20
+%   -f bibtex+prov (session t-flaky, query S1); also returned by t-flaky/C1/plain, t-flaky/S2/plain
+% PICKED: Commit-based study (452 commits) surfaced by S1, S2 and C1; network is a top cause here.
+% QUOTE (abstract): "flakiness caused by concurrency-related issues (e.g., async wait, race conditions
+%   or deadlocks) is the most dominant reason for test flakiness. The other top causes of flaky
+%   tests are operating system-specific (e.g., features that work on specific OS or OS versions) and
+%   network stability (e.g., internet availability or bad socket management)."
+% VERIFIED: full-text (arXiv 2207.01047); applies: supports network as a major cause in JS.
+% COUNTER: session t-flaky, query C1 (flaky-test terms AND async wait/concurrency/order-dependent/test
+%   order dependency): async wait, concurrency and test-order dependency dominate in Java (Luo et
+%   al. 2014) and order dependency in Python (Gruber et al. 2021); network/time/randomness are
+%   recognised but minority causes. Claim qualified.
+% DATE: 2026-10-12
+@inproceedings{Hashemi2022,
+  title = {An Empirical Study of Flaky Tests in JavaScript},
+  url = {http://dx.doi.org/10.1109/ICSME55016.2022.00011},
+  doi = {10.1109/icsme55016.2022.00011},
+  booktitle = {2022 IEEE International Conference on Software Maintenance and Evolution (ICSME)},
+  publisher = {IEEE},
+  author = {Hashemi, Negar and Tahir, Amjed and Rasheed, Shawn},
+  year = {2022},
+  month = Oct,
+  pages = {24–34}
+}
+
+% === provenance: Parry2022 ===
+% CLAIM: Flaky tests are a recognised, frequent problem with a body of root-cause literature (survey
+%   of 76 papers).
+% FOUND-VIA: scholar search '("flaky tests" OR "flaky test" OR "test flakiness") AND ("root causes" OR
+%   causes OR "empirical study" OR taxonomy)' -n t-flaky -p dblp -p ieee -p openalex -p arxiv -l 20
+%   -f bibtex+prov (session t-flaky, query S1)
+% PICKED: TOSEM survey named in the brief as 'later flaky-test surveys'; cited for context only.
+% QUOTE (abstract): "In this article, we systematically survey the body of literature relevant to
+%   flaky test research, amounting to 76 papers."
+% VERIFIED: abstract only (ACM PDF 403); applies as context, not for cause shares.
+% COUNTER: session t-flaky, query C1 (flaky-test terms AND async wait/concurrency/order-dependent/test
+%   order dependency): async wait, concurrency and test-order dependency dominate in Java (Luo et
+%   al. 2014) and order dependency in Python (Gruber et al. 2021); network/time/randomness are
+%   recognised but minority causes. Claim qualified.
+% DATE: 2026-10-12
+@article{Parry2022,
+  title = {A Survey of Flaky Tests},
+  volume = {31},
+  issn = {1557-7392},
+  url = {http://dx.doi.org/10.1145/3476105},
+  doi = {10.1145/3476105},
+  number = {1},
+  journal = {ACM Transactions on Software Engineering and Methodology},
+  publisher = {Association for Computing Machinery (ACM)},
+  author = {Parry, Owain and Kapfhammer, Gregory M. and Hilton, Michael and McMinn, Phil},
+  year = {2022},
+  month = Oct,
+  pages = {1–74}
+}
+
+% === provenance: EDPB2025 ===
+% CLAIM: Pseudonymised data that could be attributed using additional information (e.g. a key) are
+%   personal data; a plain hash of a name is reversible by hashing known names, so the
+%   transformation needs a secret (e.g. a MAC key).
+% FOUND-VIA: known item named in the brief (EDPB Guidelines 01/2025), retrieved directly: curl
+%   https://www.edpb.europa.eu/system/files/2025-01/edpb_guidelines_202501_pseudonymisation_en.pdf
+% PICKED: Authoritative EU guidance named in the brief; quotes GDPR Art. 4(5) verbatim (para. 16) and
+%   cites Recital 26.
+% QUOTE (para. 22, p. 10; para. 88 fn. 23, p. 21): "Pseudonymised data, which could be attributed to a
+%   natural person by the use of additional information, is to be considered information on an
+%   identifiable natural person, and is therefore personal."
+% VERIFIED: full-text (EDPB PDF, version adopted 16 Jan 2025 for public consultation); fn. 23: 'if you
+%   know the transformation is merely a SHA256 hash of a name, you could apply this to all names you
+%   have elsewhere and then see which hashes match in the pseudonymised dataset.' Para. 89 names
+%   MACs as suitable. The GDPR text itself (EUR-Lex) was not read: EUR-Lex returned an HTTP 202 bot
+%   challenge.
+% COUNTER: session t-pseudonymisation, query C1 (pseudonymisation + GDPR AND 'relative
+%   approach'/'anonymous data'/'not personal data'/risk-based) plus WebSearch for the CJEU SRB
+%   judgment: CJEU C-413/23 P (4 Sep 2025) holds pseudonymised data are not personal data for every
+%   recipient; Mourby et al. 2018 argue the same. For the key holder they remain personal. Claim
+%   qualified to the controller's perspective.
+% DATE: 2026-10-12
+@misc{EDPB2025,
+  author = {{European Data Protection Board}},
+  title = {Guidelines 01/2025 on Pseudonymisation (version for public consultation)},
+  year = {2025},
+  month = jan,
+  note = {Adopted 16 January 2025},
+  url = {https://www.edpb.europa.eu/system/files/2025-01/edpb_guidelines_202501_pseudonymisation_en.pdf}
+}
+
+% === provenance: CJEU2025 ===
+% CLAIM: QUALIFIER: pseudonymised data are not personal data for every person; for a recipient who
+%   cannot re-identify they may not be, but identifiability is assessed from the controller's point
+%   of view.
+% FOUND-VIA: WebSearch 'CJEU C-413/23 P EDPS v SRB judgment pseudonymised data personal data
+%   recipient' (2026-10-12) -> curl
+%   https://curia.europa.eu/jcms/upload/docs/application/pdf/2025-09/cp250107en.pdf
+% PICKED: Highest legal authority on the question; found by the counter-search (WebSearch) for the
+%   relative approach.
+% QUOTE (press release No 107/25, p. 1): "pseudonymised data must not be regarded as constituting, in
+%   all cases and for every person, personal data for the purposes of the application of Regulation
+%   2018/1725."
+% VERIFIED: full-text of the official CURIA press release (not the judgment; the release is 'not
+%   binding on the Court'); p. 2: 'the identifiable nature of the data subject must be assessed at
+%   the time of collection of the data and from the point of view of the controller.' Case concerns
+%   Regulation 2018/1725, whose definitions mirror the GDPR.
+% COUNTER: session t-pseudonymisation, query C1 (pseudonymisation + GDPR AND 'relative
+%   approach'/'anonymous data'/'not personal data'/risk-based) plus WebSearch for the CJEU SRB
+%   judgment: CJEU C-413/23 P (4 Sep 2025) holds pseudonymised data are not personal data for every
+%   recipient; Mourby et al. 2018 argue the same. For the key holder they remain personal. Claim
+%   qualified to the controller's perspective.
+% DATE: 2026-10-12
+@misc{CJEU2025,
+  author = {{Court of Justice of the European Union}},
+  title = {Judgment of the Court in Case C-413/23 P, EDPS v SRB (Concept of personal data)},
+  howpublished = {Press release No 107/25},
+  year = {2025},
+  month = sep,
+  url = {https://curia.europa.eu/jcms/upload/docs/application/pdf/2025-09/cp250107en.pdf}
+}
+
+% === provenance: Demir2018 ===
+% CLAIM: Hashing identifiers is only rarely an effective anonymisation; hashed MAC and e-mail
+%   addresses can be recovered.
+% FOUND-VIA: scholar search '(pseudonymization OR pseudonymisation OR hashing OR "hash function") AND
+%   ("re-identification" OR reidentification OR "dictionary attack" OR "brute force") AND ("personal
+%   data" OR identifiers)' -n t-pseudonymisation -p dblp -p ieee -p openalex -p arxiv -l 20 -f
+%   bibtex+prov (session t-pseudonymisation, query S2)
+% PICKED: Tutorial/survey with case studies surfaced by S2; most direct academic source on weak
+%   hashing.
+% QUOTE (abstract): "hashing is often believed to be an effective way to anonymize data.
+%   Unfortunately, in practice it is only rarely effective."
+% VERIFIED: abstract only (OpenAlex; IEEE closed); applies to unkeyed hashing, which SKILL.md already
+%   avoids (it uses a keyed HMAC).
+% COUNTER: session t-pseudonymisation, query C1 (pseudonymisation + GDPR AND 'relative
+%   approach'/'anonymous data'/'not personal data'/risk-based) plus WebSearch for the CJEU SRB
+%   judgment: CJEU C-413/23 P (4 Sep 2025) holds pseudonymised data are not personal data for every
+%   recipient; Mourby et al. 2018 argue the same. For the key holder they remain personal. Claim
+%   qualified to the controller's perspective.
+% DATE: 2026-10-12
+@article{Demir2018,
+  title = {The Pitfalls of Hashing for Privacy},
+  volume = {20},
+  issn = {1553-877X},
+  url = {http://dx.doi.org/10.1109/COMST.2017.2747598},
+  doi = {10.1109/comst.2017.2747598},
+  number = {1},
+  journal = {IEEE Communications Surveys &amp; Tutorials},
+  publisher = {Institute of Electrical and Electronics Engineers (IEEE)},
+  author = {Demir, Levent and Kumar, Amrit and Cunche, Mathieu and Lauradoux, Cedric},
+  year = {2018},
+  pages = {551–565}
+}
+
+% === provenance: Mourby2018 ===
+% CLAIM: QUALIFIER: key-coded data can be anonymous for a third party under Recital 26's 'means
+%   reasonably likely' test.
+% FOUND-VIA: scholar search '(pseudonymization OR pseudonymisation OR pseudonymized OR pseudonymised)
+%   AND (GDPR OR "General Data Protection Regulation") AND ("personal data" OR identifiability OR
+%   anonymization OR anonymisation)' -n t-pseudonymisation -p dblp -p ieee -p openalex -p arxiv -l
+%   20 -f bibtex+prov (session t-pseudonymisation, query S1); also returned by
+%   t-pseudonymisation/C1/plain
+% PICKED: Legal analysis surfaced by S1 and C1; scholarly counterpart of the CJEU position.
+% QUOTE (abstract): "There may also be circumstances in which data which have undergone
+%   pseudonymisation within one organisation could be anonymous for a third party."
+% VERIFIED: abstract only (OpenAlex; Elsevier); applies as QUALIFIER.
+% COUNTER: session t-pseudonymisation, query C1 (pseudonymisation + GDPR AND 'relative
+%   approach'/'anonymous data'/'not personal data'/risk-based) plus WebSearch for the CJEU SRB
+%   judgment: CJEU C-413/23 P (4 Sep 2025) holds pseudonymised data are not personal data for every
+%   recipient; Mourby et al. 2018 argue the same. For the key holder they remain personal. Claim
+%   qualified to the controller's perspective.
+% DATE: 2026-10-12
+@article{Mourby2018,
+  title = {Are ‘pseudonymised’ data always personal data? Implications of the GDPR for administrative data research in the UK},
+  volume = {34},
+  issn = {2212-473X},
+  url = {http://dx.doi.org/10.1016/j.clsr.2018.01.002},
+  doi = {10.1016/j.clsr.2018.01.002},
+  number = {2},
+  journal = {Computer Law &amp; Security Review},
+  publisher = {Elsevier BV},
+  author = {Mourby, Miranda and Mackey, Elaine and Elliot, Mark and Gowans, Heather and Wallace, Susan E. and Bell, Jessica and Smith, Hannah and Aidinlis, Stergios and Kaye, Jane},
+  year = {2018},
+  month = Apr,
+  pages = {222–233}
+}
+
+% === provenance: Meli2019 ===
+% CLAIM: Secrets leak into public GitHub repositories at scale, most are never removed, none of the
+%   removals rewrote history, and new leaks are found within seconds.
+% FOUND-VIA: scholar search '(secrets OR credentials OR "API keys" OR passwords OR "hard-coded
+%   secrets") AND (leak OR leakage OR exposure OR "secret detection") AND (GitHub OR repositories OR
+%   "source code" OR "version control")' -n t-secrets-leak -p dblp -p ieee -p openalex -p arxiv -l
+%   20 -f bibtex+prov (session t-secrets-leak, query S1); also returned by t-secrets-leak/C1/plain
+% PICKED: Starting point named in the brief; primary large-scale longitudinal measurement.
+% QUOTE (abstract, p. 1; 'Secret Lifetime', p. 8; p. 9): "We find that not only is secret leakage
+%   pervasive — affecting over 100,000 repositories — but that thousands of new, unique secrets are
+%   leaked every day."
+% VERIFIED: full-text (NDSS OA PDF); p. 8: '81% of the secrets we discover were not removed' and 'none
+%   of the monitored repos had their history rewritten, meaning the secrets were trivially
+%   accessible via Git history'; p. 9: 'the median time to discovery was 20 seconds'. Covers API
+%   keys/private keys, not personal data or test fixtures specifically.
+% COUNTER: session t-secrets-leak, query C1 (secrets/credentials + 'secret detection'/'secret
+%   scanning' AND false positives/precision/removal/test files): detection tools have many false
+%   positives (dummy/test keys), but no study found that refutes prevalence; no study specific to
+%   test fixtures found. Claim qualified: 'test fixtures' part is unstudied.
+% DATE: 2026-10-12
+@inproceedings{Meli2019,
+  series = {NDSS 2019},
+  title = {How Bad Can It Git? Characterizing Secret Leakage in Public GitHub Repositories},
+  url = {http://dx.doi.org/10.14722/ndss.2019.23418},
+  doi = {10.14722/ndss.2019.23418},
+  booktitle = {Proceedings 2019 Network and Distributed System Security Symposium},
+  publisher = {Internet Society},
+  author = {Meli, Michael and McNiece, Matthew R. and Reaves, Bradley},
+  year = {2019},
+  collection = {NDSS 2019}
+}
+
+% === provenance: Krause2022 ===
+% CLAIM: Developers who leaked secrets rarely cleaned VCS history (17.4%).
+% FOUND-VIA: scholar search '(secrets OR credentials OR "API keys" OR passwords OR "hard-coded
+%   secrets") AND (leak OR leakage OR exposure OR "secret detection") AND (GitHub OR repositories OR
+%   "source code" OR "version control")' -n t-secrets-leak -p dblp -p ieee -p openalex -p arxiv -l
+%   20 -f bibtex+prov (session t-secrets-leak, query S1)
+% PICKED: Mixed-methods developer study surfaced by S1; corroborates 'treat as published'.
+% QUOTE (abstract; remediation-strategy table): "Leaking code secrets to the public can have
+%   disastrous consequences, such as abusing services and systems or making sensitive user data
+%   available to attackers."
+% VERIFIED: full-text (arXiv 2211.06213v3); remediation table: 'Cleanup VCS History ... 19 17.4%'.
+%   Applies as corroboration.
+% COUNTER: session t-secrets-leak, query C1 (secrets/credentials + 'secret detection'/'secret
+%   scanning' AND false positives/precision/removal/test files): detection tools have many false
+%   positives (dummy/test keys), but no study found that refutes prevalence; no study specific to
+%   test fixtures found. Claim qualified: 'test fixtures' part is unstudied.
+% DATE: 2026-10-12
+@misc{Krause2022,
+  doi = {10.48550/ARXIV.2211.06213},
+  url = {https://arxiv.org/abs/2211.06213},
+  author = {Krause, Alexander and Klemmer, Jan H. and Huaman, Nicolas and Wermke, Dominik and Acar, Yasemin and Fahl, Sascha},
+  title = {Pushed by Accident: A Mixed-Methods Study on Strategies of Handling Secret Information in Source Code Repositories},
+  publisher = {arXiv},
+  year = {2022}
+}
+
+% === provenance: Norgeot2020 ===
+% CLAIM: Automated de-identification of free text misses identifiers: two established tools had 70-95%
+%   recall; even the best tool leaves some PHI, and at scale residual PHI is large.
+% FOUND-VIA: scholar search '("de-identification" OR deidentification OR anonymization OR
+%   anonymisation OR "text sanitization") AND ("free text" OR "unstructured text" OR "clinical
+%   notes" OR "clinical text") AND (names OR identifiers OR "protected health information" OR PHI)'
+%   -n t-free-text-deid -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session
+%   t-free-text-deid, query S1); also returned by t-free-text-deid/C1/plain
+% PICKED: Primary comparison of tools on two corpora surfaced by S1 and C1; supports and qualifies.
+% QUOTE (Introduction; Results, Table 1): "Even at 95% recall (i.e., percent of PHI removed), the
+%   amount PHI still remaining across millions of clinical notes would be staggering."
+% VERIFIED: full-text (Europe PMC PMC7156708); Results: Physionet recall 85.10%/69.84%, Scrubber
+%   95.30%/87.80%, Philter 99.46%/99.92% (UCSF/i2b2). Clinical notes, not course data.
+% COUNTER: session t-free-text-deid, query C1 (same de-identification + free/clinical text terms AND
+%   recall/re-identification/rule-based/pattern matching/residual): best systems reach ~99.5-99.9%
+%   recall on clinical notes (Norgeot et al. 2020), but residual identifiers remain and systems
+%   generalise poorly across sub-domains (Kovacevic et al. 2024). Evidence is clinical text, not LMS
+%   data.
+% DATE: 2026-10-12
+@article{Norgeot2020,
+  title = {Protected Health Information filter (Philter): accurately and securely de-identifying free-text clinical notes},
+  volume = {3},
+  issn = {2398-6352},
+  url = {http://dx.doi.org/10.1038/s41746-020-0258-y},
+  doi = {10.1038/s41746-020-0258-y},
+  number = {1},
+  journal = {npj Digital Medicine},
+  publisher = {Springer Science and Business Media LLC},
+  author = {Norgeot, Beau and Muenzen, Kathleen and Peterson, Thomas A. and Fan, Xuancheng and Glicksberg, Benjamin S. and Schenk, Gundolf and Rutenberg, Eugenia and Oskotsky, Boris and Sirota, Marina and Yazdany, Jinoos and Schmajuk, Gabriela and Ludwig, Dana and Goldstein, Theodore and Butte, Atul J.},
+  year = {2020},
+  month = Apr
+}
+
+% === provenance: Stubbs2015 ===
+% CLAIM: De-identification of free text is not yet a solved problem; best systems combine CRFs with
+%   hand-written rules.
+% FOUND-VIA: scholar search '("de-identification" OR deidentification OR anonymization OR
+%   anonymisation OR "text sanitization") AND ("free text" OR "unstructured text" OR "clinical
+%   notes" OR "clinical text") AND (names OR identifiers OR "protected health information" OR PHI)'
+%   -n t-free-text-deid -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session
+%   t-free-text-deid, query S1)
+% PICKED: i2b2 2014 shared-task overview surfaced by S1; field consensus.
+% QUOTE (abstract): "Our findings indicate that automated systems can be very effective for this task,
+%   but that de-identification is not yet a solved problem."
+% VERIFIED: abstract only (OpenAlex); applies.
+% COUNTER: session t-free-text-deid, query C1 (same de-identification + free/clinical text terms AND
+%   recall/re-identification/rule-based/pattern matching/residual): best systems reach ~99.5-99.9%
+%   recall on clinical notes (Norgeot et al. 2020), but residual identifiers remain and systems
+%   generalise poorly across sub-domains (Kovacevic et al. 2024). Evidence is clinical text, not LMS
+%   data.
+% DATE: 2026-10-12
+@article{Stubbs2015,
+  title = {Automated systems for the de-identification of longitudinal clinical narratives: Overview of 2014 i2b2/UTHealth shared task Track 1},
+  volume = {58},
+  issn = {1532-0464},
+  url = {http://dx.doi.org/10.1016/j.jbi.2015.06.007},
+  doi = {10.1016/j.jbi.2015.06.007},
+  journal = {Journal of Biomedical Informatics},
+  publisher = {Elsevier BV},
+  author = {Stubbs, Amber and Kotfila, Christopher and Uzuner, Özlem},
+  year = {2015},
+  month = Dec,
+  pages = {S11–S19}
+}
+
+% === provenance: Kovacevic2024 ===
+% CLAIM: Systematic review: reported F1 above 98% but poor generalisation across clinical sub-domains
+%   without new labelled data.
+% FOUND-VIA: scholar search '("de-identification" OR deidentification OR anonymization OR
+%   anonymisation OR "text sanitization") AND ("free text" OR "unstructured text" OR "clinical
+%   notes" OR "clinical text") AND (names OR identifiers OR "protected health information" OR PHI)'
+%   -n t-free-text-deid -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session
+%   t-free-text-deid, query S1)
+% PICKED: Most recent systematic review (69 studies) surfaced by S1; supports and qualifies.
+% QUOTE (abstract): "Without additional manually labelled training data, state-of-the-art systems fail
+%   to generalise well across a wide range of clinical sub-domains."
+% VERIFIED: full-text (arXiv 2312.03736); applies: a scrubber tuned for one data source misses
+%   identifiers in another.
+% COUNTER: session t-free-text-deid, query C1 (same de-identification + free/clinical text terms AND
+%   recall/re-identification/rule-based/pattern matching/residual): best systems reach ~99.5-99.9%
+%   recall on clinical notes (Norgeot et al. 2020), but residual identifiers remain and systems
+%   generalise poorly across sub-domains (Kovacevic et al. 2024). Evidence is clinical text, not LMS
+%   data.
+% DATE: 2026-10-12
+@article{Kovacevic2024,
+  title = {De-identification of clinical free text using natural language processing: A systematic review of current approaches},
+  volume = {151},
+  issn = {0933-3657},
+  url = {http://dx.doi.org/10.1016/j.artmed.2024.102845},
+  doi = {10.1016/j.artmed.2024.102845},
+  journal = {Artificial Intelligence in Medicine},
+  publisher = {Elsevier BV},
+  author = {Kovačević, Aleksandar and Bašaragin, Bojana and Milošević, Nikola and Nenadić, Goran},
+  year = {2024},
+  month = May,
+  pages = {102845}
+}
+
+% === provenance: Rafique2013 ===
+% CLAIM: Meta-analysis: TDD has a small positive effect on external quality and little to no effect on
+%   productivity; larger quality gain and productivity drop in industry.
+% FOUND-VIA: scholar search '("test-driven development" OR "test-first" OR "test first programming" OR
+%   TDD) AND (quality OR productivity OR defects) AND ("meta-analysis" OR "systematic review" OR
+%   replication OR "no effect" OR "no difference")' -n t-tdd -p dblp -p ieee -p openalex -p arxiv -l
+%   20 -f bibtex+prov (session t-tdd, query C1)
+% PICKED: Meta-analysis named in the brief (27 studies).
+% QUOTE (abstract): "The results indicate that, in general, TDD has a small positive effect on quality
+%   but little to no discernible effect on productivity. However, subgroup analysis has found both
+%   the quality improvement and the productivity drop to be much larger in industrial studies in
+%   comparison with academic studies."
+% VERIFIED: abstract only (OpenAlex; IEEE closed); applies.
+% COUNTER: session t-tdd, query C1 (TDD/test-first terms AND meta-analysis/systematic
+%   review/replication/'no effect'/'no difference'): meta-analysis finds small quality gain, no
+%   productivity gain (Rafique & Misic 2013); test-first order itself has no important effect (Fucci
+%   et al. 2017); novices did slightly better test-last in 12 experiments (Santos et al. 2021).
+%   Claim contested.
+% DATE: 2026-10-12
+@article{Rafique2013,
+  title = {The Effects of Test-Driven Development on External Quality and Productivity: A Meta-Analysis},
+  volume = {39},
+  issn = {1939-3520},
+  url = {http://dx.doi.org/10.1109/TSE.2012.28},
+  doi = {10.1109/tse.2012.28},
+  number = {6},
+  journal = {IEEE Transactions on Software Engineering},
+  publisher = {Institute of Electrical and Electronics Engineers (IEEE)},
+  author = {Rafique, Yahya and Misic, Vojislav B.},
+  year = {2013},
+  month = June,
+  pages = {835–856}
+}
+
+% === provenance: Fucci2017 ===
+% CLAIM: COUNTER: the order of writing test and code had no important influence; benefits come from
+%   fine-grained steady cycles.
+% FOUND-VIA: scholar search '("test-driven development" OR "test-first" OR "test first programming" OR
+%   TDD) AND (quality OR productivity OR defects) AND (experiment OR "empirical study" OR "case
+%   study")' -n t-tdd -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session t-tdd,
+%   query S1)
+% PICKED: Named in the brief; 39 professionals, 82 data points.
+% QUOTE (abstract): "Sequencing, the order in which test and production code are written, had no
+%   important influence."
+% VERIFIED: full-text (arXiv 1611.05994 preprint); conclusion: 'The claimed benefits of TDD may not be
+%   due to its distinctive test-first dynamic, but rather due to the fact that TDD-like processes
+%   encourage fine-grained, steady steps'.
+% COUNTER: session t-tdd, query C1 (TDD/test-first terms AND meta-analysis/systematic
+%   review/replication/'no effect'/'no difference'): meta-analysis finds small quality gain, no
+%   productivity gain (Rafique & Misic 2013); test-first order itself has no important effect (Fucci
+%   et al. 2017); novices did slightly better test-last in 12 experiments (Santos et al. 2021).
+%   Claim contested.
+% DATE: 2026-10-12
+@article{Fucci2017,
+  title = {A Dissection of the Test-Driven Development Process: Does It Really Matter to Test-First or to Test-Last?},
+  volume = {43},
+  issn = {1939-3520},
+  url = {http://dx.doi.org/10.1109/TSE.2016.2616877},
+  doi = {10.1109/tse.2016.2616877},
+  number = {7},
+  journal = {IEEE Transactions on Software Engineering},
+  publisher = {Institute of Electrical and Electronics Engineers (IEEE)},
+  author = {Fucci, Davide and Erdogmus, Hakan and Turhan, Burak and Oivo, Markku and Juristo, Natalia},
+  year = {2017},
+  month = July,
+  pages = {597–614}
+}
+
+% === provenance: Santos2021 ===
+% CLAIM: COUNTER: in a family of 12 experiments, novices wrote slightly higher-quality code test-last
+%   than with TDD; the task dominates.
+% FOUND-VIA: scholar search '("test-driven development" OR "test-first" OR "test first programming" OR
+%   TDD) AND (quality OR productivity OR defects) AND (experiment OR "empirical study" OR "case
+%   study")' -n t-tdd -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session t-tdd,
+%   query S1); also returned by t-tdd/C1/plain, t-tdd/C1/scopus, t-tdd/C1/wos
+% PICKED: Largest experiment family found, surfaced by S1 and C1 on all live providers.
+% QUOTE (abstract): "TDD novices achieve a slightly higher code quality with iterative test-last
+%   development (i.e., ITL, the reverse approach of TDD) than with TDD. The task being developed
+%   largely determines quality."
+% VERIFIED: full-text (Springer PDF via KTH tunnel); applies as COUNTER.
+% COUNTER: session t-tdd, query C1 (TDD/test-first terms AND meta-analysis/systematic
+%   review/replication/'no effect'/'no difference'): meta-analysis finds small quality gain, no
+%   productivity gain (Rafique & Misic 2013); test-first order itself has no important effect (Fucci
+%   et al. 2017); novices did slightly better test-last in 12 experiments (Santos et al. 2021).
+%   Claim contested.
+% DATE: 2026-10-12
+@article{Santos2021,
+  title = {A family of experiments on test-driven development},
+  volume = {26},
+  issn = {1573-7616},
+  url = {http://dx.doi.org/10.1007/s10664-020-09895-8},
+  doi = {10.1007/s10664-020-09895-8},
+  number = {3},
+  journal = {Empirical Software Engineering},
+  publisher = {Springer Science and Business Media LLC},
+  author = {Santos, Adrian and Vegas, Sira and Dieste, Oscar and Uyaguari, Fernando and Tosun, Ayşe and Fucci, Davide and Turhan, Burak and Scanniello, Giuseppe and Romano, Simone and Karac, Itir and Kuhrmann, Marco and Mandić, Vladimir and Ramač, Robert and Pfahl, Dietmar and Engblom, Christian and Kyykka, Jarno and Rungi, Kerli and Palomeque, Carolina and Spisak, Jaroslav and Oivo, Markku and Juristo, Natalia},
+  year = {2021},
+  month = Mar
+}
+
+% === provenance: Nagappan2008 ===
+% CLAIM: Industrial case studies: TDD teams had 40-90% lower pre-release defect density at 15-35% more
+%   initial development time.
+% FOUND-VIA: scholar search '("test-driven development" OR "test-first" OR "test first programming" OR
+%   TDD) AND (quality OR productivity OR defects) AND (experiment OR "empirical study" OR "case
+%   study")' -n t-tdd -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session t-tdd,
+%   query S1)
+% PICKED: Most-cited industrial support, surfaced by S1; case studies, not controlled.
+% QUOTE (abstract, p. 289): "The results of the case studies indicate that the pre-release defect
+%   density of the four products decreased between 40% and 90% relative to similar projects that did
+%   not use the TDD practice."
+% VERIFIED: abstract only (Springer returned the first page); applies as support with low internal
+%   validity.
+% COUNTER: session t-tdd, query C1 (TDD/test-first terms AND meta-analysis/systematic
+%   review/replication/'no effect'/'no difference'): meta-analysis finds small quality gain, no
+%   productivity gain (Rafique & Misic 2013); test-first order itself has no important effect (Fucci
+%   et al. 2017); novices did slightly better test-last in 12 experiments (Santos et al. 2021).
+%   Claim contested.
+% DATE: 2026-10-12
+@article{Nagappan2008,
+  title = {Realizing quality improvement through test driven development: results and experiences of four industrial teams},
+  volume = {13},
+  issn = {1573-7616},
+  url = {http://dx.doi.org/10.1007/s10664-008-9062-z},
+  doi = {10.1007/s10664-008-9062-z},
+  number = {3},
+  journal = {Empirical Software Engineering},
+  publisher = {Springer Science and Business Media LLC},
+  author = {Nagappan, Nachiappan and Maximilien, E. Michael and Bhat, Thirumalesh and Williams, Laurie},
+  year = {2008},
+  month = Feb,
+  pages = {289–302}
+}
+
+% === provenance: Just2014 ===
+% CLAIM: Mutant detection correlates with real-fault detection independently of coverage, though some
+%   real faults are not coupled to mutants.
+% FOUND-VIA: scholar search '("mutation testing" OR "mutation analysis" OR mutants OR "mutation
+%   score") AND ("real faults" OR "fault detection" OR "test suite effectiveness" OR "test
+%   adequacy")' -n t-mutation -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session
+%   t-mutation, query S1); also returned by t-mutation/C1/plain
+% PICKED: Starting point named in the brief; primary study with 357 real faults.
+% QUOTE (abstract; §1, contributions): "The results show a statistically significant correlation
+%   between mutant detection and real fault detection, independently of code coverage."
+% VERIFIED: full-text (author copy homes.cs.washington.edu); contributions: coupling effect 'for 73%
+%   of real faults' and '17% of real faults are not coupled to mutants'.
+% COUNTER: session t-mutation, query C1 (mutation terms AND real faults/fault detection AND
+%   correlation/coupling/validity/test suite size): correlation between mutation score and
+%   real-fault detection is weak once suite size is controlled (Papadakis et al. 2018); 17% of real
+%   faults not coupled to mutants (Just et al. 2014). Claim qualified: a mutation check shows the
+%   test can catch that fault, not that it is adequate.
+% DATE: 2026-10-12
+@inproceedings{Just2014,
+  series = {SIGSOFT/FSE′14},
+  title = {Are mutants a valid substitute for real faults in software testing?},
+  url = {http://dx.doi.org/10.1145/2635868.2635929},
+  doi = {10.1145/2635868.2635929},
+  booktitle = {Proceedings of the 22nd ACM SIGSOFT International Symposium on Foundations of Software Engineering},
+  publisher = {ACM},
+  author = {Just, René and Jalali, Darioush and Inozemtseva, Laura and Ernst, Michael D. and Holmes, Reid and Fraser, Gordon},
+  year = {2014},
+  month = Nov,
+  pages = {654–665},
+  collection = {SIGSOFT/FSE′14}
+}
+
+% === provenance: Papadakis2018 ===
+% CLAIM: QUALIFIER: correlation of mutation score with real-fault detection is weak when suite size is
+%   controlled, yet higher mutation scores still improve fault detection.
+% FOUND-VIA: scholar search '("mutation testing" OR "mutation analysis" OR mutants OR "mutation
+%   score") AND ("real faults" OR "fault detection" OR "test suite effectiveness" OR "test
+%   adequacy")' -n t-mutation -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session
+%   t-mutation, query S1); also returned by t-invariant-assertions/C1/plain, t-mutation/C1/plain,
+%   t-mutation/C1/wos, t-mutation/S2/plain
+% PICKED: Main counter-study, surfaced by S1, S2 and C1.
+% QUOTE (abstract): "mutants provide good guidance for improving the fault detection of test suites,
+%   but their correlation with fault detection are weak."
+% VERIFIED: abstract only (OpenAlex; ACM 403); applies as QUALIFIER.
+% COUNTER: session t-mutation, query C1 (mutation terms AND real faults/fault detection AND
+%   correlation/coupling/validity/test suite size): correlation between mutation score and
+%   real-fault detection is weak once suite size is controlled (Papadakis et al. 2018); 17% of real
+%   faults not coupled to mutants (Just et al. 2014). Claim qualified: a mutation check shows the
+%   test can catch that fault, not that it is adequate.
+% DATE: 2026-10-12
+@inproceedings{Papadakis2018,
+  series = {ICSE ’18},
+  title = {Are mutation scores correlated with real fault detection?: a large scale empirical study on the relationship between mutants and real faults},
+  url = {http://dx.doi.org/10.1145/3180155.3180183},
+  doi = {10.1145/3180155.3180183},
+  booktitle = {Proceedings of the 40th International Conference on Software Engineering},
+  publisher = {ACM},
+  author = {Papadakis, Mike and Shin, Donghwan and Yoo, Shin and Bae, Doo-Hwan},
+  year = {2018},
+  month = May,
+  pages = {537–548},
+  collection = {ICSE ’18}
+}
+
+% === provenance: Niedermayr2016 ===
+% CLAIM: Tests can execute code yet fail to detect faults in it (pseudo-tested methods), so coverage
+%   or a green run alone does not show fault detection.
+% FOUND-VIA: scholar search '("pseudo-tested" OR "extreme mutation" OR "oracle gap" OR "checked
+%   coverage" OR "test-first" OR "failing test") AND ("test suite" OR "unit tests") AND (mutation OR
+%   "fault detection" OR effectiveness)' -n t-mutation -p dblp -p ieee -p openalex -p arxiv -l 20 -f
+%   bibtex+prov (session t-mutation, query S2)
+% PICKED: Directly measures 'tests that pass whatever the code does', surfaced by S2.
+% QUOTE (abstract): "We assessed the ratio of pseudo-tested methods (those tested in a way such that
+%   faults would not be detected) to all covered methods"
+% VERIFIED: full-text (arXiv 1611.07163); result: ratio 'acceptable for unit tests but not for system
+%   tests'.
+% COUNTER: session t-mutation, query C1 (mutation terms AND real faults/fault detection AND
+%   correlation/coupling/validity/test suite size): correlation between mutation score and
+%   real-fault detection is weak once suite size is controlled (Papadakis et al. 2018); 17% of real
+%   faults not coupled to mutants (Just et al. 2014). Claim qualified: a mutation check shows the
+%   test can catch that fault, not that it is adequate.
+% DATE: 2026-10-12
+@inproceedings{Niedermayr2016,
+  series = {ICSE ’16},
+  title = {Will my tests tell me if I break this code?},
+  url = {http://dx.doi.org/10.1145/2896941.2896944},
+  doi = {10.1145/2896941.2896944},
+  booktitle = {Proceedings of the International Workshop on Continuous Software Evolution and Delivery},
+  publisher = {ACM},
+  author = {Niedermayr, Rainer and Juergens, Elmar and Wagner, Stefan},
+  year = {2016},
+  month = May,
+  pages = {23–29},
+  collection = {ICSE ’16}
+}
+
+% === provenance: Petrovic2021 ===
+% CLAIM: At Google, developers exposed to mutants write more tests, and mutants are coupled with real
+%   high-priority faults.
+% FOUND-VIA: scholar search '("mutation testing" OR "mutation analysis" OR mutants OR "mutation
+%   score") AND ("real faults" OR "fault detection" OR "test suite effectiveness" OR "test
+%   adequacy")' -n t-mutation -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session
+%   t-mutation, query S1); also returned by t-mutation/C1/plain
+% PICKED: Large industrial study (15M mutants) surfaced by S1 and C1; practice-level support.
+% QUOTE (abstract): "Our analyses suggest that developers using mutation testing write more tests, and
+%   actively improve their test suites with high quality tests such that fewer mutants remain."
+% VERIFIED: abstract only (OpenAlex); applies.
+% COUNTER: session t-mutation, query C1 (mutation terms AND real faults/fault detection AND
+%   correlation/coupling/validity/test suite size): correlation between mutation score and
+%   real-fault detection is weak once suite size is controlled (Papadakis et al. 2018); 17% of real
+%   faults not coupled to mutants (Just et al. 2014). Claim qualified: a mutation check shows the
+%   test can catch that fault, not that it is adequate.
+% DATE: 2026-10-12
+@inproceedings{Petrovic2021,
+  title = {Does Mutation Testing Improve Testing Practices?},
+  url = {http://dx.doi.org/10.1109/icse43902.2021.00087},
+  doi = {10.1109/icse43902.2021.00087},
+  booktitle = {2021 IEEE/ACM 43rd International Conference on Software Engineering (ICSE)},
+  publisher = {IEEE},
+  author = {Petrović, Goran and Ivanković, Marko and Fraser, Gordon and Just, René},
+  year = {2021},
+  month = May,
+  pages = {910–921}
+}
+
+% === provenance: Mathews2024 ===
+% CLAIM: Giving LLMs the tests together with the problem statement raises code-generation success on
+%   MBPP/HumanEval.
+% FOUND-VIA: scholar search '("large language model" OR "large language models" OR LLM) AND ("code
+%   generation" OR "program repair" OR "issue resolution") AND ("execution feedback" OR "test
+%   execution" OR "unit tests" OR "test-driven")' -n t-llm-exec-feedback -p dblp -p ieee -p openalex
+%   -p arxiv -l 20 -f bibtex+prov (session t-llm-exec-feedback, query S1)
+% PICKED: Direct test of 'tests help LLM code generation', surfaced by S1.
+% QUOTE (abstract): "Our results consistently demonstrate that including test cases leads to higher
+%   success in solving programming challenges."
+% VERIFIED: full-text (arXiv 2402.13521v2, titled 'Test-Driven Development for Code Generation';
+%   published title differs); function-level benchmarks only.
+% COUNTER: session t-llm-exec-feedback, query C1 (same LLM + code generation/repair terms AND
+%   self-repair/self-debugging/execution feedback/unit tests AND limitations/overfitting/'silver
+%   bullet'/'no improvement'): self-repair gains often modest once cost counted (Olausson et al.
+%   2024); self-generated tests introduce bias (Chen et al. 2025). Claim qualified: reliable, given
+%   tests help; self-written tests help less.
+% DATE: 2026-10-12
+@inproceedings{Mathews2024,
+  series = {ASE ’24},
+  title = {Test-Driven Development and LLM-based Code Generation},
+  url = {http://dx.doi.org/10.1145/3691620.3695527},
+  doi = {10.1145/3691620.3695527},
+  booktitle = {Proceedings of the 39th IEEE/ACM International Conference on Automated Software Engineering},
+  publisher = {ACM},
+  author = {Mathews, Noble Saji and Nagappan, Meiyappan},
+  year = {2024},
+  month = Oct,
+  pages = {1583–1594},
+  collection = {ASE ’24}
+}
+
+% === provenance: Chen2023 ===
+% CLAIM: Self-debugging with execution results improves code-generation accuracy, by up to 12% where
+%   unit tests exist.
+% FOUND-VIA: scholar search '("large language model" OR "large language models" OR LLM) AND ("code
+%   generation" OR "program repair" OR "issue resolution") AND ("execution feedback" OR "test
+%   execution" OR "unit tests" OR "test-driven")' -n t-llm-exec-feedback -p dblp -p ieee -p openalex
+%   -p arxiv -l 20 -f bibtex+prov (session t-llm-exec-feedback, query S1); also returned by
+%   t-llm-exec-feedback/C1/plain
+% PICKED: Widely cited primary method paper surfaced by S1 and C1.
+% QUOTE (abstract): "On TransCoder and MBPP where unit tests are available, SELF-DEBUGGING improves
+%   the baseline accuracy by up to 12%."
+% VERIFIED: full-text (arXiv 2304.05128v2, ICLR 2024); applies.
+% COUNTER: session t-llm-exec-feedback, query C1 (same LLM + code generation/repair terms AND
+%   self-repair/self-debugging/execution feedback/unit tests AND limitations/overfitting/'silver
+%   bullet'/'no improvement'): self-repair gains often modest once cost counted (Olausson et al.
+%   2024); self-generated tests introduce bias (Chen et al. 2025). Claim qualified: reliable, given
+%   tests help; self-written tests help less.
+% DATE: 2026-10-12
+@misc{Chen2023,
+  doi = {10.48550/ARXIV.2304.05128},
+  url = {https://arxiv.org/abs/2304.05128},
+  author = {Chen, Xinyun and Lin, Maxwell and Schärli, Nathanael and Zhou, Denny},
+  title = {Teaching Large Language Models to Self-Debug},
+  publisher = {arXiv},
+  year = {2023}
+}
+
+% === provenance: Olausson2024 ===
+% CLAIM: QUALIFIER: test-driven self-repair gains are often modest once its cost is counted.
+% FOUND-VIA: scholar search '("large language model" OR "large language models" OR LLM) AND ("code
+%   generation" OR "program repair" OR "issue resolution") AND ("execution feedback" OR
+%   "self-repair" OR "self-debugging" OR "unit tests") AND (limitations OR overfitting OR "silver
+%   bullet" OR "no improvement")' -n t-llm-exec-feedback -p dblp -p ieee -p openalex -p arxiv -l 20
+%   -f bibtex+prov (session t-llm-exec-feedback, query C1)
+% PICKED: Main counter-study, surfaced by C1.
+% QUOTE (abstract): "We find that when the cost of carrying out repair is taken into account,
+%   performance gains are often modest, vary a lot between subsets of the data, and are sometimes
+%   not present at all."
+% VERIFIED: full-text (arXiv 2306.09896v5, ICLR 2024); applies as QUALIFIER.
+% COUNTER: session t-llm-exec-feedback, query C1 (same LLM + code generation/repair terms AND
+%   self-repair/self-debugging/execution feedback/unit tests AND limitations/overfitting/'silver
+%   bullet'/'no improvement'): self-repair gains often modest once cost counted (Olausson et al.
+%   2024); self-generated tests introduce bias (Chen et al. 2025). Claim qualified: reliable, given
+%   tests help; self-written tests help less.
+% DATE: 2026-10-12
+@misc{Olausson2024,
+  doi = {10.48550/ARXIV.2306.09896},
+  url = {https://arxiv.org/abs/2306.09896},
+  author = {Olausson, Theo X. and Inala, Jeevana Priya and Wang, Chenglong and Gao, Jianfeng and Solar-Lezama, Armando},
+  title = {Is Self-Repair a Silver Bullet for Code Generation?},
+  publisher = {arXiv},
+  year = {2024},
+  note = {Published at ICLR 2024 (header of the arXiv version read)}
+}
+
+% === provenance: ChenX2025 ===
+% CLAIM: QUALIFIER: self-debugging with self-generated tests struggles on basic problems because of
+%   test bias.
+% FOUND-VIA: scholar search 'TITLE-ABS-KEY(("large language model" OR "large language models" OR LLM)
+%   AND ("code generation" OR "program repair" OR "issue resolution") AND ("execution feedback" OR
+%   "self-repair" OR "self-debugging" OR "unit tests") AND (limitations OR overfitting OR "silver
+%   bullet" OR "no improvement"))' -n t-llm-exec-feedback -p scopus -l 20 -f bibtex+prov (session
+%   t-llm-exec-feedback, query C1)
+% PICKED: Surfaced by C1 on Scopus; qualifies feedback from the agent's own tests.
+% QUOTE (abstract): "post-execution self-debugging struggles on basic problems but shows potential for
+%   improvement on competitive ones, due to the bias introduced by self-generated tests."
+% VERIFIED: full-text (arXiv 2501.12793v1; ACL 2025); applies as QUALIFIER.
+% COUNTER: session t-llm-exec-feedback, query C1 (same LLM + code generation/repair terms AND
+%   self-repair/self-debugging/execution feedback/unit tests AND limitations/overfitting/'silver
+%   bullet'/'no improvement'): self-repair gains often modest once cost counted (Olausson et al.
+%   2024); self-generated tests introduce bias (Chen et al. 2025). Claim qualified: reliable, given
+%   tests help; self-written tests help less.
+% DATE: 2026-10-12
+@inproceedings{ChenX2025,
+  title = {Revisit Self-Debugging with Self-Generated Tests for Code Generation},
+  url = {http://dx.doi.org/10.18653/v1/2025.acl-long.881},
+  doi = {10.18653/v1/2025.acl-long.881},
+  booktitle = {Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)},
+  publisher = {Association for Computational Linguistics},
+  author = {Chen, Xiancai and Tao, Zhengwei and Zhang, Kechi and Zhou, Changzhi and Zhang, Xinyu and Gu, Wanli and He, Yuanpeng and Zhang, Mengdi and Cai, Xunliang and Zhao, Haiyan and Jin, Zhi},
+  year = {2025},
+  pages = {18003–18023}
+}
+
+% === provenance: Kamoi2024 ===
+% CLAIM: Critical survey: LLM self-correction works well with reliable external feedback, but prompted
+%   self-feedback alone has not been shown to work except on suited tasks.
+% FOUND-VIA: scholar search '("large language models" OR LLM) AND ("self-preference" OR
+%   "self-evaluation" OR "self-bias" OR "self-recognition" OR "self-correction") AND (bias OR
+%   evaluation OR review)' -n t-fresh-review -p dblp -p ieee -p openalex -p arxiv -l 20 -f
+%   bibtex+prov (session t-fresh-review, query S1); also returned by t-fresh-review/C1/plain
+% PICKED: TACL critical survey surfaced by t-fresh-review S1 and C1; bears on claims 15 and 18.
+% QUOTE (abstract): "(1) no prior work demonstrates successful self-correction with feedback from
+%   prompted LLMs, except for studies in tasks that are exceptionally suited for self-correction,
+%   (2) self-correction works well in tasks that can use reliable external feedback"
+% VERIFIED: full-text (arXiv 2406.01297v3); applies to both claims.
+% COUNTER: session t-llm-exec-feedback, query C1 (same LLM + code generation/repair terms AND
+%   self-repair/self-debugging/execution feedback/unit tests AND limitations/overfitting/'silver
+%   bullet'/'no improvement'): self-repair gains often modest once cost counted (Olausson et al.
+%   2024); self-generated tests introduce bias (Chen et al. 2025). Claim qualified: reliable, given
+%   tests help; self-written tests help less.
+% DATE: 2026-10-12
+@article{Kamoi2024,
+  title = {When Can LLMs Actually Correct Their Own Mistakes? A Critical Survey of Self-Correction of LLMs},
+  volume = {12},
+  issn = {2307-387X},
+  url = {http://dx.doi.org/10.1162/tacl_a_00713},
+  doi = {10.1162/tacl_a_00713},
+  journal = {Transactions of the Association for Computational Linguistics},
+  publisher = {MIT Press},
+  author = {Kamoi, Ryo and Zhang, Yusen and Zhang, Nan and Han, Jiawei and Zhang, Rui},
+  year = {2024},
+  pages = {1417–1440}
+}
+
+% === provenance: Zhong2025 ===
+% CLAIM: LLM coding agents modify tests, overload comparison operators, record state or special-case
+%   tests to pass impossible tasks; rates depend strongly on task, prompt and test access.
+% FOUND-VIA: known item named in the brief (arXiv 2510.20270), retrieved by ID with fetch_pdf.py; not
+%   returned by the t-agents-game-tests topic queries within the 20-per-provider limit
+% PICKED: Starting point named in the brief; primary benchmark with categorised cheating strategies.
+% QUOTE (abstract; §1 p. 2; §4.1 p. 5; §5.2 p. 8): "an LLM agent with access to unit tests may delete
+%   failing tests rather than fix the underlying bug."
+% VERIFIED: full-text (arXiv 2510.20270v1); p. 2: 'GPT-5 cheats in 76% of the tasks in Oneoff-SWEbench
+%   and 2.9% on Oneoff-LiveCodeBench'; p. 5 lists 'Modify Test Cases' and 'Special Casing'; p. 8:
+%   hiding tests cuts cheating to near zero 'but also degrades performance on the original
+%   benchmark'. Measured on deliberately impossible tasks, so rates are upper bounds for normal
+%   work.
+% COUNTER: session t-agents-game-tests, query C1 (LLM/agent + reward hacking/specification gaming/test
+%   tampering/patch overfitting AND rate/frequency/mitigation/detection): rates vary widely with
+%   task and prompt (ImpossibleBench: GPT-5 76% vs 2.9%; prompting cut 92% to 1%); APR overfitting
+%   'might not be as bad as previously thought' (Petke et al. 2024). Claim 'sometimes' survives.
+% DATE: 2026-10-12
+@misc{Zhong2025,
+  doi = {10.48550/ARXIV.2510.20270},
+  url = {https://arxiv.org/abs/2510.20270},
+  author = {Zhong, Ziqian and Raghunathan, Aditi and Carlini, Nicholas},
+  title = {ImpossibleBench: Measuring LLMs' Propensity of Exploiting Test Cases},
+  publisher = {arXiv},
+  year = {2025}
+}
+
+% === provenance: Gabor2025 ===
+% CLAIM: Commercial coding agents (Codex, Claude Code) were observed reward hacking by hard-coding
+%   tests or editing test files.
+% FOUND-VIA: scholar search '("large language model" OR LLM OR "coding agent" OR "AI agent" OR
+%   "language model agent") AND ("reward hacking" OR "specification gaming" OR "test tampering" OR
+%   "test manipulation" OR cheating)' -n t-agents-game-tests -p dblp -p ieee -p openalex -p arxiv -l
+%   20 -f bibtex+prov (session t-agents-game-tests, query S1); also returned by
+%   t-agents-game-tests/C1/plain
+% PICKED: Surfaced by S1 and C1; independent corroboration with production agents.
+% QUOTE (abstract): "We observe explicit reward hacking by both Codex and Claude Code, and misaligned
+%   behavior by all three agents."
+% VERIFIED: full-text (arXiv 2511.21654v2); applies.
+% COUNTER: session t-agents-game-tests, query C1 (LLM/agent + reward hacking/specification gaming/test
+%   tampering/patch overfitting AND rate/frequency/mitigation/detection): rates vary widely with
+%   task and prompt (ImpossibleBench: GPT-5 76% vs 2.9%; prompting cut 92% to 1%); APR overfitting
+%   'might not be as bad as previously thought' (Petke et al. 2024). Claim 'sometimes' survives.
+% DATE: 2026-10-12
+@misc{Gabor2025,
+  doi = {10.48550/ARXIV.2511.21654},
+  url = {https://arxiv.org/abs/2511.21654},
+  author = {Gabor, Jonathan and Lynch, Jayson and Rosenfeld, Jonathan},
+  title = {EvilGenie: A Reward Hacking Benchmark},
+  publisher = {arXiv},
+  year = {2025}
+}
+
+% === provenance: Ginelli2022 ===
+% CLAIM: Pre-LLM program repair already produced test-passing patches that only delete code and do not
+%   fix the bug.
+% FOUND-VIA: scholar search '("large language model" OR LLM OR "automated program repair" OR "coding
+%   agent") AND ("program repair" OR "code generation") AND ("patch overfitting" OR "test
+%   overfitting" OR "plausible patches" OR "special-casing")' -n t-agents-game-tests -p dblp -p ieee
+%   -p openalex -p arxiv -l 20 -f bibtex+prov (session t-agents-game-tests, query S2)
+% PICKED: APR overfitting strand surfaced by S2; corroborates that passing tests is gameable.
+% QUOTE (abstract): "Our study reveals that code-removal patches are often insufficient to fix bugs"
+% VERIFIED: abstract only (OpenAlex); applies by analogy (search-based APR, not LLM agents).
+% COUNTER: session t-agents-game-tests, query C1 (LLM/agent + reward hacking/specification gaming/test
+%   tampering/patch overfitting AND rate/frequency/mitigation/detection): rates vary widely with
+%   task and prompt (ImpossibleBench: GPT-5 76% vs 2.9%; prompting cut 92% to 1%); APR overfitting
+%   'might not be as bad as previously thought' (Petke et al. 2024). Claim 'sometimes' survives.
+% DATE: 2026-10-12
+@article{Ginelli2022,
+  title = {A comprehensive study of code-removal patches in automated program repair},
+  volume = {27},
+  issn = {1573-7616},
+  url = {http://dx.doi.org/10.1007/s10664-021-10100-7},
+  doi = {10.1007/s10664-021-10100-7},
+  number = {4},
+  journal = {Empirical Software Engineering},
+  publisher = {Springer Science and Business Media LLC},
+  author = {Ginelli, Davide and Martinez, Matias and Mariani, Leonardo and Monperrus, Martin},
+  year = {2022},
+  month = May
+}
+
+% === provenance: Petke2024 ===
+% CLAIM: COUNTER: in practice APR tools produce few plausible-but-wrong patches; overfitting may be
+%   less severe than believed.
+% FOUND-VIA: scholar search 'TS=(("large language model" OR LLM OR "automated program repair" OR
+%   "coding agent") AND ("program repair" OR "code generation") AND ("patch overfitting" OR "test
+%   overfitting" OR "plausible patches" OR "special-casing"))' -n t-agents-game-tests -p wos -l 20
+%   -f bibtex+prov (session t-agents-game-tests, query S2)
+% PICKED: Counter-evidence surfaced by S2 on WoS.
+% QUOTE (abstract): "This study unveils that the overfitting problem might not be as bad as previously
+%   thought."
+% VERIFIED: abstract only (OpenAlex); applies as COUNTER to severity, not to existence.
+% COUNTER: session t-agents-game-tests, query C1 (LLM/agent + reward hacking/specification gaming/test
+%   tampering/patch overfitting AND rate/frequency/mitigation/detection): rates vary widely with
+%   task and prompt (ImpossibleBench: GPT-5 76% vs 2.9%; prompting cut 92% to 1%); APR overfitting
+%   'might not be as bad as previously thought' (Petke et al. 2024). Claim 'sometimes' survives.
+% DATE: 2026-10-12
+@inproceedings{Petke2024,
+  series = {FSE ’24},
+  title = {The Patch Overfitting Problem in Automated Program Repair: Practical Magnitude and a Baseline for Realistic Benchmarking},
+  url = {http://dx.doi.org/10.1145/3663529.3663776},
+  doi = {10.1145/3663529.3663776},
+  booktitle = {Companion Proceedings of the 32nd ACM International Conference on the Foundations of Software Engineering},
+  publisher = {ACM},
+  author = {Petke, Justyna and Martinez, Matias and Kechagia, Maria and Aleti, Aldeida and Sarro, Federica},
+  year = {2024},
+  month = July,
+  pages = {452–456},
+  collection = {FSE ’24}
+}
+
+% === provenance: Willison2026 ===
+% CLAIM: Practitioner recommendation: start each agent session by prompting 'First run the tests'.
+% FOUND-VIA: known item named in the brief; WebSearch 'Simon Willison Agentic Engineering Patterns
+%   "First run the tests"' (2026-10-12) -> curl
+%   https://simonwillison.net/guides/agentic-engineering-patterns/first-run-the-tests/
+% PICKED: The practitioner source named in the brief; attribution only.
+% QUOTE (web page 'First run the tests'): "Any time I start a new session with an agent against an
+%   existing project I'll start by prompting a variant of the following: First run the tests"
+% VERIFIED: full page read (curl, 2026-10-12); practitioner rationale, no measurement.
+% COUNTER: session t-run-tests-first, query C1 (coding agent + run tests/test execution/existing tests
+%   AND ablation/overhead/cost/'without tests'): no study of running the suite at session start;
+%   Alonso et al. 2026 found procedural TDD instructions without targeted test context increased
+%   regressions. Practitioner-only.
+% DATE: 2026-10-12
+@misc{Willison2026,
+  author = {Willison, Simon},
+  title = {First run the tests},
+  howpublished = {Agentic Engineering Patterns (online guide)},
+  year = {2026},
+  url = {https://simonwillison.net/guides/agentic-engineering-patterns/first-run-the-tests/},
+  note = {Accessed 2026-10-12}
+}
+
+% === provenance: Alonso2026 ===
+% CLAIM: COUNTER: procedural TDD instructions without targeted test context increased regressions of a
+%   coding agent; giving it the tests to check reduced them.
+% FOUND-VIA: scholar search '("coding agent" OR "LLM agent" OR "software engineering agent" OR "large
+%   language model") AND ("run tests" OR "test execution" OR "existing tests" OR "regression tests"
+%   OR "test suite") AND (repository OR "environment setup" OR "issue resolution")' -n
+%   t-run-tests-first -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session
+%   t-run-tests-first, query S1)
+% PICKED: Only agent study found that ablates test-related instructions; surfaced by S1.
+% QUOTE (abstract; §5.2): "In contrast, adding TDD procedural instructions without targeted test
+%   context increased regressions to 9.94%—worse than no intervention at all."
+% VERIFIED: full-text (arXiv 2603.17973v2); small open-weight models (Qwen3-Coder 30B, 100 SWE-bench
+%   Verified instances), single preprint.
+% COUNTER: session t-run-tests-first, query C1 (coding agent + run tests/test execution/existing tests
+%   AND ablation/overhead/cost/'without tests'): no study of running the suite at session start;
+%   Alonso et al. 2026 found procedural TDD instructions without targeted test context increased
+%   regressions. Practitioner-only.
+% DATE: 2026-10-12
+@misc{Alonso2026,
+  doi = {10.48550/ARXIV.2603.17973},
+  url = {https://arxiv.org/abs/2603.17973},
+  author = {Alonso, Pepe and Yovine, Sergio and Braberman, Victor A.},
+  title = {TDAD: Test-Driven Agentic Development - Reducing Code Regressions in AI Coding Agents via Graph-Based Impact Analysis},
+  publisher = {arXiv},
+  year = {2026}
+}
+
+% === provenance: Huang2024 ===
+% CLAIM: LLMs struggle to correct their own reasoning without external feedback and sometimes get
+%   worse.
+% FOUND-VIA: scholar search '("large language models" OR LLM) AND ("self-preference" OR
+%   "self-evaluation" OR "self-bias" OR "self-recognition" OR "self-correction") AND (bias OR
+%   evaluation OR review)' -n t-fresh-review -p dblp -p ieee -p openalex -p arxiv -l 20 -f
+%   bibtex+prov (session t-fresh-review, query S1); also returned by t-fresh-review/C1/plain
+% PICKED: Widely cited negative result surfaced by S1 and C1.
+% QUOTE (abstract): "our research indicates that LLMs struggle to self-correct their responses without
+%   external feedback, and at times, their performance even degrades after self-correction."
+% VERIFIED: full-text (arXiv 2310.01798v2, ICLR 2024); reasoning tasks, not code review.
+% COUNTER: session t-fresh-review, queries C1 (LLM self-correction/self-refine/self-review AND
+%   improves/effective/intrinsic self-correction) and C2 (code review/inspection AND defects AND
+%   effectiveness/usefulness/'do not find'/outcomes): Liu et al. 2024 report intrinsic
+%   self-correction under zero temperature and fair prompts; code reviews find mostly
+%   maintainability issues, few functional defects (Bacchelli & Bird 2013; Beller et al. 2014;
+%   Czerwonka et al. 2015). No study of fresh-context LLM review of code found. Claim qualified.
+% DATE: 2026-10-12
+@misc{Huang2024,
+  doi = {10.48550/ARXIV.2310.01798},
+  url = {https://arxiv.org/abs/2310.01798},
+  author = {Huang, Jie and Chen, Xinyun and Mishra, Swaroop and Zheng, Huaixiu Steven and Yu, Adams Wei and Song, Xinying and Zhou, Denny},
+  title = {Large Language Models Cannot Self-Correct Reasoning Yet},
+  publisher = {arXiv},
+  year = {2024},
+  note = {Published at ICLR 2024 (header of the arXiv version read)}
+}
+
+% === provenance: Xu2024 ===
+% CLAIM: LLMs favour their own outputs (self-bias), and self-refinement amplifies it.
+% FOUND-VIA: scholar search '("large language models" OR LLM) AND ("self-preference" OR
+%   "self-evaluation" OR "self-bias" OR "self-recognition" OR "self-correction") AND (bias OR
+%   evaluation OR review)' -n t-fresh-review -p dblp -p ieee -p openalex -p arxiv -l 20 -f
+%   bibtex+prov (session t-fresh-review, query S1)
+% PICKED: Primary measurement of self-bias across six LLMs, surfaced by S1.
+% QUOTE (abstract): "We find that self-bias is prevalent in all examined LLMs across multiple
+%   languages and tasks."
+% VERIFIED: full-text (arXiv 2402.11436v2, ACL 2024); translation, constrained generation and maths,
+%   not code.
+% COUNTER: session t-fresh-review, queries C1 (LLM self-correction/self-refine/self-review AND
+%   improves/effective/intrinsic self-correction) and C2 (code review/inspection AND defects AND
+%   effectiveness/usefulness/'do not find'/outcomes): Liu et al. 2024 report intrinsic
+%   self-correction under zero temperature and fair prompts; code reviews find mostly
+%   maintainability issues, few functional defects (Bacchelli & Bird 2013; Beller et al. 2014;
+%   Czerwonka et al. 2015). No study of fresh-context LLM review of code found. Claim qualified.
+% DATE: 2026-10-12
+@inproceedings{Xu2024,
+  title = {Pride and Prejudice: LLM Amplifies Self-Bias in Self-Refinement},
+  url = {http://dx.doi.org/10.18653/v1/2024.acl-long.826},
+  doi = {10.18653/v1/2024.acl-long.826},
+  booktitle = {Proceedings of the 62nd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)},
+  publisher = {Association for Computational Linguistics},
+  author = {Xu, Wenda and Zhu, Guanglei and Zhao, Xuandong and Pan, Liangming and Li, Lei and Wang, William},
+  year = {2024},
+  pages = {15474–15492}
+}
+
+% === provenance: Wataoka2024 ===
+% CLAIM: GPT-4 shows significant self-preference bias as a judge, linked to the familiarity (low
+%   perplexity) of its own outputs.
+% FOUND-VIA: scholar search '("large language models" OR LLM) AND ("self-preference" OR
+%   "self-evaluation" OR "self-bias" OR "self-recognition" OR "self-correction") AND (bias OR
+%   evaluation OR review)' -n t-fresh-review -p dblp -p ieee -p openalex -p arxiv -l 20 -f
+%   bibtex+prov (session t-fresh-review, query S1)
+% PICKED: Corroborating measurement surfaced by S1.
+% QUOTE (abstract): "Our experimental results demonstrate that GPT-4 exhibits a significant degree of
+%   self-preference bias."
+% VERIFIED: full-text (arXiv 2410.21819v2); dialogue evaluation, not code.
+% COUNTER: session t-fresh-review, queries C1 (LLM self-correction/self-refine/self-review AND
+%   improves/effective/intrinsic self-correction) and C2 (code review/inspection AND defects AND
+%   effectiveness/usefulness/'do not find'/outcomes): Liu et al. 2024 report intrinsic
+%   self-correction under zero temperature and fair prompts; code reviews find mostly
+%   maintainability issues, few functional defects (Bacchelli & Bird 2013; Beller et al. 2014;
+%   Czerwonka et al. 2015). No study of fresh-context LLM review of code found. Claim qualified.
+% DATE: 2026-10-12
+@misc{Wataoka2024,
+  doi = {10.48550/ARXIV.2410.21819},
+  url = {https://arxiv.org/abs/2410.21819},
+  author = {Wataoka, Koki and Takahashi, Tsubasa and Ri, Ryokan},
+  title = {Self-Preference Bias in LLM-as-a-Judge},
+  publisher = {arXiv},
+  year = {2024}
+}
+
+% === provenance: LiuSC2024 ===
+% CLAIM: COUNTER: intrinsic self-correction does appear under zero temperature and unbiased prompts.
+% FOUND-VIA: scholar search '("large language models" OR LLM) AND ("self-correction" OR "self-refine"
+%   OR "self-review" OR "self-evaluation") AND (improves OR effective OR "intrinsic
+%   self-correction")' -n t-fresh-review -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov
+%   (session t-fresh-review, query C1)
+% PICKED: Counter-study surfaced by C1.
+% QUOTE (abstract): "Leveraging these factors, we demonstrate that intrinsic self-correction ability
+%   is exhibited across multiple existing LLMs."
+% VERIFIED: full-text (arXiv 2406.15673v2); applies as COUNTER.
+% COUNTER: session t-fresh-review, queries C1 (LLM self-correction/self-refine/self-review AND
+%   improves/effective/intrinsic self-correction) and C2 (code review/inspection AND defects AND
+%   effectiveness/usefulness/'do not find'/outcomes): Liu et al. 2024 report intrinsic
+%   self-correction under zero temperature and fair prompts; code reviews find mostly
+%   maintainability issues, few functional defects (Bacchelli & Bird 2013; Beller et al. 2014;
+%   Czerwonka et al. 2015). No study of fresh-context LLM review of code found. Claim qualified.
+% DATE: 2026-10-12
+@misc{LiuSC2024,
+  doi = {10.48550/ARXIV.2406.15673},
+  url = {https://arxiv.org/abs/2406.15673},
+  author = {Liu, Dancheng and Nassereldine, Amir and Yang, Ziming and Xu, Chenhui and Hu, Yuting and Li, Jiajie and Kumar, Utkarsh and Lee, Changjae and Qin, Ruiyang and Shi, Yiyu and Xiong, Jinjun},
+  title = {Large Language Models have Intrinsic Self-Correction Ability},
+  publisher = {arXiv},
+  year = {2024}
+}
+
+% === provenance: Bacchelli2013 ===
+% CLAIM: QUALIFIER: code reviews find fewer defects than expected; their value is largely knowledge
+%   transfer and awareness.
+% FOUND-VIA: scholar search '("code review" OR "code inspection" OR "peer review") AND (defects OR
+%   "defect detection" OR effectiveness) AND (author OR "independent reviewer" OR "self-review" OR
+%   "fresh eyes")' -n t-fresh-review -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov
+%   (session t-fresh-review, query S2); also returned by t-fresh-review/C2/plain
+% PICKED: Highly cited Microsoft study surfaced by S2 and C2.
+% QUOTE (abstract): "while finding defects remains the main motivation for review, reviews are less
+%   about defects than expected and instead provide additional benefits such as knowledge transfer,
+%   increased team awareness, and creation of alternative solutions to problems."
+% VERIFIED: abstract only (OpenAlex; ZORA copy returned HTML); applies as QUALIFIER.
+% COUNTER: session t-fresh-review, queries C1 (LLM self-correction/self-refine/self-review AND
+%   improves/effective/intrinsic self-correction) and C2 (code review/inspection AND defects AND
+%   effectiveness/usefulness/'do not find'/outcomes): Liu et al. 2024 report intrinsic
+%   self-correction under zero temperature and fair prompts; code reviews find mostly
+%   maintainability issues, few functional defects (Bacchelli & Bird 2013; Beller et al. 2014;
+%   Czerwonka et al. 2015). No study of fresh-context LLM review of code found. Claim qualified.
+% DATE: 2026-10-12
+@inproceedings{Bacchelli2013,
+  title = {Expectations, outcomes, and challenges of modern code review},
+  url = {http://dx.doi.org/10.1109/ICSE.2013.6606617},
+  doi = {10.1109/icse.2013.6606617},
+  booktitle = {2013 35th International Conference on Software Engineering (ICSE)},
+  publisher = {IEEE},
+  author = {Bacchelli, Alberto and Bird, Christian},
+  year = {2013},
+  month = May,
+  pages = {712–721}
+}
+
+% === provenance: Beller2014 ===
+% CLAIM: QUALIFIER: changes triggered by code review are 75% maintainability and 25% functional.
+% FOUND-VIA: scholar search '("code review" OR "code inspection" OR "peer review") AND (defects OR
+%   "defect detection" OR effectiveness) AND (author OR "independent reviewer" OR "self-review" OR
+%   "fresh eyes")' -n t-fresh-review -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov
+%   (session t-fresh-review, query S2); also returned by t-fresh-review/C2/plain
+% PICKED: Corroborating mining study surfaced by S2 and C2.
+% QUOTE (abstract): "featuring the similar 75:25 ratio of maintainability-related to functional
+%   problems."
+% VERIFIED: abstract only (OpenAlex); applies as QUALIFIER.
+% COUNTER: session t-fresh-review, queries C1 (LLM self-correction/self-refine/self-review AND
+%   improves/effective/intrinsic self-correction) and C2 (code review/inspection AND defects AND
+%   effectiveness/usefulness/'do not find'/outcomes): Liu et al. 2024 report intrinsic
+%   self-correction under zero temperature and fair prompts; code reviews find mostly
+%   maintainability issues, few functional defects (Bacchelli & Bird 2013; Beller et al. 2014;
+%   Czerwonka et al. 2015). No study of fresh-context LLM review of code found. Claim qualified.
+% DATE: 2026-10-12
+@inproceedings{Beller2014,
+  series = {ICSE ’14},
+  title = {Modern code reviews in open-source projects: which problems do they fix?},
+  url = {http://dx.doi.org/10.1145/2597073.2597082},
+  doi = {10.1145/2597073.2597082},
+  booktitle = {Proceedings of the 11th Working Conference on Mining Software Repositories},
+  publisher = {ACM},
+  author = {Beller, Moritz and Bacchelli, Alberto and Zaidman, Andy and Juergens, Elmar},
+  year = {2014},
+  month = May,
+  pages = {202–211},
+  collection = {ICSE ’14}
+}
+
+% === provenance: Czerwonka2015 ===
+% CLAIM: QUALIFIER: at Microsoft, code reviews often do not find functionality issues that should
+%   block a submission.
+% FOUND-VIA: scholar search '("code review" OR "code inspection" OR "peer review") AND (defects OR
+%   "defect detection" OR bugs) AND (effectiveness OR usefulness OR "do not find" OR outcomes)' -n
+%   t-fresh-review -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session
+%   t-fresh-review, query C2)
+% PICKED: Experience report surfaced by C2.
+% QUOTE (abstract): "code reviews often do not find functionality issues that should block a code
+%   submission"
+% VERIFIED: abstract only (OpenAlex); experience report with data, applies as QUALIFIER.
+% COUNTER: session t-fresh-review, queries C1 (LLM self-correction/self-refine/self-review AND
+%   improves/effective/intrinsic self-correction) and C2 (code review/inspection AND defects AND
+%   effectiveness/usefulness/'do not find'/outcomes): Liu et al. 2024 report intrinsic
+%   self-correction under zero temperature and fair prompts; code reviews find mostly
+%   maintainability issues, few functional defects (Bacchelli & Bird 2013; Beller et al. 2014;
+%   Czerwonka et al. 2015). No study of fresh-context LLM review of code found. Claim qualified.
+% DATE: 2026-10-12
+@inproceedings{Czerwonka2015,
+  title = {Code Reviews Do Not Find Bugs. How the Current Code Review Best Practice Slows Us Down},
+  url = {http://dx.doi.org/10.1109/ICSE.2015.131},
+  doi = {10.1109/icse.2015.131},
+  booktitle = {2015 IEEE/ACM 37th IEEE International Conference on Software Engineering},
+  publisher = {IEEE},
+  author = {Czerwonka, Jacek and Greiler, Michaela and Tilford, Jack},
+  year = {2015},
+  month = May,
+  pages = {27–28}
+}
+
+% === provenance: Itkonen2007 ===
+% CLAIM: COUNTER: in a controlled experiment, exploratory and test-case-based manual testing did not
+%   differ significantly in defect detection; ET gave fewer false reports.
+% FOUND-VIA: scholar search '("exploratory testing" OR "manual testing" OR "session-based testing")
+%   AND (defects OR "defect detection" OR effectiveness OR efficiency)' -n t-exploratory -p dblp -p
+%   ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session t-exploratory, query S1); also returned
+%   by t-exploratory/C1/plain
+% PICKED: Named in the brief; surfaced by S1 and C1.
+% QUOTE (abstract): "We found no significant differences in defect detection efficiency between TCT
+%   and ET."
+% VERIFIED: abstract only (OpenAlex; IEEE closed); applies as COUNTER/QUALIFIER.
+% COUNTER: session t-exploratory, query C1 (exploratory/manual/session-based testing AND test-case
+%   based/scripted/automated testing AND comparison/experiment/effectiveness): Itkonen et al. 2007
+%   found no significant difference in defect detection between ET and test-case based testing.
+%   Mixed evidence; and it compares manual ET with manual scripted testing, not with automated
+%   tests.
+% DATE: 2026-10-12
+@inproceedings{Itkonen2007,
+  title = {Defect Detection Efficiency: Test Case Based vs. Exploratory Testing},
+  url = {http://dx.doi.org/10.1109/ESEM.2007.56},
+  doi = {10.1109/esem.2007.56},
+  booktitle = {First International Symposium on Empirical Software Engineering and Measurement (ESEM 2007)},
+  publisher = {IEEE},
+  author = {Itkonen, Juha and Mantyla, Mika V. and Lassenius, Casper},
+  year = {2007},
+  month = Sept,
+  pages = {61–70}
+}
+
+% === provenance: Afzal2015 ===
+% CLAIM: In four controlled experiments, exploratory testing found significantly more defects than
+%   test-case-based testing.
+% FOUND-VIA: scholar search '("exploratory testing" OR "manual testing" OR "session-based testing")
+%   AND (defects OR "defect detection" OR effectiveness OR efficiency)' -n t-exploratory -p dblp -p
+%   ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session t-exploratory, query S1); also returned
+%   by t-exploratory/C1/plain
+% PICKED: Largest replication found (24 practitioners, 46 students), surfaced by S1 and C1.
+% QUOTE (abstract, p. 844): "The results show that ET found a significantly greater number of defects.
+%   ET also found significantly more defects of varying levels of difficulty, types and severity
+%   levels."
+% VERIFIED: full-text (Springer PDF via KTH tunnel); manual ET vs manual scripted testing, 90-minute
+%   sessions.
+% COUNTER: session t-exploratory, query C1 (exploratory/manual/session-based testing AND test-case
+%   based/scripted/automated testing AND comparison/experiment/effectiveness): Itkonen et al. 2007
+%   found no significant difference in defect detection between ET and test-case based testing.
+%   Mixed evidence; and it compares manual ET with manual scripted testing, not with automated
+%   tests.
+% DATE: 2026-10-12
+@article{Afzal2015,
+  title = {An experiment on the effectiveness and efficiency of exploratory testing},
+  volume = {20},
+  issn = {1573-7616},
+  url = {http://dx.doi.org/10.1007/s10664-014-9301-4},
+  doi = {10.1007/s10664-014-9301-4},
+  number = {3},
+  journal = {Empirical Software Engineering},
+  publisher = {Springer Science and Business Media LLC},
+  author = {Afzal, Wasif and Ghazi, Ahmad Nauman and Itkonen, Juha and Torkar, Richard and Andrews, Anneliese and Bhatti, Khurram},
+  year = {2015},
+  month = Apr,
+  pages = {844–878}
+}
+
+% === provenance: Enoiu2017 ===
+% CLAIM: Manual tests detected logical, timer and negation faults better than automatically generated
+%   tests at similar coverage.
+% FOUND-VIA: scholar search '("exploratory testing" OR "manual testing" OR "session-based testing")
+%   AND ("test case based" OR "scripted testing" OR "automated testing") AND (comparison OR
+%   experiment OR effectiveness)' -n t-exploratory -p dblp -p ieee -p openalex -p arxiv -l 20 -f
+%   bibtex+prov (session t-exploratory, query C1)
+% PICKED: Industrial comparison surfaced by C1; closest to 'manual trying vs automated tests'.
+% QUOTE (abstract): "manual tests more effectively detect logical, timer and negation type of faults,
+%   compared to automatically generated tests."
+% VERIFIED: abstract only (OpenAlex); manual tests are scripted test cases by engineers, PLC software.
+% COUNTER: session t-exploratory, query C1 (exploratory/manual/session-based testing AND test-case
+%   based/scripted/automated testing AND comparison/experiment/effectiveness): Itkonen et al. 2007
+%   found no significant difference in defect detection between ET and test-case based testing.
+%   Mixed evidence; and it compares manual ET with manual scripted testing, not with automated
+%   tests.
+% DATE: 2026-10-12
+@inproceedings{Enoiu2017,
+  title = {A Comparative Study of Manual and Automated Testing for Industrial Control Software},
+  url = {http://dx.doi.org/10.1109/ICST.2017.44},
+  doi = {10.1109/icst.2017.44},
+  booktitle = {2017 IEEE International Conference on Software Testing, Verification and Validation (ICST)},
+  publisher = {IEEE},
+  author = {Enoiu, Eduard and Sundmark, Daniel and Causevic, Adnan and Pettersson, Paul},
+  year = {2017},
+  month = Mar,
+  pages = {412–417}
+}
+
+% === provenance: Winters2020 ===
+% CLAIM: Practitioner (Google): a fake must have its own tests against the real implementation
+%   (contract tests), or it diverges; prefer real implementations; interaction testing is brittle.
+% FOUND-VIA: known item (practitioner literature); curl
+%   https://abseil.io/resources/swe-book/html/ch13.html (2026-10-12)
+% PICKED: Most explicit practitioner statement of the verified-fakes rule; also attribution for claims
+%   1-3.
+% QUOTE (ch. 13, 'Fakes Should Be Tested'): "A fake must have its own tests to ensure that it conforms
+%   to the API of its corresponding real implementation. A fake without tests might initially
+%   provide realistic behavior, but without tests, this behavior can diverge over time as the real
+%   implementation evolves."
+% VERIFIED: full chapter text read (abseil.io HTML, CC BY-NC-ND); also: 'Interaction testing should be
+%   avoided when possible: it leads to tests that are brittle because it exposes implementation
+%   details of the system under test.' Experience report, no measurement.
+% COUNTER: session t-verified-fakes, query C1 (test doubles/fakes/mocks/stubs AND
+%   automatic/generated/mock generation/synthesis AND validity/fidelity/accuracy/realistic): only
+%   mock-generation tools, no study of verified fakes. Practitioner-only.
+% DATE: 2026-10-12
+@book{Winters2020,
+  editor = {Winters, Titus and Manshreck, Tom and Wright, Hyrum},
+  title = {Software Engineering at {Google}: Lessons Learned from Programming Over Time},
+  publisher = {O'Reilly},
+  year = {2020},
+  chapter = {13, Test Doubles (Andrew Trenk and Dillon Bly)},
+  url = {https://abseil.io/resources/swe-book/html/ch13.html}
+}
+
+% === provenance: Fowler2011 ===
+% CLAIM: Practitioner: periodically run contract tests that check test doubles against the external
+%   service; check format, not exact data.
+% FOUND-VIA: known item named in the brief; curl https://martinfowler.com/bliki/ContractTest.html
+%   (2026-10-12)
+% PICKED: Practitioner source named in the brief; attribution for claims 7, 8 and 20.
+% QUOTE (bliki 'Contract Test', 12 Jan 2011): "periodically run a separate set of contract tests.
+%   These check that all the calls against your test doubles return the same results as a call to
+%   the external service would."
+% VERIFIED: full page read (curl); also: 'Contract tests check the contract of external service calls,
+%   but not necessarily the exact data.' No measurement.
+% COUNTER: session t-contract-tests, query C1 (same contract-testing terms AND
+%   limitations/challenges/integration/end-to-end testing/effectiveness): evidence is a single
+%   seeded-defect case study and an action-research study; no negative results found, but also no
+%   multi-project evaluation. Claim stands as 'can detect', evidence thin.
+% DATE: 2026-10-12
+@misc{Fowler2011,
+  author = {Fowler, Martin},
+  title = {Contract Test},
+  howpublished = {bliki},
+  year = {2011},
+  month = jan,
+  url = {https://martinfowler.com/bliki/ContractTest.html}
+}
+
+% === provenance: Fowler2014 ===
+% CLAIM: Practitioner: definition of sociable vs solitary unit tests (Jay Fields' terms).
+% FOUND-VIA: known item named in the brief; curl https://martinfowler.com/bliki/UnitTest.html
+%   (2026-10-12)
+% PICKED: Practitioner source named in the brief; definitional attribution only.
+% QUOTE (bliki 'Unit Test', 5 May 2014, 'Solitary or Sociable?'): "A more important distinction is
+%   whether the unit you're testing should be sociable or solitary"
+% VERIFIED: full page read (curl); definitional, makes no measured benefit claim.
+% COUNTER: session t-sociable-solitary, query C1 (unit/integration + isolation/mocking AND fault
+%   localization/execution time/maintenance/cost/flakiness): found unit/integration comparisons
+%   showing complementary fault detection (Taheri Ghazvini 2025) and differences in build breakage
+%   (Orellana et al. 2017); no study shows sociable tests dominate.
+% DATE: 2026-10-12
+@misc{Fowler2014,
+  author = {Fowler, Martin},
+  title = {Unit Test},
+  howpublished = {bliki},
+  year = {2014},
+  month = may,
+  url = {https://martinfowler.com/bliki/UnitTest.html}
+}
+
+% === provenance: Fowler2007 ===
+% CLAIM: Practitioner: mockist tests couple to implementation, so implementation changes break them
+%   more than classic tests.
+% FOUND-VIA: known item; curl https://martinfowler.com/articles/mocksArentStubs.html (2026-10-12)
+% PICKED: Canonical practitioner statement of claim 2; found when verifying the Fowler sources named
+%   in the brief.
+% QUOTE ('Mocks Aren't Stubs', section on coupling tests to implementations): "Coupling to the
+%   implementation also interferes with refactoring, since implementation changes are much more
+%   likely to break tests than with classic testing."
+% VERIFIED: full page read (curl); opinion, no measurement.
+% COUNTER: session t-interaction-brittle, query C1 (mock/interaction/behaviour/state-verification +
+%   unit-test terms AND refactoring/'test maintenance'/robustness AND
+%   comparison/empirical/benefits): no study measuring breakage of interaction vs state assertions
+%   under refactoring; counter-evidence Zhu et al. 2025: mock assertions catch faults test
+%   assertions miss. Brittleness benefit stays practitioner-reported.
+% DATE: 2026-10-12
+@misc{Fowler2007,
+  author = {Fowler, Martin},
+  title = {Mocks Aren't Stubs},
+  year = {2007},
+  url = {https://martinfowler.com/articles/mocksArentStubs.html}
+}
+
+% === provenance: Shore2023 ===
+% CLAIM: Practitioner: sociable, state-based tests with Nullables instead of mocks; narrow integration
+%   tests against local systems configured like production.
+% FOUND-VIA: known item named in the brief; curl
+%   https://www.jamesshore.com/v2/projects/nullables/testing-without-mocks (2026-10-12)
+% PICKED: Practitioner source named in the brief (origin of 'Nullables' used in SKILL.md).
+% QUOTE ('Testing Without Mocks: A Pattern Language', 16 Feb 2023): "The patterns combine sociable,
+%   state-based tests with a novel infrastructure technique called “Nullables.”"
+% VERIFIED: full page read (curl); pattern language, no measurement.
+% COUNTER: session t-sociable-solitary, query C1 (unit/integration + isolation/mocking AND fault
+%   localization/execution time/maintenance/cost/flakiness): found unit/integration comparisons
+%   showing complementary fault detection (Taheri Ghazvini 2025) and differences in build breakage
+%   (Orellana et al. 2017); no study shows sociable tests dominate.
+% DATE: 2026-10-12
+@misc{Shore2023,
+  author = {Shore, James},
+  title = {Testing Without Mocks: A Pattern Language},
+  year = {2023},
+  month = feb,
+  url = {https://www.jamesshore.com/v2/projects/nullables/testing-without-mocks}
+}
+
+% === provenance: Trautsch2020 ===
+% CLAIM: COUNTER: in 38,782 Java test cases, neither unit nor integration tests (IEEE definitions)
+%   were more capable of detecting any mutation defect type.
+% FOUND-VIA: scholar search 'TS=(("unit tests" OR "unit testing") AND ("integration tests" OR
+%   "integration testing") AND ("fault detection" OR defects OR effectiveness OR "mutation score"))'
+%   -n t-sociable-solitary -p wos -l 20 -f bibtex+prov (session t-sociable-solitary, query S1)
+% PICKED: Largest unit-vs-integration fault-detection comparison found (WoS hit for S1); directly
+%   contradicts 'sociable tests find more defects'.
+% QUOTE (abstract, Results): "We could not find any evidence that one test type is more capable of
+%   detecting certain defect types than the other one."
+% VERIFIED: abstract only (Web of Science record stored in the session; Elsevier full text not
+%   obtained); mutation defects, not real faults.
+% COUNTER: session t-sociable-solitary, query C1 (unit/integration + isolation/mocking AND fault
+%   localization/execution time/maintenance/cost/flakiness): found unit/integration comparisons
+%   showing complementary fault detection (Taheri Ghazvini 2025) and differences in build breakage
+%   (Orellana et al. 2017); no study shows sociable tests dominate.
+% DATE: 2026-10-12
+@article{Trautsch2020,
+  title = {Are unit and integration test definitions still valid for modern Java projects? An empirical study on open-source projects},
+  volume = {159},
+  issn = {0164-1212},
+  url = {http://dx.doi.org/10.1016/j.jss.2019.110421},
+  doi = {10.1016/j.jss.2019.110421},
+  journal = {Journal of Systems and Software},
+  publisher = {Elsevier BV},
+  author = {Trautsch, Fabian and Herbold, Steffen and Grabowski, Jens},
+  year = {2020},
+  month = Jan,
+  pages = {110421}
+}
+
+% === provenance: Gregor2025 ===
+% CLAIM: QUALIFIER: in a TrainTicket benchmark, most of 51 faults were found only by component tests,
+%   10 only by integration tests, 5 by both.
+% FOUND-VIA: scholar search '("unit tests" OR "unit testing") AND ("integration tests" OR "integration
+%   testing") AND ("fault detection" OR defects OR effectiveness OR "mutation score")' -n
+%   t-sociable-solitary -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session
+%   t-sociable-solitary, query S1)
+% PICKED: Recent fault analysis surfaced by S1 (IEEE/openalex); shows complementary detection at
+%   service level.
+% QUOTE (§IV-G, RQ5): "Out of the 51 discovered faults, 36 were detected solely by component tests, 10
+%   solely by integration tests, and 5 by component and integration tests."
+% VERIFIED: full-text (TUM mediaTUM author copy); the integration suite covered only happy paths, so
+%   the split is not a fair head-to-head comparison.
+% COUNTER: session t-sociable-solitary, query C1 (unit/integration + isolation/mocking AND fault
+%   localization/execution time/maintenance/cost/flakiness): found unit/integration comparisons
+%   showing complementary fault detection (Taheri Ghazvini 2025) and differences in build breakage
+%   (Orellana et al. 2017); no study shows sociable tests dominate.
+% DATE: 2026-10-12
+@inproceedings{Gregor2025,
+  title = {Benchmarking Component and Integration Testing in Microservices: Test Suites and Fault Analysis on TrainTicket},
+  url = {http://dx.doi.org/10.1109/SOSE67019.2025.00009},
+  doi = {10.1109/sose67019.2025.00009},
+  booktitle = {2025 IEEE International Conference on Service-Oriented System Engineering (SOSE)},
+  publisher = {IEEE},
+  author = {Gregor, Lena and Skalski, Marcel and Pretschner, Alexander},
+  year = {2025},
+  month = July,
+  pages = {39–50}
+}
+
+% === provenance: Zhang2026 ===
+% CLAIM: QUALIFIER: record-replay doubles reproduce only recorded behaviour; on scenarios outside the
+%   recorded traces they rarely reproduce what a caller checks (v4 PDF: at most 1% of scenarios for
+%   the values a caller asserts on; arXiv listing abstract: 0% on error handling and 12% on code
+%   reasoning, 62% status / 16% response-shape fidelity overall).
+% FOUND-VIA: scholar search '("record and replay" OR "record-replay" OR "capture and replay" OR
+%   "service virtualization" OR "traffic recording" OR "generated mocks") AND (testing OR "unit
+%   tests" OR "integration tests") AND (mock OR stub OR "web service" OR API)' -n t-record-replay -p
+%   dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session t-record-replay, query S1); also
+%   returned by t-verified-fakes/S1/plain
+% PICKED: Most direct fidelity measurement of record-replay against the real dependency found;
+%   surfaced by t-record-replay S1 and t-verified-fakes. Single-author preprint; the replay baseline
+%   is the author's own HoverFly-style implementation, and the test scenarios were deliberately
+%   designed outside the recorded traces.
+% QUOTE (abstract, arXiv:2604.04806v4 PDF): "Existing approaches—record-replay, pattern-mining, and
+%   specification-driven stubs—generate a static artifact before tests run, so they can only
+%   reproduce behaviors encoded at generation time."
+% VERIFIED: full-text (arXiv 2604.04806v4 PDF, dated 26 Jun 2026); the quote is verbatim from the
+%   abstract printed in the v4 PDF (line breaks removed). The abstract on the arXiv listing page
+%   (API metadata, last updated 2026-06-26) is worded differently and reports other figures: 'These
+%   artifacts can only reproduce behaviors encoded at generation time; on error-handling and
+%   code-reasoning scenarios, which are underrepresented in typical trace corpora, record-replay
+%   achieves 0% and 12% fidelity in our evaluation.' and 'compared to 62% / 16% for record-replay';
+%   neither sentence is in the v4 PDF text. Caveats from the PDF: the replay baseline is
+%   'HoverFly-style', built by the author; 'Test scenarios and production traces are designed
+%   independently', with emphasis on error handling.
+% COUNTER: session t-record-replay, query C1 (same
+%   record-and-replay/service-virtualisation/generated-mock terms AND
+%   limitations/maintenance/outdated/brittle/'false positives'): recorded traffic often cannot be
+%   replayed without handling environment dependencies (Liu et al. 2022); record-and-replay 'limited
+%   in accuracy' (Versteeg et al. 2016); no controlled comparison with hand-written stubs found.
+% DATE: 2026-10-12
+@misc{Zhang2026,
+  doi = {10.48550/ARXIV.2604.04806},
+  url = {https://arxiv.org/abs/2604.04806},
+  author = {Zhang, XinRan},
+  title = {MIRAGE: Online LLM Simulation for Microservice Dependency Testing},
+  publisher = {arXiv},
+  year = {2026}
+}
+
+% === provenance: DeAquino2025 ===
+% CLAIM: Hand-declared API mocks often do not comply with the real service's API; a validating tool
+%   improved compliance by 24.1%.
+% FOUND-VIA: scholar search '("mock objects" OR mocking OR "test doubles" OR stubs) AND ("unit test"
+%   OR "unit testing" OR "software testing" OR "test code") AND (integration OR "false confidence"
+%   OR "missed faults" OR "fault detection")' -n t-mocks-diverge -p dblp -p ieee -p openalex -p
+%   arxiv -l 20 -f bibtex+prov (session t-mocks-diverge, query S2); also returned by
+%   t-interaction-brittle/C1/plain, t-interaction-brittle/S1/plain,
+%   t-mocks-diverge/S0-superseded/plain, t-sociable-solitary/C1/scopus, t-sociable-solitary/C1/wos,
+%   t-verified-fakes/S1/wos
+% PICKED: Surfaced by t-mocks-diverge and t-verified-fakes; tool evaluation with students and
+%   professional testers; corroboration.
+% QUOTE (abstract): "API mocks, which intercept communications with external services to return
+%   simulated responses, must closely align with the actual service to ensure realistic and
+%   effective test scenarios."
+% VERIFIED: abstract only (OpenAlex); result: 'Zimic improves mock compliance by 24.1% compared to
+%   existing solutions'. Applies indirectly (mock non-compliance measured against a spec, not a live
+%   service).
+% COUNTER: session t-mocks-diverge, query C1 (same mock/test-double + unit-testing terms AND
+%   benefits/advantages/effectiveness/'test isolation') on ieee+openalex+arxiv+wos+scopus (dblp
+%   failed): surfaced mocking-usage and mock-generation studies and Zhu et al. 2025 (mock assertions
+%   add fault detection), none showing that mocks stay in sync with the real dependency; claim
+%   narrowed to 'can diverge' (developer-reported challenge plus one seeded-defect case study), not
+%   'usually diverge'.
+% DATE: 2026-10-12
+@inproceedings{DeAquino2025,
+  title = {Zimic: Bridging the Gaps in API Mocking for Typescript Projects},
+  url = {http://dx.doi.org/10.1109/COMPSAC65507.2025.00177},
+  doi = {10.1109/compsac65507.2025.00177},
+  booktitle = {2025 IEEE 49th Annual Computers, Software, and Applications Conference (COMPSAC)},
+  publisher = {IEEE},
+  author = {de Aquino, Diego Cruz and Alves, Everton L. G.},
+  year = {2025},
+  month = July,
+  pages = {1406–1415}
+}
+
+% === provenance: Xia2023 ===
+% CLAIM: COUNTER: developers loosen assertion bounds to avoid flaky failures, which can miss bugs; 23
+%   of 87 non-deterministic ML tests had over-loose bounds.
+% FOUND-VIA: scholar search 'TITLE-ABS-KEY(("test oracle" OR assertions OR "property-based testing" OR
+%   invariants OR "metamorphic testing") AND ("unit test" OR "software testing" OR "test suite") AND
+%   (brittle OR fragile OR flaky OR "changing data" OR "non-deterministic"))' -n
+%   t-invariant-assertions -p scopus -l 20 -f bibtex+prov (session t-invariant-assertions, query S1)
+% PICKED: Only study found that quantifies the flakiness/fault-detection trade-off of loosened
+%   assertions; surfaced by C1.
+% QUOTE (abstract): "Because developers want to avoid false positive failures in tests, they often set
+%   the bounds to be too loose, potentially leading to missing critical bugs."
+% VERIFIED: abstract only (OpenAlex); ML numeric tolerances, closest analogue to 'invariants instead
+%   of exact values'.
+% COUNTER: session t-invariant-assertions, query C1 (same
+%   oracle/assertion/property/invariant/metamorphic terms AND fault detection/mutation
+%   score/effectiveness/oracle quality): weaker oracles miss faults (Jahangirova et al. 2016:
+%   improved oracles detect 48.6% more), but metamorphic relations reach fault detection similar to
+%   a full oracle (Liu et al. 2014). Claim qualified: shape-only assertions trade fault detection
+%   for robustness.
+% DATE: 2026-10-12
+@inproceedings{Xia2023,
+  title = {Balancing Effectiveness and Flakiness of Non-Deterministic Machine Learning Tests},
+  url = {http://dx.doi.org/10.1109/ICSE48619.2023.00154},
+  doi = {10.1109/icse48619.2023.00154},
+  booktitle = {2023 IEEE/ACM 45th International Conference on Software Engineering (ICSE)},
+  publisher = {IEEE},
+  author = {Xia, Chunqiu Steven and Dutta, Saikat and Misailovic, Sasa and Marinov, Darko and Zhang, Lingming},
+  year = {2023},
+  month = May,
+  pages = {1801–1813}
+}
+
+% === provenance: Konstantinou2026 ===
+% CLAIM: Generating tests after (faulty) code propagates the code's errors into the tests: fault
+%   detection 14% vs 25% when tests are generated independently.
+% FOUND-VIA: scholar search '("test-driven development" OR "test-first" OR "test first programming" OR
+%   TDD) AND (quality OR productivity OR defects) AND (experiment OR "empirical study" OR "case
+%   study")' -n t-tdd -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session t-tdd,
+%   query S1); also returned by t-mutation/S2/plain
+% PICKED: LLM-workflow evidence for writing/deriving tests independently of the implementation;
+%   surfaced by t-tdd S1 and t-mutation.
+% QUOTE (abstract): "generating tests after faulty code significantly reduces fault detection
+%   effectiveness compared to generating tests independently (14% vs. 25%)."
+% VERIFIED: full-text (arXiv 2607.05139); LLM-generated tests, not human TDD; supports test-first for
+%   agents, not TDD in general.
+% COUNTER: session t-tdd, query C1 (TDD/test-first terms AND meta-analysis/systematic
+%   review/replication/'no effect'/'no difference'): meta-analysis finds small quality gain, no
+%   productivity gain (Rafique & Misic 2013); test-first order itself has no important effect (Fucci
+%   et al. 2017); novices did slightly better test-last in 12 experiments (Santos et al. 2021).
+%   Claim contested.
+% DATE: 2026-10-12
+@misc{Konstantinou2026,
+  doi = {10.48550/ARXIV.2607.05139},
+  url = {https://arxiv.org/abs/2607.05139},
+  author = {Konstantinou, Michael and Tambon, Florian and Papadakis, Mike},
+  title = {On the risk of coding before testing: An empirical study on LLM-based test generation workflow},
+  publisher = {arXiv},
+  year = {2026}
+}
+
+% === provenance: Mathews2024b ===
+% CLAIM: LLM test generators that keep only passing tests validate bugs and reject bug-revealing
+%   tests.
+% FOUND-VIA: scholar search '("pseudo-tested" OR "extreme mutation" OR "oracle gap" OR "checked
+%   coverage" OR "test-first" OR "failing test") AND ("test suite" OR "unit tests") AND (mutation OR
+%   "fault detection" OR effectiveness)' -n t-mutation -p dblp -p ieee -p openalex -p arxiv -l 20 -f
+%   bibtex+prov (session t-mutation, query S2)
+% PICKED: Direct evidence that 'a test that passes on the current code proves little'; surfaced by
+%   t-mutation S2.
+% QUOTE (abstract): "how LLM-generated tests can fail to detect bugs and, more alarmingly, how their
+%   design can worsen the situation by validating bugs in the generated test suite and rejecting
+%   bug-revealing tests."
+% VERIFIED: full-text (arXiv 2412.14137); tools CoverAgent and CoverUp on real buggy code.
+% COUNTER: session t-mutation, query C1 (mutation terms AND real faults/fault detection AND
+%   correlation/coupling/validity/test suite size): correlation between mutation score and
+%   real-fault detection is weak once suite size is controlled (Papadakis et al. 2018); 17% of real
+%   faults not coupled to mutants (Just et al. 2014). Claim qualified: a mutation check shows the
+%   test can catch that fault, not that it is adequate.
+% DATE: 2026-10-12
+@misc{Mathews2024b,
+  doi = {10.48550/ARXIV.2412.14137},
+  url = {https://arxiv.org/abs/2412.14137},
+  author = {Mathews, Noble Saji and Nagappan, Meiyappan},
+  title = {Design choices made by LLM-based test generators prevent them from finding bugs},
+  publisher = {arXiv},
+  year = {2024}
+}
+
+% === provenance: Morris2024 ===
+% CLAIM: Even after the best de-identification tool masked all PII it found, an LLM re-identified 9%
+%   of clinical notes.
+% FOUND-VIA: scholar search '("de-identification" OR deidentification OR anonymization OR
+%   anonymisation OR "text sanitization") AND ("free text" OR "unstructured text" OR "clinical
+%   notes" OR "clinical text") AND (names OR identifiers OR "protected health information" OR PHI)'
+%   -n t-free-text-deid -p dblp -p ieee -p openalex -p arxiv -l 20 -f bibtex+prov (session
+%   t-free-text-deid, query S1); also returned by t-free-text-deid/C1/plain
+% PICKED: Adversarial re-identification of scrubbed free text; surfaced by S1.
+% QUOTE (abstract): "Although ClinicalBERT was the most effective, masking all identified PII, our
+%   tool still reidentified 9% of clinical notes"
+% VERIFIED: full-text (arXiv 2410.17035); clinical notes; supports replacing free text wholesale
+%   rather than masking identifiers.
+% COUNTER: session t-free-text-deid, query C1 (same de-identification + free/clinical text terms AND
+%   recall/re-identification/rule-based/pattern matching/residual): best systems reach ~99.5-99.9%
+%   recall on clinical notes (Norgeot et al. 2020), but residual identifiers remain and systems
+%   generalise poorly across sub-domains (Kovacevic et al. 2024). Evidence is clinical text, not LMS
+%   data.
+% DATE: 2026-10-12
+@misc{Morris2024,
+  doi = {10.48550/ARXIV.2410.17035},
+  url = {https://arxiv.org/abs/2410.17035},
+  author = {Morris, John X. and Campion, Thomas R. and Nutheti, Sri Laasya and Peng, Yifan and Raj, Akhil and Zabih, Ramin and Cole, Curtis L.},
+  title = {DIRI: Adversarial Patient Reidentification with Large Language Models for Evaluating Clinical Text Anonymization},
+  publisher = {arXiv},
+  year = {2024}
+}
+
+% === provenance: Charpentier2025 ===
+% CLAIM: Masked personal identifiers in de-identified documents can be recovered from context and
+%   background knowledge (up to 80% of spans).
+% FOUND-VIA: scholar search '("de-identification" OR deidentification OR anonymization OR
+%   anonymisation OR "text sanitization") AND ("free text" OR "unstructured text" OR "clinical
+%   notes" OR "clinical text") AND (recall OR "re-identification" OR "rule-based" OR "pattern
+%   matching" OR "residual")' -n t-free-text-deid -p dblp -p ieee -p openalex -p arxiv -l 20 -f
+%   bibtex+prov (session t-free-text-deid, query C1)
+% PICKED: ACL 2025 study surfaced by S1 and C1; independent strand (NLP) converging with the clinical
+%   one.
+% QUOTE (abstract): "Results show that (1) as many as 80% of de-identified text spans can be
+%   successfully recovered and (2) the re-identification accuracy increases along with the level of
+%   background knowledge."
+% VERIFIED: full-text (ACL Anthology PDF); Wikipedia biographies, court rulings, clinical notes.
+% COUNTER: session t-free-text-deid, query C1 (same de-identification + free/clinical text terms AND
+%   recall/re-identification/rule-based/pattern matching/residual): best systems reach ~99.5-99.9%
+%   recall on clinical notes (Norgeot et al. 2020), but residual identifiers remain and systems
+%   generalise poorly across sub-domains (Kovacevic et al. 2024). Evidence is clinical text, not LMS
+%   data.
+% DATE: 2026-10-12
+@inproceedings{Charpentier2025,
+  title = {Re-identification of De-identified Documents with Autoregressive Infilling},
+  url = {http://dx.doi.org/10.18653/v1/2025.acl-long.60},
+  doi = {10.18653/v1/2025.acl-long.60},
+  booktitle = {Proceedings of the 63rd Annual Meeting of the Association for Computational Linguistics (Volume 1: Long Papers)},
+  publisher = {Association for Computational Linguistics},
+  author = {Charpentier, Lucas Georges Gabriel and Lison, Pierre},
+  year = {2025},
+  pages = {1192–1209}
+}
+
+% === provenance: Guey2026 ===
+% CLAIM: COUNTER: when deciding whether to accept a verified-good fix, an LLM acting as the in-context
+%   author behaved like a fresh model (no detectable self-preference).
+% FOUND-VIA: scholar search '("large language models" OR LLM) AND ("self-preference" OR
+%   "self-evaluation" OR "self-bias" OR "self-recognition" OR "self-correction") AND (bias OR
+%   evaluation OR review)' -n t-fresh-review -p dblp -p ieee -p openalex -p arxiv -l 20 -f
+%   bibtex+prov (session t-fresh-review, query S1)
+% PICKED: Only study found that compares author-in-context with a fresh-context model directly;
+%   surfaced by S1.
+% QUOTE (abstract): "we find no detectable self-preference: authors reject verified-good fixes to
+%   their own drafts at essentially the same rate as fresh models judging the same drafts (gap -5.1
+%   pp, 95% CI [-12.9, +2.7])."
+% VERIFIED: full-text (arXiv 2606.20093v1); IFEval text revision, four mid-tier models, 85
+%   comparisons; effects under ~13 pp not excluded; not code review.
+% COUNTER: session t-fresh-review, queries C1 (LLM self-correction/self-refine/self-review AND
+%   improves/effective/intrinsic self-correction) and C2 (code review/inspection AND defects AND
+%   effectiveness/usefulness/'do not find'/outcomes): Liu et al. 2024 report intrinsic
+%   self-correction under zero temperature and fair prompts; code reviews find mostly
+%   maintainability issues, few functional defects (Bacchelli & Bird 2013; Beller et al. 2014;
+%   Czerwonka et al. 2015). No study of fresh-context LLM review of code found. Claim qualified.
+% DATE: 2026-10-12
+@misc{Guey2026,
+  doi = {10.48550/ARXIV.2606.20093},
+  url = {https://arxiv.org/abs/2606.20093},
+  author = {Guey, William and Bougault, Pierrick},
+  title = {Self-Preference Is Weak or Absent in Verifiable Instruction-Following Revision: A Four-Model Test Under Genuine Authorship},
+  publisher = {arXiv},
+  year = {2026}
+}
+
+% === provenance: Roytburg2026 ===
+% CLAIM: QUALIFIER: about half of previously reported LLM self-preference examples lose significance
+%   once judge quality is controlled.
+% FOUND-VIA: scholar search '("large language models" OR LLM) AND ("self-preference" OR
+%   "self-evaluation" OR "self-bias" OR "self-recognition" OR "self-correction") AND (bias OR
+%   evaluation OR review)' -n t-fresh-review -p dblp -p ieee -p openalex -p arxiv -l 20 -f
+%   bibtex+prov (session t-fresh-review, query S1)
+% PICKED: Methodological counter to the self-preference strand; surfaced by S1.
+% QUOTE (abstract): "This evaluator quality baseline reveals that only 51% of examples in previous
+%   findings retain statistical significance against this null hypothesis"
+% VERIFIED: full-text (arXiv 2601.22548v4); applies as QUALIFIER.
+% COUNTER: session t-fresh-review, queries C1 (LLM self-correction/self-refine/self-review AND
+%   improves/effective/intrinsic self-correction) and C2 (code review/inspection AND defects AND
+%   effectiveness/usefulness/'do not find'/outcomes): Liu et al. 2024 report intrinsic
+%   self-correction under zero temperature and fair prompts; code reviews find mostly
+%   maintainability issues, few functional defects (Bacchelli & Bird 2013; Beller et al. 2014;
+%   Czerwonka et al. 2015). No study of fresh-context LLM review of code found. Claim qualified.
+% DATE: 2026-10-12
+@misc{Roytburg2026,
+  doi = {10.48550/ARXIV.2601.22548},
+  url = {https://arxiv.org/abs/2601.22548},
+  author = {Roytburg, Dani and Bozoukov, Matthew and Nguyen, Matthew and Barzdukas, Jou and Puig-Hall, Mackenzie and Oozeer, Narmeen},
+  title = {Are LLM Evaluators Really Narcissists? Sanity Checking Self-Preference Evaluations},
+  publisher = {arXiv},
+  year = {2026}
+}
+
+% === provenance: Eck2019 ===
+% CLAIM: Developers classifying 200 flaky tests they had fixed found several causes, four of them not
+%   reported before; flakiness is not reducible to a few external factors.
+% FOUND-VIA: scholar search '("flaky tests" OR "flaky test" OR "test flakiness") AND ("root causes" OR
+%   causes OR "empirical study" OR taxonomy)' -n t-flaky -p dblp -p ieee -p openalex -p arxiv -l 20
+%   -f bibtex+prov (session t-flaky, query S1); also returned by t-flaky/S2/plain
+% PICKED: Developer-perspective study (21 Mozilla developers, 200 fixed flaky tests, 121-respondent
+%   survey), surfaced by S1 and S2.
+% QUOTE (abstract): "The flakiness is due to several different causes, four of which have never been
+%   reported before, despite being the most costly to fix"
+% VERIFIED: full-text (arXiv 1907.01466); applies as QUALIFIER (causes are diverse).
+% COUNTER: session t-flaky, query C1 (flaky-test terms AND async wait/concurrency/order-dependent/test
+%   order dependency): async wait, concurrency and test-order dependency dominate in Java (Luo et
+%   al. 2014) and order dependency in Python (Gruber et al. 2021); network/time/randomness are
+%   recognised but minority causes. Claim qualified.
+% DATE: 2026-10-12
+@inproceedings{Eck2019,
+  series = {ESEC/FSE ’19},
+  title = {Understanding flaky tests: the developer’s perspective},
+  url = {http://dx.doi.org/10.1145/3338906.3338945},
+  doi = {10.1145/3338906.3338945},
+  booktitle = {Proceedings of the 2019 27th ACM Joint Meeting on European Software Engineering Conference and Symposium on the Foundations of Software Engineering},
+  publisher = {ACM},
+  author = {Eck, Moritz and Palomba, Fabio and Castelluccio, Marco and Bacchelli, Alberto},
+  year = {2019},
+  month = Aug,
+  pages = {830–840},
+  collection = {ESEC/FSE ’19}
+}
+
+% === provenance: Song2026 ===
+% CLAIM: In the only direct experiment found (Claude Opus 4.6, 30 artifacts, 150 injected errors), a
+%   second review found more errors when run in a fresh session than when repeated in the same
+%   session; it was not significantly better than a context-aware subagent review or a single
+%   same-session review.
+% FOUND-VIA: known item supplied by the team lead (arXiv:2603.12123v2), retrieved with fetch_pdf.py
+%   and the arXiv API on 2026-10-12; not in the t-fresh-review session
+% PICKED: Only experiment found that compares fresh-session with same-session review; supplied by the
+%   team lead as a known item (not returned by the t-fresh-review topic queries within 20 hits per
+%   provider). Single author, single model, author-injected errors; v2 narrows v1's claims after
+%   excluding an unverifiable run.
+% QUOTE (abstract, arXiv:2603.12123v2): "The central result is that a second review helps only when it
+%   happens in a fresh session: CCR (F1 28.6%) outperforms a second review in the same session (SR2,
+%   21.7%) robustly"
+% VERIFIED: full-text (arXiv 2603.12123v2 PDF, 1 Oct 2026; line breaks removed); abstract also: 'CCR
+%   is not significantly ahead of context-aware subagent review (SA, 23.8%; p=0.057) or of a single
+%   same-session review (SR, 27.1%; p=0.26)'. Applies as QUALIFIED SUPPORT: a fresh session beats a
+%   repeated same-session review only.
+% COUNTER: session t-fresh-review, queries C1 (LLM self-correction/self-refine/self-review AND
+%   improves/effective/intrinsic self-correction) and C2 (code review/inspection AND defects AND
+%   effectiveness/usefulness/'do not find'/outcomes): Liu et al. 2024 report intrinsic
+%   self-correction under zero temperature and fair prompts; code reviews find mostly
+%   maintainability issues, few functional defects (Bacchelli & Bird 2013; Beller et al. 2014;
+%   Czerwonka et al. 2015). No study of fresh-context LLM review of code found. Claim qualified.
+% DATE: 2026-10-12
+@misc{Song2026,
+  doi = {10.48550/ARXIV.2603.12123},
+  url = {https://arxiv.org/abs/2603.12123},
+  author = {Song, Tae-Eun},
+  title = {Cross-Context Review: Improving LLM Output Quality by Separating Production and Review Sessions},
+  publisher = {arXiv},
+  year = {2026}
+}

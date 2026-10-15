@@ -1,0 +1,2 @@
+S1	("de-identification" OR deidentification OR anonymization OR anonymisation OR "text sanitization") AND ("free text" OR "unstructured text" OR "clinical notes" OR "clinical text") AND (names OR identifiers OR "protected health information" OR PHI)
+C1	("de-identification" OR deidentification OR anonymization OR anonymisation OR "text sanitization") AND ("free text" OR "unstructured text" OR "clinical notes" OR "clinical text") AND (recall OR "re-identification" OR "rule-based" OR "pattern matching" OR "residual")

@@ -1,0 +1,2 @@
+S1	("record and replay" OR "record-replay" OR "capture and replay" OR "service virtualization" OR "traffic recording" OR "generated mocks") AND (testing OR "unit tests" OR "integration tests") AND (mock OR stub OR "web service" OR API)
+C1	("record and replay" OR "record-replay" OR "capture and replay" OR "service virtualization" OR "traffic recording" OR "generated mocks") AND (testing OR "unit tests" OR "integration tests") AND (limitations OR maintenance OR outdated OR brittle OR "false positives")

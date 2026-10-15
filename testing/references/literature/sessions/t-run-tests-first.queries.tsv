@@ -1,0 +1,2 @@
+S1	("coding agent" OR "LLM agent" OR "software engineering agent" OR "large language model") AND ("run tests" OR "test execution" OR "existing tests" OR "regression tests" OR "test suite") AND (repository OR "environment setup" OR "issue resolution")
+C1	("coding agent" OR "LLM agent" OR "software engineering agent" OR "large language model") AND ("run tests" OR "test execution" OR "existing tests" OR "regression tests" OR "test suite") AND (ablation OR overhead OR cost OR "without tests")

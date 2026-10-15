@@ -1,0 +1,3 @@
+S1	("flaky tests" OR "flaky test" OR "test flakiness") AND ("root causes" OR causes OR "empirical study" OR taxonomy)
+S2	("flaky tests" OR "flaky test" OR "test flakiness") AND (time OR randomness OR network OR "external resources" OR "date and time")
+C1	("flaky tests" OR "flaky test" OR "test flakiness") AND ("async wait" OR concurrency OR "order-dependent" OR "test order dependency")

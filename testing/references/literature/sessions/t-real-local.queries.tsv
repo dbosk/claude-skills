@@ -1,0 +1,2 @@
+S1	("in-memory database" OR "embedded database" OR testcontainers OR docker OR container OR "local instance") AND ("integration testing" OR "integration tests" OR "unit testing" OR "software testing") AND (mock OR mocking OR "test doubles" OR database)
+C1	("in-memory database" OR "embedded database" OR testcontainers OR docker OR container OR "local instance") AND ("integration testing" OR "integration tests" OR "unit testing" OR "software testing") AND (flaky OR flakiness OR slow OR "execution time" OR cost)

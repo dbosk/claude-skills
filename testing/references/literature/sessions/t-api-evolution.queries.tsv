@@ -1,0 +1,2 @@
+S1	("web API" OR "web APIs" OR "REST API" OR "RESTful API" OR "web service") AND (evolution OR "breaking changes" OR "API changes")
+C1	("web API" OR "web APIs" OR "REST API" OR "RESTful API" OR "web service") AND (evolution OR "breaking changes" OR "API changes") AND ("backward compatibility" OR stability OR versioning OR deprecation)

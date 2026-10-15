@@ -1,0 +1,3 @@
+S1	(pseudonymization OR pseudonymisation OR pseudonymized OR pseudonymised) AND (GDPR OR "General Data Protection Regulation") AND ("personal data" OR identifiability OR anonymization OR anonymisation)
+S2	(pseudonymization OR pseudonymisation OR hashing OR "hash function") AND ("re-identification" OR reidentification OR "dictionary attack" OR "brute force") AND ("personal data" OR identifiers)
+C1	(pseudonymization OR pseudonymisation OR pseudonymized OR pseudonymised) AND (GDPR OR "General Data Protection Regulation") AND ("relative approach" OR "anonymous data" OR "not personal data" OR "risk-based")

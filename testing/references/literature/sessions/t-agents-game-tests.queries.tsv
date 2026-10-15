@@ -1,0 +1,3 @@
+S1	("large language model" OR LLM OR "coding agent" OR "AI agent" OR "language model agent") AND ("reward hacking" OR "specification gaming" OR "test tampering" OR "test manipulation" OR cheating)
+S2	("large language model" OR LLM OR "automated program repair" OR "coding agent") AND ("program repair" OR "code generation") AND ("patch overfitting" OR "test overfitting" OR "plausible patches" OR "special-casing")
+C1	("large language model" OR LLM OR "coding agent" OR "AI agent") AND ("reward hacking" OR "specification gaming" OR "test tampering" OR "patch overfitting") AND (rate OR frequency OR mitigation OR detection)
