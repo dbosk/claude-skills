@@ -12,7 +12,10 @@
 ## What counts as sensitive
 
 Secrets include tokens, API keys, cookies, session IDs, passwords, signed
-URLs and JWTs.
+URLs and JWTs, and capability links: a calendar's secret iCal address, a
+schedule or document URL with a token in it. Whoever holds such a link
+reads the data, so it is a credential even when it sits in a config
+file. A leaked one is reset at the service, like a password.
 
 Personal data is anything that identifies a person, directly or together
 with other data:
@@ -152,8 +155,11 @@ still runs on both.
   three characters or more, and email local parts.
 - **At session end**, the template scans every cassette it wrote for those
   originals (case-insensitive, whole words) and for the pattern set: email
-  outside `example.*`, Luhn-valid personnummer, JWT, bearer tokens and
-  assigned secrets (`access_token=…`, `client_secret: …`). Lines are also
+  outside `example.*`, Luhn-valid personnummer, JWT, bearer tokens,
+  assigned secrets (`access_token=…`, `client_secret: …`) and capability
+  links (`/private-<hex>`, secret-named query parameters, long mixed
+  tokens in URLs). A token must look random (digits or mixed case), so
+  prose and placeholders such as `your-api-token` pass. Lines are also
   checked percent-decoded, and cassettes are also checked unfolded, since
   the YAML dumper can split a name across two lines. A hit fails the run.
   Name parts inside a URL host (`kth` in `canvas.kth.se`) are not hits. A

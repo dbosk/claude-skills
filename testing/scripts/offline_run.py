@@ -10,8 +10,22 @@ some tests may log in to a service or write to it.  Every Python process
 the command starts (and their Python subprocesses) gets:
 
 - network connections refused, except to loopback (local instances still
-  work), with an error that HTTP clients do not retry; non-Python
-  programs such as curl are NOT covered, nor is `python -I`;
+  work), with an error that HTTP clients do not retry; `python -I` is
+  not covered;
+
+and the whole command, Python or not, gets:
+
+- programs that reach a service by themselves refused, through stand-ins
+  first on PATH (NETWORK_PROGRAMS below: ssh, curl, gh, AFS's pts and
+  fs, ...; git and rsync only when they would talk to another host).  A
+  program called by absolute path, or a library that opens sockets from
+  C, is not covered.  A test that skips when `shutil.which("fs")` finds
+  nothing finds the stand-in, so it fails (visibly) instead of skipping;
+- AFS tokens dropped: the command starts in a fresh PAG (pagsh), so the
+  AFS client treats it as an anonymous user and writes under /afs are
+  refused.  Tokens live in the kernel, so a fake HOME does not hide them;
+- the Kerberos ticket hidden (KRB5CCNAME points at a file that does not
+  exist);
 - credential-like variables removed from the environment (names with
   TOKEN, SECRET, PASS, KEY, LOGIN, USER, AUTH, SESSION, CREDENTIAL); their
   names, never their values, are printed, so there is no need to list
@@ -25,8 +39,12 @@ the command starts (and their Python subprocesses) gets:
 - a time limit (default 600 s) after which the whole process group gets
   SIGTERM, and SIGKILL 10 s later (so mutate.py can restore its file).
 
+Other network file systems (NFS, SMB, sshfs) are not covered: check the
+tests for such paths before the first run (references/reviewing.md).
+
 --isolate-home also points HOME and the XDG directories at an empty temp
-directory, hiding config files and cached sessions.  Tools that keep
+directory, hiding config files and cached sessions.  It is kept and
+named, so that what the tests wrote there can be inspected.  Tools that keep
 their environments there (poetry's virtualenvs) then cannot find them;
 use the project's venv python directly in that case.
 
@@ -37,6 +55,7 @@ The exit status is the command's.
 import argparse
 import os
 import re
+import shutil
 import signal
 import subprocess
 import sys
@@ -49,6 +68,22 @@ CREDENTIAL_NAME = re.compile(
     r"TOKEN|SECRET|PASS|API_?KEY|_KEY$|^KEY|LOGIN|_USER$|^USER_|AUTH|SESSION|CREDENTIAL",
     re.I)
 KEEP = {"PATH", "USER", "LOGNAME", "HOME", "SHELL", "LANG", "TERM", "PWD"}
+NETWORK_PROGRAMS = (
+    "ssh", "scp", "sftp", "mosh", "curl", "wget", "http", "https", "gh", "glab",
+    "hub", "nc", "ncat", "netcat", "telnet", "ftp", "lftp", "smbclient",
+    "kinit", "aklog", "klog", "pts", "fs", "aws", "gcloud", "az",
+    "git", "rsync",  # these two only when they would reach another host
+)
+
+
+def network_shims(directory: Path, path: str) -> None:
+    """A stand-in for each program, which refuses it or runs the real one."""
+    for name in NETWORK_PROGRAMS:
+        real = shutil.which(name, path=path) or ""
+        shim = directory / name
+        shim.write_text(f'#!/bin/sh\nexec "{sys.executable}" -I '
+                        f'"{OFFLINE_DIR / "refuse.py"}" {name} "{real}" "$@"\n')
+        shim.chmod(0o755)
 
 
 def credential_names(env: dict) -> list[str]:
@@ -82,6 +117,17 @@ def main(argv=None) -> int:
 
     env = offline_env(os.environ)
     removed = credential_names(os.environ)
+    shims = Path(tempfile.mkdtemp(prefix="offline-run-"))
+    network_shims(shims, env.get("PATH", os.defpath))
+    env["PATH"] = os.pathsep.join((str(shims), env.get("PATH", os.defpath)))
+    env["KRB5CCNAME"] = f"FILE:{shims / 'no-kerberos-ticket'}"
+    notes = ["Python network blocked except loopback",
+             "network programs refused", "Kerberos ticket hidden", "keyring disabled",
+             f"removed {', '.join(removed) or 'no credential variables'}"]
+    pagsh = shutil.which("pagsh")
+    if pagsh:
+        command = [pagsh, "-c", 'exec "$@"', "offline_run", *command]
+        notes.insert(2, "AFS tokens dropped (new PAG)")
     if args.isolate_home:
         home = tempfile.mkdtemp(prefix="offline-home-")
         env["HOME"] = home
@@ -89,12 +135,18 @@ def main(argv=None) -> int:
                              ("XDG_DATA_HOME", ".local/share"),
                              ("XDG_STATE_HOME", ".local/state")):
             env[var] = os.path.join(home, sub_dir)
-    print("offline_run: Python network blocked except loopback; keyring disabled; "
-          f"removed {', '.join(removed) or 'no credential variables'}"
-          + ("; empty HOME" if args.isolate_home else ""), file=sys.stderr)
+        notes.append(f"HOME={home} (empty; kept afterwards)")
+    print(f"offline_run: {'; '.join(notes)}", file=sys.stderr)
+    try:
+        return run(command, env, args.timeout)
+    finally:
+        shutil.rmtree(shims, ignore_errors=True)
+
+
+def run(command: list[str], env: dict, timeout: float) -> int:
     process = subprocess.Popen(command, env=env, start_new_session=True)
     try:
-        return process.wait(timeout=args.timeout)
+        return process.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
         # SIGTERM first, so a wrapper such as mutate.py can restore the file
         # it changed; SIGKILL whatever is still running after a grace period
@@ -104,7 +156,7 @@ def main(argv=None) -> int:
         except subprocess.TimeoutExpired:
             os.killpg(process.pid, signal.SIGKILL)
             process.wait()
-        print(f"offline_run: killed after {args.timeout:g} s; a test is probably "
+        print(f"offline_run: killed after {timeout:g} s; a test is probably "
               "waiting on the network or a prompt", file=sys.stderr)
         return 124
 
