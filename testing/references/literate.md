@@ -115,5 +115,17 @@ sense of layer 4 (SKILL.md section 4), and it reaches more readers:
   output to see which keys carry free text, then scan it, for example
   `scan_leaks.py pythontex-files-*/ doc/*.stdout`, and the PDF itself
   with `pdftotext doc.pdf - | scan_leaks.py -`;
+- never print a whole configuration or environment (`tool config`,
+  `env`, a settings dump): the author's config holds private links (a
+  calendar's secret address, a schedule URL with a token), paths and
+  colleagues' names. Show a synthetic example config in a `minted`
+  block, or print an allowlist of keys;
+- add the PDF scan to the publish target, so that no release goes out
+  unscanned: `pdftotext doc/x.pdf - | scan_leaks.py --originals
+  /dev/null -` before `gh release create`;
 - a weave that calls the service live depends on credentials and on the
   data of the day. Where possible, weave from recorded data instead.
+  Where a live example is kept on purpose, it is a smoke test of the
+  real service: make the build fail when the command fails, and assert
+  something about the output (a known course code appears), not only
+  that it ran.

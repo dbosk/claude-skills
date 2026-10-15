@@ -34,6 +34,8 @@ names with --allow 're:20[0-9]{6}-[0-9]{4}' only after checking them, since
 students' files are named by personnummer too.
 --warn-names also reports capitalized word pairs ("Anna Svensson") that
 are not in --allow-names; these are warnings and do not fail the run.
+It is meant for data (cassettes, fixtures, generated output): on prose
+every Title Case phrase is a hit.
 --warn-ids warns about numeric user IDs in URLs (/users/N, /submissions/N,
 ?student_id=N): pseudonymous, not anonymous, if they come from a real
 service.

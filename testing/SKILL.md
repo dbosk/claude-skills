@@ -27,8 +27,17 @@ Never:
 - mock code we own just to isolate a unit;
 - assert on call sequences (`assert_called_with`) when a result or state can be checked instead;
 - hand-write a response body that we could have recorded from the live service;
+- stand in for a third-party SDK object with an unspecced `Mock()`: any
+  attribute works, so a renamed field still passes. Use `spec=` or
+  `create_autospec`, or better a recording;
 - let tests share state: each test sets up what it needs, so order and
   parallel runs do not change the outcome;
+- clear the whole environment (`patch.dict(os.environ, {...}, clear=True)`):
+  it removes HOME, so `Path.home()` finds the real home again; set or
+  delete only the variables the test is about;
+- compare with the real clock: a test that computes "today" itself and
+  checks what the program computed from its own clock fails at midnight.
+  Give the program one clock seam (a `now` parameter) and fix it;
 - write a test that never calls the code under test, such as one that
   re-implements the logic or checks Python's arithmetic on a hand-built
   input: it passes whatever the code does;
@@ -156,10 +165,13 @@ reasoning.
   you know the baseline, the runner and the size of the suite. Run an
   unfamiliar suite through `scripts/offline_run.py -- <test command>`
   first: its tests may log in to a service or write to it. It blocks the
-  network for every Python process, removes credential variables (naming
-  them, so never list the environment yourself), disables the keyring,
-  keeps collecting past modules that fail to import, and stops a run that
-  hangs.
+  network for every Python process, refuses programs that reach services
+  themselves (ssh, curl, gh, AFS's pts), drops AFS tokens and the
+  Kerberos ticket, removes credential variables (naming them, so never
+  list the environment yourself), disables the keyring, keeps collecting
+  past modules that fail to import, and stops a run that hangs. It cannot
+  see network file systems or programs called by absolute path: grep
+  the tests for those first (`references/reviewing.md`, section 1).
 - **Red/green.** Write the test first, from the spec or the bug report
   rather than from the implementation, and watch it fail *for the right
   reason* before writing the fix. A test that already passed before the
