@@ -19,7 +19,8 @@ and the whole command, Python or not, gets:
   first on PATH (NETWORK_PROGRAMS below: ssh, curl, gh, AFS's pts and
   fs, ...; git and rsync only when they would talk to another host).  A
   program called by absolute path, or a library that opens sockets from
-  C, is not covered;
+  C, is not covered.  A test that skips when `shutil.which("fs")` finds
+  nothing finds the stand-in, so it fails (visibly) instead of skipping;
 - AFS tokens dropped: the command starts in a fresh PAG (pagsh), so the
   AFS client treats it as an anonymous user and writes under /afs are
   refused.  Tokens live in the kernel, so a fake HOME does not hide them;
