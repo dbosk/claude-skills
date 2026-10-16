@@ -114,6 +114,14 @@ When drift is found:
 A drift report is a task to restore consistency. Do **not** paper over it
 by editing the cassette by hand.
 
+Recordings also go stale when *our* code changes which requests it sends
+(lazy loading, batching, a new cache). The service is unchanged, so the
+drift check sees nothing; the replay check that every recorded request was
+played catches it, as "made 12 of the 27 requests". A live run also skips
+`mutates` tests without `--live-writes`, so their cassettes are never
+re-checked live. After a change in request pattern, re-record the affected
+tests (`--record-mode=rewrite -k …`, with `--live-writes` for write tests).
+
 To compare two cassette directories by hand:
 `scripts/cassette_shape_diff.py COMMITTED LIVE [--strict]`.
 
@@ -184,7 +192,14 @@ reasoning.
   why. If the test is wrong, say that and fix the test as a separate,
   visible step.
 - **Show evidence.** Report the command you ran and its result. Never
-  claim "tests pass" without having run them.
+  claim "tests pass" without having run them. Report skips with their
+  reasons: a replay test skipped for a missing cassette (as in a fresh
+  worktree, where gitignored cassettes are absent) verified nothing.
+- **Change the fakes with the reader.** When a change alters what the code
+  expects of its input (a cookie's domain, a header, a field's type), grep
+  the fixtures and fakes that build that input (e.g. for `XSRF-TOKEN`) and
+  update them in the same change. A fake built to the old expectation
+  fails only when the two meet, possibly after a merge.
 - **Manual check, then pin it.** Try the change for real: `python -c`,
   the CLI, `curl` against a dev server. Turn every surprise into a
   red/green test.

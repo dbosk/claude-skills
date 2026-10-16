@@ -46,7 +46,11 @@ fix. Every item below cost an agent real time at least once.
 2. **Generated artifacts do not exist in a fresh worktree.** If build products
    (tangled `.py`, compiled assets) are gitignored, the worktree contains only
    sources — the agent must build *everything* the tests import, not just the
-   file it edited.
+   file it edited. Local-only test data is missing too: gitignored cassettes
+   or fixtures that hold personal data stay in the main checkout, so in a
+   worktree the replay tests skip ("no recording") and the run looks green
+   while it checks nothing. Make agents report the skip count with reasons,
+   and compare it with the main checkout's.
 
 3. **The package import may silently resolve to the MAIN repo.** A Poetry/pip
    editable install points a `.pth` at the main checkout; `poetry run` inside
@@ -220,6 +224,16 @@ fix. Every item below cost an agent real time at least once.
 - Review every agent branch yourself before pushing: `git diff master..branch`
   plus the agent's test evidence. Treat security-classifier warnings on a
   subagent as "read the whole diff line by line", not as a verdict.
+- **Run the whole suite in the main checkout after merging a batch.** Each
+  branch is green against its own base, but parallel branches can clash in
+  meaning with no textual conflict. Observed (ladok3, 2026-10-15): one
+  branch made the XSRF lookup accept only a cookie set by the session's own
+  host, while a sibling added a replay fixture that set its fake cookie
+  with no domain; another made fetches lazy while a third recorded
+  cassettes with the old eager code. Every PR was green; after the merge,
+  offline replay had 30 failures. The main checkout also holds the local
+  test data that worktrees lack (trap 2). Run it before the next batch
+  branches from the merged base.
 - Persist orchestration state (plan file with per-branch status, follow-up
   issue list) outside the conversation after every batch — sessions die.
 
