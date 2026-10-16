@@ -910,6 +910,11 @@ decomposition (sharing logic between code paths).
 
 ## Test Organization
 
+**Load the `testing` skill as well** before writing or changing tests or the
+code they cover. This section covers only where tests go in a `.nw` file;
+`testing` covers what makes them trustworthy (red/green, test doubles,
+recordings, live checks, mutation checks, privacy).
+
 **CRITICAL**: Tests MUST appear AFTER implementation, distributed throughout
 the file near the code they verify. **NEVER** create a `\section{Tests}` or
 `\section{Unit Tests}` that groups all tests at the end of the file.

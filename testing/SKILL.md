@@ -1,6 +1,6 @@
 ---
 name: testing
-description: Write, run, review and maintain automated tests so that a green run means the real thing works: real code before fakes, recorded live data before hand-written mocks, live drift checks, and no personal data in test data. Use proactively when (1) writing, fixing, reviewing or deleting tests, adding tests or coverage, doing TDD or red/green, or making failing tests pass; (2) mock, MagicMock, patch, monkeypatch, responses, VCR, vcrpy, pytest-recording, cassettes or snapshots come up; (3) code under test calls an external service or API (Canvas, LADOK, GitHub, an LLM, a database); (4) tests are flaky, pass while the code is broken, or break on every refactor; (5) test data may hold names, emails, personnummer or tokens; (6) starting work in a repository that has tests (run them first). Pytest-centred, with principles for any language; covers literate (.nw) projects too.
+description: IMPORTANT: load BEFORE planning, writing or changing code in a repository that has tests - features, bug fixes and refactors too, not only requests that mention tests - and before writing a plan's Tests or Verification section. Makes a green run mean the real thing works: real code before fakes, recorded live data before hand-written mocks or fake responses, live drift checks, red/green, mutation checks, and no personal data in test data or output. Also use when (1) writing, fixing, reviewing or deleting tests, coverage or TDD; (2) mock, patch, monkeypatch, fake sessions or responses, VCR, cassettes or snapshots come up; (3) code calls an external service or API (Canvas, LADOK, SharePoint, GitHub, an LLM, a database), or you probe one by hand to check a change; (4) tests are flaky, pass while the code is broken, or break on every refactor; (5) test data or output may hold names, emails, personnummer or tokens. Pytest-centred; covers literate (.nw) projects.
 ---
 
 # Testing
@@ -114,6 +114,14 @@ When drift is found:
 A drift report is a task to restore consistency. Do **not** paper over it
 by editing the cassette by hand.
 
+Recordings also go stale when *our* code changes which requests it sends
+(lazy loading, batching, a new cache). The service is unchanged, so the
+drift check sees nothing; the replay check that every recorded request was
+played catches it, as "made 12 of the 27 requests". A live run also skips
+`mutates` tests without `--live-writes`, so their cassettes are never
+re-checked live. After a change in request pattern, re-record the affected
+tests (`--record-mode=rewrite -k …`, with `--live-writes` for write tests).
+
 To compare two cassette directories by hand:
 `scripts/cassette_shape_diff.py COMMITTED LIVE [--strict]`.
 
@@ -184,7 +192,14 @@ reasoning.
   why. If the test is wrong, say that and fix the test as a separate,
   visible step.
 - **Show evidence.** Report the command you ran and its result. Never
-  claim "tests pass" without having run them.
+  claim "tests pass" without having run them. Report skips with their
+  reasons: a replay test skipped for a missing cassette (as in a fresh
+  worktree, where gitignored cassettes are absent) verified nothing.
+- **Change the fakes with the reader.** When a change alters what the code
+  expects of its input (a cookie's domain, a header, a field's type), grep
+  the fixtures and fakes that build that input (e.g. for `XSRF-TOKEN`) and
+  update them in the same change. A fake built to the old expectation
+  fails only when the two meet, possibly after a merge.
 - **Manual check, then pin it.** Try the change for real: `python -c`,
   the CLI, `curl` against a dev server. Turn every surprise into a
   red/green test.
