@@ -128,15 +128,19 @@ changes:
 1. **A session fixture instead of `service_token`.** In replay, build the
    client offline, without logging in, and give it whatever state the
    client reads before its first request, such as LADOK's `XSRF-TOKEN`
-   cookie. Under recording or `--live`, use the session that the `login`
-   fixture (item 2) opened, and skip if it has none.
+   cookie. Set that state exactly as the service does, domain included:
+   a client that looks the cookie up by its own host does not find one set
+   without a domain, and every write fails in replay only. Under
+   recording or `--live`, use the session that the `login` fixture
+   (item 2) opened, and skip if it has none.
 
    ```python
    @pytest.fixture(scope="session")
    def client(login, recording):
        if not recording:  # replay: no login, no credentials needed
            http = requests.Session()
-           http.cookies.set("XSRF-TOKEN", "redacted")
+           http.cookies.set("XSRF-TOKEN", "redacted",
+                            domain=urlparse(BASE_URL).hostname)
            return ServiceClient(http)
        if isinstance(login, str):
            pytest.skip(login)
@@ -162,6 +166,15 @@ changes:
        except CredentialsMissing as err:
            return f"cannot log in: {type(err).__name__}"  # a reason, not a skip
    ```
+
+   Skip only when the run records into a directory of its own (`--live`).
+   When it records into the project's cassettes, stop the run instead
+   (`pytest.exit`): `--record-mode=rewrite` deletes each test's cassette
+   when the cassette opens, before a fixture can skip, so a failed login
+   deletes the cassettes it was meant to renew and the run still exits 0.
+   And let `RecursionError` through: it subclasses `RuntimeError`, so a
+   broad `except RuntimeError` turns a login that loops into a quiet
+   "cannot log in". ladok3's `log_in_for_tests` does both.
 
    Keeping the login out of the cassette matters: the SAML response
    posted back to the service is the signed identity of the user,
