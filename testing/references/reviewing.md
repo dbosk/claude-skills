@@ -162,9 +162,20 @@ to tests that pass, with `--ignore` for modules that fail to collect and
 
 Keep the inner quotes: make hands the flags to a shell. Node IDs for
 `--deselect` are relative to pytest's rootdir, not to the directory make
-runs in, so `-k` is the safer choice. For a batch of mutants, run the
-first one normally and the rest with `--no-baseline`: the baseline does
-not change between them. Give `mutate.py` its own `--timeout`, a little
+runs in, so `-k` is the safer choice. For several mutants write a batch
+file and run it once (`mutate.py --timeout 300 --batch mutants.txt --
+make test ...`): it checks that every OLD occurs exactly once before
+anything runs, runs the baseline once, prints a table (label, file:line,
+result) and keeps each run's output in a log. Old and new text are
+written as `- ` and `+ ` lines, so several lines and backslashes need no
+escaping:
+
+    M1 src/pkg/hr.nw
+    - if part_hour > QUARTER:
+    + if part_hour >= QUARTER:
+
+The batch file is also the record of what was tried: keep it with the
+report. Give `mutate.py` its own `--timeout`, a little
 above the suite's normal run time: a mutant that makes a test loop
 forever then counts as killed and the file is restored. (`offline_run.py`
 stops it with SIGTERM first, which `mutate.py` also survives, but its

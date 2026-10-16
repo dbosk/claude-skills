@@ -247,7 +247,7 @@ for the templates, cassettes and `make clean`.
 | Check for drift | `pytest --live` (`--live-writes` to include `mutates` tests) |
 | Re-record after drift | `pytest --record-mode=rewrite -k test_x` |
 | Leak scan | `python3 ~/.claude/skills/testing/scripts/scan_leaks.py tests --denylist ~/private/roster.txt` |
-| Does a test catch this break? | `~/.claude/skills/testing/scripts/mutate.py src/mod.py "a + b" "a - b" -- pytest -q` |
+| Does a test catch this break? | `~/.claude/skills/testing/scripts/mutate.py src/mod.py "a + b" "a - b" -- pytest -q` (several: `--batch FILE`) |
 | Compare shapes by hand | `uv run --with vcrpy ~/.claude/skills/testing/scripts/cassette_shape_diff.py tests/cassettes <live dir printed by pytest --live>` |
 
 ## References
