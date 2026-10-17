@@ -124,10 +124,12 @@ Mutations are also the quickest way to expose two common weak tests:
 - tests that never call the code under test: change the code's behaviour
   and nothing goes red.
 
-## Fresh-context review
+## Independent review
 
-For larger changes, have a subagent review the diff without the reasoning
-that produced it. Ask specifically:
+Every change to the tests gets a review by a subagent that did not write
+them and starts without the reasoning that produced them: a fresh agent,
+not a `fork`. Give it the diff and the test command only. Ask
+specifically:
 
 - Do the tests exercise behaviour through real code, or mirror the
   implementation (mocks returning what the code expects)?
@@ -149,8 +151,8 @@ What the evidence supports, and what it does not:
 - Guey & Bougault (2026) found no self-preference when models judged
   machine-verified fixes to their own drafts. That was text, not code.
 
-So use fresh-context review as a cheap second look, never as a substitute
-for running the tests.
+So require the review as a second look backed by checks the reviewer
+ran, never as a substitute for running the tests.
 
 ## Splitting writer and tester
 

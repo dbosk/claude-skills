@@ -1,7 +1,7 @@
 ---
 name: review
-allowed-tools: Bash(*), Read, Glob, Grep, Edit, Skill, AskUserQuestion
-description: Review recent changes — a branch, a diff, or staged/unstaged working-tree work — for correctness, regressions, and relevant domain-specific quality criteria. Use proactively when: (1) the user asks to "review the work on this branch", "review my changes", "review my diff", "review recent changes", or "check this code before I commit", (2) the user requests a review of uncommitted or just-written local work, (3) reviewing local changes against the base branch before a commit or PR. For reviewing an existing GitHub pull request, prefer the PR-focused review/code-review skills instead.
+allowed-tools: Bash(*), Read, Glob, Grep, Edit, Skill, AskUserQuestion, Agent
+description: Review recent changes — a branch, a diff, or staged/unstaged working-tree work — for correctness, regressions, and relevant domain-specific quality criteria. Use proactively when: (1) the user asks to "review the work on this branch", "review my changes", "review my diff", "review recent changes", or "check this code before I commit", (2) the user requests a review of uncommitted or just-written local work, (3) reviewing local changes against the base branch before a commit or PR, (4) a pull request has just been opened, by Claude or the user: every new PR gets a review by an independent subagent before it is merged. For reviewing someone else's existing GitHub pull request, prefer the PR-focused review/code-review skills instead.
 user-invocable: true
 license: MIT
 ---
@@ -14,6 +14,35 @@ license: MIT
 - **Unstaged changed files:** !`git diff --name-only`
 - **Files changed vs base branch:** *(determined in Step 1)*
 - **Recent commits:** !`git log --oneline -5`
+
+## Independent review of a new PR
+
+Every new PR gets a review by an independent subagent before it is
+merged, whoever opened it. The author, human or agent, carries the
+reasoning that produced the change, and a second look in the same
+context tends to share its blind spots; a reviewer that starts fresh
+does not.
+
+1. **Spawn a fresh agent**, never a `fork`, which inherits the author's
+   context. Use `model: "opus"`; use `subagent_type: "long-job"` if it
+   will run a long test suite, and `isolation: "worktree"` if work
+   continues in the same checkout meanwhile.
+2. **Give it only what an outside reviewer would have**: the repository,
+   the PR number or branch and its base, and the test command. Leave out
+   the author's account of why the change is right and what was already
+   checked.
+3. **Ask it to** follow Steps 1–3 below on the PR's diff (`gh pr diff N`,
+   or `git diff BASE...BRANCH`), activating the skills of Step 2 (the
+   `testing` skill when tests changed); back each finding with a check it
+   ran where possible (a failing input, a mutation that should turn a
+   test red, a broken reference); report only issues that affect
+   correctness or the criteria, as `file:line`, problem and proposed
+   fix; and not edit files, push, comment on the PR or merge.
+4. **Weigh each finding**: verify it, then fix it on the PR branch or say
+   why it does not apply. Neither accept nor dismiss findings unread.
+5. **Report to the user** what the review found and what was done, before
+   asking to merge. Do not merge while the review is outstanding or a
+   confirmed finding is unaddressed.
 
 ## Step 1: Determine Files to Review
 
