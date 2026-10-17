@@ -210,10 +210,20 @@ reasoning.
   file. This shows the test catches that break, not that the suite is
   adequate. Pass `--timeout` above the suite's run time, so a mutant that
   hangs counts as killed and is restored.
-- **Fresh-context review** for larger changes: a subagent that sees only
-  the diff checks whether the tests exercise behaviour or just mirror the
-  implementation. Ask it for checks it can run (break the code: does a
-  test go red?), not for an opinion.
+- **Independent review of the tests, always.** Before new or changed tests
+  are pushed or merged, a subagent that did not write them reviews them;
+  for a PR, the `review` skill's PR review covers this (one review, not
+  one per commit). Start it fresh with `model: "opus"`, never as a `fork`,
+  which inherits the reasoning that produced the tests. Give it the
+  repository, the diff (or branch and base) and the test command, not your
+  account of why the tests are good. If you are that reviewer, run the
+  checks yourself. It checks whether the tests exercise behaviour or
+  mirror the implementation, whether one fails when the change is
+  reverted, and whether any test got weaker, and it backs each finding
+  with a check it ran (a mutation that should turn a test red), not an
+  opinion. Weigh each finding, fix it or say why it does not apply, and
+  report the review with the test results. It adds to running the tests;
+  it never replaces them.
 - **Reviewing an existing suite**: work in a copy, contact no service,
   report personal data as file:line and kind only, and follow the steps
   in `references/reviewing.md` (baseline, inventory, greps, mutations,
