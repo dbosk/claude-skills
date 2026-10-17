@@ -1622,6 +1622,8 @@ Partly: one small experiment found that a second review helps only when it runs 
 
 **Wording in the skill after this review.** §5 now reads: "a subagent that sees only the diff checks whether the tests exercise behaviour or just mirror the implementation. Ask it for checks it can run (break the code: does a test go red?), not for an opinion." It no longer claims that a fresh review finds more; `references/agent-practices.md` reports Song (2026) and the limits of the evidence.
 
+**Policy change, 2026-10-17.** The skill now requires the independent review for every change to the tests, and the `review` skill requires one for every new PR. This is a policy decision by the skill's owner, not a change in the evidence: the verdict stays **Qualified**, and the skill presents the review as a cheap second look backed by runnable checks, never as a substitute for running the tests.
+
 ### Future work
 
 Bacchelli & Bird (2013), Beller et al. (2014) and Czerwonka et al. (2015) were read at abstract level, and the topic queries did not return Song (2026). Song's experiment needs replication with other models, more artifacts, errors not injected by the experimenter, and diffs whose tests are weak, which is the skill's use; if fresh-context review turned out no better than one careful same-session review, the skill could drop the subagent step.

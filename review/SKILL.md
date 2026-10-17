@@ -1,7 +1,7 @@
 ---
 name: review
 allowed-tools: Bash(*), Read, Glob, Grep, Edit, Skill, AskUserQuestion, Agent
-description: Review recent changes — a branch, a diff, or staged/unstaged working-tree work — for correctness, regressions, and relevant domain-specific quality criteria. Use proactively when: (1) the user asks to "review the work on this branch", "review my changes", "review my diff", "review recent changes", or "check this code before I commit", (2) the user requests a review of uncommitted or just-written local work, (3) reviewing local changes against the base branch before a commit or PR, (4) a pull request has just been opened, by Claude or the user: every new PR gets a review by an independent subagent before it is merged. For reviewing someone else's existing GitHub pull request, prefer the PR-focused review/code-review skills instead.
+description: Review recent changes — a branch, a diff, or staged/unstaged working-tree work — for correctness, regressions, and relevant domain-specific quality criteria. Use proactively when: (1) the user asks to "review the work on this branch", "review my changes", "review my diff", "review recent changes", or "check this code before I commit", (2) the user requests a review of uncommitted or just-written local work, (3) reviewing local changes against the base branch before a commit or PR, (4) Claude or the user has just opened a pull request: every such PR gets a review by an independent subagent before it is merged. For reviewing someone else's existing GitHub pull request, prefer the PR-focused review/code-review skills instead.
 user-invocable: true
 license: MIT
 ---
@@ -17,27 +17,38 @@ license: MIT
 
 ## Independent review of a new PR
 
-Every new PR gets a review by an independent subagent before it is
-merged, whoever opened it. The author, human or agent, carries the
-reasoning that produced the change, and a second look in the same
-context tends to share its blind spots; a reviewer that starts fresh
-does not.
+Every new PR that Claude or the user opens gets a review by an
+independent subagent before it is merged. This is a policy choice: the
+author, human or agent, carries the reasoning that produced the change,
+and a reviewer that starts without it is less likely to share its blind
+spots, but the evidence that a fresh reviewer beats one careful review
+is thin (testing skill, `references/agent-practices.md`). So the review
+is a second look backed by checks, never a substitute for running the
+tests. It also covers the testing skill's review of the PR's tests.
 
 1. **Spawn a fresh agent**, never a `fork`, which inherits the author's
-   context. Use `model: "opus"`; use `subagent_type: "long-job"` if it
-   will run a long test suite, and `isolation: "worktree"` if work
-   continues in the same checkout meanwhile.
+   context. Use `model: "opus"` and `isolation: "worktree"`, so its
+   checks never touch the author's checkout; use
+   `subagent_type: "long-job"` if it will run a long test suite.
 2. **Give it only what an outside reviewer would have**: the repository,
-   the PR number or branch and its base, and the test command. Leave out
-   the author's account of why the change is right and what was already
-   checked.
-3. **Ask it to** follow Steps 1–3 below on the PR's diff (`gh pr diff N`,
-   or `git diff BASE...BRANCH`), activating the skills of Step 2 (the
-   `testing` skill when tests changed); back each finding with a check it
-   ran where possible (a failing input, a mutation that should turn a
-   test red, a broken reference); report only issues that affect
-   correctness or the criteria, as `file:line`, problem and proposed
-   fix; and not edit files, push, comment on the PR or merge.
+   the PR number, its head branch and base, and the test command. Leave
+   out the author's account of why the change is right and what was
+   already checked.
+3. **Tell it** that it is the independent reviewer, and to:
+   - check out the PR head in its worktree (`gh pr checkout N`) and
+     confirm that `git log -1` matches the PR's head commit; set the
+     worktree up as the `worktree-subagents` skill describes (submodules,
+     gitignored test data) and report any tests that were skipped;
+   - load this skill and follow only Steps 1–3, taking the file list from
+     the PR's diff (`gh pr diff N --name-only`) instead of Step 1's
+     commands, and skipping this section and Steps 4–5;
+   - back each finding with a check it ran where possible (a failing
+     input, a mutation that should turn a test red, a broken reference);
+   - report only issues that affect correctness or the criteria, as
+     `file:line`, problem and proposed fix;
+   - make no lasting changes: temporary edits for checks (`mutate.py`,
+     reverting the change) only in its worktree and restored afterwards;
+     no commit, push, PR comment or merge.
 4. **Weigh each finding**: verify it, then fix it on the PR branch or say
    why it does not apply. Neither accept nor dismiss findings unread.
 5. **Report to the user** what the review found and what was done, before
@@ -69,6 +80,8 @@ Based on the changed files, determine which skills to activate in addition to th
 | Educational `.md` files such as student guides, tutorials, READMEs, or conceptual docs that teach ideas, compare approaches, or rely on example ordering | `variation-theory` |
 | Any `.nw` file | `literate-programming`, `variation-theory`, `latex-writing` |
 | Any `.tex` file | `latex-writing` |
+| Tests: `tests/`, `test_*.py`, `conftest.py`, cassettes, test chunks in `.nw` files | `testing` |
+| `SKILL.md` and a skill's reference files | `skill-management` |
 | `.tex`/`.nw` with `\ltnote`, `\begin{exercise}`, `\begin{frame}`, `\begin{example}` | `didactic-notes`, `variation-theory`, `try-first-tell-later` |
 | `.tex`/`.nw` with `\ac{IND-CPA}`, `\ac{AE}`, `\ac{MAC}`, `\ac{PRF}`, `bibsp`, `\prf`, `\mac`, `\enc`, `\dec`, `\secpar` | `writing-crypto` |
 
