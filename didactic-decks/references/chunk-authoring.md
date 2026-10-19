@@ -161,6 +161,17 @@ that out."; beside two separate solutions to one exercise that
 holds two programs: "Maybe one solution that keeps both. Just as for the exercise
 itself.").
 
+**An open exercise gets its model solution in the notes only** (author,
+2026-10-19, on "sketch the algorithm for an automated warehouse": "We only
+need it in the notes, the slides will review suggestions instead."). An
+open exercise has no single right answer: a sketch, a design, a list of
+advantages. At the lecture the slides go through the class's own answers
+(the Mentipy `open_text` results), which a prepared answer on the next
+slide would cut short; the notes' reader has no class to compare with, so
+the notes give a worked model solution right after the exercise, outside
+any frame. A reflective question ("Vad behöver du repetera mer?") needs no
+solution.
+
 A two-line display inside an `example` must not rely on `\\` inside a
 `center`: the article job collapses it to one line. Use a one-column
 `tabular`, or a `\par` between the lines.

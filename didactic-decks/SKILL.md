@@ -177,7 +177,10 @@ Each line points at the reference that explains it.
 - Exercises as live Mentipy polls (QR on the slide, plain in the notes):
   venv, interpreter, placement and checks in `build-and-gotchas.md`.
 - Floats sit right after the paragraph that references them, never on a
-  float page, and their captions explain enough to stand alone. `floats-and-margins.md`
+  float page, and their captions explain enough to stand alone; a figure
+  that depicts code sits beside that code, on the slide and in the notes. `floats-and-margins.md`
+- An open exercise (no single right answer) gets its model solution in
+  the notes only; the slides go through the class's answers. `chunk-authoring.md`
 - Side captions only when the margin is free **and** the caption is not
   taller than the float; otherwise a normal caption with the same text. `floats-and-margins.md`
 - `\textcite` and `\autocite` never go inside a float. `floats-and-margins.md`

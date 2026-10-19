@@ -21,6 +21,15 @@ Every figure is referenced from the student-facing prose, not only from an
 position ("på nästa bild", "ovan"). Check on the rendered pages that the
 float landed on or facing the page of its reference.
 
+**A figure that depicts code sits beside that code** (author, 2026-10-19,
+beside a flowchart of `withdraw` placed on the slide after the program:
+"On previous slide"): on the slides, in the frame that holds the code; in
+the notes, next to the code's display, as a `marginfigure` when it is
+small and the margin there is free. The student checks the picture
+against the lines it draws, and a slide or page between them turns that
+into a look back. Define the picture once as a macro and use it in both
+places, as with tables below.
+
 ## Captions
 
 A caption explains sufficiently and stands on its own. In order:
