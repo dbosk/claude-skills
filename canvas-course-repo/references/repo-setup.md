@@ -58,6 +58,10 @@ reuse: export once, then the files are the source of truth.
   text and `href`/`src` targets compared with the API HTML (untranslated
   export). Failures are written as `*.html.md` with the `--html` export.
   Nested styled lists (`<ol style=…>` inside lists) typically fail.
+- Identity is the `regex`, not the file name: an item that already has a
+  file (found by `^id$` for assignments, by matching the file's regex
+  against the title for pages) keeps that path and regex, so files can be
+  renamed and `pull`/`diff-canvas` (`--like .`) still line up.
 - Slugs up to 90 characters; the script aborts on two items with one slug
   (titles differing only at the end, e.g. "… (50328)" / "… (60152)").
 
@@ -84,5 +88,10 @@ reuse: export once, then the files are the source of truth.
   edit with the full export JSON changed only the edited field.
 - **Two modules with one name** (e.g. two "Pass by participation"): a page in
   both gets the same `modules:` regex twice. Do not push it casually.
+- **YAML strips trailing spaces**: `regex: ^Live\ intro\ lecture\ ` becomes
+  a dangling backslash and the push fails. Quote prefix regexes:
+  `regex: '^Live intro lecture '`.
+- Pushing an empty body stores `"\n"`, so empty LTI descriptions come back
+  with an extra blank line; `diff-canvas` uses `diff -B`.
 - `make -n` prints a backslash-continued recipe on two lines: count pushes
   with `grep -c ' edit '`, not by lines.

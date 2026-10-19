@@ -3,7 +3,7 @@
 
 Run with the interpreter of the canvaslms installation (see canvas.mk):
 
-    $PY canvas_export.py COURSE_ID OUTDIR [--overwrite] [--jobs N]
+    $PY canvas_export.py COURSE_ID OUTDIR [--like DIR] [--overwrite] [--jobs N]
 
 Layout: OUTDIR/NN-<module>/<page>.md and OUTDIR/NN-<module>/assignments/
 <assignment>.md, where NN is the module's position.  An item that sits in
@@ -15,6 +15,11 @@ in the course-independent symbolic form.  Each Markdown body is checked by
 converting it back to HTML and comparing text and link targets with the
 Canvas HTML; a body that does not survive is written as HTML instead
 (file name *.html.md, pushed with --html).
+
+A file's identity is its `regex`, not its name: files may be renamed.  An
+item that already has a file in DIR (--like, default OUTDIR) is written to
+that file's path, so a fresh export into an empty directory lines up with
+the files for `diff -r`.
 
 Without --overwrite, existing files are left alone (the files are the source
 of truth: Canvas strips HTML comments).  The paths of the files written are
@@ -95,6 +100,42 @@ def join(fm, body):
     return f"---\n{head}---\n{body}"
 
 
+def known_files(root):
+    """Map the regex of every page or assignment file under root to its
+    path (relative to root, without the .md or .html.md suffix)."""
+    found = {}
+    for dirpath, _, names in os.walk(root):
+        for name in names:
+            if not name.endswith(".md"):
+                continue
+            path = os.path.join(dirpath, name)
+            with open(path) as f:
+                m = re.match(r"---\n(.*?\n)---\n", f.read(), re.S)
+            if not m:
+                continue
+            fm = yaml.safe_load(m.group(1)) or {}
+            if "regex" not in fm:
+                continue
+            kind = "assignment" if "/assignments/" in path else "page"
+            base = os.path.relpath(path, root)
+            base = base[:-len(".html.md")] if base.endswith(".html.md") \
+                else base[:-len(".md")]
+            found[(kind, fm["regex"])] = base
+    return found
+
+
+def lookup(found, kind, key):
+    """The known (path, regex) for an item: assignments by their `^id$`
+    regex, pages by the first file regex that matches the title."""
+    if kind == "assignment":
+        base = found.get((kind, key))
+        return (base, key) if base else (None, None)
+    for (k, regex), base in found.items():
+        if k == "page" and re.search(regex, key):
+            return base, regex
+    return None, None
+
+
 def export(course_id, kind, sel, api_html):
     """Return (file text, is_html) for one page or assignment."""
     cmd = ("pages", "view", "-c", str(course_id), "-p", sel) if kind == "page" \
@@ -113,6 +154,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("course_id", type=int)
     ap.add_argument("outdir")
+    ap.add_argument("--like", help="directory whose file paths to reuse")
     ap.add_argument("--overwrite", action="store_true")
     ap.add_argument("--jobs", type=int, default=4)
     args = ap.parse_args()
@@ -131,18 +173,21 @@ def main():
             elif it.type == "Assignment":
                 home.setdefault(("assignment", it.content_id), mdir)
 
+    found = known_files(args.like or args.outdir)
     jobs = []
     for p in course.get_pages():
         page = course.get_page(p.url)
         mdir = home.get(("page", p.url), "unlisted")
-        jobs.append(("page", f"^{re.escape(p.title)}$",
-                     os.path.join(mdir, slug(p.title)), page.body))
+        base, regex = lookup(found, "page", p.title)
+        jobs.append(("page", regex or f"^{re.escape(p.title)}$",
+                     base or os.path.join(mdir, slug(p.title)), page.body))
     for a in course.get_assignments():
         if "online_quiz" in (a.submission_types or []):
             continue
         mdir = home.get(("assignment", a.id), "unlisted")
+        base, _ = lookup(found, "assignment", f"^{a.id}$")
         jobs.append(("assignment", f"^{a.id}$",
-                     os.path.join(mdir, "assignments", slug(a.name)),
+                     base or os.path.join(mdir, "assignments", slug(a.name)),
                      a.description))
 
     def run(job):

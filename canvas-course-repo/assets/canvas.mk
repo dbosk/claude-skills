@@ -66,6 +66,6 @@ pull:
 	done
 
 diff-canvas:
-	@tmp=$$(mktemp -d) && ${EXPORT} "${COURSE_ID}" "$$tmp" >/dev/null && \
-	  diff -ru -x bin -x quizzes -x '*.mk' -x Makefile -x .gitignore -x .pushed.d . "$$tmp"; \
+	@tmp=$$(mktemp -d) && ${EXPORT} --like . "${COURSE_ID}" "$$tmp" \
+	  >/dev/null && diff -ruB -x bin -x quizzes -x '*.mk' -x Makefile -x .gitignore -x .pushed.d . "$$tmp"; \
 	  rm -rf "$$tmp"
