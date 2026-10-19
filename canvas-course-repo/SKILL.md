@@ -10,9 +10,11 @@ description: |
   other modules, or placeholder text headers added, (3) editing files with
   canvaslms front matter (`regex:`, `modules:`, `published:`) or a Makefile
   with push-pages targets, (4) the user mentions pushing to Canvas, module
-  items, SubHeader, FeedbackFruits or LTI assignments in a module. Load
-  BEFORE the first write: an empty file body silently replaces a description,
-  and `modules:` in front matter is authoritative.
+  items, SubHeader, FeedbackFruits or LTI assignments in a module, (5) a
+  Canvas-only course should get its pages and instructions as files with a
+  Makefile to push and pull them (export, re-dating a copied round). Load BEFORE the first
+  write: an empty file body silently replaces a description, and `modules:`
+  in front matter is authoritative.
 ---
 
 # Canvas course content from a git repository
@@ -148,6 +150,17 @@ patterns, written in the course's `CLAUDE.md`. To apply it to a module:
    positions below it in the same change.
 
 Worked example with commands: `references/module-shape-example.md`.
+
+## Setting up a repository for a course that lives in Canvas
+
+Export the course once into files and keep them as the source of truth:
+`scripts/canvas_export.py` (one Markdown file per page and assignment,
+each body verified against the Canvas HTML, HTML fallback per file) and
+`assets/canvas.mk` (`push` with stamps, `mark-pushed`, `pull` that only adds
+missing files, `diff-canvas`). Decide layout, body format and pull behaviour
+with the author first. Procedure, verification and the gotchas of a real
+course copy (dates canvaslms cannot clear, dead `$CANVAS_OBJECT_REFERENCE$`
+links, quiz edits needing `--html`): `references/repo-setup.md`.
 
 ## Pushing from a worktree
 
