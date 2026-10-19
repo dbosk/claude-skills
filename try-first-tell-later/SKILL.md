@@ -95,6 +95,20 @@ find that they are identical, which is work the contrast should not cost.
 Keep two programs only when the cases cannot coexist in one file (one of
 them crashes before the other runs, or lacks a definition the other has).
 
+**Show every premise (author, 2026-10-19).** The other side of the
+Teacher's paradox: a predict-first question must be answerable from what
+has been shown. Hide the critical aspect, never a premise. A premise may
+sit on an earlier slide of the same section when the stem points at it
+("klassen Account från förra bilden"). What is never allowed is an
+option, right or wrong, that rests on something shown nowhere before the
+question: a default parameter value, a base class's methods or a
+`__str__` revealed only in the answer or never, or a chunk defined later.
+The author's ink: "Since we don't know about the interest we can't choose
+an option: 816 and 820 are both plausible"; "For this we must see what
+methods SavingsAccount has." Put the premise in the code
+(`SavingsAccount("1003", "Madicken", 1000, rate=0.02)`), not only in the
+stem's prose. Steps: `references/patterns.md`, "Writing a poll".
+
 ### Section Order: Ask, Show, Explain, Define
 
 A section that opens with a definition is tell-first even when an exercise
@@ -129,6 +143,8 @@ author's request, 2026-09-06).
 - [ ] Could this serve as a pre-test to reveal student understanding?
 - [ ] Am I avoiding giving away "what matters" in the question?
 - [ ] Will responses reveal which critical aspects students see/miss?
+- [ ] Can each option be decided from what has been shown
+      (`references/patterns.md`, "Writing a poll")?
 
 ### Connection to Variation Theory
 
@@ -186,6 +202,8 @@ self-assessment or confidence checks, `open_text` for short reflections, and
 `word_cloud` for brainstorming prior knowledge.  This works well for brief
 diagnostic questions before explanation, especially when the goal is to make
 student thinking visible without revealing the critical aspect too early.
+An `mc` poll's stem and options follow "Writing a poll" in
+`references/patterns.md`.
 
 ## Typical Flow
 
@@ -196,64 +214,10 @@ Explanation → Explicit contrast → Highlight critical aspects
 
 ## The Example-Question-Contrast Pattern
 
-A powerful specific structure for organizing instructional sequences:
-
-**Structure**:
-1. **Show concrete example** illustrating a problem or scenario
-2. **Pose try-first question** for students to predict/discover
-3. **Show modified code/approach** demonstrating the solution
-4. **Discuss the contrast** between approaches
-
-**Example from file handling:**
-
-```latex
-% Step 1: Show problem example
-\begin{frame}[fragile]
-  \begin{example}[Manual file handling]
-    \begin{minted}{python}
-file = open("data.txt", "r")
-content = file.read()
-file.close()
-    \end{minted}
-  \end{example}
-\end{frame}
-
-% Step 2: Try-first question
-\begin{frame}[fragile]
-  \begin{exercise}
-    What happens if an exception occurs between \mintinline{python}{open()}
-    and \mintinline{python}{close()}? How can we guarantee the file is closed?
-  \end{exercise}
-\end{frame}
-
-% Step 3: Show solution
-\begin{frame}[fragile]
-  \begin{example}[with statement]
-    \begin{minted}{python}
-with open("data.txt", "r") as file:
-    content = file.read()
-# file automatically closed here
-    \end{minted}
-  \end{example}
-\end{frame}
-
-% Step 4: Discuss contrast
-\begin{frame}
-  \begin{remark}
-    The \mintinline{python}{with} statement guarantees resource cleanup
-    even if exceptions occur. This implements the context manager protocol,
-    ensuring \mintinline{python}{close()} is always called.
-  \end{remark}
-\end{frame}
-```
-
-**Why this works**:
-- Students see the problem before being told there's a problem
-- The question activates thinking about edge cases
-- The solution is motivated by the discovered problem
-- The contrast makes the value of `with` statement discernible
-
-**Variation pattern**: The approach varies (manual vs with statement), the problem remains invariant, making resource management guarantees discernible.
+Show a problem example, ask a try-first question about it, show the
+modified approach, then discuss the contrast. Template with a worked
+LaTeX/Beamer example: `references/patterns.md`, "The
+Example-Question-Contrast Pattern".
 
 ## Guidelines for Effective Use
 
@@ -326,44 +290,9 @@ with open("data.txt", "r") as file:
 
 ### Layered Question Sequences
 
-Multiple questions can build on each other to scaffold discovery:
-
-**Pattern**: Recognition → Exploration → Implementation → Understanding
-
-**Example sequence for file operations**:
-
-```latex
-% Layer 1: Identify the problem
-\begin{exercise}
-  What extra steps are needed for files compared to \mintinline{python}{print()}
-  and \mintinline{python}{input()}? The terminal is always available, but files...?
-\end{exercise}
-
-% Layer 2: Explore solutions
-\begin{exercise}
-  We need to "open" files. How can we guarantee they're closed properly,
-  even if errors occur during processing?
-\end{exercise}
-
-% Layer 3: Show implementation
-\begin{example}[with statement]
-  with open("file.txt", "r") as f:
-      content = f.read()
-\end{example}
-
-% Layer 4: Discuss why it works
-\begin{remark}
-  The \mintinline{python}{with} statement implements the context manager
-  protocol, automatically calling \mintinline{python}{close()} even if
-  exceptions occur.
-\end{remark}
-```
-
-**Benefits of layering**:
-- Scaffolds thinking from recognition → exploration → implementation → understanding
-- Each question builds on previous without overwhelming
-- Students construct understanding progressively
-- Mirrors expert problem-solving process
+Questions can build on each other: recognition, exploration,
+implementation, understanding. Worked example: `references/patterns.md`,
+"Layered Question Sequences".
 
 ### Write exercises as prose, not bullets
 
@@ -494,6 +423,6 @@ This skill includes detailed references in `references/`:
 
 | File | Content | Search patterns |
 |------|---------|-----------------|
-| `patterns.md` | Implementation guidance for all seven prompt types, LaTeX/Beamer templates | `exercise`, `activity`, `\begin{exercise}` |
+| `patterns.md` | Implementation guidance for all seven prompt types, LaTeX/Beamer templates, the Example-Question-Contrast and layered sequences, writing a poll | `exercise`, `activity`, `\begin{exercise}`, `Writing a poll` |
 | `examples.md` | Real examples from Python programming courses | `Python`, `class`, `fraction` |
 | `theoretical-background.md` | Productive failure, retrieval practice, variation theory | `Kapur`, `Socratic`, `research` |

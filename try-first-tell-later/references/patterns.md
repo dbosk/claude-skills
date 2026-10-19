@@ -366,6 +366,108 @@ Before running the code below, predict what will happen:
 [Markdown cell with answer and contrast]
 ```
 
+## The Example-Question-Contrast Pattern
+
+A powerful specific structure for organizing instructional sequences:
+
+**Structure**:
+1. **Show concrete example** illustrating a problem or scenario
+2. **Pose try-first question** for students to predict/discover
+3. **Show modified code/approach** demonstrating the solution
+4. **Discuss the contrast** between approaches
+
+**Example from file handling:**
+
+```latex
+% Step 1: Show problem example
+\begin{frame}[fragile]
+  \begin{example}[Manual file handling]
+    \begin{minted}{python}
+file = open("data.txt", "r")
+content = file.read()
+file.close()
+    \end{minted}
+  \end{example}
+\end{frame}
+
+% Step 2: Try-first question
+\begin{frame}[fragile]
+  \begin{exercise}
+    What happens if an exception occurs between \mintinline{python}{open()}
+    and \mintinline{python}{close()}? How can we guarantee the file is closed?
+  \end{exercise}
+\end{frame}
+
+% Step 3: Show solution
+\begin{frame}[fragile]
+  \begin{example}[with statement]
+    \begin{minted}{python}
+with open("data.txt", "r") as file:
+    content = file.read()
+# file automatically closed here
+    \end{minted}
+  \end{example}
+\end{frame}
+
+% Step 4: Discuss contrast
+\begin{frame}
+  \begin{remark}
+    The \mintinline{python}{with} statement guarantees resource cleanup
+    even if exceptions occur. This implements the context manager protocol,
+    ensuring \mintinline{python}{close()} is always called.
+  \end{remark}
+\end{frame}
+```
+
+**Why this works**:
+- Students see the problem before being told there's a problem
+- The question activates thinking about edge cases
+- The solution is motivated by the discovered problem
+- The contrast makes the value of `with` statement discernible
+
+**Variation pattern**: The approach varies (manual vs with statement), the problem remains invariant, making resource management guarantees discernible.
+
+## Layered Question Sequences
+
+Multiple questions can build on each other to scaffold discovery:
+
+**Pattern**: Recognition → Exploration → Implementation → Understanding
+
+**Example sequence for file operations**:
+
+```latex
+% Layer 1: Identify the problem
+\begin{exercise}
+  What extra steps are needed for files compared to \mintinline{python}{print()}
+  and \mintinline{python}{input()}? The terminal is always available, but files...?
+\end{exercise}
+
+% Layer 2: Explore solutions
+\begin{exercise}
+  We need to "open" files. How can we guarantee they're closed properly,
+  even if errors occur during processing?
+\end{exercise}
+
+% Layer 3: Show implementation
+\begin{example}[with statement]
+  with open("file.txt", "r") as f:
+      content = f.read()
+\end{example}
+
+% Layer 4: Discuss why it works
+\begin{remark}
+  The \mintinline{python}{with} statement implements the context manager
+  protocol, automatically calling \mintinline{python}{close()} even if
+  exceptions occur.
+\end{remark}
+```
+
+**Benefits of layering**:
+- Scaffolds thinking from recognition → exploration → implementation → understanding
+- Each question builds on previous without overwhelming
+- Students construct understanding progressively
+- Mirrors expert problem-solving process
+
 ## Sequencing Multiple Prompts
 
 When teaching complex topics, sequence prompts strategically:
@@ -527,6 +629,38 @@ syntax.
 
 The same order applies to any defensive construct — validation, retries,
 resource cleanup: the problem is discovered, then the mechanism is named.
+
+### Writing a poll
+
+The other side of hiding the answer: a predict-first question must be
+answerable from what has been shown (SKILL.md, "Show every premise";
+author, 2026-10-19). For every `mc` poll or predict-first exercise,
+before building:
+
+1. **Premises.** List what a student needs to know to reach the right
+   answer and to rule out each distractor, and say where each is shown.
+   It counts as shown if it is on this slide, or on an earlier slide of
+   the same section that the stem names ("klassen Account från förra
+   bilden"). A premise shown nowhere before the question (a default
+   value, a base class or `__str__` revealed only in the answer, a chunk
+   defined later) goes into the code on the slide, or the option that
+   needs it goes. Put it in the code, not only in the stem's prose.
+2. **One misconception per distractor.** Each wrong option is the answer
+   of one named misconception, recorded in the `\ltnote`. A student
+   without that misconception can rule it out from the premises alone.
+   If two options are both plausible from what is shown, a premise is
+   missing.
+3. **Stem and options ask the same thing.** If the stem asks for the
+   first line, every option is a first line. If the program prints a
+   line and then crashes, ask for the whole output and write the options
+   that way ("512,50 kr och ett felmeddelande").
+4. **Order.** Premises (code, classes, data), then the question, then the
+   run, then the explanation. Only the answer waits; a class an option
+   depends on is never revealed in the answer.
+5. **Solve it blind.** Read the rendered slide, and the earlier slides
+   the stem names, and answer from them alone. A fact you need that is
+   not there fails step 1. When reviewing, let a second reader do this,
+   not the poll's author.
 
 ## Diagnostic Use of Try-First Prompts
 
