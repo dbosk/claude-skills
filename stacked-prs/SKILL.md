@@ -1,14 +1,18 @@
 ---
 name: stacked-prs
-description: Create, update, merge and repair stacks of GitHub pull requests
+description: >-
+  Create, update, merge and repair stacks of GitHub pull requests
   where each PR is based on the previous PR's branch instead of main. Use
-  proactively when (1) opening a PR whose base is another feature branch, or
-  writing "Stacked on #N" in a PR body, (2) the user asks to merge several or
+  proactively when (1) opening a PR whose base is another feature branch
+  (any `gh pr create --base` other than the default branch), rebasing a branch
+  onto another open PR's branch, or writing "Stacked on #N" or merge-order
+  advice in a PR body, (2) the user asks to merge several or
   "all ready" PRs, or to run gh pr merge on a PR whose base is not main,
   (3) a PR in a chain was closed unexpectedly, is "no longer listed", shows
   base_ref_deleted, or cannot be reopened, (4) a PR was merged into a feature
   branch instead of main, (5) the user mentions stacked, chained or dependent
-  PRs, or retargeting a PR's base. Load BEFORE the first merge in a stack:
+  PRs, several PRs on one base branch, or retargeting a PR's base. Load
+  BEFORE opening a stacked PR and before the first merge in a stack:
   merging bottom-up and relying on GitHub's automatic retarget can close the
   rest of the stack.
 ---
@@ -43,6 +47,17 @@ is in merging the stack.
 - Set each PR's base to the previous branch:
   `gh pr create --base feat-a --head feat-b`.
 - Start the body with `Stacked on #1 (← …). Merge those first.`
+- Never write that GitHub will retarget the PR when its base merges: it may
+  close it instead (see below). Say instead that it must be retargeted to
+  main before #1 is merged.
+- A branch rebased onto another open PR's branch (for example to resolve a
+  conflict between two PRs ahead of time) makes a stack too, even when the
+  two PRs are otherwise independent: the child's PR must use that branch as
+  its base, or its diff shows the other PR's commits.
+- **Siblings.** Several PRs may share one base branch
+  (`main ← #1 feat-a`, with both `#2` and `#3` based on `feat-a`). That is
+  a tree, not a chain: when `feat-a` is deleted, every PR on it is at risk,
+  not just "the next" one. Note the sibling in each body.
 - To bring a lower branch's changes up the stack, merge the base into the
   child (`git merge feat-a` on `feat-b`) and push. Do not rebase and
   force-push: that rewrites commits the PRs further up are built on.
@@ -56,18 +71,22 @@ Never rely on automatic retargeting. For each PR, from the bottom up:
 1. Check that the PR's base is `main`
    (`gh pr view N --json baseRefName`). Never merge a stacked PR into its
    feature-branch base unless that is explicitly the goal.
-2. Retarget the next PR to main **before** merging this one:
-   `gh pr edit <next> --base main`. For a moment, the next PR's diff also
-   shows this PR's commits.
+2. Retarget **every** open PR based on this PR's branch to main before
+   merging this one, siblings included:
+   `gh pr list --base <this-head-branch> --json number --jq '.[].number'`,
+   then `gh pr edit <each> --base main`. For a moment, their diffs also show
+   this PR's commits.
 3. Merge: `gh pr merge N --merge --delete-branch`, or with the repo's usual
    merge method. Deleting the branch is now safe, because no open PR uses it
    as a base.
-4. Wait until the next PR reports `MERGEABLE CLEAN`. Right after a retarget
+4. Wait until the next PR in the list reports `MERGEABLE CLEAN`. Right after a retarget
    or merge, the status is `UNKNOWN` for a few seconds, so poll. Stop if it
    reports `DIRTY`, `CONFLICTING` or `BLOCKED`.
 
 `scripts/merge_stack.sh` does exactly this, given the PR numbers from the
-bottom up:
+bottom up. Before each merge it retargets every open PR based on the branch
+being deleted, so siblings that are not in the list survive too (they are
+retargeted, not merged):
 
     ~/.claude/skills/stacked-prs/scripts/merge_stack.sh 532 534 535 536
 

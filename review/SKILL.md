@@ -1,7 +1,8 @@
 ---
 name: review
 allowed-tools: Bash(*), Read, Glob, Grep, Edit, Skill, AskUserQuestion, Agent
-description: Review recent changes — a branch, a diff, or staged/unstaged working-tree work — for correctness, regressions, and relevant domain-specific quality criteria. Use proactively when: (1) the user asks to "review the work on this branch", "review my changes", "review my diff", "review recent changes", or "check this code before I commit", (2) the user requests a review of uncommitted or just-written local work, (3) reviewing local changes against the base branch before a commit or PR, (4) Claude or the user has just opened a pull request: every such PR gets a review by an independent subagent before it is merged. For reviewing someone else's existing GitHub pull request, prefer the PR-focused review/code-review skills instead.
+description: >-
+  Review recent changes — a branch, a diff, or staged/unstaged working-tree work — for correctness, regressions, and relevant domain-specific quality criteria. Use proactively when: (1) the user asks to "review the work on this branch", "review my changes", "review my diff", "review recent changes", or "check this code before I commit", (2) the user requests a review of uncommitted or just-written local work, (3) reviewing local changes against the base branch before a commit or PR, (4) Claude or the user has just opened a pull request: every such PR gets a review by an independent subagent before it is merged. For reviewing someone else's existing GitHub pull request, prefer the PR-focused review/code-review skills instead.
 user-invocable: true
 license: MIT
 ---
