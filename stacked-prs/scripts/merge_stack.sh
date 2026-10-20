@@ -52,9 +52,24 @@ for i in "${!prs[@]}"; do
   n=${prs[$i]}
   next=${prs[$((i + 1))]:-}
   wait_clean "$n" || exit 1
+  # Retarget every open PR based on the branch that is about to be deleted,
+  # not just the next one in the list: sibling PRs on the same branch would
+  # otherwise be closed when it disappears.
+  head=$(gh pr view "$n" --json headRefName --jq .headRefName) || exit 1
+  children=$(gh pr list --state open --base "$head" \
+               --json number --jq '.[].number') || exit 1
+  for child in $children; do
+    gh pr edit "$child" --base "$target" >/dev/null || exit 1
+    echo "retargeted #$child to $target"
+  done
   if [ -n "$next" ]; then
-    gh pr edit "$next" --base "$target" >/dev/null || exit 1
-    echo "retargeted #$next to $target"
+    next_base=$(gh pr view "$next" --json baseRefName --jq .baseRefName) \
+      || exit 1
+    if [ "$next_base" != "$target" ]; then
+      echo "#$next is based on '$next_base', not on #$n's branch or" \
+           "'$target'; check the order of the list" >&2
+      exit 1
+    fi
   fi
   gh pr merge "$n" "--$method" --delete-branch || exit 1
   echo "merged #$n"
