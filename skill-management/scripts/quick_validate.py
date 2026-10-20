@@ -8,6 +8,8 @@ import os
 import re
 from pathlib import Path
 
+import yaml
+
 def validate_skill(skill_path):
     """Basic validation of a skill"""
     skill_path = Path(skill_path)
@@ -28,30 +30,42 @@ def validate_skill(skill_path):
         return False, "Invalid frontmatter format"
     
     frontmatter = match.group(1)
-    
-    # Check required fields
-    if 'name:' not in frontmatter:
-        return False, "Missing 'name' in frontmatter"
-    if 'description:' not in frontmatter:
-        return False, "Missing 'description' in frontmatter"
-    
-    # Extract name for validation
-    name_match = re.search(r'name:\s*(.+)', frontmatter)
-    if name_match:
-        name = name_match.group(1).strip()
-        # Check naming convention (hyphen-case: lowercase with hyphens)
-        if not re.match(r'^[a-z0-9-]+$', name):
-            return False, f"Name '{name}' should be hyphen-case (lowercase letters, digits, and hyphens only)"
-        if name.startswith('-') or name.endswith('-') or '--' in name:
-            return False, f"Name '{name}' cannot start/end with hyphen or contain consecutive hyphens"
 
-    # Extract and validate description
-    desc_match = re.search(r'description:\s*(.+)', frontmatter)
-    if desc_match:
-        description = desc_match.group(1).strip()
-        # Check for angle brackets
-        if '<' in description or '>' in description:
-            return False, "Description cannot contain angle brackets (< or >)"
+    # Parse the frontmatter strictly. A frontmatter that is not valid YAML
+    # may still look fine to the eye, but the description is then lost: in
+    # a plain multi-line value, " #" starts a comment and ends the value,
+    # and ": " is a mapping indicator. Claude Code then shows the skill's
+    # heading instead of its description, so its triggers never fire.
+    try:
+        data = yaml.safe_load(frontmatter)
+    except yaml.YAMLError as e:
+        first = str(e).splitlines()[0]
+        return False, (f"Frontmatter is not valid YAML ({first}); write the "
+                       "description as a block scalar ('description: >-' "
+                       "with the text indented on the following lines)")
+    if not isinstance(data, dict):
+        return False, "Frontmatter is not a YAML mapping"
+
+    # Check required fields
+    if not data.get('name'):
+        return False, "Missing 'name' in frontmatter"
+    if not data.get('description'):
+        return False, "Missing 'description' in frontmatter"
+
+    name = str(data['name']).strip()
+    # Check naming convention (hyphen-case: lowercase with hyphens)
+    if not re.match(r'^[a-z0-9-]+$', name):
+        return False, f"Name '{name}' should be hyphen-case (lowercase letters, digits, and hyphens only)"
+    if name.startswith('-') or name.endswith('-') or '--' in name:
+        return False, f"Name '{name}' cannot start/end with hyphen or contain consecutive hyphens"
+    if len(name) > 64:
+        return False, f"Name '{name}' is longer than 64 characters"
+
+    description = str(data['description']).strip()
+    if '<' in description or '>' in description:
+        return False, "Description cannot contain angle brackets (< or >)"
+    if len(description) > 1024:
+        return False, f"Description is {len(description)} characters; the limit is 1024"
 
     return True, "Skill is valid!"
 
