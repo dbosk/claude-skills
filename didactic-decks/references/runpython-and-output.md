@@ -141,8 +141,11 @@ compelling reason for adding this indirection."
    @
    ```
 2. The output beside a test comes from running just that test function.
-   A second noweb file in the deck, `testkorningar.nw`, is **tangled but
-   never woven**. It holds one root per shown run,
+   When the class is not shown in stages (*Övning: Fler behållare*), run
+   it straight from the command line, with no file:
+   `\runshell[cwd=examples, deps={examples/bank.py}]{python3 -c 'from bank import test_undo; test_undo()'}`.
+   Otherwise a second noweb file in the deck, `testkorningar.nw`, is
+   **tangled but never woven**. It holds one root per shown run,
    `[[<stem>_test_<case>.py]]`, a driver that imports the test and calls
    it:
 
@@ -159,18 +162,16 @@ compelling reason for adding this indirection."
    (`<<förenkla inte än>>`:
    `Fraction._Fraction__simplify = lambda self: None`; `<<utan radd>>`:
    `del Fraction.__radd__`). The prose beside the run says what is not
-   there yet. When the class is not shown in stages (*Övning: Fler
-   behållare*), the driver is just the import and the call. No
-   `redirect_stdout` and no silent reruns of earlier tests: the tests are
-   independent.
+   there yet. No `redirect_stdout` and no silent reruns of earlier tests:
+   the tests are independent.
 
-   Driver files, not `\runpython` on `python3 -c "…"`: a failing run's
-   traceback prints the `-c` source, so the patches would show in the
-   notes. Open `testkorningar.nw` with a paragraph saying why it exists. It
+   With stage patches, driver files, not `python3 -c "…"`: a failing
+   run's traceback prints the `-c` source, so the patches would show in
+   the notes. Open `testkorningar.nw` with a paragraph saying why it exists. It
    is not woven because a woven root would print the harness in the
    notes, and a hidden one leaves the chunks' "used in" references
    pointing at missing labels (`??`).
-3. Makefile: `TESTRUNS+= examples/…_test_….py` per program,
+3. Makefile (drivers only): `TESTRUNS+= examples/…_test_….py` per program,
    `EXAMPLES+= ${TESTRUNS}` and `${TESTRUNS}: testkorningar.nw`, so the
    tangle rule reads both files (noweb joins chunk definitions across
    input files).
