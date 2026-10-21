@@ -928,12 +928,11 @@ Key rules:
   shell and accumulate methods in a class-specific bucket chunk such as
   `<<feature a test methods>>`
 - Use `from module import *` in the test file header
-- A program that runs its own tests (`def tests():`, no pytest) still
-  gets one named `def test_…():` per test in `<<test functions for X>>`,
-  with the calls in `<<run tests for X>>` inside `tests()`; each test
-  builds its own objects, and no wrapper chunk stands between a test and
-  its bucket.  See `references/testing-patterns.md`, "Tests are named
-  functions, also without pytest"
+- A test is a named `def test_…():` written straight into a
+  `<<test functions>>`-style bucket next to the code, with no wrapper
+  chunk; each builds its own objects.  With pytest nothing more is
+  needed.  See `references/testing-patterns.md`, "A test is a named test
+  function"
 - Frame tests pedagogically: "Let's verify this works..."
 - Test files tangle with bare `notangle` (no black pass), so the `.nw`
   indentation lands verbatim in `tests/test_*.py`.  Indent new test

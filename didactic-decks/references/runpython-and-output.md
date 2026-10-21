@@ -96,34 +96,80 @@ for f in examples/*.py; do python3 "$f" < /dev/null; done
 
 ## Output beside test cases (`testkorningar.nw`)
 
-A class file's `tests()` grows with the class (chunk-authoring.md), and
-each test case shows its output beside it (author, 2026-09-24: "Should be
-fine … Add it to the skill"). The test lines are written once:
+A class file's test program `tests()` grows with the class
+(`chunk-authoring.md`), and each test shows its output beside it (author,
+2026-09-24: "Should be fine … Add it to the skill"). Each test is a named
+test function, the general rule in the `literate-programming` skill
+(`references/testing-patterns.md`, "A test is a named test function").
+A deck's program has no pytest to collect them, so it also calls them;
+that call list is what this section adds. Author, 2026-10-21, beside a
+`<<prova jämförelserna>>` chunk included into a test bucket: "Why this
+indirection? Add directly to the bucket chunk." and "make each such test
+a test function that we can call. Add the calls directly to the
+`<<test ...>>` chunk. That also illustrates a better practice for tests.
+Make this the rule."; on *Operatoröverlagring* v13: "Add directly to
+⟨tester för Fraction⟩. Make this the default behaviour, unless there is a
+compelling reason for adding this indirection."
 
-1. In `contents.nw` each test case is a named chunk (`<<byt namn på
-   personen>>`), appended to the class's tests bucket (`<<tester för
-   [[Person]]>>`) right after the part it tests.
-2. A second noweb file in the deck, `testkorningar.nw`, is **tangled but
-   never woven**. It holds one root per printing test case,
-   `[[<stem>_test_<case>.py]]`: import the class, run the earlier cases of
-   the same `tests()` silently, then the case itself, so the objects are
-   in the state `tests()` has there and the output is exactly its lines:
+1. In `contents.nw`, two buckets per class. `<<testfunktioner för X>>`
+   collects the `def test_…():` definitions, each appended right after
+   the part it tests; `<<kör tester för X>>` collects only the calls and
+   sits inside `def tests():`. Append the call in the same display as the
+   definition. Write the test straight into its bucket, never as a named
+   chunk forwarded to the bucket ("No pass-through chunks",
+   `chunk-authoring.md`). Each test builds its own objects, so it runs
+   alone and in any order.
+
+   ```noweb
+   <<[[fraction.py]]>>=
+   <<klasserna>>
+   <<testfunktioner för [[Fraction]]>>
+
+   def tests():
+       """Testprogrammet"""
+       <<kör tester för [[Fraction]]>>
+
+   if __name__ == "__main__":
+       tests()
+   @
+   ...
+   <<testfunktioner för [[Fraction]]>>=
+   def test_addition():
+       print(Fraction(1, 2) + Fraction(1, 3))
+   <<kör tester för [[Fraction]]>>=
+   test_addition()
+   @
+   ```
+2. The output beside a test comes from running just that test function.
+   A second noweb file in the deck, `testkorningar.nw`, is **tangled but
+   never woven**. It holds one root per shown run,
+   `[[<stem>_test_<case>.py]]`, a driver that imports the test and calls
+   it:
 
    ```python
-   from contextlib import redirect_stdout
-   from io import StringIO
+   from fraction import test_addition
 
-   from person import Person
-
-   with redirect_stdout(StringIO()):
-       <<skapa en person>>
-       <<skriv ut personen>>
-   <<byt namn på personen>>
+   test_addition()
    ```
-   Open the file with a paragraph saying why it exists. It is not woven
-   because a woven root would print the harness in the notes, and a hidden
-   one leaves the chunks' "used in" references pointing at missing labels
-   (`??`).
+   When the text shows the class in stages (before simplification, before
+   `__radd__`, a first wrong attempt), the run must show the class as the
+   text has it there, not the finished tangled file: the driver imports
+   the class too, and between the import and the call it applies the
+   stage's patches, each a named chunk in `testkorningar.nw`
+   (`<<förenkla inte än>>`:
+   `Fraction._Fraction__simplify = lambda self: None`; `<<utan radd>>`:
+   `del Fraction.__radd__`). The prose beside the run says what is not
+   there yet. When the class is not shown in stages (*Övning: Fler
+   behållare*), the driver is just the import and the call. No
+   `redirect_stdout` and no silent reruns of earlier tests: the tests are
+   independent.
+
+   Driver files, not `\runpython` on `python3 -c "…"`: a failing run's
+   traceback prints the `-c` source, so the patches would show in the
+   notes. Open `testkorningar.nw` with a paragraph saying why it exists. It
+   is not woven because a woven root would print the harness in the
+   notes, and a hidden one leaves the chunks' "used in" references
+   pointing at missing labels (`??`).
 3. Makefile: `TESTRUNS+= examples/…_test_….py` per program,
    `EXAMPLES+= ${TESTRUNS}` and `${TESTRUNS}: testkorningar.nw`, so the
    tangle rule reads both files (noweb joins chunk definitions across
@@ -131,19 +177,13 @@ fine … Add it to the skill"). The test lines are written once:
 4. In the notes: a lead-in ("Testfallet skriver ut") and
    `\runpython[chdir, deps={examples/<stem>.py}]{examples/…_test_….py}`,
    without `showcommand`: the file name means nothing to the reader.
-5. A case whose output answers a later try-first exercise gets no run
+5. A test whose output answers a later try-first exercise gets no run
    beside it; show it after the exercise, or leave it to the exercise's
    final run.
-6. To show a class at an earlier stage than the tangled file (a
-   pseudokod step not yet refined, e.g. a constructor that does not yet
-   simplify), the harness may switch that step off
-   (`Fraction._Fraction__simplify = lambda self: None`) with a comment
-   saying why, and the prose beside the run must say the step is not
-   there yet.
 
-Costs, accepted: the harness lines repeat per program; renaming a test
-chunk means following it in `testkorningar.nw` (noweb warns about an
-undefined chunk); the shown output depends on the order of the earlier
-cases, as `tests()` does. The alternative, independent test cases that
-build their own objects, was considered and not chosen (2026-09-24).
+Costs, accepted: two lines of driver per run; renaming a test function
+means following it in `testkorningar.nw` (the run fails with an
+`ImportError`). This replaces the shape of 2026-09-24 (one named chunk
+per test case, the earlier cases rerun silently under `redirect_stdout`
+so the objects were in the state `tests()` had there).
 

@@ -187,62 +187,33 @@ indentation-fragile.
 
 4. **Tests MUST stay close to implementations** - Each `<<test functions>>=` chunk appears immediately after the implementation it verifies. NEVER collect them into a `\section{Tests}` at the beginning or end.
 
-### Tests are named functions, also without pytest
+### A test is a named test function
 
-A program that runs its own tests instead of leaving them to pytest — a
-teaching example, a deck's `def tests():` run by
-`if __name__ == "__main__":` — still gets **one named test function per
-test**, and the calls go straight into the bucket (author, 2026-10-21,
-beside a `<<prova jämförelserna>>` chunk included into a test bucket:
-"Why this indirection? Add directly to the bucket chunk."; then: "make
-each such test a test function that we can call. Add the calls directly
-to the `<<test ...>>` chunk. That also illustrates a better practice for
-tests. Make this the rule.").
+Each test is a named `def test_…():`, written next to the code it tests,
+in a `<<test functions>>`-style bucket. Write it straight into the
+bucket: no wrapper chunk between the test and its bucket (author,
+2026-10-21, beside a `<<prova jämförelserna>>` chunk included into a test
+bucket: "Why this indirection? Add directly to the bucket chunk.";
+"Make this the default behaviour, unless there is a compelling reason for
+adding this indirection."). Each test builds its own objects, so it runs
+alone and in any order (the `testing` skill's rule against shared state).
 
-Two bucket chunks per program:
+With pytest that is all: pytest collects and runs the functions, so
+there is no `tests()` runner and no chunk of calls (author, 2026-10-21:
+"Usually I use pytest, then a test function is sufficient and pytest
+solves the rest.").
 
-- `<<test functions for X>>` (Swedish decks: `<<testfunktioner för X>>`)
-  collects the `def test_…():` definitions. Each definition is written in
-  the section that introduces the behaviour it checks, after the code.
-- `<<run tests for X>>` (`<<kör tester för X>>`) collects only the calls,
-  and is used inside `def tests():`. Each section adds its call next to
-  its definition.
-
-Each test builds its own objects, so it runs alone and in any order (the
-`testing` skill's rule against shared state). No wrapper chunk stands
-between a test and its bucket: the definition is written into
-`<<test functions for X>>=` itself, the call into `<<run tests for X>>=`.
-Output shown beside a test (a `\runpython` transcript) comes from running
-just that test function, not the whole of `tests()`.
-
-**GOOD** — named, independent tests; definitions and calls in their
-buckets:
+**GOOD**:
 ```noweb
-<<[[book.py]]>>=
-<<classes>>
-<<test functions for [[Book]]>>
-
-def tests():
-    """Run the tests"""
-    <<run tests for [[Book]]>>
-
-if __name__ == "__main__":
-    tests()
-@
-
-\subsection{Printing a book}
-
-<<test functions for [[Book]]>>=
+<<test functions>>=
 def test_str():
-    ronja = Book("Ronja Rövardotter", "Astrid Lindgren", 235)
-    print(ronja)
-<<run tests for [[Book]]>>=
-test_str()
+  ronja = Book("Ronja Rövardotter", "Astrid Lindgren", 235)
+  assert str(ronja) == "Ronja Rövardotter av Astrid Lindgren, 235 sidor"
 @
 ```
 
-**BAD** — a wrapper chunk between the test and its bucket, and statements
-that share objects with the tests before them:
+**BAD** — a wrapper chunk between the test and its bucket, and
+statements that share objects with the tests before them:
 ```noweb
 <<tests for [[Book]]>>=
 <<create two books>>
@@ -255,6 +226,11 @@ madicken = Book("Madicken", "Astrid Lindgren", 174)
 print(ronja)
 @
 ```
+
+A program without pytest that runs its own tests and shows each test's
+output beside it (a teaching deck's `tests()`) also calls the functions,
+from a bucket of calls: the `didactic-decks` skill,
+`references/runpython-and-output.md`, "Output beside test cases".
 
 ### Test Organization Roadmap
 

@@ -74,12 +74,12 @@ method by method first shows its shell — `class X:`, docstring, a bucket
 of X's methods named for the class — and each method is appended when
 the reasoning reaches it. A class file's test program is called
 `tests()`, not `main()` (the start call is `tests()` under the guard), and
-it is not written last: sketch it as the class is designed, appending the
-tests of each part to the tests bucket right after that part, as in
-ordinary literate programming, and show the output of those test lines
-beside them with PythonTeX, importing the class and running just those
-operations (author, 2026-09-24). The mechanism is in `runpython-and-output.md`,
-"Output beside test cases".
+it is not written last: sketch it as the class is designed, appending each
+part's test functions, and their calls, right after that part, as in
+ordinary literate programming, and show each test's output beside it
+with PythonTeX, running just that test function (author, 2026-09-24,
+2026-10-21). The mechanism is in `runpython-and-output.md`, "Output
+beside test cases".
 
 **No pass-through chunks.** Never append a new chunk name to a bucket (or
 put one in a root) and then refine that chunk right after: the reader meets
