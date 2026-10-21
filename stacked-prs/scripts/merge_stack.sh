@@ -3,14 +3,26 @@
 # automatic retargeting: each next PR is retargeted to the bottom PR's base
 # BEFORE the PR below it is merged and its branch deleted.
 #
-# Usage: merge_stack.sh [-m merge|squash|rebase] PR1 PR2 ... (bottom first)
+# Usage: merge_stack.sh [-a] [-m merge|squash|rebase] PR1 PR2 ... (bottom first)
 # Run from inside the repository's checkout (gh picks the repo from it).
+#
+# -a merges as an admin (gh pr merge --admin), for a protected trunk whose
+# required review the repository owner merges past. A BLOCKED PR is then
+# merged once its checks have finished and none failed; a conflict still
+# stops the run.
 set -u
 
 method=merge
-if [ "${1:-}" = "-m" ]; then method=$2; shift 2; fi
+admin=
+while [ $# -gt 0 ]; do
+  case "$1" in
+    -a) admin=--admin; shift ;;
+    -m) method=$2; shift 2 ;;
+    *) break ;;
+  esac
+done
 if [ $# -eq 0 ]; then
-  echo "usage: $0 [-m merge|squash|rebase] PR... (bottom of stack first)" >&2
+  echo "usage: $0 [-a] [-m merge|squash|rebase] PR... (bottom of stack first)" >&2
   exit 2
 fi
 
@@ -31,6 +43,19 @@ if [ "$target" != "$default" ]; then
   exit 1
 fi
 
+# Number of checks on PR $1 that failed, and that have not finished.
+failed_checks() {
+  gh pr view "$1" --json statusCheckRollup --jq '[.statusCheckRollup[]
+    | (.conclusion // .state)
+    | select(IN("FAILURE", "ERROR", "CANCELLED", "TIMED_OUT",
+                "ACTION_REQUIRED", "STARTUP_FAILURE"))] | length'
+}
+pending_checks() {
+  gh pr view "$1" --json statusCheckRollup --jq '[.statusCheckRollup[]
+    | select((.status // "COMPLETED") != "COMPLETED"
+             or .state == "PENDING" or .state == "EXPECTED")] | length'
+}
+
 wait_clean() {
   local st
   for _ in $(seq 1 30); do
@@ -38,6 +63,14 @@ wait_clean() {
            --jq '"\(.mergeable) \(.mergeStateStatus)"')
     case "$st" in
       "MERGEABLE CLEAN") echo "#$1: $st"; return 0 ;;
+      "MERGEABLE BLOCKED")
+        if [ -z "$admin" ]; then
+          echo "#$1: $st, stopping (-a merges as admin)" >&2; return 1
+        elif [ "$(failed_checks "$1")" != 0 ]; then
+          echo "#$1: $st with failed checks, stopping" >&2; return 1
+        elif [ "$(pending_checks "$1")" = 0 ]; then
+          echo "#$1: $st, merging as admin"; return 0
+        fi ;;
       *CONFLICTING*|*DIRTY*|*BLOCKED*|*BEHIND*)
         echo "#$1: $st, stopping" >&2; return 1 ;;
     esac
@@ -71,6 +104,6 @@ for i in "${!prs[@]}"; do
       exit 1
     fi
   fi
-  gh pr merge "$n" "--$method" --delete-branch || exit 1
+  gh pr merge "$n" "--$method" --delete-branch $admin || exit 1
   echo "merged #$n"
 done
