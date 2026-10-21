@@ -131,6 +131,20 @@ decomposition is what the reader should learn.
 
 A frame containing a chunk — or any minted output — must be `[fragile]`.
 
+**Avoid `\frametitle`: title a frame by its block** (author, 2026-10-21:
+"I try to avoid \frametitle (eats so much space) in favour of
+\begin{block}..\end{block} of different kinds. The subsection titles are
+on the slides anyway for grouping and navigation."). Put the frame's
+content in a block of the kind it is — `example`, `exercise`, `solution`,
+`definition`, `remark`, `block`, … — and give the title as the block's
+argument (`\begin{example}[Ett program som hälsar]`,
+`\begin{block}{Titel}`). The headline already names the section and
+subsection; a frame title repeats them at the cost of a line of the
+slide. In the notes, didactic ≥ 2.13 sets a remaining `\frametitle` as a
+run-in heading (bold title, the frame's text on the same line); older
+versions put the text in a new paragraph under it, which reads as a
+stray paragraph break.
+
 Three examples belong on three adjacent frames, not on one overfull frame.
 
 ## Theorem-style environments

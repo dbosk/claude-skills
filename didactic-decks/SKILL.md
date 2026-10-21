@@ -155,6 +155,9 @@ Each line points at the reference that explains it.
 - A chunk replaces every `\inputminted` line range, is named after the file
   it tangles to, and sits at its point of presentation. `chunk-authoring.md`
 - Frames holding a chunk or any minted output are `[fragile]`. `chunk-authoring.md`
+- Avoid `\frametitle`: a frame is titled by its block (`example`,
+  `exercise`, `solution`, `definition`, `block`, …) with the title as the
+  block's argument. `chunk-authoring.md`
 - **Never** open a theorem-style environment with a chunk or a minted
   block: put a lead-in sentence first. `chunk-authoring.md`
 - Recaps re-display the tangled file with `\inputminted{python}{examples/foo.py}`,
