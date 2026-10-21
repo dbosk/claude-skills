@@ -30,6 +30,17 @@ against the lines it draws, and a slide or page between them turns that
 into a look back. Define the picture once as a macro and use it in both
 places, as with tables below.
 
+**Never scale a figure that holds text** (author, 2026-10-21, beside a
+margin flowchart shrunk with `\resizebox`: "Font is too small" and
+"Always keep the font size in relation to text, so typeset it with the
+document, never scale as part of an image"). A figure's text is set at
+the size of the text around it: the margin's size in a `marginfigure`,
+the frame's size on a slide. No `\resizebox`, `\scalebox`, `scale=` or
+`width=` on a TikZ picture or any other picture that carries text. If it
+does not fit at that size, tighten it (node distances, labels wrapped
+over two lines) or move it (from the margin to the text column, or split
+the frame). Photos and screenshots are images and may be sized by width.
+
 ## Captions
 
 A caption explains sufficiently and stands on its own. In order:

@@ -190,6 +190,9 @@ Each line points at the reference that explains it.
 - Side captions only when the margin is free **and** the caption is not
   taller than the float; otherwise a normal caption with the same text. `floats-and-margins.md`
 - `\textcite` and `\autocite` never go inside a float. `floats-and-margins.md`
+- Never scale a figure that holds text (`\resizebox`, `\scalebox`,
+  `width=` on TikZ): its text is set at the size around it; tighten or
+  move a figure that does not fit. `floats-and-margins.md`
 - The notes' table of contents lists every chapter, appendices included,
   with its sections: memoir's default depth. Never change `tocdepth` to
   save a page; a table of contents that spills onto a short page is not a
