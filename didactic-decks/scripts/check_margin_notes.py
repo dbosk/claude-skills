@@ -36,9 +36,23 @@ copied away from its build, an older didactic) the column is guessed from
 the word positions, and the output says so: the guess has failed on wide
 code reaching into the gutter and on decks with few margin notes.
 
-Exit status: 0 clean; 1 a note printed away from its marker; 2 nothing
-was checked (no column found, no margin note found), which is never a
-pass unless --no-margin-ok says the PDF really has no margin notes.
+marginfix (1.6 on) logs what it did with the notes that did not fit:
+
+    marginfix-spill: page=<p> to=<q> intended     carried on purpose
+    marginfix-spill: page=<p> to=<q> unresolved   should have fitted
+    marginfix-yield: page=<p> before=<file>:<line>  page ended early
+
+A note on the page after its marker is INTENDED, not a defect, when the
+log has a matching intended spill; every unresolved spill is a failure,
+whether or not the pairing found it.  The yields, and marginfix's warning
+when such a page is less than half full, are printed as notices.  The
+page numbers in the log are the page counter's, mapped to PDF pages
+through the log's shipout markers.
+
+Exit status: 0 clean; 1 a note printed away from its marker, or an
+unresolved spill; 2 nothing was checked (no column found, no margin note
+found), which is never a pass unless --no-margin-ok says the PDF really
+has no margin notes.
 
 Usage:
     check_margin_notes.py NOTES.pdf [--log FILE | --margin-x BP]
@@ -116,6 +130,19 @@ NUM = r"(\d+(?:\.\d+)?)(?:bp|pt)?"
 MARGIN_LINE_RE = re.compile(
     r"didactic-margin:\s*odd=" + NUM + r"\s+even=" + NUM
     + r"\s+width=" + NUM)
+SPILL_RE = re.compile(
+    r"marginfix-spill:\s*page=(\d+)\s+to=(\d+)\s+(intended|unresolved)")
+YIELD_RE = re.compile(r"marginfix-yield:\s*page=(\d+)\s+before=(\S+)")
+# marginfix's warning for a page that ended early and is less than half
+# full: its first line and the "(marginfix)" lines continuing it.
+HALF_RE = re.compile(
+    r"^Package marginfix Warning: Page \d+ ends early.*?"
+    r"(?:\n\(marginfix\).*?)*$", re.M)
+# pdfTeX logs "[<page counter>" as it ships out each page, so the n-th
+# such marker gives the page counter of PDF page n.
+SHIPOUT_RE = re.compile(r"(?:^|(?<=[\s\]]))\[(\d+)(?=[\]\s{<]|$)", re.M)
+# TeX breaks log lines at max_print_line characters.
+LOG_LINE_MAX = 79
 
 
 class Word:
@@ -191,17 +218,74 @@ def default_logs(pdf):
     return [os.path.join(here, stem), os.path.join(here, "ltxobj", stem)]
 
 
-def columns_from_log(path):
-    """The last didactic-margin line in the log, or None."""
+def read_log(path):
+    """The log's text with TeX's line breaks at LOG_LINE_MAX undone, or
+    None when it cannot be read."""
     try:
         with open(path, encoding="latin-1") as f:
-            found = MARGIN_LINE_RE.findall(f.read())
+            raw = f.read().split("\n")
     except OSError:
         return None
+    lines, buf = [], ""
+    for line in raw:
+        buf += line
+        if len(line) != LOG_LINE_MAX:
+            lines.append(buf)
+            buf = ""
+    if buf:
+        lines.append(buf)
+    return "\n".join(lines)
+
+
+def columns_from_log(text):
+    """The last didactic-margin line in the log, or None."""
+    found = MARGIN_LINE_RE.findall(text or "")
     if not found:
         return None
     odd, even, width = (float(v) for v in found[-1])
     return Columns(odd, even, width)
+
+
+class Marginfix:
+    """What marginfix logged about the notes it moved, in PDF pages."""
+
+    def __init__(self, text, npages):
+        text = text or ""
+        self.spills = [(int(p), int(q), kind)
+                       for p, q, kind in SPILL_RE.findall(text)]
+        self.yields = [(int(p), at) for p, at in YIELD_RE.findall(text)]
+        self.half_empty = [
+            " ".join(part.strip() for part in
+                     re.sub(r"\(marginfix\)", "", m.group(0)).split("\n"))
+            for m in HALF_RE.finditer(text)]
+        labels = [int(n) for n in SHIPOUT_RE.findall(text)]
+        self.mapped = len(labels) == npages
+        self.labels = labels if self.mapped else list(range(1, npages + 1))
+
+    def any(self):
+        return bool(self.spills or self.yields or self.half_empty)
+
+    def pdf_pages(self, page):
+        return [n for n, lab in enumerate(self.labels, start=1)
+                if lab == page]
+
+    def pdf_pair(self, p, q):
+        """The PDF pages (marker, note) of a spill from page p to q: the
+        first page labelled q after a page labelled p."""
+        for n in self.pdf_pages(p):
+            for m in range(n + 1, len(self.labels) + 1):
+                if self.labels[m - 1] == q:
+                    return n, m
+        return p, q
+
+    def intended(self):
+        return collections.Counter(self.pdf_pair(p, q)
+                                   for p, q, kind in self.spills
+                                   if kind == "intended")
+
+    def unresolved(self):
+        return [self.pdf_pair(p, q) for p, q, kind in self.spills
+                if kind == "unresolved"]
 
 
 def guess_columns(pages):
@@ -287,16 +371,23 @@ def markers_and_notes(page_lines, col, note_h):
     return markers, notes
 
 
-def find_columns(args):
+def find_log(args):
+    """The build log's path and text: --log, else the first log found
+    beside the PDF.  (None, None) when there is none."""
+    for log in [args.log] if args.log else default_logs(args.pdf):
+        text = read_log(log)
+        if text is not None:
+            return log, text
+    return None, None
+
+
+def find_columns(args, log, text):
     """The margin column and a sentence saying where it came from."""
     if args.margin_x is not None:
         return (Columns(args.margin_x, args.margin_x),
                 "from --margin-x")
-    logs = [args.log] if args.log else default_logs(args.pdf)
-    for log in logs:
-        cols = columns_from_log(log)
-        if cols is None:
-            continue
+    cols = columns_from_log(text)
+    if cols is not None:
         source = f"from the didactic-margin line in {log}"
         try:
             if os.path.getmtime(log) < os.path.getmtime(args.pdf) - 600:
@@ -305,10 +396,10 @@ def find_columns(args):
         except OSError:
             pass
         return cols, source
-    return None, ("no didactic-margin line in "
-                  + " or ".join(l for l in logs)
-                  + " --- GUESSED from the word positions; pass --log or "
-                    "--margin-x to make it exact")
+    where = log or " or ".join(default_logs(args.pdf))
+    return None, (f"no didactic-margin line in {where} --- GUESSED from "
+                  "the word positions; pass --log or --margin-x to make "
+                  "it exact")
 
 
 def main():
@@ -317,8 +408,9 @@ def main():
                     "carries their marker.")
     ap.add_argument("pdf", help="the notes PDF")
     ap.add_argument("--log", default=None,
-                    help="the build log holding the didactic-margin line "
-                         "(default: beside the PDF, or in ltxobj/)")
+                    help="the build log holding the didactic-margin and "
+                         "marginfix lines (default: beside the PDF, or in "
+                         "ltxobj/)")
     ap.add_argument("--margin-x", type=float, default=None,
                     help="x of the margin column's left edge in PDF points, "
                          "on every page (overrides the log)")
@@ -337,7 +429,8 @@ def main():
     if not pages:
         sys.exit(f"check_margin_notes.py: no pages parsed from {args.pdf}")
 
-    cols, source = find_columns(args)
+    log, text = find_log(args)
+    cols, source = find_columns(args, log, text)
     if cols is None:
         print(source)
         cols = guess_columns(pages)
@@ -367,19 +460,41 @@ def main():
             print(f"page {n}: markers {sorted(markers)}, "
                   f"notes {sorted(notes)}")
 
-    defects, warnings = [], []
+    mfx = Marginfix(text, len(pages))
+    if mfx.any() and not mfx.mapped:
+        print("NOTICE: the log's shipout markers do not match the PDF's "
+              "pages; marginfix's page numbers are taken as PDF pages")
+    for p, at in mfx.yields:
+        where = ", ".join(str(n) for n in mfx.pdf_pages(p)) or "?"
+        if where != str(p):
+            where += f" (page counter {p})"
+        print(f"NOTICE: marginfix ended page {where} early, before the "
+              f"note called out at {at}")
+    for w in mfx.half_empty:
+        print(f"NOTICE: {w} (page counter; not a failure)")
+    intended = mfx.intended()
+
+    defects, warnings, carried = [], [], []
     total_markers = total_notes = 0
+    empty = (set(), set())
     for n, (markers, notes) in sorted(per_page.items()):
         total_markers += len(markers)
         total_notes += len(notes)
-        near_notes = (per_page.get(n - 1, (set(), set()))[1]
-                      | per_page.get(n + 1, (set(), set()))[1])
-        near_markers = (per_page.get(n - 1, (set(), set()))[0]
-                        | per_page.get(n + 1, (set(), set()))[0])
+        near_markers = (per_page.get(n - 1, empty)[0]
+                        | per_page.get(n + 1, empty)[0])
         for k in sorted(markers - notes):
-            if k in near_notes:
+            if k in per_page.get(n + 1, empty)[1]:
+                if intended[(n, n + 1)] > 0:
+                    intended[(n, n + 1)] -= 1
+                    carried.append(f"page {n}: marker {k} is here, its "
+                                   f"note carried to page {n + 1} on "
+                                   f"purpose (marginfix-spill intended)")
+                else:
+                    defects.append(f"page {n}: marker {k} is here, its "
+                                   f"margin note is on the next page")
+            elif k in per_page.get(n - 1, empty)[1]:
                 defects.append(f"page {n}: marker {k} is here, its margin "
-                               f"note is on the neighbouring page")
+                               f"note is on the previous page")
             else:
                 warnings.append(f"page {n}: marker {k} has no margin note "
                                 f"here or beside it")
@@ -392,11 +507,19 @@ def main():
           f"on {len(per_page)} pages")
     for w in warnings:
         print(f"WARNING: {w} --- read that page by eye")
+    for c in carried:
+        print(f"INTENDED: {c}")
     for d in defects:
         print(f"DEFECT: {d}")
-    if defects:
+    unresolved = [(n, m) for n, m in mfx.unresolved()
+                  if args.page is None or args.page in (n, m)]
+    for n, m in unresolved:
+        print(f"UNRESOLVED: marginfix could not fit the note marked on "
+              f"page {n} and set it on page {m} (marginfix-spill "
+              f"unresolved)")
+    if defects or unresolved:
         print(f"FAIL: {len(defects)} margin notes print away from their "
-              f"marker")
+              f"marker, {len(unresolved)} unresolved marginfix spills")
         return 1
     if total_notes == 0 and args.page is None:
         # Markers with no note at all, or neither: the notes were lost

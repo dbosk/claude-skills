@@ -187,6 +187,17 @@ that really has no margin notes says so in a committed `.no-margin-check`
 `--no-margin-ok` does the same for one manual run. WARNING lines (a
 marker or note with no partner nearby) name pages to read by eye.
 
+It also reads what marginfix (1.6 on) logged about notes that did not
+fit. A note on the page after its marker is printed as INTENDED, not a
+defect, when the log has a matching `marginfix-spill: page=P to=Q
+intended` (the note carried on purpose); every `… unresolved` spill (it
+should have fitted) is a failure even when the pairing did not see it.
+`marginfix-yield` lines (a page ended early for a note) and marginfix's
+warning that such a page is less than half full are printed as NOTICE
+lines: look at those pages, they are not failures. The log's page numbers
+are the page counter's; the script maps them to PDF pages through the
+log's shipout markers.
+
 By hand, for one page: `pdftotext -f N -l N notes.pdf -` and read the
 superscript numbers in the text against the numbers in the margin block.
 

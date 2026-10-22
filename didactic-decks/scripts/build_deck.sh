@@ -264,7 +264,8 @@ case ",$JOBS," in *,notes,*)
                           "or note): python3 $MARGIN $NPDF lists them"
     case "$rc" in
       0) ;;
-      1) bad "notes: margin notes print away from their marker" ;;
+      1) bad "notes: margin notes print away from their marker, or" \
+             "marginfix logged an unresolved spill" ;;
       *) bad "notes: margin-note check checked nothing (exit $rc);" \
              "if the deck really has no margin notes, say so in" \
              ".no-margin-check" ;;

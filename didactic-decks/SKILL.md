@@ -291,7 +291,9 @@ counts either way, so read its output rather than only its exit status.
 
 The margin check takes the margin column from the `didactic-margin:` line
 didactic writes to `ltxobj/notes.log`; without it (an older didactic) it
-guesses the column and says GUESSED. A deck whose notes really have no
+guesses the column and says GUESSED. A note marginfix logged as carried
+on purpose (`marginfix-spill: … intended`) passes as INTENDED; an
+`unresolved` spill fails. A deck whose notes really have no
 margin notes opts out with a committed `.no-margin-check` file whose first
 line says why.
 
