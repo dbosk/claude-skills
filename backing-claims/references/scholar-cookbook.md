@@ -240,6 +240,53 @@ Find a paper's ID with `scholar notes list` or `scholar sessions`. The `.bib`
 comment block remains the source of truth (see `provenance-format.md`); notes
 are a synced secondary copy.
 
+### When `found-via` says `Not reproducible:`
+
+`found-via` prints one `FOUND-VIA:` line per search that returned the paper.
+When it cannot tell which search that was, it prints a `Not reproducible:`
+block instead (JSON: `"link": "missing"`, `command: null`), never a guessed
+`FOUND-VIA:` line. Do not paste a candidate query as if it were the one.
+Causes:
+
+- **The session predates the link.** Since dbosk/scholar#128 (PR #129) each
+  paper records the searches that returned it. Older sessions have no such
+  record, and when the provider ran several searches in the session,
+  `found-via` lists them as candidates:
+
+  ```
+  Not reproducible: the session did not record which of its 7 openalex
+    searches returned it.
+    Re-run them exactly as below to record it (a cached search sends no request):
+      scholar search "..." -p openalex -l 40 -n w45-roundtrip
+      ...
+  ```
+
+  **Fix:** run every listed command as printed (same query, providers,
+  filters, limit and `-n` session; `-f json`/`candidate_commands` gives
+  them in machine-readable form), then run `found-via` again and paste its
+  `FOUND-VIA:` line. Re-running records the link and keeps every decision.
+- **Snowballed paper** ("added by snowballing"): no search returned it.
+  Record the snowballing step (seed paper, direction) as its `FOUND-VIA`.
+
+Before re-running:
+
+- **Cache hits are free, misses are live.** An identical command is answered
+  from `~/.cache/scholar` if the result is still cached. After `cache clear`
+  (or a test run of a scholar checkout before dbosk/scholar#132, which
+  overwrote the cache) it goes to the provider and spends quota: check
+  `scholar providers limits` (IEEE allows 200 a day). DBLP searches currently
+  fail (#94), so a DBLP candidate cannot be re-run.
+- **A live re-run returns today's results.** Papers that are new since the
+  original search land in the session as pending (decisions are kept).
+  A paper the provider no longer returns stays unlinked: then say so rather
+  than guess, e.g. `FOUND-VIA: session "<name>", one of its openalex
+  searches (not recorded which); re-run <date> no longer returns it`, and
+  add a known-item lookup (below) as the reproducible route.
+- **The installed scholar must keep the link.** A scholar older than PR #129
+  drops it on save. After re-running, `grep -c '"found_by"'
+  ~/.local/share/scholar/review_sessions/<name>.json` must be non-zero;
+  if it is zero, upgrade scholar first.
+
 ## Notes and sessions
 
 The full review loop runs headlessly: search with `-n`, decide with
