@@ -334,6 +334,13 @@ fix. Every item below cost an agent real time at least once.
   final `ALL DONE` marker; watch it with the Monitor tool polling that log.
   Make the subagent that waits on it a `long-job` agent (see "Orchestration
   mechanics"), or its prompt cache expires during the wait.
+- **Never wait with `pgrep -f <pattern>`** (`until ! pgrep -f 'pdflatex|latexmk'
+  …; do sleep 15; done`): `-f` matches the waiting shell's own command line,
+  so the loop never ends (one ran for 12 days and blocked a queued install).
+  Wait on a PID (`while kill -0 $PID 2>/dev/null; do sleep 10; done`, or
+  `tail --pid=$PID -f /dev/null`), or use `pgrep -x pdflatex`. Better: run the
+  build in the foreground or rely on the background-task notification, and
+  never leave a wait loop running when you finish.
 - **Never build two jobs of one document concurrently**: they share the build
   directory and its caches, so one job reads the other's intermediates.
 - **`du` may be an alias in the user's shell** — call `/usr/bin/du` wherever a
