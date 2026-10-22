@@ -129,6 +129,14 @@ The rest of this skill is about manual stacks.
 - To bring a lower branch's changes up the stack, merge the base into the
   child (`git merge feat-a` on `feat-b`) and push. Do not rebase and
   force-push: that rewrites commits the PRs further up are built on.
+- After resolving a conflict on a lower branch, run the tests of every PR
+  above it on the merged result, not just `mergeStateStatus`: a textually
+  clean merge can still break a child that used what the resolution
+  removed. Observed: a resolution swapped `import canvasapi.course` for
+  `from canvasapi.course import Course`; the stacked child, still
+  `MERGEABLE CLEAN`, used `canvasapi.course.Course` in its tests, and main
+  failed four tests once both merged. Before merging a batch, merge all
+  its heads on a local scratch branch and run the whole suite there.
 - List the whole stack with
   `gh pr list --json number,baseRefName,headRefName,mergeStateStatus`.
 
