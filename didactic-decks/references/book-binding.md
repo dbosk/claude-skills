@@ -271,11 +271,14 @@ checks below.
   letters match the standalone notes; the student edition's `pdftotext`
   has no `\ltnote` text and the teacher edition has it.
 - **Margin-note spills** (a note printed on the page after its marker):
-  run `scripts/check_margin_notes.py` on **each book PDF**. A clean
-  standalone deck says nothing about the book: its pages fall elsewhere. On a long, dense teacher edition (about
-  600 pages) the script may say "no margin column detected" and check
-  nothing: that is not a pass. Split the PDF into ranges of about 100
-  pages (`pdftk in.pdf cat 1-100 output part1.pdf`, …) and run it on each.
+  run `scripts/check_margin_notes.py` on **each book PDF**, with
+  `--log` naming that edition's build log (the `didactic-margin` line in
+  it gives the margin column). A clean standalone deck says nothing about
+  the book: its pages fall elsewhere. Without the log line the script
+  guesses the column, and on a long, dense teacher edition (about 600
+  pages) the guess may fail ("no margin column detected", exit 2): that
+  is not a pass. Then split the PDF into ranges of about 100 pages
+  (`pdftk in.pdf cat 1-100 output part1.pdf`, …) and run it on each.
 - **Stale minted caches kill the book build.** After standalone deck
   builds, the book stops at its first `\mintinline` with "TeX capacity
   exceeded [grouping levels=255]", and a failed run leaves stray output

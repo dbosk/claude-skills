@@ -261,7 +261,7 @@ for the `##### all done` marker.
 | "empty citation" or `??` after new bib keys | run biber by hand, touch a source, make again |
 | "Too many unprocessed floats" | `\extrafloats{200}` missing from `preamble.tex` |
 | "Float(s) lost", a `\label` gone with it | a citation inside a float |
-| `marginfix Error: lost some margin notes`, no margin column in the notes | too many `\ltnote`s for the margin; shorten, split or re-anchor them |
+| `marginfix Error: lost some margin notes`, the margin check finds no note | too many `\ltnote`s for the margin; shorten, split or re-anchor them |
 | minted errors on `outputdir` | drop the package option |
 | Submodule missing in a fresh worktree | `git submodule update --init --checkout makefiles` |
 
@@ -283,12 +283,19 @@ These `scripts/build_deck.sh` runs itself:
 | `black --check` on the tangled `.py` files | clean, `--exempt GLOB` for hand-written inputs |
 | source lines over 79 characters | none |
 | `check_provenance.py` on `ltnotes.bib` | `Result: OK` |
+| `check_margin_notes.py` on the notes | no note printed away from its marker; a run that checked nothing fails too |
 | blank-ish slides | reported, not failed: poster and section frames are legitimately sparse |
 
 Every row but the last makes the script exit non-zero. It prints the
 counts either way, so read its output rather than only its exit status.
 
-**Five checks it does not run.** Do them yourself before calling a deck
+The margin check takes the margin column from the `didactic-margin:` line
+didactic writes to `ltxobj/notes.log`; without it (an older didactic) it
+guesses the column and says GUESSED. A deck whose notes really have no
+margin notes opts out with a committed `.no-margin-check` file whose first
+line says why.
+
+**Four checks it does not run.** Do them yourself before calling a deck
 reviewed:
 
 0. **Clipped verbatim lines.** A long program line or transcript line in a
@@ -299,26 +306,16 @@ reviewed:
    deck built. Fix by shortening the text or `shrink`; a chunk frame at
    the decks' minted size shows about 69 characters.
 
-1. **Margin notes.** Every margin footnote must print on the page carrying
-   its marker; a note pushed to the next page is a layout defect.
-
-   ```bash
-   python3 ~/.claude/skills/didactic-decks/scripts/check_margin_notes.py \
-           ltxobj/notes.pdf
-   ```
-
-   It warns when it cannot recognise one half of a pair, which means read
-   that page by eye.
-2. **`check_metadata.py` on `ltnotes.bib`** — left out of the script
+1. **`check_metadata.py` on `ltnotes.bib`** — left out of the script
    because it queries Crossref over the network. Run it once per revision,
    from the `backing-claims` skill.
-3. **Running the tangled examples.** The build already ran every program
+2. **Running the tangled examples.** The build already ran every program
    carrying a `\runpython`, so for those the check is to read the
    transcripts against the tangled files. Programs without one are run by
    hand, with the input the deck feeds them —
    `python3 x.py < /dev/null` reports a false failure for anything that
    reads input. `references/review-checklist.md` has the recipe.
-4. **Reading every slide and every notes page** — contact sheets with
+3. **Reading every slide and every notes page** — contact sheets with
    `pdftoppm -r 40` plus `montage`, then close reads of anything that
    looks wrong. No script replaces this.
 

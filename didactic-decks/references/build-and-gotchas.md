@@ -379,16 +379,18 @@ it easier for the reader to find which file a module corresponds to").
 
 Symptom: the notes job ends with `! Package marginfix Error: lost some
 margin notes.` and, in the same run, **every** `\ltnote` in the document
-disappears; `check_margin_notes.py` then says "no margin column detected",
-which means the notes were lost, not that the deck has none. The page
+disappears; `check_margin_notes.py` then fails with "no numbered margin
+note found" (or, guessing without the log's `didactic-margin` line, "no
+margin column detected"), which means the notes were lost, not that the
+deck has none. The page
 count and the `??` count do not move, so nothing but the error line and
 the missing margin column reveals it. Cause seen (2026-09-18, *Inmatning
 och felhantering*): the total `\ltnote` volume grew from about 560 to
 about 700 source lines in one round and marginfix stopped converging.
 Fix: shorten the notes (state a deck-wide rule once, in its own short
 note, instead of adding a paragraph to several), never with a page break
-(`floats-and-margins.md`, "No manual page breaks"). Treat
-"no margin column detected" as a hard failure in every build log.
+(`floats-and-margins.md`, "No manual page breaks"). Both
+are hard failures in `build_deck.sh`.
 
 ## Macros the slides need
 

@@ -24,14 +24,33 @@ its own page or either neighbour is reported as a warning: the check did
 not recognise the other half (a marker inside a table cell, or split off
 by a line break, are the known cases) -- look at that page by eye.
 
+Where the margin column is comes from the build: didactic writes one line
+to the job's log,
+
+    didactic-margin: odd=<bp> even=<bp> width=<bp>
+
+the x of the column's left edge on odd and even pages and its width, in
+PDF points.  The log is looked for beside the PDF and in ltxobj/ beside
+it; --log names it, --margin-x overrides it.  Without that line (a PDF
+copied away from its build, an older didactic) the column is guessed from
+the word positions, and the output says so: the guess has failed on wide
+code reaching into the gutter and on decks with few margin notes.
+
+Exit status: 0 clean; 1 a note printed away from its marker; 2 nothing
+was checked (no column found, no margin note found), which is never a
+pass unless --no-margin-ok says the PDF really has no margin notes.
+
 Usage:
-    check_margin_notes.py NOTES.pdf [--page N] [--verbose]
+    check_margin_notes.py NOTES.pdf [--log FILE | --margin-x BP]
+                          [--page N] [--verbose] [--no-margin-ok]
 
 Requires pdftotext (poppler-utils).
 """
 
 import argparse
+import collections
 import html
+import os
 import re
 import shutil
 import subprocess
@@ -55,15 +74,32 @@ SIZE_RATIO = 0.95
 MARGIN_RAISE_SCALE = 0.8
 # Hanging indent between a margin note's number and its text.
 NOTE_TEXT_GAP = 20.0
-# The gutter between the body and the margin is narrow in this layout:
-# 4pt in some decks, because margin material starts almost at the body's
-# right edge.  A candidate narrower than this is noise.
-MIN_GUTTER = 3.0
-# A real margin column holds at least this share of the page's words.
-MIN_MARGIN_SHARE = 0.03
+# A margin word may start a hair left of the edge didactic reports
+# (rounding, a glyph's side bearing).
+EDGE_SLACK = 1.0
 # A note number set alone on a margin line is recognised by its size:
 # clearly smaller than the margin's own text.
 NOTE_SIZE_RATIO = 0.7
+
+# The rest of the constants serve only the guess made without the log
+# line.  The gutter between the body and the margin is narrow in this
+# layout: 4pt in some decks, because margin material starts almost at the
+# body's right edge.  A candidate narrower than this is noise.
+MIN_GUTTER = 3.0
+# An x position held by this few words is a stray, not an edge: a code
+# line reaching across the gutter, a marker at the end of a line.  Three
+# such words filled the 4pt gutter of a whole deck (2026-10-22).
+STRAY_MAX = 2
+# A real margin column holds at least this many words.  A count, not a
+# share: a tutorial with few notes has well under 1% of its words there.
+MIN_MARGIN_WORDS = 20
+# The margin is set flush left, so its left edge is the commonest x
+# position just beyond the gutter: held by at least MIN_EDGE_WORDS words
+# and within MAX_EDGE_DIST of the gap.  A gap with no such edge beside it
+# lies inside the body or a figure (one at x=309 passed a deck with
+# nothing checked, 2026-09-29).
+MIN_EDGE_WORDS = 10
+MAX_EDGE_DIST = 6.0
 
 WORD_RE = re.compile(
     r'<word\s+xMin="([\d.]+)"\s+yMin="([\d.]+)"\s+'
@@ -76,6 +112,10 @@ DIGITS_RE = re.compile(r"^\d{1,3}$")
 # Several citations at one point print as one comma-separated marker,
 # "18,19,20,21", which pdftotext hands over as a single word.
 MARKER_RE = re.compile(r"^\d{1,3}(?:,\d{1,3})*$")
+NUM = r"(\d+(?:\.\d+)?)(?:bp|pt)?"
+MARGIN_LINE_RE = re.compile(
+    r"didactic-margin:\s*odd=" + NUM + r"\s+even=" + NUM
+    + r"\s+width=" + NUM)
 
 
 class Word:
@@ -83,6 +123,26 @@ class Word:
 
     def __init__(self, x0, y0, x1, y1, text):
         self.x0, self.y0, self.x1, self.y1, self.text = x0, y0, x1, y1, text
+
+
+class Columns:
+    """The margin column of each page: [lo, hi) in x, by page parity."""
+
+    def __init__(self, odd, even, width=float("inf")):
+        self.odd, self.even, self.width = odd, even, width
+
+    def of(self, page_no):
+        lo = self.odd if page_no % 2 else self.even
+        return lo - EDGE_SLACK, lo + self.width
+
+    def describe(self):
+        if self.odd == self.even:
+            return f"x={self.odd:.1f}bp"
+        return f"x={self.odd:.1f}bp (odd pages), {self.even:.1f}bp (even)"
+
+
+def in_margin(w, col):
+    return col[0] <= w.x0 < col[1]
 
 
 def run_pdftotext(pdf):
@@ -123,11 +183,33 @@ def parse_pages(xhtml):
     return pages
 
 
-def margin_start(pages):
-    """Left edge of the margin column: the widest horizontal gap in the
-    right half of the page that still leaves a substantial column beyond
-    it.  The body is justified, so its words' left edges are dense right
-    up to the gutter, and the gutter shows as the gap."""
+def default_logs(pdf):
+    """notes.pdf is built in ltxobj/ and copied up beside the sources, so
+    its log is beside it or in ltxobj/ beside it."""
+    stem = os.path.splitext(os.path.basename(pdf))[0] + ".log"
+    here = os.path.dirname(os.path.abspath(pdf))
+    return [os.path.join(here, stem), os.path.join(here, "ltxobj", stem)]
+
+
+def columns_from_log(path):
+    """The last didactic-margin line in the log, or None."""
+    try:
+        with open(path, encoding="latin-1") as f:
+            found = MARGIN_LINE_RE.findall(f.read())
+    except OSError:
+        return None
+    if not found:
+        return None
+    odd, even, width = (float(v) for v in found[-1])
+    return Columns(odd, even, width)
+
+
+def guess_columns(pages):
+    """Guess the margin's left edge from the word positions: the widest
+    horizontal gap in the right half of the page, ignoring stray words,
+    that has a substantial flush-left column just beyond it.  The body is
+    justified, so its words' left edges are dense right up to the gutter,
+    and the gutter shows as the gap."""
     if not pages:
         return None
     width = pages[0][0]
@@ -135,36 +217,50 @@ def margin_start(pages):
              for w in line]
     if not all_x:
         return None
-    xs = sorted({round(x, 1) for x in all_x if x > width / 2})
+    held = collections.Counter(round(x, 1) for x in all_x if x > width / 2)
+    xs = sorted(x for x, n in held.items() if n > STRAY_MAX)
+    # The edge is counted in words of text only: noweb's chunk numbers
+    # (h=4.9) line up at one x inside the body and posed as the edge of a
+    # deck with almost no margin text.
+    text_x = collections.Counter(
+        round(w.x0, 1) for _, page_lines in pages for line in page_lines
+        for w in line if w.x0 > width / 2 and not DIGITS_RE.match(w.text))
     candidates = sorted(((b - a, (a + b) / 2) for a, b in zip(xs, xs[1:])
                          if b - a >= MIN_GUTTER), reverse=True)
     for _, at in candidates:
-        beyond = sum(1 for x in all_x if x >= at)
-        if beyond >= MIN_MARGIN_SHARE * len(all_x):
-            return at
+        if sum(1 for x in all_x if x >= at) < MIN_MARGIN_WORDS:
+            continue
+        near = [(n, x) for x, n in text_x.items()
+                if at <= x <= at + MAX_EDGE_DIST]
+        if not near:
+            continue
+        n, edge = max(near)
+        beyond = [m for x, m in text_x.items() if x >= at]
+        if n >= MIN_EDGE_WORDS and n == max(beyond):
+            return Columns(edge, edge)
     return None
 
 
-def margin_text_height(pages, split):
+def margin_text_height(pages, cols):
     """Median height of ordinary margin words, used to tell a note number
     set alone on its line from a number inside a note's text."""
     hs = sorted(w.y1 - w.y0
-                for _, page_lines in pages for line in page_lines
-                for w in line
-                if w.x0 >= split and not DIGITS_RE.match(w.text))
+                for n, (_, page_lines) in enumerate(pages, start=1)
+                for line in page_lines for w in line
+                if in_margin(w, cols.of(n)) and not DIGITS_RE.match(w.text))
     return hs[len(hs) // 2] if hs else 0.0
 
 
-def markers_and_notes(page_lines, split, note_h):
+def markers_and_notes(page_lines, col, note_h):
     """Body markers and margin note numbers on one page.
 
     poppler sometimes merges a body line and the margin line beside it
-    into one <line>, so each line is cut at the gutter and the two halves
-    are examined separately."""
+    into one <line>, so each line is cut at the margin's edges and the two
+    parts are examined separately."""
     markers, notes = set(), set()
     for line in page_lines:
-        body = [w for w in line if w.x0 < split]
-        margin = [w for w in line if w.x0 >= split]
+        body = [w for w in line if not in_margin(w, col)]
+        margin = [w for w in line if in_margin(w, col)]
 
         for prev, w in zip(body, body[1:]):
             if (MARKER_RE.match(w.text)
@@ -191,8 +287,28 @@ def markers_and_notes(page_lines, split, note_h):
     return markers, notes
 
 
-def fmt(pages_set):
-    return ", ".join(str(p) for p in sorted(pages_set))
+def find_columns(args):
+    """The margin column and a sentence saying where it came from."""
+    if args.margin_x is not None:
+        return (Columns(args.margin_x, args.margin_x),
+                "from --margin-x")
+    logs = [args.log] if args.log else default_logs(args.pdf)
+    for log in logs:
+        cols = columns_from_log(log)
+        if cols is None:
+            continue
+        source = f"from the didactic-margin line in {log}"
+        try:
+            if os.path.getmtime(log) < os.path.getmtime(args.pdf) - 600:
+                source += (" (WARNING: the log is older than the PDF; "
+                           "it may belong to another build)")
+        except OSError:
+            pass
+        return cols, source
+    return None, ("no didactic-margin line in "
+                  + " or ".join(l for l in logs)
+                  + " --- GUESSED from the word positions; pass --log or "
+                    "--margin-x to make it exact")
 
 
 def main():
@@ -200,38 +316,52 @@ def main():
         description="Check that margin footnotes print on the page that "
                     "carries their marker.")
     ap.add_argument("pdf", help="the notes PDF")
+    ap.add_argument("--log", default=None,
+                    help="the build log holding the didactic-margin line "
+                         "(default: beside the PDF, or in ltxobj/)")
+    ap.add_argument("--margin-x", type=float, default=None,
+                    help="x of the margin column's left edge in PDF points, "
+                         "on every page (overrides the log)")
     ap.add_argument("--page", type=int, default=None,
                     help="check only this page (1-based)")
     ap.add_argument("--verbose", action="store_true",
                     help="report every page, not just the defective ones")
     ap.add_argument("--no-margin-ok", action="store_true",
-                    help="exit 0 when no margin column is detected (only for "
-                         "a PDF that really has no margin notes)")
+                    help="exit 0 when no margin column or no margin note is "
+                         "found (only for a PDF that really has none)")
     args = ap.parse_args()
+    nothing = 0 if args.no_margin_ok else 2
+    verdict = "accepted (--no-margin-ok)" if args.no_margin_ok else "FAIL"
 
     pages = parse_pages(run_pdftotext(args.pdf))
     if not pages:
         sys.exit(f"check_margin_notes.py: no pages parsed from {args.pdf}")
 
-    split = margin_start(pages)
-    if split is None:
+    cols, source = find_columns(args)
+    if cols is None:
+        print(source)
+        cols = guess_columns(pages)
+        source = "GUESSED"
+    if cols is None:
         # A notes PDF always has margin notes, so failing to find the
-        # column means the detection failed (e.g. long hit-list tables
-        # swamp it), not that the PDF is clean: never pass silently.
-        print("no margin column detected: either this PDF has no margin "
-              "notes, or the detection failed; check it in page ranges "
-              "with --page, or pass --no-margin-ok if it really has none")
-        return 0 if args.no_margin_ok else 2
+        # column means the guess failed, not that the PDF is clean:
+        # never pass silently.
+        print(f"{verdict}: no margin column detected, nothing checked: either "
+              "this PDF has no margin notes, or the guess failed; give "
+              "the column with --log or --margin-x, or pass --no-margin-ok "
+              "if it really has none")
+        return nothing
 
-    note_h = margin_text_height(pages, split)
-    print(f"{args.pdf}: {len(pages)} pages, margin column starts at "
-          f"x={split:.0f}pt, margin text {note_h:.1f}pt tall")
+    note_h = margin_text_height(pages, cols)
+    print(f"{args.pdf}: {len(pages)} pages, margin column at "
+          f"{cols.describe()} ({source}), "
+          f"margin text {note_h:.1f}pt tall")
 
     per_page = {}
     for n, (_, page_lines) in enumerate(pages, start=1):
         if args.page is not None and n != args.page:
             continue
-        markers, notes = markers_and_notes(page_lines, split, note_h)
+        markers, notes = markers_and_notes(page_lines, cols.of(n), note_h)
         per_page[n] = (markers, notes)
         if args.verbose:
             print(f"page {n}: markers {sorted(markers)}, "
@@ -268,9 +398,14 @@ def main():
         print(f"FAIL: {len(defects)} margin notes print away from their "
               f"marker")
         return 1
-    if total_markers == 0 and total_notes == 0:
-        print("no numbered margin notes in this document (nothing to check)")
-        return 0
+    if total_notes == 0 and args.page is None:
+        # Markers with no note at all, or neither: the notes were lost
+        # (marginfix) or the column is wrong.  Either way nothing was
+        # paired, so this is not a pass.
+        print(f"{verdict}: no numbered margin note found, nothing paired: the "
+              "notes were lost, or the margin column is wrong; pass "
+              "--no-margin-ok if this PDF really has none")
+        return nothing
     print("every margin note prints on the page carrying its marker")
     return 0
 

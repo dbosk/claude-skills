@@ -1,8 +1,8 @@
 # Checks before a deck is reviewed
 
 Run every check. `scripts/build_deck.sh` automates all but the ones that
-need a human eye (contact sheets, reading the pages, margin-note pairing —
-for which `scripts/check_margin_notes.py` does the mechanical part).
+need a human eye (contact sheets, reading the pages, the pages the
+margin-note check warns about).
 
 Contents: [The numeric checks](#the-numeric-checks) ·
 [Tangled examples](#tangled-examples) ·
@@ -166,12 +166,26 @@ note, the citation moved earlier, the prose moved or reworded; never a
 page break (`floats-and-margins.md`, "No manual page breaks").
 
 The mechanical check, per page, compares the superscript markers in the
-body against the note numbers in the margin:
+body against the note numbers in the margin. `build_deck.sh` runs it on
+the notes; by hand:
 
 ```bash
 python3 ~/.claude/skills/didactic-decks/scripts/check_margin_notes.py \
-        ltxobj/notes.pdf
+        ltxobj/notes.pdf [--log ltxobj/notes.log | --margin-x BP]
 ```
+
+It takes the margin column from the line `didactic-margin: odd=… even=…
+width=…` that didactic writes to the notes log (found beside the PDF or in
+`ltxobj/` by default). Without that line it guesses the column from the
+word positions and prints GUESSED; the guess has failed on code reaching
+into the 4pt gutter and on notes with few margin words, so give a PDF
+copied away from its build `--log` or `--margin-x`. Exit 1 is a note
+printed away from its marker; exit 2 means nothing was checked (no
+column, or no margin note found) and is a failure, not a pass. A deck
+that really has no margin notes says so in a committed `.no-margin-check`
+(first line: why), which makes `build_deck.sh` skip the check;
+`--no-margin-ok` does the same for one manual run. WARNING lines (a
+marker or note with no partner nearby) name pages to read by eye.
 
 By hand, for one page: `pdftotext -f N -l N notes.pdf -` and read the
 superscript numbers in the text against the numbers in the margin block.
@@ -215,4 +229,4 @@ figure in `sokprotokoll.tex`.
 - `Overfull \hbox` warnings in the notes: ordinary typesetting.
 
 - **Side-by-side overflow** (didactic ≥ 2.7.1): `grep -c 'than its column' ltxobj/*.log` must be 0 for both jobs.
-- **Margin check on a long book**: split with `pdftk <pdf> cat A-B output part.pdf` into ~100-page ranges; never `pdfseparate` (one file per page fills the `/tmp` quota and killed two book builds, 2026-10-04).
+- **Margin check on a long book** that has no `didactic-margin` line in its log (the guess fails on long hit-list tables): split with `pdftk <pdf> cat A-B output part.pdf` into ~100-page ranges; never `pdfseparate` (one file per page fills the `/tmp` quota and killed two book builds, 2026-10-04).

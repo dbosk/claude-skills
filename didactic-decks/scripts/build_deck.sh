@@ -18,6 +18,10 @@
 #   --check-only      skip the build, run the checks on existing PDFs
 #   --exempt GLOB     path glob excluded from black --check; repeatable
 #   -h, --help        this text
+#
+# A deck whose notes really carry no margin notes opts out of the
+# margin-note check with a committed file .no-margin-check in DIR whose
+# first line says why; the check is then skipped and the reason printed.
 set -euo pipefail
 
 # The block of comments at the top of this file is the help text.
@@ -237,6 +241,38 @@ case ",$JOBS," in *,slides,*)
   ;;
 esac
 
+# Margin notes printed away from their marker.  check_margin_notes.py
+# reads the margin column from the didactic-margin line in the notes log
+# and exits 2 when it checked nothing (no column, no note found), so a
+# skipped check cannot pass for a clean one.
+MARGIN=$(dirname "$0")/check_margin_notes.py
+case ",$JOBS," in *,notes,*)
+  NPDF=notes.pdf; [ -f "$NPDF" ] || NPDF=ltxobj/notes.pdf
+  if [ -f .no-margin-check ]; then
+    note "margin notes: skipped, .no-margin-check says:" \
+         "$(head -1 .no-margin-check)"
+  elif [ -f "$NPDF" ]; then
+    MARGS=("$NPDF")
+    [ -f ltxobj/notes.log ] && MARGS+=(--log ltxobj/notes.log)
+    set +e
+    out=$(python3 "$MARGIN" "${MARGS[@]}" 2>&1)
+    rc=$?
+    set -e
+    echo "$out" | grep -a -v '^WARNING:' | sed 's/^/margin notes: /'
+    w=$(echo "$out" | grep -a -c '^WARNING:' || true)
+    [ "$w" -eq 0 ] || note "margin notes: $w warnings (unpaired marker" \
+                          "or note): python3 $MARGIN $NPDF lists them"
+    case "$rc" in
+      0) ;;
+      1) bad "notes: margin notes print away from their marker" ;;
+      *) bad "notes: margin-note check checked nothing (exit $rc);" \
+             "if the deck really has no margin notes, say so in" \
+             ".no-margin-check" ;;
+    esac
+  fi
+  ;;
+esac
+
 # Tangled Python must be black-clean: the tangle rule pipes it through
 # black and the file has to match the slide byte for byte.
 #
@@ -311,9 +347,9 @@ fi
 
 if [ "$FAIL" -eq 0 ]; then
   note "ALL CHECKS PASSED"
-  note "Still to do separately: check_margin_notes.py on the notes PDF;"
-  note "  check_metadata.py on ltnotes.bib (needs the network); running the"
-  note "  tangled examples; reading every slide and every notes page."
+  note "Still to do separately: check_metadata.py on ltnotes.bib (needs"
+  note "  the network); running the tangled examples; reading every slide"
+  note "  and every notes page."
 else
   note "CHECKS FAILED"
 fi
