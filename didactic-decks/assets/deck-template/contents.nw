@@ -68,14 +68,13 @@ figure is referenced from the student-facing prose, not only from an
   \end{sidecaption}
 \end{figure}
 
-\mode<article>{\clearpage}
 \section{The next idea}
 \label{sec:next-idea}
 
 Notes-only structure goes in \verb|\mode<article>{...}|; slide-only
-tweaks go in \verb|\mode<presentation>{...}|.  A \verb|\clearpage| before
-a section drains the \verb|\ltnote| queue on a page still inside the
-chapter.
+tweaks go in \verb|\mode<presentation>{...}|.  No manual page breaks:
+didactic splits a long \verb|\ltnote| across pages, so a poor page is
+fixed in the content.
 
 \begin{frame}
   \begin{summary}

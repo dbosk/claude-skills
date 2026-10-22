@@ -21,6 +21,7 @@ Contents: [The numeric checks](#the-numeric-checks) ·
 | PythonTeX instance skew | `wc -l ltxobj/notes.pytxcode ltxobj/slides.pytxcode` | nearly equal |
 | Rerun messages | `LC_ALL=C grep -a -c 'Rerun to get\|undefined references\|run Biber' ltxobj/notes.log` | 0 after convergence |
 | Line length | `awk 'length > 79' contents.nw abstract.tex` | no output |
+| Manual page breaks | `grep -nw -e needspace -e pagebreak -e newpage -e clearpage -e enlargethispage -e nopagebreak -e goodbreak -e filbreak contents.nw` | no output |
 
 Quote the grep pattern in **single** quotes, or use `grep -a -c "Overfull
 \\\\vbox"`. In double quotes, `grep "Overfull \vbox"` matches nothing,
@@ -31,6 +32,11 @@ otherwise refuses to match in them.
 
 An `Overfull \vbox` on a slide is content falling off the bottom of the
 frame. On the notes it is ordinary typesetting and not a defect.
+
+A manual page break in `contents.nw` is a defect whatever the page looks
+like (`floats-and-margins.md`, "No manual page breaks"): remove it, and
+if the page then looks poor, fix the content (move or reword prose,
+shorten, split or re-anchor a note), not the break.
 
 ## Tangled examples
 
@@ -155,10 +161,9 @@ slide; pass the deck's own author, institute and title.
 ## Margin notes
 
 Every margin footnote must print on the page that carries its marker. A
-note pushed to the next page is a defect, fixed by layout: a shorter note,
-the citation moved earlier, or a small `\needspace`. A mostly blank page
-is a defect too, so the fix must not create one (`floats-and-margins.md`,
-"The ltnote queue").
+note pushed to the next page is a defect, fixed in the content: a shorter
+note, the citation moved earlier, the prose moved or reworded; never a
+page break (`floats-and-margins.md`, "No manual page breaks").
 
 The mechanical check, per page, compares the superscript markers in the
 body against the note numbers in the margin:

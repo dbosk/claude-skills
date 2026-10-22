@@ -61,7 +61,7 @@ Read the one you need; do not read them all.
 | `references/build-and-gotchas.md` | Makefile wiring, the convergence loop, every build symptom and its fix |
 | `references/chunk-authoring.md` | chunks in frames, recaps, mode splits, `\cref` traps, citations |
 | `references/runpython-and-output.md` | `\runpython` options, verifying transcripts |
-| `references/floats-and-margins.md` | float placement, captions, the side-caption decision, the `\ltnote` queue |
+| `references/floats-and-margins.md` | float placement, captions, the side-caption decision, no manual page breaks |
 | `references/review-checklist.md` | the checks with their exact commands and thresholds |
 | `references/house-style-sv.md` | Swedish wording rules (load only for a Swedish deck) |
 | `references/book-binding.md` | binding a set of decks into one book: layout, the `\deck` macro, paths, unique names, Makefile, adding a deck |
@@ -203,9 +203,14 @@ Each line points at the reference that explains it.
   pseudocode, helpers appended to the bucket when the discussion needs
   them; single blank lines group chunk references, black spaces the
   tangled file. `chunk-authoring.md`
-- Long `\ltnote`s queue forward. Shorten, split or re-anchor them first;
-  a forced `\clearpage` or `\needspace` must never leave a page mostly
-  blank. `floats-and-margins.md`
+- No manual page breaks for layout: no `\needspace`, `\pagebreak`,
+  `\newpage`, `\enlargethispage`, `\nopagebreak`, `\goodbreak`,
+  `\filbreak` or `\clearpage` in `contents.nw` (author, 2026-10-22:
+  "Remove manual page breaks everywhere."). They were workarounds for
+  margin notes on the wrong page, which didactic 2.6 (`notepriority=split`
+  with marginfix 1.5) resolved. A poor page is fixed in the content:
+  shorten, split or re-anchor a note, move or reword prose.
+  `floats-and-margins.md`, "No manual page breaks"
 - The material practises what it has taught. Once a practice is
   introduced (functions, modules, exceptions, files), every later program
   in every later deck follows it: a later deck that ignores a taught

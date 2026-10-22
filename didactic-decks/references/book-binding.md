@@ -35,11 +35,10 @@ The author's decisions, with the reason each was taken:
   the flush-left typography); `\clearpage`; the chapter's own full-depth
   ToC (etoc `\localtableofcontents*`, starred so it adds no ToC line);
   `\clearpage`; the text.
-- **No forced page breaks inside a chapter.** A deck's `\clearpage`s
-  sit at standalone page positions; in the book they only leave short
-  pages, so `\deck` neutralises them locally. (With didactic ≥ 2.6 and
-  marginfix ≥ 1.5, which split a crowded note, the decks no longer need
-  breaks to drain the margin queue; the example removed them, 2026-10-01.)
+- **No forced page breaks inside a chapter.** Decks carry no manual page
+  breaks (`floats-and-margins.md`, "No manual page breaks"); `\deck`
+  still neutralises any `\clearpage` an unswept deck has, since in the
+  book it would only leave a short page.
 - **Main ToC: parts and chapters only** (`\etocsetnexttocdepth{chapter}`
   before `\tableofcontents*`). This is the book's deliberate exception to
   the decks' "memoir's default depth" rule: each chapter carries its own
@@ -273,8 +272,7 @@ checks below.
   has no `\ltnote` text and the teacher edition has it.
 - **Margin-note spills** (a note printed on the page after its marker):
   run `scripts/check_margin_notes.py` on **each book PDF**. A clean
-  standalone deck says nothing about the book: its pages fall elsewhere
-  and its `\clearpage`s are gone. On a long, dense teacher edition (about
+  standalone deck says nothing about the book: its pages fall elsewhere. On a long, dense teacher edition (about
   600 pages) the script may say "no margin column detected" and check
   nothing: that is not a pass. Split the PDF into ranges of about 100
   pages (`pdftk in.pdf cat 1-100 output part1.pdf`, …) and run it on each.

@@ -5,7 +5,8 @@ didactic sets footnotes -- and, under the verbose citation style, every
 \\autocite -- as margin notes.  When the margin is at capacity the note is
 pushed to the next page, away from the superscript marker that refers to
 it.  That is a layout defect (fix it with a shorter note, the citation
-moved earlier, or \\needspace), and it is invisible in the LaTeX log.
+moved earlier, or the prose moved or reworded; never a page break), and
+it is invisible in the LaTeX log.
 
 The check runs `pdftotext -bbox-layout`, which gives every word a bounding
 box and groups the words into lines, and compares, per page:

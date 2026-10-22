@@ -57,17 +57,20 @@ the note.
 
 ## The margin queue
 
-Margin notes are floats. A note longer than the space left in the margin
-does not shrink — it queues, and prints beside the *next* section or, at
-worst, beside the appendix. `\clearpage` does not flush that queue.
+Margin notes are floats. With didactic 2.6 and marginfix 1.5
+(`notepriority=split`, the default) a note longer than the space left in
+the margin splits and continues on the next page, giving way to citation
+footnotes; it no longer queues whole beside a later section.
 
-Design around it:
+Never fix a crowded margin with a page break (`\clearpage`,
+`\needspace`, `\pagebreak`, …): the didactic-decks rule "No manual page
+breaks" (author, 2026-10-22: "Remove manual page breaks everywhere.").
+Instead:
 
-- Put `\mode<article>{\clearpage}` before the section the notes belong to,
-  and before the **last frame** of a section whose notes overflow, so the
-  queue drains on a page still inside the chapter.
 - Shorten notes that restate the prose. A note repeating the body text costs
   margin twice and buys nothing.
+- Anchor a note just before the passage it discusses; split a long one and
+  anchor the second half further on.
 - A margin at capacity also pushes **citation footnotes** to the next page.
   A footnote marker on one page with its note on the next is a defect, not a
   cosmetic detail: check every page where notes are dense, comparing the

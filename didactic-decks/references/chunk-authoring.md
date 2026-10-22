@@ -297,7 +297,8 @@ citations into `\parencite`. A repeat citation adds nothing to the margin,
 because didactic reuses the existing footnote (option `footnotereuse`;
 author, 2026-10-10: "Don't use inline citations, repeat citations
 shouldn't add anything to the margin"). Remaining overflow is a layout
-problem: fix it with paragraph order or a `\clearpage`.
+problem: fix it with paragraph order, never a page break
+(`floats-and-margins.md`, "No manual page breaks").
 
 Never put `\textcite` or `\autocite` inside a `table` or `figure` float:
 the citation becomes a `\marginpar` and the float is lost ("Float(s)

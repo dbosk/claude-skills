@@ -7,7 +7,7 @@ They compete for the same space, and the failures are silent.
 
 Contents: [Placement](#placement) · [Captions](#captions) ·
 [The side-caption decision](#the-side-caption-decision) ·
-[The ltnote queue](#the-ltnote-queue) ·
+[No manual page breaks](#no-manual-page-breaks) ·
 [The float pool](#the-float-pool) · [Citations in floats](#citations-in-floats)
 
 ## Placement
@@ -110,12 +110,28 @@ the same way as the others"). With booktabs, a vertical rule needs
 `\aboverulesep=0pt`, `\belowrulesep=0pt` and a little `\arraystretch`,
 or it breaks at every rule.
 
-## The ltnote queue
+## No manual page breaks
 
-`\ltnote`s longer than the margin queue forward and print beside the next
-section, or beside the appendix. `\clearpage` does **not** flush the queue.
+A deck carries **no manual page break for layout**: no `\needspace`,
+`\pagebreak`, `\newpage`, `\enlargethispage`, `\nopagebreak`,
+`\goodbreak`, `\filbreak`, and no `\clearpage` (bare or in
+`\mode<article>{…}`) in `contents.nw` (author, 2026-10-22: "It was
+introduced to deal with margin notes. But now that's resolved properly so
+we should never need to do those hacks. Remove manual page breaks
+everywhere."). The breaks were workarounds for margin notes and citation
+footnotes landing on the page after their marker. didactic 2.6 resolved
+that with marginfix 1.5: margin notes are deferrable and
+`notepriority=split` (the default) lets a citation footnote go first and
+splits a long `\ltnote` across pages, with a continuation cue. Earlier
+rounds also showed the cost of the hacks: forced breaks left mostly blank
+pages (author, 2026-09-22 and 2026-09-29: "Why new page here?", "Why new
+page?") and a `\needspace` left a gap on a notes page (2026-10-22).
 
-What works, in this order of preference:
+Structural breaks in the document skeleton are not layout hacks and stay:
+`notes.tex`'s `\clearpage` after the abstract, the chapter and appendix
+breaks memoir makes, and the book's `\deck` macro (`book-binding.md`).
+
+When a page looks poor without a break, fix the content, not the break:
 
 1. Shorten notes that merely restate the prose; state a deck-wide rule
    once, in one short note, instead of a paragraph in several.
@@ -123,26 +139,11 @@ What works, in this order of preference:
    didactic-notes rule, "Placement"), never after it, so it starts
    printing beside the passage.
 3. Split a long note and anchor the second half further on.
-4. Move the citation that is being pushed to the next page a few lines
-   earlier, or `\needspace{N\baselineskip}` with the smallest N that
-   works.
-5. Only then a forced break, `\mode<article>{\clearpage}` before the
-   section the notes belong to (or before the **last** frame of a section
-   whose notes overflow) — a **last resort**, not a default fix.
+4. Move a citation a few lines earlier, or move or reword the prose
+   around it.
 
-**No forced page break or large `\needspace` in the notes without need.**
-The queue is meant to be drained by shortening, re-anchoring or splitting
-a note (didactic's `notepriority=split`, where available, over a
-`\clearpage`), not by pushing pages apart. **A forced break must not leave
-a page mostly blank** (author, 2026-09-22, beside two such pages: "Why new
-page here?"; the same complaint recurred in a later review, 2026-09-29:
-"Why new page?"). A reader sees an empty half page as a defect, not as
-layout; `\clearpage` or `\needspace` is acceptable only where the page it
-ends is already about two thirds full. When no option above satisfies
-both this and the margin rule below, report the conflict to the author
-instead of choosing silently. The same holds for `\needspace` used to
-keep examples together: keep them together only when the gap it leaves is
-small.
+When none of these gives an acceptable page, report the page to the
+author instead of adding a break.
 
 - Never anchor a note within a few lines of a `sidecaption` figure.
 

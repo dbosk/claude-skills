@@ -33,7 +33,7 @@ This skill includes detailed references in `references/`:
 | `latex-examples.md` | Restatable LOs, citations, complete examples | `restatable`, `\cref{}`, `biblatex` |
 | `beamer-patterns.md` | Mode splits, overlays, verbose environments | `\mode<article>`, `uncoverenv`, `\textbytext` |
 | `semantic-environments.md` | Environment selection, generalizations | `definition`, `remark`, `example`, `block` |
-| `note-scope-and-visibility.md` | Note vs. prose (what students never see), where to anchor a note, the margin queue and `\clearpage`, no pre-announced `summary` | `\ltnoteoff`, `margin queue`, `\clearpage`, `sidecaption` |
+| `note-scope-and-visibility.md` | Note vs. prose (what students never see), where to anchor a note, the margin queue (no page breaks), no pre-announced `summary` | `\ltnoteoff`, `margin queue`, `sidecaption` |
 | `footnotes-and-citations.md` | Margin footnotes & verbose margin references in dual beamer/article builds; the fatal "Float(s) lost" from a citation inside a `<presentation>`-only frame and its `\only<presentation>` fix; mode-adaptive citation commands (`\autocite`, verbose style) | `footnotesinmargin`, `Float(s) lost`, `\only<presentation>`, `\autocite`, `style=verbose` |
 
 **CRITICAL gotcha:** in a memoir article that also builds beamer slides, didactic
@@ -80,9 +80,7 @@ it, a paragraph right after a heading stays flush (a bare `\ltnote` there
 uses up the heading's no-indent flag and indents it), no heading is
 stranded at a page foot, and no extra `\topsep` gap appears before an
 environment. A bare note between two paragraphs (vertical mode) aligns
-one line too high. If a `\needspace` precedes a heading the note is about,
-the note may stand after the `\needspace`, before the heading (found
-2026-09-26; a fix in didactic has been requested).
+one line too high.
 
 **Name what the note is about**: an `\ltnote` that discusses a particular
 exercise, example, definition or program refers to it with `\cref`
