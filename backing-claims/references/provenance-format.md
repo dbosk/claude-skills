@@ -163,7 +163,7 @@ scholar search "..." -p s2 -p dblp -f bibtex+prov
 
 # One paper's reproducible FOUND-VIA line, rebuilt from the saved session(s):
 scholar prov found-via "<doi-or-hash>"        # -f json for tooling
-# "Not reproducible:" instead? See scholar-cookbook.md, "When found-via says"
+# "Not reproducible:" instead? See scholar-cookbook.md, "Not reproducible"
 
 # Sync blocks to/from scholar notes (authoritative store stays the .bib):
 scholar prov export refs.bib --in-place

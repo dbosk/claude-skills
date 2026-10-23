@@ -244,48 +244,61 @@ are a synced secondary copy.
 
 `found-via` prints one `FOUND-VIA:` line per search that returned the paper.
 When it cannot tell which search that was, it prints a `Not reproducible:`
-block instead (JSON: `"link": "missing"`, `command: null`), never a guessed
+message instead (JSON: `"link": "missing"`, `command: null`), never a guessed
 `FOUND-VIA:` line. Do not paste a candidate query as if it were the one.
-Causes:
+Find the cause first:
 
 - **The session predates the link.** Since dbosk/scholar#128 (PR #129) each
   paper records the searches that returned it. Older sessions have no such
-  record, and when the provider ran several searches in the session,
-  `found-via` lists them as candidates:
+  record. When the provider ran several searches in the session,
+  `found-via` lists them as candidates (shape, abridged):
 
   ```
   Not reproducible: the session did not record which of its 7 openalex
-    searches returned it.
-    Re-run them exactly as below to record it (a cached search sends no request):
-      scholar search "..." -p openalex -l 40 -n w45-roundtrip
-      ...
+                    searches returned it. Re-run them exactly as below ...
+    scholar search '...' -p openalex --limit 40 -n w45-roundtrip
+    ...
   ```
 
-  **Fix:** run every listed command as printed (same query, providers,
-  filters, limit and `-n` session; `-f json`/`candidate_commands` gives
-  them in machine-readable form), then run `found-via` again and paste its
-  `FOUND-VIA:` line. Re-running records the link and keeps every decision.
+  Re-running them records the link (fix below).
+- **No candidates.** If the message lists no commands, no search in the
+  session matches the paper's provider (an old or hand-edited session).
+  Nothing can be re-run: write the honest fallback below.
 - **Snowballed paper** ("added by snowballing"): no search returned it.
-  Record the snowballing step (seed paper, direction) as its `FOUND-VIA`.
+  Record the snowballing step (seed paper(s), direction) as its
+  `FOUND-VIA`; the session does not store which seed of a round produced
+  which paper.
 
-Before re-running:
+Before re-running, check the cost:
 
 - **Cache hits are free, misses are live.** An identical command is answered
-  from `~/.cache/scholar` if the result is still cached. After `cache clear`
-  (or a test run of a scholar checkout before dbosk/scholar#132, which
-  overwrote the cache) it goes to the provider and spends quota: check
-  `scholar providers limits` (IEEE allows 200 a day). DBLP searches currently
-  fail (#94), so a DBLP candidate cannot be re-run.
-- **A live re-run returns today's results.** Papers that are new since the
-  original search land in the session as pending (decisions are kept).
-  A paper the provider no longer returns stays unlinked: then say so rather
+  from the search cache if the result is still cached. `scholar cache info`
+  shows whether the provider's cache holds anything; after `cache clear`, or
+  a test run of a scholar checkout before PR #133 (which overwrote the
+  cache), every re-run goes to the provider and spends quota. Check
+  `scholar providers limits` (IEEE allows 200 a day). An uncached DBLP
+  candidate fails (#94) and cannot be re-run; a cached one still works.
+- **A live re-run returns today's results.** It updates the search record's
+  hit count, and papers new since the original search land in the session
+  as pending (decisions are kept). They then count in `sessions export -f
+  table` and the audit caption: screen them or say they are unscreened.
+
+**Fix:** run every listed command exactly as printed in the table output
+(same query, providers, filters, limit and `-n <session>`). The JSON
+`candidate_commands` lack the `-n`; append `-n <session>` (the JSON
+`session` field) or nothing gets linked. Each re-run prints CSV to stdout
+in a non-TTY; send it to `/dev/null` (`Saved session: <path>` goes to
+stderr). Then run `found-via` again and paste its `FOUND-VIA:` line; that
+re-run is the check that the link was recorded. If it still says
+`Not reproducible:`:
+
+- **The installed scholar may drop the link.** A scholar older than PR #129
+  does not know `found_by` and loses it on save; upgrade it and re-run.
+- **The provider no longer returns the paper** (live re-run). Say so rather
   than guess, e.g. `FOUND-VIA: session "<name>", one of its openalex
   searches (not recorded which); re-run <date> no longer returns it`, and
-  add a known-item lookup (below) as the reproducible route.
-- **The installed scholar must keep the link.** A scholar older than PR #129
-  drops it on save. After re-running, `grep -c '"found_by"'
-  ~/.local/share/scholar/review_sessions/<name>.json` must be non-zero;
-  if it is zero, upgrade scholar first.
+  add a known-item lookup (see "Known items") as the reproducible route.
+  Use the same fallback when there are no candidates.
 
 ## Notes and sessions
 
