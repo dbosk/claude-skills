@@ -39,12 +39,19 @@ code reaching into the gutter and on decks with few margin notes.
 marginfix (1.6 on) logs what it did with the notes that did not fit:
 
     marginfix-spill: page=<p> to=<q> intended     carried on purpose
+    marginfix-spill: page=<p> to=<q> capped       carried, since ending
+                                                  page p early would leave
+                                                  more empty than the limit
+                                                  (didactic noteyieldmaxgap)
     marginfix-spill: page=<p> to=<q> unresolved   should have fitted
     marginfix-yield: page=<p> before=<file>:<line>  page ended early
 
 A note on the page after its marker is INTENDED, not a defect, when the
-log has a matching intended spill; every unresolved spill is a failure,
-whether or not the pairing found it.  The yields, and marginfix's warning
+log has a matching intended spill, and CAPPED, not a defect either, when
+it has a matching capped spill; the capped spills are also listed as
+notices, since the note is away from its marker (look at the page: is it
+still easy to find?).  Every unresolved spill is a failure, whether or
+not the pairing found it.  The yields, and marginfix's warning
 when such a page is less than half full, are printed as notices.  The
 page numbers in the log are the page counter's, mapped to PDF pages
 through the log's shipout markers.
@@ -131,7 +138,7 @@ MARGIN_LINE_RE = re.compile(
     r"didactic-margin:\s*odd=" + NUM + r"\s+even=" + NUM
     + r"\s+width=" + NUM)
 SPILL_RE = re.compile(
-    r"marginfix-spill:\s*page=(\d+)\s+to=(\d+)\s+(intended|unresolved)")
+    r"marginfix-spill:\s*page=(\d+)\s+to=(\d+)\s+(intended|capped|unresolved)")
 YIELD_RE = re.compile(r"marginfix-yield:\s*page=(\d+)\s+before=(\S+)")
 # marginfix's warning for a page that ended early and is less than half
 # full: its first line and the "(marginfix)" lines continuing it.
@@ -282,6 +289,11 @@ class Marginfix:
         return collections.Counter(self.pdf_pair(p, q)
                                    for p, q, kind in self.spills
                                    if kind == "intended")
+
+    def capped(self):
+        return collections.Counter(self.pdf_pair(p, q)
+                                   for p, q, kind in self.spills
+                                   if kind == "capped")
 
     def unresolved(self):
         return [self.pdf_pair(p, q) for p, q, kind in self.spills
@@ -473,6 +485,12 @@ def main():
     for w in mfx.half_empty:
         print(f"NOTICE: {w} (page counter; not a failure)")
     intended = mfx.intended()
+    capped = mfx.capped()
+    for (n, m), k in sorted(capped.items()):
+        if args.page is None or args.page in (n, m):
+            print(f"NOTICE: marginfix carried {k} note(s) marked on page "
+                  f"{n} to page {m} instead of ending page {n} early "
+                  f"(marginfix-spill capped; not a failure)")
 
     defects, warnings, carried = [], [], []
     total_markers = total_notes = 0
@@ -486,9 +504,16 @@ def main():
             if k in per_page.get(n + 1, empty)[1]:
                 if intended[(n, n + 1)] > 0:
                     intended[(n, n + 1)] -= 1
-                    carried.append(f"page {n}: marker {k} is here, its "
-                                   f"note carried to page {n + 1} on "
-                                   f"purpose (marginfix-spill intended)")
+                    carried.append(("INTENDED",
+                                    f"page {n}: marker {k} is here, its "
+                                    f"note carried to page {n + 1} on "
+                                    f"purpose (marginfix-spill intended)"))
+                elif capped[(n, n + 1)] > 0:
+                    capped[(n, n + 1)] -= 1
+                    carried.append(("CAPPED",
+                                    f"page {n}: marker {k} is here, its "
+                                    f"note carried to page {n + 1} "
+                                    f"(marginfix-spill capped)"))
                 else:
                     defects.append(f"page {n}: marker {k} is here, its "
                                    f"margin note is on the next page")
@@ -507,8 +532,8 @@ def main():
           f"on {len(per_page)} pages")
     for w in warnings:
         print(f"WARNING: {w} --- read that page by eye")
-    for c in carried:
-        print(f"INTENDED: {c}")
+    for label, c in carried:
+        print(f"{label}: {c}")
     for d in defects:
         print(f"DEFECT: {d}")
     unresolved = [(n, m) for n, m in mfx.unresolved()
