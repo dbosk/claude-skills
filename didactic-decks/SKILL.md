@@ -234,7 +234,9 @@ and exits non-zero on a hard failure. `--check-only` runs the checks on
 existing PDFs; `--jobs notes` builds one job; `--exempt GLOB` excludes
 hand-written inputs from `black --check`; `--makefiles DIR` sets
 `INCLUDE_MAKEFILES`; `--log FILE` puts the build log somewhere other than
-`ltxobj/`.
+`ltxobj/`; `--overfull-pt N` sets the overfull-line threshold (default
+5); `--draft` reports the overfull lines without failing on them, for a
+quick compile for review (never for the build that clears a deck).
 
 By hand it is:
 
@@ -284,6 +286,7 @@ These `scripts/build_deck.sh` runs itself:
 | source lines over 79 characters | none |
 | `check_provenance.py` on `ltnotes.bib` | `Result: OK` |
 | `check_margin_notes.py` on the notes | no note printed away from its marker; a run that checked nothing fails too |
+| `check_overfull.py` on `ltxobj/notes.log` | no line more than 5pt too wide (`--overfull-pt N`); `--draft` lists them without failing |
 | blank-ish slides | reported, not failed: poster and section frames are legitimately sparse |
 
 Every row but the last makes the script exit non-zero. It prints the
@@ -296,6 +299,14 @@ on purpose (`marginfix-spill: … intended`) passes as INTENDED; an
 `unresolved` spill fails. A deck whose notes really have no
 margin notes opts out with a committed `.no-margin-check` file whose first
 line says why.
+
+The overfull check lists each line with its width, the file and line
+range TeX logged (usually the woven `contents.tex`: grep the `.nw` for the
+quoted text), and the approximate page. 5pt sits under the 7pt
+`marginparsep`: a body line more than 7pt too wide runs into the margin
+column. A box TeX set but never printed (a `<presentation>` frame) is
+listed as not in the PDF and does not count. Details in
+`references/review-checklist.md`, "Overfull lines in the notes".
 
 **Four checks it does not run.** Do them yourself before calling a deck
 reviewed:

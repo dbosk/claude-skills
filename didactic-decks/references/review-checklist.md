@@ -7,7 +7,9 @@ margin-note check warns about).
 Contents: [The numeric checks](#the-numeric-checks) ·
 [Tangled examples](#tangled-examples) ·
 [Bibliography](#bibliography) · [Reading the pages](#reading-the-pages) ·
-[Margin notes](#margin-notes) · [Known harmless](#known-harmless)
+[Margin notes](#margin-notes) ·
+[Overfull lines in the notes](#overfull-lines-in-the-notes) ·
+[Known harmless](#known-harmless)
 
 ## The numeric checks
 
@@ -17,6 +19,7 @@ Contents: [The numeric checks](#the-numeric-checks) ·
 | Unresolved references | `pdftotext notes.pdf - \| grep -c '??'` | 0, both jobs |
 | Empty citations | `LC_ALL=C grep -a -c 'empty citation' ltxobj/notes.log` | 0, both jobs |
 | Overfull vbox on slides | `LC_ALL=C grep -a -c 'Overfull .vbox' ltxobj/slides.log` | 0 |
+| Overfull lines in the notes | `scripts/check_overfull.py --pdf notes.pdf ltxobj/notes.log` | none over 5pt |
 | Minted placeholders | `pdftotext ltxobj/slides.pdf - \| grep -c MINTED` | 0 |
 | PythonTeX instance skew | `wc -l ltxobj/notes.pytxcode ltxobj/slides.pytxcode` | nearly equal |
 | Rerun messages | `LC_ALL=C grep -a -c 'Rerun to get\|undefined references\|run Biber' ltxobj/notes.log` | 0 after convergence |
@@ -215,6 +218,45 @@ after the build; it reports every page whose printed line is a strict
 prefix of a tangled program or transcript line, and every word past the
 page width. Found in six of eleven decks in one campaign (2026-09-16).
 
+## Overfull lines in the notes
+
+An inline code literal or a URL that cannot be broken runs out of the
+text block, possibly over a margin note, and no other check sees it
+(Praktiska v20, page 14: `{"name": …}` 67pt into the margin, every check
+green). `build_deck.sh` runs `scripts/check_overfull.py` on the notes log
+and fails on any `Overfull \hbox` more than `--overfull-pt` (default 5pt)
+too wide; `--draft` prints the same list and passes, for a quick compile
+for review. Each line reads
+
+```
+67.2pt too wide, page ~14, ./contents.tex:864 (paragraph)
+    Jämförelse: upp-slags-lis-tor mot Item-klass Med upp-slags-lis-tor ( )
+```
+
+- The file is the one open when TeX logged the line, usually the woven
+  `contents.tex`, whose line numbers are not `contents.nw`'s: grep the
+  `.nw` for a word of the quoted text (the hyphens are TeX's break
+  points; `( )` is a nested box, here the `\mintinline`). A range like
+  `893--1, begun in another file` is a paragraph that started in
+  `contents.tex` and ended in an `\input` transcript.
+- The page is the one being built when TeX broke the paragraph; it can
+  be the next one.
+- Whether the line is in a margin note the log does not say.
+- The threshold sits under memoir's 7pt `marginparsep` (the summary
+  prints it): a body line more than that too wide runs into the margin
+  column; at 5pt it ends within 2pt of it, visible as a nub on the edge.
+- `not in the PDF (not counted)`: TeX set the box and threw it away (a
+  `<presentation>` frame with a wide column gave 335pt). The check looks
+  for the line's longest stretch of text on the page and its neighbours;
+  a line with too little text to tell (a table, code) always counts.
+
+Typical causes and fixes: a `\mintinline` or `[[...]]` literal at a line
+end (reword so it falls mid-line, or break the literal), a URL or DOI in
+a bibliography entry or provenance paragraph (biblatex does not break a
+URL between letters by default; its counters `biburllcpenalty` and
+`biburlucpenalty`, e.g. `\setcounter{biburllcpenalty}{7000}` in the
+preamble, allow it), a wide table (narrow a column).
+
 ## Cross-deck premises
 
 When a deck says what an earlier deck showed, or reuses its program, read
@@ -237,7 +279,8 @@ figure in `sokprotokoll.tex`.
 
 - A permanent two-cycle of "Rerun to get cross-references right" caused by
   a margin citation at a page boundary, **as long as `??` is 0**.
-- `Overfull \hbox` warnings in the notes: ordinary typesetting.
+- `Overfull \hbox` warnings in the notes up to 5pt: ordinary
+  typesetting (wider ones fail, see "Overfull lines in the notes").
 
 - **Side-by-side overflow** (didactic ≥ 2.7.1): `grep -c 'than its column' ltxobj/*.log` must be 0 for both jobs.
 - **Margin check on a long book** that has no `didactic-margin` line in its log (the guess fails on long hit-list tables): split with `pdftk <pdf> cat A-B output part.pdf` into ~100-page ranges; never `pdfseparate` (one file per page fills the `/tmp` quota and killed two book builds, 2026-10-04).

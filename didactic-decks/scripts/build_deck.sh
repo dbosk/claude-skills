@@ -17,6 +17,11 @@
 #   --jobs LIST       comma-separated: notes,slides (default: notes,slides)
 #   --check-only      skip the build, run the checks on existing PDFs
 #   --exempt GLOB     path glob excluded from black --check; repeatable
+#   --overfull-pt N   notes lines more than N pt too wide fail the build
+#                     (default 5; marginparsep is 7pt in the didactic
+#                     layout, so a wider line nears the margin notes)
+#   --draft           report those lines but do not fail on them, for
+#                     quick compiles for review
 #   -h, --help        this text
 #
 # A deck whose notes really carry no margin notes opts out of the
@@ -30,7 +35,7 @@ usage() {
 }
 
 DECK=""; MAKEFILES=""; LOG=""; TITLE=""; JOBS="notes,slides"
-CHECK_ONLY=0; EXEMPT=()
+CHECK_ONLY=0; EXEMPT=(); OVERFULL_PT=5; DRAFT=0
 
 die() { echo "build_deck.sh: $*" >&2; exit 2; }
 
@@ -43,6 +48,8 @@ while [ $# -gt 0 ]; do
     --jobs)       JOBS="${2:-}"; shift 2 ;;
     --check-only) CHECK_ONLY=1; shift ;;
     --exempt)     EXEMPT+=("${2:-}"); shift 2 ;;
+    --overfull-pt) OVERFULL_PT="${2:-}"; shift 2 ;;
+    --draft)      DRAFT=1; shift ;;
     -h|--help)    usage; exit 0 ;;
     *)            die "unknown option: $1 (try --help)" ;;
   esac
@@ -277,6 +284,38 @@ case ",$JOBS," in *,notes,*)
   ;;
 esac
 
+# Overfull lines in the notes: an inline code literal or a URL running
+# out of the text block, possibly over a margin note.  The margin check
+# does not see it (it compares notes and markers, not the body's edge).
+# A slide's overfull \hbox is left to the eye: beamer frames overflow
+# by design (columns, wide code), and the vbox check catches the bad case.
+OVERFULL=$(dirname "$0")/check_overfull.py
+case ",$JOBS," in *,notes,*)
+  NPDF=notes.pdf; [ -f "$NPDF" ] || NPDF=ltxobj/notes.pdf
+  if [ -f ltxobj/notes.log ]; then
+    OARGS=(--pt "$OVERFULL_PT" ltxobj/notes.log)
+    # With the PDF, a box TeX set and threw away (a <presentation> frame)
+    # is listed as not in the PDF and does not count.
+    [ -f "$NPDF" ] && OARGS+=(--pdf "$NPDF")
+    set +e
+    out=$(python3 "$OVERFULL" "${OARGS[@]}" 2>&1)
+    rc=$?
+    set -e
+    echo "$out" | sed 's/^/overfull: /'
+    case "$rc" in
+      0) ;;
+      1) if [ "$DRAFT" -eq 1 ]; then
+           note "overfull: --draft, not failing on the lines above"
+         else
+           bad "notes: lines more than ${OVERFULL_PT}pt too wide (fix them," \
+               "or --draft for a quick compile for review)"
+         fi ;;
+      *) bad "notes: overfull check failed (exit $rc)" ;;
+    esac
+  fi
+  ;;
+esac
+
 # Tangled Python must be black-clean: the tangle rule pipes it through
 # black and the file has to match the slide byte for byte.
 #
@@ -351,6 +390,7 @@ fi
 
 if [ "$FAIL" -eq 0 ]; then
   note "ALL CHECKS PASSED"
+  [ "$DRAFT" -eq 0 ] || note "  (--draft: overfull lines reported, not checked)"
   note "Still to do separately: check_metadata.py on ltnotes.bib (needs"
   note "  the network); running the tangled examples; reading every slide"
   note "  and every notes page."
