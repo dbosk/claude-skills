@@ -92,9 +92,12 @@ pre_clean() { rm -rf ltxobj/_minted; }
 # latexmk under -use-make can stop before the final passes: blank ToC
 # frames on the slides, literal MINTED placeholders, unresolved refs.
 # Run biber and pdflatex by hand while the log still asks for it.
+# Up to 8 passes: marginfix's records (anchor pages, early page ends and
+# their cap, \marginnoteyieldlimit) settle a run at a time, and a notes
+# PDF dense with citations in the margin has needed 6 after latexmk.
 converge() {
   local j=$1 i
-  for i in 1 2 3 4; do
+  for i in 1 2 3 4 5 6 7 8; do
     [ -f "ltxobj/$j.log" ] || return 0
     if LC_ALL=C grep -a -q "run Biber" "ltxobj/$j.log"; then
       biber --output-directory ltxobj "ltxobj/$j" >> "$LOG" 2>&1 || true
@@ -109,7 +112,7 @@ converge() {
       return 0
     fi
   done
-  note "$j: still asking for a rerun after 4 extra passes"
+  note "$j: still asking for a rerun after 8 extra passes"
 }
 
 if [ "$CHECK_ONLY" -eq 0 ]; then
