@@ -303,7 +303,7 @@ how the claim was adjusted or the other side cited), or explicitly
 
 ```bash
 scholar search "..." -f bibtex+prov     # entries pre-wrapped, FOUND-VIA + DATE filled
-scholar prov found-via "<paper-id>"     # reproducible FOUND-VIA line for one paper
+scholar prov found-via "<paper-id>"     # FOUND-VIA line(s); "Not reproducible:" → cookbook
 scholar prov export refs.bib --in-place # write notes' provenance blocks above entries
 scholar prov import refs.bib            # pull .bib provenance blocks back into notes
 ```
@@ -476,7 +476,7 @@ the user as todos (`nytid-todo`), load-bearing first.
 | `references/provenance-format.md` | Full provenance schema, field semantics, worked examples, migrating a `scholar rq` session into `FOUND-VIA` | `FOUND-VIA`, `QUOTE`, `VERIFIED`, `multi-line` |
 | `references/claim-audit.md` | Finding the claims that carry no citation: advice, conventions, "because" clauses, "no claims" statements; the PEP 8 case | `imperative`, `benefit`, `because`, `no claims` |
 | `references/verification-checklist.md` | Applicability tests for deciding whether a source really supports a claim | `scope`, `primary vs secondary`, `over-claim`, `retraction`, `venue` |
-| `references/scholar-cookbook.md` | Non-interactive `scholar` recipes (incl. `bibtex+prov`, `prov`, `verify`, `pdf quote`), provider health and failed searches, sessions and `.bak`, proxy, cache, citation keys + how to phrase `FOUND-VIA` for non-`scholar` sources | `providers check`, `failed (`, `.json.bak`, `--proxy`, `cache clear`, `citation keys`, `bibtex+prov`, `WebFetch` |
+| `references/scholar-cookbook.md` | Non-interactive `scholar` recipes (incl. `bibtex+prov`, `prov`, `verify`, `pdf quote`), provider health and failed searches, sessions and `.bak`, proxy, cache, citation keys + how to phrase `FOUND-VIA` for non-`scholar` sources | `providers check`, `Not reproducible`, `failed (`, `.json.bak`, `--proxy`, `cache clear`, `citation keys`, `bibtex+prov`, `WebFetch` |
 | `references/closed-access.md` | Fetching subscribed full texts through the KTH SOCKS tunnel: the allowed commands, `SCHOLAR_PROXY`, which publishers answer, curl vs `fetch_pdf.py`, bot checks, leftovers as todos | `tunnel`, `SCHOLAR_PROXY`, `socks5h`, `Cloudflare`, `user agent` |
 | `references/scholar-enhancements.md` | Record of what shipped in scholar for this skill (provenance, audit table, honest failures, session integrity, proxy) and a place for future ideas | `shipped`, `PR`, `gh issue`, `future ideas` |
 | `references/appendix-guide.md` | The backing appendix as a short reproducible paper: skeleton, self-containment rules, query-table template, hit-list table generation, checklist | `Self-contained`, `Same queries`, `Vocabulary symmetry`, `Query table`, `session_table` |
