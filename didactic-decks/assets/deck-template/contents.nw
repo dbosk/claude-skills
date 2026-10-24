@@ -11,9 +11,9 @@ then the definition last.
 \begin{frame}
   \begin{exercise}\label{ex:first-question}
     The try-first question, asked before anything it presupposes has been
-    explained.  It stays open --- "what does the program print?", not
-    "what is the mistake?" --- so the critical aspect can surface in the
-    answers without being pointed at.
+    explained.  It stays open --- \enquote{what does the program print?}, not
+    \enquote{what is the mistake?} --- so the critical aspect can surface in
+    the answers without being pointed at.
   \end{exercise}
 \end{frame}
 
