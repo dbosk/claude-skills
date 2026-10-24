@@ -101,6 +101,13 @@ aritmetiska operatorerna är fem:" before a list of seven (author struck
 *fem*, 2026-09-22). A count invites a check and goes stale when the list
 changes; write "De aritmetiska operatorerna är:".
 
+**The lead-in to a side-by-side example does not repeat its column
+labels.** Before a `\codebycode` (or any two columns of code), "Räkningen
+i de två programmen, sida vid sida:" suffices; not "… i `letters.py` till
+vänster och i `counter.py` till höger". The column labels already name
+the files, and file names are long unbreakable words: the repetition gave
+six lines 14–35pt into the margin in one sweep (author, 2026-10-24).
+
 **Numbers: ett till tolv i ord, 13 och uppåt i siffror** (Språkrådet's
 rule; author, 2026-09-29, beside "åttioen": "Skrivregler: ett till tolv,
 13 till oändligheten."). A round number (femtio, hundra, tusen) may stay
