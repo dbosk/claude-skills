@@ -71,8 +71,8 @@ figure is referenced from the student-facing prose, not only from an
 \section{The next idea}
 \label{sec:next-idea}
 
-Notes-only structure goes in \verb|\mode<article>{...}|; slide-only
-tweaks go in \verb|\mode<presentation>{...}|.  No manual page breaks:
+\verb|\mode<article>| holds notes-only structure;
+\verb|\mode<presentation>| holds slide-only tweaks.  No manual page breaks:
 didactic splits a long \verb|\ltnote| across pages, so a poor page is
 fixed in the content.
 
