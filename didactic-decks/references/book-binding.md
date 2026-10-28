@@ -220,10 +220,20 @@ the deck, so the standalone build and the book agree:
 - `ltnotes.bib: <deck bibs> book-body.tex` runs `check_bib.py`, removes
   the old file, merges. `check-labels` is an order-only prerequisite of
   both PDFs.
-- **`ltxobj/_minted` before the book build** (order-only): under
-  `\subimport`, minted's `\IfFileExists` also finds a built deck's
-  `ltxobj/_minted` style file, never creates the book's cache directory,
-  and the book then shows `<MINTED>` placeholders.
+- **A minted cache of the book's own name**, in the book's preamble:
+  `\usepackage[cachedir=_minted-bok]{minted}` (any name no deck uses).
+  minted looks its cache files up as `ltxobj/_minted/<file>` with
+  `\IfFileExists`, and under `\subimport` the `import` package tries the
+  deck's directory first, so with the decks' default name a deck built
+  standalone lends the book its cache: `<MINTED>` placeholders, or, on a
+  clean first pass, "TeX capacity exceeded [grouping levels=255]" at the
+  first highlighted block (minted 3.8.0's fallback style installs its
+  Pygments patch twice and `\PYG` recurses). Deleting the decks'
+  `ltxobj/_minted` before each book build only hides it. Add a check
+  target: after a book build, the recorder's `ltxobj/bok*.fls` has no
+  `INPUT` line from a `/_minted/` directory (`grep '^INPUT .*/_minted/'`
+  must find nothing); it proves something only when some deck was built
+  first.
 - `LATEXFLAGS+= -shell-escape`, `TEX_PYTHONTEX=yes`,
   `--rerun=always` (both editions share `ltxobj/`), and for Mentipy decks
   a book-local venv made by `mentipy init --venv` as in the decks.
@@ -235,7 +245,7 @@ the deck, so the standalone build and the book agree:
   `footnotereuse=off` (the default under `draft`, which also blanks
   graphics): no extra passes. The final build keeps the default `fast`.
 - **One job at a time**: never build the two editions concurrently; they
-  share `ltxobj/`, `_minted` and the transcript files.
+  share `ltxobj/`, the minted cache and the transcript files.
 
 ## Adding a deck
 
@@ -279,11 +289,11 @@ checks below.
   pages) the guess may fail ("no margin column detected", exit 2): that
   is not a pass. Then split the PDF into ranges of about 100 pages
   (`pdftk in.pdf cat 1-100 output part1.pdf`, …) and run it on each.
-- **Stale minted caches kill the book build.** After standalone deck
-  builds, the book stops at its first `\mintinline` with "TeX capacity
-  exceeded [grouping levels=255]", and a failed run leaves stray output
-  files in `book/`. Delete every included deck's `ltxobj/_minted` (and
-  `book/ltxobj` for a clean build) before each book build.
+- **The book reads only its own minted cache**: build one deck
+  standalone, then the book from a clean `ltxobj/`, then run the
+  `.fls` check from the Makefile section. A "grouping levels=255" stop
+  means a deck's `_minted` was read; a failed run also leaves stray
+  output files in `book/`.
 - **Teacher-edition crowding**: with every `\ltnote` on, dense pages run
   out of margin and notes queue forward; a didactic-side remedy is under
   investigation. Do not bring back forced page breaks to fix it.
@@ -291,10 +301,3 @@ checks below.
   flushing floats inside a chapter; the book's preamble copy drifts from
   the decks' until the joint preamble exists; the `\deck`-list parsers
   (Makefile, both scripts) only match the two forms above.
-
-**Build trap: a book build right after standalone deck builds.** minted
-finds a deck's highlight cache in `<deck>/ltxobj/_minted` through the
-import path and the book build dies with "TeX capacity exceeded
-[grouping levels=255]" at the first `\mintinline`. Delete the decks'
-`ltxobj/_minted` before building the book (or make the book Makefile do
-it).
