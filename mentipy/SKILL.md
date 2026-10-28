@@ -110,6 +110,18 @@ notes.pdf slides.pdf: ${MENTIPY_STAMP}
 notes.pdf slides.pdf: $(wildcard mentipy-obj/Q-*.pdf_tex)
 ```
 
+- The recipe relies on the shared `makefiles/tex.mk` running PythonTeX
+  inside latexmk (`TEX_PYTHONTEX=yes`, makefiles ≥ 1571556 "Make
+  TEX_PYTHONTEX actually run PythonTeX"). An older checkout only has
+  `%.pdf: pythontex-files-%/%.pytxmcr`, which nothing builds when the
+  output goes to `ltxobj/`. Make then skips the rule silently, and the
+  PDF builds with **empty poll frames and no error**. The fix is to
+  update the submodule
+  (`git -C makefiles pull origin master` and commit the bump), not to
+  write a custom rule. The check is `grep -n latexmkrc makefiles/tex.mk`.
+- PythonTeX runs the code in the `python3` on PATH unless
+  `--interpreter python:<venv>/bin/python3` is given. Running pythontex
+  itself with the venv's python is not enough.
 - Raise `MENTIPY_VERSION` when the deck starts using a newer feature.
   The version must be on PyPI, or every fresh build fails at the
   `pip install`.
