@@ -9,7 +9,8 @@ Two detectors, because either alone misses cases:
      bbox test cannot see (the clipped word never reaches pdftotext).
      A line minted wrapped (breaklines, continued behind a mark on the
      next line) is not a cut: when the line and the next one joined are
-     still the source line's prefix, the hit is dropped.
+     still the source line's prefix, the hit is dropped.  The next line
+     may be one further down, past a line of margin text alone.
   B. bbox test -- a word's xMax exceeds the page width.  Catches a line
      that hangs over the edge and is only partly drawn.
 
@@ -39,6 +40,16 @@ def sources(deck):
     return out
 
 
+# pdftotext -layout indents a line that holds only margin text this many
+# columns or more deeper than the body lines around it (about 90 on a
+# didactic notes page, whose text block is some 85 columns wide).
+MARGIN_INDENT = 40
+
+
+def indent(text):
+    return len(text) - len(text.lstrip())
+
+
 def squash(text):
     """Text without spaces: a wrapped line's halves lose the space at the
     break, or gain one, depending on where minted broke it."""
@@ -56,7 +67,8 @@ def check(pdf, src):
         txt = subprocess.run(
             ["pdftotext", "-layout", "-f", str(p), "-l", str(p), pdf, "-"],
             capture_output=True, text=True).stdout
-        lines = [ln.strip() for ln in txt.splitlines()]
+        raw = txt.splitlines()
+        lines = [ln.strip() for ln in raw]
         for i, line in enumerate(lines):
             if len(line) < 25 or line in src:
                 continue
@@ -65,13 +77,20 @@ def check(pdf, src):
             # behind a continuation mark: the joined text is still the
             # source line's prefix, so the line is not cut.
             nxt = lines[i + 1] if i + 1 < len(lines) else ""
+            nexts = [nxt]
+            # A margin-note line can sit between the wrapped line and its
+            # continuation in pdftotext's layout, alone and indented to
+            # the margin column: then the continuation is one line further.
+            if (i + 2 < len(lines)
+                    and indent(raw[i + 1]) - indent(raw[i]) > MARGIN_INDENT):
+                nexts.append(lines[i + 2])
             if hits and nxt:
                 # pdftotext gives the mark as "↪" or ",→"; try the next
                 # line with and without it, since a line may begin with ",".
                 # A margin note beside the continuation follows it on the
                 # same layout line after a wide gap: try the part before.
-                body = re.split(r"\s{3,}", nxt)[0]
-                tails = {t for b in (nxt, body)
+                tails = {t for n in nexts
+                         for b in (n, re.split(r"\s{3,}", n)[0])
                          for t in (b, re.sub(r"^[,↪→\s]+", "", b))}
                 joined = [squash(line + t) for t in tails]
                 hits = [s for s in hits
