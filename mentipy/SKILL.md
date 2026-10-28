@@ -163,8 +163,10 @@ after `serve` reverts the codes (dbosk/mentipy#67).
    starts the server, then shows the tally of the question the
    lecturer has open. It takes serve's options and watch's
    `--interval`, `--window` and `--pin-heat`, and keeps serve's
-   start-up lines and any server warnings in a banner. Ctrl-C stops
-   both. Use `mentipy serve` alone when the tally should not be on this
+   start-up lines and any server warnings in a banner, and opens the
+   admin index in the browser (`--no-open` to skip; the command is
+   `--open-with` or `mentipy.open_command`, `none` turns it off).
+   Ctrl-C stops both. Use `mentipy serve` alone when the tally should not be on this
    screen. Off the LAN, add `--public ssh` (reads
    `mentipy.ssh_tunnel`) or `--public` (UPnP). The banner then holds
    the admin link, so keep that terminal off the projector. The QR
@@ -221,8 +223,14 @@ after `serve` reverts the codes (dbosk/mentipy#67).
   labels and the web pages. Check `mentipy latex` for the installed
   version: older releases print English only, and a deck then needs
   the string-replacing wrapper in `references/beamer-decks.md`.
-  - Set `mentipy.locale` (`mentipy config mentipy.locale --set sv`),
-    or pass `serve`/`present --locale sv` for the web pages.
+  - A deck sets its language once, with `"locale": "sv"` in the
+    shared keywords (every helper takes `locale=`, newer than 0.14:
+    check that the deck venv's `mentipy latex` lists it). The helper
+    records it with the question, so the server shows that question's
+    pages in it.
+  - Otherwise set `mentipy.locale`
+    (`mentipy config mentipy.locale --set sv`). `serve`/`present
+    --locale` overrides both for one run, for every question.
   - A changed locale reaches the slides only when PythonTeX reruns,
     which is always with the deck Makefile's `--rerun=always`.
   - To reword one label, put `\providecommand{\mentipychooseone}{}`

@@ -24,6 +24,7 @@ mentipy_common = {
     "environment": "",                # the exercise is written by hand
     "show_url": False,                # no URL in the notes
     "layout": "auto",                 # QR columns on slides, flat in notes
+    "locale": "sv",                   # labels and web pages (after 0.14)
 }
 def fraga(helper, *args, **kwargs):
     return translate(helper(*args, **{**mentipy_common, **kwargs}))
@@ -41,6 +42,9 @@ def fraga(helper, *args, **kwargs):
   gives the build order per mode.
 - **`environment=""`:** the deck writes the `exercise` environment
   around the call, so titles and `\label`s survive.
+- **`locale`:** the deck's language, for the slide labels and for
+  the question's web pages. Leave it out on 0.14 and older, which
+  reject the keyword.
 - **`translate`:** only for a Mentipy without translated labels (see
   "Language" in `SKILL.md`; with one, drop it and set the locale).
   It replaces Mentipy's fixed English phrases for a deck in another
