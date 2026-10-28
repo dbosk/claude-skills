@@ -198,12 +198,16 @@ Use different prompt types to engage students before providing explanations:
 
 Mentipy fits naturally when try-first prompts should be answered live in
 slides or handouts.  Use `mc` for constrained predictions, `scale` for quick
-self-assessment or confidence checks, `open_text` for short reflections, and
-`word_cloud` for brainstorming prior knowledge.  This works well for brief
+self-assessment or confidence checks, `open_text` for short reflections,
+`word_cloud` for brainstorming prior knowledge, `ranking` for ordering
+steps, and `pin_text` for "point at the bug" in code.  A prediction about
+a program carries the program as `context=`, so students read it on the
+phone right under the options.  This works well for brief
 diagnostic questions before explanation, especially when the goal is to make
 student thinking visible without revealing the critical aspect too early.
 An `mc` poll's stem and options follow "Writing a poll" in
-`references/patterns.md`.
+`references/patterns.md`.  For writing, building and running the poll,
+load the `mentipy` skill.
 
 ## Typical Flow
 

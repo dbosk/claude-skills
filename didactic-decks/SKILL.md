@@ -181,7 +181,8 @@ Each line points at the reference that explains it.
   Mentipy question) in one frame; after any change to such content, rebuild
   clean. `runpython-and-output.md`, `build-and-gotchas.md`
 - Exercises as live Mentipy polls (QR on the slide, plain in the notes):
-  venv, interpreter, placement and checks in `build-and-gotchas.md`.
+  load the `mentipy` skill (venv, placement, notes layout, checks in its
+  `references/beamer-decks.md`).
 - Floats sit right after the paragraph that references them, never on a
   float page, and their captions explain enough to stand alone; a figure
   that depicts code sits beside that code, on the slide and in the notes. `floats-and-margins.md`

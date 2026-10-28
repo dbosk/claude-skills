@@ -165,7 +165,8 @@ loses information about the tutorial → body text; it loses only information
 about how the chapter's prose was authored → `\ltnote`.
 
 If the `.nw` document generates slides or handouts with live questions, Mentipy
-is a suitable tool for embedding those prompts in the LaTeX output.
+is a suitable tool for embedding those prompts in the LaTeX output; load the
+`mentipy` skill before writing them.
 
 **CRITICAL**: Show concrete examples FIRST, then state general principles. Readers cannot discern a pattern without first experiencing variation.
 

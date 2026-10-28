@@ -361,7 +361,8 @@ Document:
 
 When using Mentipy in slides or handouts, document why that question appears
 at that moment, what responses are expected to reveal, and how the result will
-shape the explanation or discussion that follows.
+shape the explanation or discussion that follows.  (Writing the poll itself:
+the `mentipy` skill.)
 
 ## Writing Effective Notes
 

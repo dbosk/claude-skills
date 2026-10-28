@@ -768,12 +768,11 @@ Slides need **visual clarity** and **conciseness** (bullets, short phrases). Art
 
 ### Interactive Questions with Mentipy
 
-For slide decks or educational articles that should embed live polls, use
-`mentipy.latex` from a PythonTeX block or another Python block.  Prefer
-`mc`, `open_text`, `scale`, and `word_cloud` for student-facing questions,
-then run `mentipy serve` to publish the poll and recompile after URL changes
-so refreshed QR codes are embedded.  Use `layout="slide"` for Beamer slides
-and `layout="article"` or `layout="article+qr"` for handouts.
+For slide decks or educational articles that embed live polls
+(`mentipy.latex` helpers called from PythonTeX), load the `mentipy`
+skill: it owns the API (via `mentipy latex`), the deck venv, the
+question text rules (plain text, code in backticks, the program in
+`context=`) and running the poll.
 
 ## Standard Preamble
 

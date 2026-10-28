@@ -171,7 +171,8 @@ Both jobs write into `ltxobj`. Two consequences:
   job's PythonTeX instance count, because the overlays re-execute the frame
   body, and the shared cache then prints the wrong outputs in the notes (or
   a question on the wrong slide). Either drop the overlays or move the
-  `pycode` out of the frame (see the Mentipy section). Check with:
+  `pycode` out of the frame (for a poll, `write_snippet` in the
+  `mentipy` skill's `references/beamer-decks.md`). Check with:
 
   ```bash
   wc -l ltxobj/notes.pytxcode ltxobj/slides.pytxcode
@@ -181,70 +182,11 @@ Both jobs write into `ltxobj`. Two consequences:
 
 ### Mentipy live questions
 
-An `exercise` can be a live poll: a Mentipy question with a QR code on the
-slide and a plain exercise in the notes. Verified pattern (intropy decks
-*Algoritmiskt tänkande* and *Hello, World!*, 2026-09-08):
-
-- `import mentipy` fails in the system `python3` that PythonTeX runs (pipx
-  isolates the CLI), so PythonTeX runs in a deck-local virtualenv that the
-  Makefile creates on the first build (never a manual "run once" step: it
-  is gitignored, so every fresh checkout or worktree would fail the build):
-
-  ```make
-  MENTIPY_VENV=	$(CURDIR)/.venv
-  PYTHONTEXFLAGS=	--interpreter python:${MENTIPY_VENV}/bin/python3 --rerun=always
-
-  ${MENTIPY_VENV}/bin/python3:
-  	mentipy init --venv ${MENTIPY_VENV}
-
-  notes.pdf slides.pdf: | ${MENTIPY_VENV}/bin/python3
-  ```
-
-  Order-only (`|`) so the venv's timestamp never triggers a rebuild.
-  `mentipy init` is idempotent and installs the released mentipy from
-  PyPI. Gitignore `.venv/`, `mentipy.json` (it collects the students'
-  answers) and `mentipy-obj/`.
-- One `pycode` block at the top of `contents.nw`, inside `\mode<all>` … `\mode*`,
-  defines the common kwargs: `Store("mentipy.json")` (the deck directory is
-  PythonTeX's working directory), `qr_dir="mentipy-obj"`, `layout="auto"`
-  (`\mode<presentation>` gets text + QR columns, `\mode<article>` the flat
-  question; `show_url=False` keeps the URL out of the notes),
-  `environment=""` and the `exercise` environment written by hand around
-  the call, so titles and `\label`s survive, and an explicit `base_url`
-  (the public poll URL; a LAN address resolved at compile time breaks in
-  the lecture hall).
-- Question text and options are LaTeX-escaped by Mentipy: plain text only
-  (no macros, no `\cref`, no `"` under babel); code stays in the frame's
-  chunk and the question names the file.
-- Placement: a `pycode` inside a frame is safe only if the frame has no
-  overlays. To keep overlays, put the block at top level right before the
-  frame (in `\mode<all>`), let it write `mentipy-obj/<name>.tex`, and
-  `\input` that file inside the exercise (`\IfFileExists` guard for the
-  first pass).
-- `lock=True` (default) paces a question with the slides; `lock=False` for a
-  second question on the same slide; `next=False` on the deck's last one.
-- The flat article layout (the `\mode<article>` branch of `auto`) is
-  transparent since 2026-09-08: the notes show the prompt alone, in the
-  running text's weight — no options, no "Choose exactly one", type, limit
-  or range, no bold. The exercise reads as it did before Mentipy, so a
-  prompt that only works with its options ("vilket stämmer?") must be
-  rephrased for both surfaces. On the slides Mentipy still prints English
-  labels; the decks swap them in a small helper on the returned LaTeX.
-- The address under the QR lives in the sidecar `mentipy-obj/Q-*.pdf_tex`,
-  which `mentipy serve` rewrites together with the image. **Never
-  post-process the sidecar `\input` into literal text** (the copy freezes
-  at compile time and the caption stops following the server, while the
-  QR image keeps updating). To make the URL fit the narrow QR column,
-  redefine Mentipy's hook (mentipy ≥ 0.12) in `\mode<all>` before the
-  first question: `\newcommand{\mentipyqrcaption}[1]{{\tiny\url{#1}}}`
-  (`\url` breaks after `:`, `.` and `/`). And make the PDFs depend on the
-  sidecars, or `make` after `mentipy serve` says nothing to do:
-  `notes.pdf slides.pdf: $(wildcard mentipy-obj/Q-*.pdf_tex)`.
-- Checks: the clean recipe above before the final build; pytxcode counts
-  equal; `mentipy list --store mentipy.json` lists the questions in slide
-  order and matches the prefixes printed under the QR codes; `pdftotext
-  notes.pdf - | grep -c <base host>` is 0; every question slide rendered
-  and read.
+An `exercise` can be a live poll (QR code on the slide, plain exercise
+in the notes). Load the `mentipy` skill: its `SKILL.md` has the deck
+venv with the version stamp, and its `references/beamer-decks.md` the
+shared `pycode` block, placement with overlays, the notes layout, the
+QR caption and the checks.
 
 ### A PythonTeX run from the deck directory
 

@@ -218,8 +218,11 @@ dimension you intend to contrast, eliminate the incidental differences.
 ### Mentipy for Live Variation
 
 Mentipy can operationalize variation patterns in live teaching.  Use a short
-sequence of `mc`, `scale`, `open_text`, or `word_cloud` questions to vary one
-critical aspect at a time while keeping the object of learning invariant.
+sequence of `mc`, `scale`, `open_text`, `word_cloud`, `ranking` or
+`pin_text` questions to vary one critical aspect at a time while keeping
+the object of learning invariant (for example, the same program in
+`context=` with one line changed between two polls).  The `mentipy` skill
+covers writing and running them.
 This is especially useful for diagnostic contrast before an explanation and
 for checking whether students now discern the critical aspect afterward.
 

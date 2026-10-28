@@ -155,7 +155,7 @@ resolve under `\subimport`:
 | `\input`, `\includegraphics` | `import`'s `\subimport` |
 | `\inputminted{...}{examples/x.py}` | minted prefixes the import path itself (checked with v3.8) |
 | `\runpython`, `\runshell` (`cwd`, `stdinfile`, `deps`) | didactic ≥ 2.6: `\runbasedir{auto}` once in the preamble |
-| Mentipy (`Store("mentipy.json")`, `qr_dir`) | `\mentipybasedir{auto}` from `mentipy.sty` (dbosk/mentipy PR #46; check that it is merged and released) |
+| Mentipy (`Store("mentipy.json")`, `qr_dir`) | `\mentipybasedir{auto}` from `mentipy.sty` (mentipy ≥ 0.13) |
 
 Both `auto` forms follow `\import@path` and assume PythonTeX's working
 directory is the main document's directory. With the deck-standard
@@ -164,8 +164,8 @@ directory is the main document's directory. With the deck-standard
 didactic writes its transcript files (`didactic_output_*.txt`) in the
 directory PythonTeX started in (the book's), whatever the base directory.
 
-**Fallback only**, for a Mentipy without `\mentipybasedir` (0.12 has
-none): change the whole PythonTeX session into the deck's directory for
+**Fallback only**, for a Mentipy without `\mentipybasedir` (before
+0.13): change the whole PythonTeX session into the deck's directory for
 each chapter (`\pyc{book_enter_deck('../modules/#2')}` after the heading,
 `\pyc{book_leave_deck()}` before `\end{refsection}`, the functions
 `os.chdir`-ing relative to the book's directory saved at the first
@@ -236,7 +236,8 @@ the deck, so the standalone build and the book agree:
   first.
 - `LATEXFLAGS+= -shell-escape`, `TEX_PYTHONTEX=yes`,
   `--rerun=always` (both editions share `ltxobj/`), and for Mentipy decks
-  a book-local venv made by `mentipy init --venv` as in the decks.
+  a book-local venv made by `mentipy init --venv`, with the version
+  stamp from the `mentipy` skill.
 - **Raise latexmk's `max_repeat`.** didactic's citation-footnote reuse
   decides from the previous pass, so the book needs many passes from a
   clean `.aux` (example: 13 and 14 passes for eight decks; it grows with
