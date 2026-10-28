@@ -155,7 +155,11 @@ notes.pdf slides.pdf: $(wildcard mentipy-obj/Q-*.pdf_tex)
    - `--results` sends students to the live tally after answering;
      `results=` overrides that per question.
    - In a terminal, use `mentipy view PREFIX` or `mentipy watch PREFIX`
-     (`--window session|hour|day|all`).
+     (`--window session|hour|day|all`). A bare `mentipy watch` follows
+     the question the lecturer has open (`--server URL` when the server
+     is not on this machine). Watch the tally there, and refresh the
+     projected results page only when most have answered, so the room
+     does not see the results early.
    - Afterwards, `mentipy export PREFIX`.
 5. **Admin can steer the room** (opening, skipping). Admin is a request
    from the server machine. Under `--public ssh`, students arrive
