@@ -158,10 +158,18 @@ after `serve` reverts the codes (dbosk/mentipy#67).
 
 ## In the lecture
 
-1. Run `mentipy serve` from the deck's directory (or `--store`). Off the
-   LAN, use `--public ssh` (reads `mentipy.ssh_tunnel`) or `--public`
-   (UPnP). The QR codes must carry the address the students reach
-   (see "Where the QR codes point").
+1. Run `mentipy present` from the deck's directory (or `--store`). It
+   is `mentipy serve` plus a bare `mentipy watch` in one terminal: it
+   starts the server, then shows the tally of the question the
+   lecturer has open. It takes serve's options and watch's
+   `--interval`, `--window` and `--pin-heat`, and keeps serve's
+   start-up lines and any server warnings in a banner. Ctrl-C stops
+   both. Use `mentipy serve` alone when the tally should not be on this
+   screen. Off the LAN, add `--public ssh` (reads
+   `mentipy.ssh_tunnel`) or `--public` (UPnP). The banner then holds
+   the admin link, so keep that terminal off the projector. The QR
+   codes must carry the address the students reach (see "Where the QR
+   codes point").
 2. **Recompile after the first `serve`** if the address changed: it
    rewrites the QR images and their sidecars.
 3. **Pacing** (on by default, `--no-lock` turns it off):
@@ -176,17 +184,17 @@ after `serve` reverts the codes (dbosk/mentipy#67).
 4. **Results:**
    - `--results` sends students to the live tally after answering;
      `results=` overrides that per question.
-   - In a terminal, use `mentipy view PREFIX` or `mentipy watch PREFIX`
-     (`--window session|hour|day|all`). A bare `mentipy watch` follows
-     the question the lecturer has open (`--server URL` when the server
-     is not on this machine). Watch the tally there, and refresh the
+   - Watch the tally in `present` (or a bare `mentipy watch`, with
+     `--server URL` when the server runs elsewhere), and refresh the
      projected results page only when most have answered, so the room
-     does not see the results early.
+     does not see the results early. For one question, use
+     `mentipy view PREFIX` or `mentipy watch PREFIX`
+     (`--window session|hour|day|all`).
    - Afterwards, `mentipy export PREFIX`.
 5. **Admin can steer the room** (opening, skipping). Admin is a request
    from the server machine. Under `--public ssh`, students arrive
    through the tunnel and would look local, so a token is required.
-   `serve` then prints an `/?admin=<token>` link: open the lecturer's
+   `serve`/`present` then prints an `/?admin=<token>` link: open the lecturer's
    tab through it, and never show it on the projector. Any other tunnel
    that makes students look local hands them the room.
 
@@ -209,14 +217,22 @@ after `serve` reverts the codes (dbosk/mentipy#67).
 - Never copy the QR sidecar's URL into literal text: the copy freezes
   while the QR image keeps following the server. Restyle the caption
   through `\mentipyqrcaption` instead.
-- The slide labels ("Choose exactly one:", "Range", ...) are English. A
-  deck in another language replaces them in a small wrapper around the
-  helpers (see `references/beamer-decks.md`).
+- **Language.** Mentipy ships English and Swedish for the slide
+  labels and the web pages. Check `mentipy latex` for the installed
+  version: older releases print English only, and a deck then needs
+  the string-replacing wrapper in `references/beamer-decks.md`.
+  - Set `mentipy.locale` (`mentipy config mentipy.locale --set sv`),
+    or pass `serve`/`present --locale sv` for the web pages.
+  - A changed locale reaches the slides only when PythonTeX reruns,
+    which is always with the deck Makefile's `--rerun=always`.
+  - To reword one label, put `\providecommand{\mentipychooseone}{}`
+    and then `\renewcommand{\mentipychooseone}{...}` in the preamble.
+    `mentipy latex` lists the macro names.
 
 ## References
 
 - `references/beamer-decks.md`: polls in a didactic Beamer deck. It
   covers the shared `pycode` block (`layout="auto"`, `environment=""`,
-  no `base_url`), the wrapper that translates labels, and
+  no `base_url`), the label wrapper for older releases, and
   placement with overlays. It also covers the notes' flat layout, the
   QR caption, and the deck checks.

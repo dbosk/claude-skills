@@ -41,8 +41,10 @@ def fraga(helper, *args, **kwargs):
   gives the build order per mode.
 - **`environment=""`:** the deck writes the `exercise` environment
   around the call, so titles and `\label`s survive.
-- **`translate`:** replaces Mentipy's fixed English phrases for a deck
-  in another language. Examples: `"Choose exactly one:"`,
+- **`translate`:** only for a Mentipy without translated labels (see
+  "Language" in `SKILL.md`; with one, drop it and set the locale).
+  It replaces Mentipy's fixed English phrases for a deck in another
+  language. Examples: `"Choose exactly one:"`,
   `"Choose one or more:"`, `\item[Type] Free-text answer`,
   `\item[Limit] N characters`, `\item[Range]`, `\item[Low]`,
   `\item[High]`. Use `re.sub` for the one with a number. See the
