@@ -134,12 +134,34 @@ notes.pdf slides.pdf: $(wildcard mentipy-obj/Q-*.pdf_tex)
   store and QR directory under `\subimport`. See
   `didactic-decks/references/book-binding.md`.
 
+## Where the QR codes point
+
+Two things write the QR images and their address captions. The deck
+build writes them with the helper's address: `base_url=` if given,
+else `mentipy.base_url`, else the LAN address at compile time.
+`mentipy serve` rewrites them with the address it serves. **Whichever
+ran last wins**, and decks rerun PythonTeX on every build, so a rebuild
+after `serve` reverts the codes (dbosk/mentipy#67).
+
+- **Never hard-code `base_url` in a deck.** It pins every code to one
+  address, and serving in the other mode is then impossible.
+- **LAN lecture:** build, then run `mentipy serve`. A rebuild on the
+  same machine resolves the same LAN address, so it stays consistent.
+- **Public lecture:** `serve --public` takes the tunnel's address (or
+  `mentipy.public_base_url`), but the build reads only
+  `mentipy.base_url`. So set the public address there too, with
+  `mentipy config mentipy.base_url --set http://host:port`, then build
+  and run `mentipy serve --public ssh`. Back to LAN:
+  `mentipy config mentipy.base_url --set auto`, then rebuild.
+- **Check:** `grep -ho 'http[^}]*' mentipy-obj/*.pdf_tex | sort -u`
+  shows the address the PDF will carry.
+
 ## In the lecture
 
 1. Run `mentipy serve` from the deck's directory (or `--store`). Off the
    LAN, use `--public ssh` (reads `mentipy.ssh_tunnel`) or `--public`
-   (UPnP). The deck's `base_url` must be the address the students
-   reach.
+   (UPnP). The QR codes must carry the address the students reach
+   (see "Where the QR codes point").
 2. **Recompile after the first `serve`** if the address changed: it
    rewrites the QR images and their sidecars.
 3. **Pacing** (on by default, `--no-lock` turns it off):
@@ -195,6 +217,6 @@ notes.pdf slides.pdf: $(wildcard mentipy-obj/Q-*.pdf_tex)
 
 - `references/beamer-decks.md`: polls in a didactic Beamer deck. It
   covers the shared `pycode` block (`layout="auto"`, `environment=""`,
-  an explicit `base_url`), the wrapper that translates labels, and
+  no `base_url`), the wrapper that translates labels, and
   placement with overlays. It also covers the notes' flat layout, the
   QR caption, and the deck checks.

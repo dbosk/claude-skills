@@ -24,7 +24,6 @@ mentipy_common = {
     "environment": "",                # the exercise is written by hand
     "show_url": False,                # no URL in the notes
     "layout": "auto",                 # QR columns on slides, flat in notes
-    "base_url": "http://host.example:8080",   # the public poll address
 }
 def fraga(helper, *args, **kwargs):
     return translate(helper(*args, **{**mentipy_common, **kwargs}))
@@ -32,8 +31,14 @@ def fraga(helper, *args, **kwargs):
 \mode*
 ```
 
-- **`base_url`:** always give it explicitly. A LAN address resolved at
-  compile time breaks in the lecture hall.
+- **No `base_url` in the deck.** The address comes from
+  `mentipy.base_url` in the config, or else the LAN address at compile
+  time. `mentipy serve` rewrites the QR codes to the address it actually
+  serves. A deck-level `base_url` pins every QR code to one address: the
+  next rebuild (`--rerun=always`) overwrites what `serve` wrote, so
+  serving in the other mode (LAN instead of public, or the reverse)
+  becomes impossible. The SKILL.md section "Where the QR codes point"
+  gives the build order per mode.
 - **`environment=""`:** the deck writes the `exercise` environment
   around the call, so titles and `\label`s survive.
 - **`translate`:** replaces Mentipy's fixed English phrases for a deck
