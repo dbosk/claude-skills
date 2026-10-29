@@ -214,8 +214,13 @@ The workflow, unless the user says otherwise:
 2. **Before moving or archiving an earlier version, check it for ink**
    (`remarkable_read(doc, content_type="annotations")`; author,
    2026-09-23: "Before moving old drafts to the old folder, check if they
-   contain any ink"). A version with ink that has not been transcribed
-   stays where the user left it, and the user is told.
+   contain any ink"). A version with ink stays where the user left it
+   until **every comment on it is addressed** in a newer uploaded
+   version; then it is archived like a clean one (author, 2026-10-29:
+   "You can move those with ink to Äldre versioner too after they've been
+   fully addressed"). Transcribed is not enough: a comment still awaiting
+   a decision or a fix keeps its version in place. When moving, say which
+   versions moved and which stayed, and why.
 3. **Leave the earlier versions in place.** The tablet then holds the
    whole review history, each version distinguishable at a glance, and
    the user can compare against their earlier annotations. Do **not**
