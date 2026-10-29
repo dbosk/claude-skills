@@ -70,6 +70,24 @@ them discern what ran. Keep the question open --- "Vad skriver programmet ut?", 
 "Vad är felet?" --- so the critical aspect can surface in the answers without being
 pointed at. See `references/patterns.md`, "The payload must not narrate the answer".
 
+**Predict the output only to test a misconception (author, 2026-10-29).**
+A predict-the-output exercise ("Vad skriver programmet ut?") hands the
+student the program, so the student only reads it. Use one when the
+prediction is meant to expose a particular misconception, and name that
+misconception in its `\ltnote`. Otherwise the exercise has the student
+write the program, applying what they already know to find out something
+new ("Skriv en funktion som …", "Undersök det i Python, med `vars` och
+`dir`"); it says what to find out and which tools to use, not the
+algorithm or the name of the answer, and the program that would have
+been given becomes the worked answer after the attempt. The author's ink
+beside such an exercise: "We don't want exercises like this unless it's
+for testing a particular misconception. Here we have a learning objective
+that they should be able to apply previous knowledge to discover new
+things. The exercise should make them try to write this program on their
+own." And beside one that named the attribute to find and gave the probe
+program: "The exercise tells all, let them look for it and find
+`__class__` themselves first."
+
 **Names and pairing (author, 2026-09-15).** File, chunk and example names
 are part of the question too: `defined-only.py` beside
 `defined-and-called.py`, or `return-value.py` beside `print-value.py`,
