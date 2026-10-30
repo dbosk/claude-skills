@@ -94,7 +94,7 @@ PYTHONTEXFLAGS=	--interpreter python:${MENTIPY_VENV}/bin/python3 --rerun=always
 ${MENTIPY_VENV}/bin/python3:
 	mentipy init --venv ${MENTIPY_VENV}
 
-MENTIPY_VERSION=	0.14
+MENTIPY_VERSION=	0.16
 MENTIPY_STAMP=	${MENTIPY_VENV}/mentipy-${MENTIPY_VERSION}
 
 # Order-only: the venv must exist, but its timestamp must not trigger
@@ -122,11 +122,23 @@ notes.pdf slides.pdf: $(wildcard mentipy-obj/Q-*.pdf_tex)
 - PythonTeX runs the code in the `python3` on PATH unless
   `--interpreter python:<venv>/bin/python3` is given. Running pythontex
   itself with the venv's python is not enough.
-- Raise `MENTIPY_VERSION` when the deck starts using a newer feature.
-  The version must be on PyPI, or every fresh build fails at the
-  `pip install`.
+- Raise `MENTIPY_VERSION` when the deck starts using a newer feature
+  or needs a fix: a new release never reaches an existing venv by
+  itself. The version must be on PyPI, or every fresh build fails at
+  the `pip install`.
 - Gitignore `.venv/`, `mentipy-obj/` and `mentipy.json` (the students'
   answers), unless the project deliberately tracks the store.
+- **A tracked store needs mentipy ≥ 0.16.** Older releases record each
+  QR image by absolute path (`qr_targets`), so a build in a git
+  worktree or another checkout rewrites the committed store with its
+  own paths. 0.16 records them relative to the store (`qr_paths`),
+  ignores targets in another copy of the project, and migrates the old
+  key on its first write. Commit that one-time migration from the main
+  checkout.
+- **On 0.16 a clean build still diffs a tracked store:** every
+  PythonTeX run renumbers `registration_serial` and
+  `registration_counter`. The diff carries no content; leave it out of
+  commits (dbosk/mentipy#77).
 - **A Python upgrade kills the venv.** Its `python3` then fails with
   "No module named 'encodings'". Delete `.venv` and run `make`.
 - In a book of decks, use `\usepackage{mentipy}` and
