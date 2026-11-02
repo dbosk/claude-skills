@@ -19,7 +19,7 @@ Contents: [Spelling](#spelling) ·
 **British spelling with -ize** (Oxford spelling), the majority in the
 English course that adopted this file (introtools, 2026-10-31: -ize
 against -ise 3 to 1 among the decks' words, 23 to 5 across its
-pages, not counting GitHub's *organization*):
+pages, not counting GitHub's *organization*; author, 2026-11-02):
 
 - *-ize*, *-ization*: organize, initialize, summarize, generalization;
 - but *-yse*: analyse, paralyse;
@@ -100,7 +100,7 @@ exercise consists of seven tasks", not "is seven tasks".
 **Prerequisites say "worked through".** "The student should have worked
 through the lecture \emph{Functions}", never "seen" or "attended": the
 notes can be read instead of the lecture. (The English counterpart of
-"tagit del av", proposed 2026-10-31; not yet confirmed by the author.)
+"tagit del av"; author, 2026-11-02.)
 
 **Run, execute, perform.** A program performs (carries out) a task; the
 processor, the computer, the interpreter or the shell executes the
@@ -119,8 +119,8 @@ is allowed and preferred: "as we discussed in the lecture
 in any week; "last week" does not, and that is the whole distinction.
 
 **Numbers: one to nine in words, 10 and up in figures**, a common
-British rule; English has no counterpart of Språkrådet (proposed
-2026-10-31; not yet confirmed by the author). A round number (fifty, a
+British rule; English has no counterpart of Språkrådet (author,
+2026-11-02). A round number (fifty, a
 hundred, a thousand) may stay in words. A literal value keeps its code
 markup (above).
 
