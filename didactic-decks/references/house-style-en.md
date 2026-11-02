@@ -7,10 +7,13 @@ hold for prose, `\ltnote`s, abstracts and appendices alike. The
 project's own names, deck titles and example data stay in the project's
 `CLAUDE.md`; this file carries the rules, not the course's data.
 
+**Load `wording.md` with this file.** It holds the rules that are the same
+in every language: repeats and boilerplate, headings, position words,
+backed claims, counts, example data, sources.
+
 Contents: [Spelling](#spelling) ·
 [Terms and code in prose](#terms-and-code-in-prose) ·
 [English rules](#english-rules) ·
-[Rules shared with house-style-sv.md](#rules-shared-with-house-style-svmd) ·
 [Wording set elsewhere in the build](#wording-set-elsewhere-in-the-build) ·
 [Bilingual decks](#bilingual-decks)
 
@@ -144,53 +147,6 @@ sentence
 
 *Project-overridable*, as in Swedish: a project with another review
 practice writes its own sentence, the same in every chapter.
-
-## Rules shared with house-style-sv.md
-
-These rules hold in every language. They stand here as well as in
-`house-style-sv.md` so that each file serves a one-language deck alone;
-**a change to one copy goes to the other in the same commit.**
-
-- **Do not present as new what an earlier deck already taught.** Build
-  on it and point back by title; cut a repeat rather than re-explaining
-  it or re-running a near-verbatim exercise (author, 2026-09-29: "build
-  on the earlier deck, cut repeats").
-- **A heading names what the section builds**: "Our backup script", not
-  "Our script" (author, 2026-09-23).
-- **Name the action, not the position.** "Something has to translate
-  what we write into what the processor executes", not "something has
-  to stand in between". A title that names a literal reproduces it
-  exactly ("Hello, World!"). Never refer to physical position ("on the
-  next slide", "above", "below"): use `\cref`.
-- **No ambiguous sentence-initial pronouns in the appendices.** "The
-  search was topic-driven …", not "It was …".
-- **State a backed claim; do not defend it.** The author struck "and we
-  did not make that up" after "one of the most common novice mistakes"
-  (2026-09-22): the citation and the pointer footnote carry the backing.
-- **No count in front of a list unless the count is the point.** "The
-  arithmetic operators are:", not "The five arithmetic operators are:"
-  before a list of seven (2026-09-22). A count invites a check and goes
-  stale.
-- **The lead-in to a side-by-side example does not repeat its column
-  labels.** "The counting in the two programs, side by side:" suffices
-  before a `\codebycode`; the labels already name the files, and long
-  file names in the lead-in pushed lines into the margin (2026-10-24).
-- **Example data: the pattern** (the names belong to the project):
-  never the author's own name; real places and real facts, matching the
-  real world, with an `\ltnote` saying where they come from and what is
-  approximated; a fixed cast in a fixed order across decks; a cultural
-  fact hidden in the data where it costs nothing, kept out of the
-  student's text and recorded with its source in an `\ltnote`.
-- **Verbs name the mental action**: "worth thinking about", not "worth
-  stopping at" (2026-09-20).
-- **Every source has a real reference.** No nicknames for sources ("the
-  misconceptions paper"); the author's own manuscript gets an
-  `@unpublished` entry with a provenance block.
-- **Boilerplate is not repeated deck after deck.** A paragraph restating
-  a course convention appears once, where the convention is introduced;
-  later decks refer to it in at most one short clause (2026-09-28: "Trim
-  everywhere, not just in the book, if it's repetitive"). The same holds
-  for repeated `\ltnote`s stating a deck-wide rule.
 
 ## Wording set elsewhere in the build
 

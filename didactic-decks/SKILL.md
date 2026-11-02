@@ -40,6 +40,7 @@ two places is a defect.
 | Subject | Where |
 |---|---|
 | Toolchain, build, checks, deck anatomy | this skill |
+| Wording rules for every language | `references/wording.md` (this skill) |
 | Swedish house style for decks | `references/house-style-sv.md` (this skill) |
 | English house style for decks; bilingual decks | `references/house-style-en.md` (this skill) |
 | Editing `.nw` files, chunk discipline, tangling | `literate-programming` |
@@ -64,6 +65,7 @@ Read the one you need; do not read them all.
 | `references/runpython-and-output.md` | `\runpython` options, verifying transcripts |
 | `references/floats-and-margins.md` | float placement, captions, the side-caption decision, no manual page breaks |
 | `references/review-checklist.md` | the checks with their exact commands and thresholds |
+| `references/wording.md` | wording rules that hold in every language: load with either house style |
 | `references/house-style-sv.md` | Swedish wording rules (load only for a Swedish deck, or the sv blocks of a bilingual one) |
 | `references/house-style-en.md` | English wording rules: every English deck, and the en blocks of a bilingual one |
 | `references/book-binding.md` | binding a set of decks into one book: layout, the `\deck` macro, paths, unique names, Makefile, adding a deck |
