@@ -94,7 +94,7 @@ PYTHONTEXFLAGS=	--interpreter python:${MENTIPY_VENV}/bin/python3 --rerun=always
 ${MENTIPY_VENV}/bin/python3:
 	mentipy init --venv ${MENTIPY_VENV}
 
-MENTIPY_VERSION=	0.16
+MENTIPY_VERSION=	0.17
 MENTIPY_STAMP=	${MENTIPY_VENV}/mentipy-${MENTIPY_VERSION}
 
 # Order-only: the venv must exist, but its timestamp must not trigger
@@ -135,10 +135,24 @@ notes.pdf slides.pdf: $(wildcard mentipy-obj/Q-*.pdf_tex)
   ignores targets in another copy of the project, and migrates the old
   key on its first write. Commit that one-time migration from the main
   checkout.
-- **On 0.16 a clean build still diffs a tracked store:** every
-  PythonTeX run renumbers `registration_serial` and
-  `registration_counter`. The diff carries no content; leave it out of
-  commits (dbosk/mentipy#77).
+- **From 0.17, rebuilding an unchanged deck leaves the store
+  byte-identical,** and questions dropped from the deck are not
+  rewritten. Each PythonTeX run links its questions
+  (`registered_after`). The first clean build after the upgrade writes
+  the links once, so commit that diff in a tracked store. On 0.16 and
+  older every run renumbers `registration_serial` and
+  `registration_counter`; that diff carries no content, so leave it out
+  of commits.
+- **Keep `mentipy serve` at the deck's version.** An older server can
+  show questions dropped from a 0.17 store in its navigation. Upgrade
+  pipx together with the deck venvs.
+- **Decks built with `mentipy render`** continue the store's latest run
+  by default, so every rebuild changes the store and keeps questions
+  dropped from the end. Pass `--new-run` (≥ 0.17) on the deck's first
+  question to replace the old run. Build such a deck serially, with
+  `.NOTPARALLEL:` or one recipe, because `make -j` makes the order
+  depend on timing. Do not mix the two paths in one deck: questions
+  rendered before PythonTeX runs leave the navigation.
 - **A Python upgrade kills the venv.** Its `python3` then fails with
   "No module named 'encodings'". Delete `.venv` and run `make`.
 - In a book of decks, use `\usepackage{mentipy}` and
