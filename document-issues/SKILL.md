@@ -126,19 +126,18 @@ behavior observed during the current task.
 If the user enabled the session preference to also import created GitHub issues
 into `nytid todo`, import the created issue after it is filed.
 
-Always pass `--who dan-claude` for `nytid` operations.
+Omit `--who` so the item goes to the user, unless an agent can do the issue on
+its own, without intervention; then add `--who dan-claude`.
 
 Preferred import pattern:
 
 ```bash
-nytid todo import <owner/repo> --number <issue-number> --who dan-claude --here --github-labels
+nytid todo import <owner/repo> --number <issue-number> --here --github-labels
 ```
 
 Use `gh issue create` as the source of truth. If the returned output does not
 reliably expose the issue number, resolve it by exact title with `gh issue list`
 before importing.
-
-Do not modify todo items assigned to other workers.
 
 ## Closing the loop: reference issues from PRs and commits
 
