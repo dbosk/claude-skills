@@ -136,6 +136,12 @@ names are case-sensitive, and only the lowercase one held CMOS), and
 and a search of all of it needs `run_in_background`; run that search before
 saying a source isn't there, since partial searches missed one.
 
+A text search of a book's PDF doesn't see figures stored as images. CMOS 16's
+only numbers for page make-up are in one (fig. A.3): the text search found
+none and the claim nearly went out wrong. Before writing "the book gives no
+number", look for its figures and appendices on the topic (`pdftotext` finds
+the captions), and render those pages (`pdftoppm -r 300`) and read them.
+
 ## What is left over
 
 Papers the tunnel cannot reach are the user's to fetch in a browser. Hand
