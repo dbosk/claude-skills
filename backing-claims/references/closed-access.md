@@ -111,6 +111,11 @@ provider from there (it asks ipify, a third party, only with
   Elsevier/ScienceDirect, SAGE, Taylor & Francis, Wiley, ACM, Science
   and OUP (Cloudflare), APA PsycNET (a login page), and IEEE Xplore (418,
   then 502).
+- **Books and manuals online.** The Chicago Manual of Style, 18th ed.,
+  opens with 2c from a KTH address, without credentials (2026-11-03).
+  Sections are at
+  `chicagomanualofstyle.org/book/ed18/part1/ch<NN>/psec<NNN>.html`, the
+  index at `/book/ed18/backmatter/index/<letter>.html`.
 - **Where curl writes.** A download is untrusted: give it a fresh
   directory of its own in the scratch area, check each file with `file`
   (an HTML challenge page saved as `<Key>.pdf` is common) and delete the
@@ -120,6 +125,14 @@ provider from there (it asks ipify, a third party, only with
 - **Publisher PDF URLs.** Crossref's `link` field
   (`api.crossref.org/works/<doi>`) gives each publisher's PDF URL, and
   `alternative-id` gives Elsevier's PII.
+
+## The user's own copies
+
+Check these before a source goes on the leftover list. On the reMarkable,
+`remarkable_browse(query=…)` matches titles only, so a miss there is weak.
+On the backup, `ssh pepper`, start with `~/Books` and `~/Documents`
+(`find … -iname`): the home folder is a 4 TB volume, so a search of all of
+it needs `run_in_background`.
 
 ## What is left over
 

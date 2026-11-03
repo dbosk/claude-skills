@@ -136,14 +136,9 @@ every provider. Retrieve it directly: OpenAlex `works/doi:<doi>`, Crossref
 **The user's own library may hold it.** Before declaring a book or a
 closed-access paper unobtainable, search the user's reMarkable
 (`remarkable_browse(query=…)`, then `remarkable_read(…, content_type="raw",
-grep=…)` for the passage and printed page; delegate page-by-page reading
-to a subagent). Record it as `FOUND-VIA: known item, read on the user's
-reMarkable (<tablet path>)`. `remarkable_browse(query=…)` matches titles
-only, so a miss there is weak. Also search the backup on `ssh pepper`,
-starting with `~/Books` and `~/Documents` (`find … -iname`): the home folder
-is a 4 TB volume, so a search of all of it needs `run_in_background`. Then
-try the university's access (below): "not in the library" isn't
-"unobtainable" until both have been tried.
+grep=…)`; a subagent reads page by page) and the backup on `ssh pepper`, then
+try the university's access. Record it as `FOUND-VIA: known item, read on
+the user's reMarkable (<tablet path>)`.
 
 **Grey literature may be in none of them.** DOI-less conference papers,
 dissertations and tech reports are often absent from every provider — an
@@ -258,14 +253,11 @@ date in the provenance block instead.
 **A closed-access paper is fetched through the university network**, via
 a SOCKS tunnel whose commands are this skill's `allowed-tools`. Try
 `fetch_pdf.py` through the tunnel first (`SCHOLAR_PROXY=socks5h://…`).
-Only when the publisher refuses it is curl through the tunnel the one
-allowed exception to the rule above. An HTML book or manual goes straight
-to curl with a cookie jar. A bot check (Cloudflare) or a login form actually
-served is a stopping point, never something to get around; **a redirect
-through a login host is not**: without cookies an institutional session
-round trip looks like a refusal, so read the redirects before giving up.
-Which publishers answer, where curl's downloads go, and what to do with the
-rest: `references/closed-access.md`.
+Only when the publisher refuses it, or for an HTML book (with a cookie jar),
+is curl through the tunnel the one allowed exception to the rule above. A
+bot check (Cloudflare) or a login form actually served is a stopping point,
+never something to get around; **a redirect through a login host is not**,
+so read the redirects first. Details: `references/closed-access.md`.
 
 `scholar pdf quote` proposes candidate supporting passages (with location) — the
 **judgement stays yours**; read the passage and confirm it entails the claim.
