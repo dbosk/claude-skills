@@ -130,9 +130,11 @@ provider from there (it asks ipify, a third party, only with
 
 Check these before a source goes on the leftover list. On the reMarkable,
 `remarkable_browse(query=…)` matches titles only, so a miss there is weak.
-On the backup, `ssh pepper`, start with `~/Books` and `~/Documents`
-(`find … -iname`): the home folder is a 4 TB volume, so a search of all of
-it needs `run_in_background`.
+On the backup, `ssh pepper`, start with `~/books` and `~/Books` (both exist:
+names are case-sensitive, and only the lowercase one held CMOS), and
+`~/phd*/literature`, using `find … -iname`. The home folder is a 4 TB volume,
+and a search of all of it needs `run_in_background`; run that search before
+saying a source isn't there, since partial searches missed one.
 
 ## What is left over
 
