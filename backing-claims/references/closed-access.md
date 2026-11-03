@@ -26,9 +26,48 @@ curl -sL --max-time 40 -x socks5h://127.0.0.1:1081 \
   -w '%{http_code} %{content_type} %{size_download}\n' \
   -o <dir>/<Key>.pdf <url> ...
 
-# 3. close it when done
+# 2c. curl with a cookie jar, for a site that hands out a session (HTML books
+#     and manuals, e.g. CMOS Online); same prefix, so it stays allowed
+mkdir -p <dir> && chmod 700 <dir>
+curl -sL --max-time 40 -x socks5h://127.0.0.1:1081 --max-redirs 8 \
+  -c <dir>/jar -b <dir>/jar \
+  -w '%{http_code} %{content_type} %{size_download} redirects=%{num_redirects}\n' \
+  -o <dir>/<page>.html <url>
+
+# 3. close it when done, and delete the jar: it holds a live session
 pkill -f '[D] 127.0.0.1:1081'
+rm -f <dir>/jar
 ```
+
+## Read the redirects before calling it a login wall
+
+A redirect to a host named `login.…` is not yet a login page. Institutional
+access often works by a round trip: the site sends the request to its login
+host, which recognises the campus address and sends it straight back with
+session cookies. A client that keeps no cookies starts over every time, so
+curl stops after 50 redirects with a 302 and **no page**. That looks like a
+refusal and is not one. Observed on CMOS Online (2026-11-03): one agent
+recorded a "login page" and stopped, while the site was already setting an
+`institution` cookie and a session for KTH.
+
+Decide from what comes back:
+
+| What comes back | What it means | What to do |
+|---|---|---|
+| `redirects=50`, or a final 302 and no body, with `Set-Cookie` along the way | a session round trip, no cookies kept | repeat once with 2c |
+| 200 and the text you asked for | access works | read it |
+| 200 and a form that asks for a user name, password or SSO | a real login | stop; never supply credentials |
+| 200 and a teaser or "subscribe" page | no subscription through this address | stop; leftover list |
+| Cloudflare, "Client Challenge", 403, 418 | a bot check | stop; leftover list |
+
+To see the chain, add `-D <dir>/headers.txt` and read its `Location` and
+`Set-Cookie` lines, with cookie values cut out. Keeping cookies a site sets
+is what any browser does, so this gets past nothing; what stays forbidden is
+credentials, a browser user agent, and retrying after a real stop.
+
+An HTML book can only be reached this way: `fetch_pdf.py` is for PDFs, and
+`WebFetch` doesn't use the tunnel. Fetch only the sections the claim needs,
+starting from the book's index or contents, and keep the quotes short.
 
 `fetch_pdf.py` prints the route it takes (`# route: proxy
 socks5h://127.0.0.1:1081 (SCHOLAR_PROXY)`) and stops with exit 2 on a
@@ -61,10 +100,11 @@ provider from there (it asks ipify, a third party, only with
   Springer switch to a "Client Challenge" page for every later request;
   curl's default agent then fetched the PDFs again.
 - **Stop at a challenge.** A bot check (Cloudflare, a "Client
-  Challenge" page, a login page) is a stopping point: do not retry or
-  vary the request. Retries escalate the blocking, and getting past a
-  bot check is circumvention, not access. The paper goes on the
-  leftover list below.
+  Challenge" page) or a login form actually served to you is a stopping
+  point: do not retry or vary the request. Retries escalate the
+  blocking, and getting past a bot check is circumvention, not access.
+  The paper goes on the leftover list below. A redirect through a login
+  host is not such a stop: see "Read the redirects" above.
 - **Which publishers answered.** Springer
   (`link.springer.com/content/pdf/<doi>.pdf`) served PDFs. Open-access
   journals need no tunnel. Behind bot checks regardless of address:

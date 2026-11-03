@@ -382,8 +382,10 @@ Scholar identifies itself as `scholar/<version>
 (+https://github.com/dbosk/scholar)`, without an e-mail address
 (`SCHOLAR_EMAIL` still goes to OpenAlex, Crossref and Unpaywall through
 their own parameters); `SCHOLAR_USER_AGENT` overrides it. Never set it to a
-browser's user agent: a bot check (Cloudflare, a login page, DBLP's anti-bot
-page) is a stopping point, not an obstacle to get around.
+browser's user agent: a bot check (Cloudflare, a login form actually served,
+DBLP's anti-bot page) is a stopping point, not an obstacle to get around. A
+redirect through a login host may be a session round trip instead: see
+`closed-access.md`, "Read the redirects".
 
 ## Cache
 
