@@ -73,6 +73,8 @@ repository's `CLAUDE.md`, not here.
 | `modules: []` | Detaches from all modules; the object is kept. |
 | `modules:` omitted | Membership untouched. |
 | `published` | Sent when present. |
+| `due_at`, `unlock_at`, `lock_at` | Sent when present; `null` clears the date (canvaslms 6.23 on). |
+| `assignment_group` | Regex naming the group; moves the item (canvaslms 6.23 on). |
 | body | **Always sent** as the page body or assignment description. An empty body replaces the description with `"\n"`, silently (dbosk/canvaslms#488). |
 
 Only fields present in the file are sent, so `external_tool_tag_attributes`
@@ -159,7 +161,7 @@ each body verified against the Canvas HTML, HTML fallback per file) and
 `assets/canvas.mk` (`push` with stamps, `mark-pushed`, `pull` that only adds
 missing files, `diff-canvas`). Decide layout, body format and pull behaviour
 with the author first. Procedure, verification and the gotchas of a real
-course copy (dates canvaslms cannot clear, dead `$CANVAS_OBJECT_REFERENCE$`
+course copy (nulls that clear dates, dead `$CANVAS_OBJECT_REFERENCE$`
 links, quiz edits needing `--html`): `references/repo-setup.md`.
 
 ## Pushing from a worktree

@@ -51,8 +51,8 @@ reuse: export once, then the files are the source of truth.
   first, its `modules:` lists all. `unlisted/` for items in no module.
 - Assignments get `regex: ^<id>$`; pages keep an exact-title regex.
 - Drops `rubric:` (FeedbackFruits rubrics carry internal ids; omitted fields
-  are never sent) and null fields (canvaslms does not send them anyway, so
-  `unlock_at: null` in a file only misleads).
+  are never sent) and null fields (a `null` date would clear whatever the
+  author later sets in the web UI; an omitted one leaves it alone).
 - Skips quiz assignments (`online_quiz`): their description is the quiz's.
 - Verification: Markdown body → `canvaslms.cli.content.markdown_to_html` →
   text and `href`/`src` targets compared with the API HTML (untranslated
@@ -67,12 +67,22 @@ reuse: export once, then the files are the source of truth.
 
 ## Gotchas found on the real course
 
-- **canvaslms cannot clear a date**: `due_at: null` and `''` in front matter
-  are not sent, so `unlock_at` stays set. Clearing is the author's step (web
-  UI), or for a sandbox restore the API with an empty string
-  (`assignment.edit(assignment={"unlock_at": ""})`; `None` is dropped too).
-  Moving `due_at` before an existing `unlock_at` fails with "must be between
-  availability dates".
+- **A `null` date in a file clears the date in Canvas** (canvaslms 6.23 on,
+  front matter and quiz JSON alike). A quiz export contains nulls, so a date
+  the author set in the web UI is lost by pushing an older export: re-export
+  the quiz first. Moving `due_at` before an existing `unlock_at` fails with
+  "must be between availability dates".
+- **Files can set what used to take the web UI** (canvaslms 6.23 on):
+  `assignment_group: ^Name$` moves an assignment or quiz, and quiz JSON
+  records it and `anonymous_submissions`. `modules edit --unpublish` works on
+  its own.
+- **A survey must be a Classic quiz** for the grade modules to pass it once
+  completed; a New Quizzes survey is treated as an ordinary assignment.
+- **Importing canvaslms memoizes canvasapi's getters in that process**, so a
+  script that imports it and reads an object back after a write sees the old
+  state: a successful `--publish` reads as unpublished, deleted objects stay
+  listed. Verify from a process that imports only canvasapi, or through
+  `canvaslms --no-cache`.
 - **A page rename changes its URL slug**; the old slug still resolves via
   the API (and Canvas redirects), so existing links survive.
 - **Course copies leave dead links**: `$CANVAS_OBJECT_REFERENCE$/…/g<hex>`
