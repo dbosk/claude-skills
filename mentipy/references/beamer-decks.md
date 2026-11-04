@@ -24,35 +24,26 @@ mentipy_common = {
     "environment": "",                # the exercise is written by hand
     "show_url": False,                # no URL in the notes
     "layout": "auto",                 # QR columns on slides, flat in notes
-    "locale": "sv",                   # labels and web pages (after 0.14)
+    "locale": "sv",                   # labels and web pages
 }
 def fraga(helper, *args, **kwargs):
-    return translate(helper(*args, **{**mentipy_common, **kwargs}))
+    return helper(*args, **{**mentipy_common, **kwargs})
 \end{pycode}
 \mode*
 ```
 
-- **No `base_url` in the deck.** The address comes from
-  `mentipy.base_url` in the config, or else the LAN address at compile
-  time. `mentipy serve` rewrites the QR codes to the address it actually
-  serves. A deck-level `base_url` pins every QR code to one address: the
-  next rebuild (`--rerun=always`) overwrites what `serve` wrote, so
-  serving in the other mode (LAN instead of public, or the reverse)
-  becomes impossible. The SKILL.md section "Where the QR codes point"
-  gives the build order per mode.
+- **No `base_url` in the deck.** While a server runs, a build uses the
+  address it serves; otherwise the `base_url` setting, or else the LAN
+  address at compile time. A deck-level `base_url` wins over all of
+  those and pins every QR code to one address, so serving in the other
+  mode (LAN instead of public, or the reverse) becomes impossible. See
+  "Where the QR codes point" in `SKILL.md`.
 - **`environment=""`:** the deck writes the `exercise` environment
   around the call, so titles and `\label`s survive.
 - **`locale`:** the deck's language, for the slide labels and for
-  the question's web pages. Leave it out on 0.14 and older, which
-  reject the keyword.
-- **`translate`:** only for a Mentipy without translated labels (see
-  "Language" in `SKILL.md`; with one, drop it and set the locale).
-  It replaces Mentipy's fixed English phrases for a deck in another
-  language. Examples: `"Choose exactly one:"`,
-  `"Choose one or more:"`, `\item[Type] Free-text answer`,
-  `\item[Limit] N characters`, `\item[Range]`, `\item[Low]`,
-  `\item[High]`. Use `re.sub` for the one with a number. See the
-  intropy recap deck's `_pa_svenska` for a working example.
+  the question's web pages. A deck that still wraps its helpers in a
+  string-replacing `translate` can drop the wrapper (see "Language" in
+  `SKILL.md`).
 
 ## A question
 

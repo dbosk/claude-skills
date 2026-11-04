@@ -1,14 +1,19 @@
 ---
 name: mentipy
-description: Author, build and run live classroom polls with Mentipy (self-hosted, QR codes on Beamer slides, PythonTeX helpers in mentipy.latex). Use proactively when (1) writing or editing a poll with mc, open_text, scale, ranking, word_cloud, pin_text or pin_image, or a deck or handout that imports mentipy, (2) giving a poll its program or data with context=, file_snippet or file_download, (3) a build fails on `import mentipy`, a stale venv, or QR codes or prefixes that changed, (4) running a poll in a lecture with mentipy serve, --public, Skip, /active, or reading answers with mentipy list, view, watch or export, (5) the user mentions Mentipy, mentipy.json, mentipy-obj, \mentipybasedir or live polls. Load BEFORE writing the first poll. Owns the API, the build and the lecture; why and when to poll stays in try-first-tell-later and variation-theory, and the frame layout of a didactic deck is in references/beamer-decks.md here.
+description: Author, build and run live classroom polls with Mentipy (self-hosted, QR codes on Beamer slides, PythonTeX helpers in mentipy.latex). Use proactively when (1) writing or editing a poll with mc, open_text, scale, ranking, word_cloud, pin_text or pin_image, or a deck or handout that imports mentipy, (2) giving a poll its program or data with context=, file_snippet or file_download, (3) a build fails on `import mentipy`, a stale venv, or QR codes or prefixes that changed, (4) running a poll in a lecture with mentipy present, serve, slides_command, --public, Skip, /active, or reading answers with mentipy list, view, watch or export, (5) the user mentions Mentipy, mentipy.json, mentipy-answers.jsonl, mentipy-obj, \mentipybasedir or live polls, or upgrades to 1.0. Load BEFORE writing the first poll. Owns the API, the build and the lecture; why and when to poll stays in try-first-tell-later and variation-theory, and the frame layout of a didactic deck is in references/beamer-decks.md here.
 ---
 
 # Mentipy
 
 Mentipy registers a question while the document compiles (a PythonTeX
 block calls a helper), writes its QR code, and returns the LaTeX for
-the slide or the handout. `mentipy serve` then runs the poll from the
-lecturer's machine. The answers live in the store, `mentipy.json`.
+the slide or the handout. `mentipy serve` then runs the poll from the lecturer's machine. The questions live in the store, `mentipy.json`,
+and the answers beside it in the log `mentipy-answers.jsonl`.
+
+This describes Mentipy 1.0. Install the tool with
+`uv tool install --python 3.11 'mentipy[public,wordcloud]'`, which brings
+Python 3.11 along. Upgrading a machine or a deck from an earlier version
+has an order: see "Upgrading to 1.0".
 
 ## First: ask the installed Mentipy
 
@@ -19,10 +24,10 @@ helper's signature, the per-question keywords (`next`, `results`,
 shared keywords and every config key. Read it first, plus
 `mentipy <command> --help` for the CLI.
 
-A deck compiles with the mentipy in **its own venv**, not with pipx's.
-Check that venv's version
+A deck compiles with the mentipy in **its own venv**, not with the
+tool's. Check that venv's version
 (`.venv/bin/python3 -m pip show mentipy`) before relying on a feature;
-`mentipy latex` describes the pipx one.
+`mentipy latex` describes the tool's one.
 
 ## Choosing the question type
 
@@ -79,10 +84,18 @@ context's text or bytes.
   question with one answer pool. Its results page opens on the current
   server session (since the last `mentipy serve` start), so an earlier
   run does not show; `?window=all` or `mentipy view --window all` does.
+- The same question asked twice in one deck (a poll before and after an
+  explanation) is also one pool, so both rounds show together, and it
+  has **one stop in the deck, at its last place**. In X, Y, A, B, C, A,
+  Next goes from Y straight to B, and a student scanning A's QR code at
+  its first place waits. Open that first ask from the admin index. It
+  then stays open, so the second ask opens nothing new, and the toned
+  row and `/active` stay on the question before it. A deck wanting two
+  separate results should word the two asks differently.
 
 ## The build
 
-PythonTeX's `python3` cannot import pipx's mentipy, so each deck (and a
+PythonTeX's `python3` cannot import the tool's mentipy, so each deck (and a
 bound book) has its own venv, which the Makefile makes. It is never a
 manual step. A version stamp upgrades an existing venv once when the
 deck needs a newer Mentipy:
@@ -94,7 +107,7 @@ PYTHONTEXFLAGS=	--interpreter python:${MENTIPY_VENV}/bin/python3 --rerun=always
 ${MENTIPY_VENV}/bin/python3:
 	mentipy init --venv ${MENTIPY_VENV}
 
-MENTIPY_VERSION=	0.17
+MENTIPY_VERSION=	1.0
 MENTIPY_STAMP=	${MENTIPY_VENV}/mentipy-${MENTIPY_VERSION}
 
 # Order-only: the venv must exist, but its timestamp must not trigger
@@ -107,6 +120,7 @@ ${MENTIPY_STAMP}: | ${MENTIPY_VENV}/bin/python3
 
 notes.pdf slides.pdf: ${MENTIPY_STAMP}
 # mentipy serve rewrites the QR sidecars; the PDFs must follow them.
+# Without this, make finds the PDF up to date and the old QR codes stay.
 notes.pdf slides.pdf: $(wildcard mentipy-obj/Q-*.pdf_tex)
 ```
 
@@ -126,33 +140,32 @@ notes.pdf slides.pdf: $(wildcard mentipy-obj/Q-*.pdf_tex)
   or needs a fix: a new release never reaches an existing venv by
   itself. The version must be on PyPI, or every fresh build fails at
   the `pip install`.
-- Gitignore `.venv/`, `mentipy-obj/` and `mentipy.json` (the students'
-  answers), unless the project deliberately tracks the store.
-- **A tracked store needs mentipy ≥ 0.16.** Older releases record each
-  QR image by absolute path (`qr_targets`), so a build in a git
-  worktree or another checkout rewrites the committed store with its
-  own paths. 0.16 records them relative to the store (`qr_paths`),
-  ignores targets in another copy of the project, and migrates the old
-  key on its first write. Commit that one-time migration from the main
-  checkout.
-- **From 0.17, rebuilding an unchanged deck leaves the store
-  byte-identical,** and questions dropped from the deck are not
-  rewritten. Each PythonTeX run links its questions
-  (`registered_after`). The first clean build after the upgrade writes
-  the links once, so commit that diff in a tracked store. On 0.16 and
-  older every run renumbers `registration_serial` and
-  `registration_counter`; that diff carries no content, so leave it out
-  of commits.
-- **Keep `mentipy serve` at the deck's version.** An older server can
-  show questions dropped from a 0.17 store in its navigation. Upgrade
-  pipx together with the deck venvs.
+- **To make the venv without the tool,** use
+  `uv venv --seed --python 3.11 .venv`. `--seed` adds pip, which
+  `mentipy init` and the recipe call.
+- **Git and the answers.** Gitignore `.venv/`, `mentipy-obj/`,
+  `mentipy.json` and `mentipy-answers.jsonl` (what students wrote). A
+  project that deliberately tracks the store must also
+  `git add mentipy-answers.jsonl`: otherwise `git commit -a` leaves the
+  answers out and `git clean -fd` deletes the only copy. Then set
+  `mentipy-answers.jsonl merge=union` in `.gitattributes`. `serve` and
+  `present` warn about both mistakes at the start.
+- **The log and the images follow the store's name.** Rename all three
+  together (`lecture1.json`, `lecture1-answers.jsonl`,
+  `lecture1-images/`), and copy all three to move a store. To start a
+  deck over, delete the store and the log.
+- **Rebuilding an unchanged deck leaves the store byte-identical,** and
+  questions dropped from the deck are not rewritten. Each PythonTeX run
+  links its questions (`registered_after`).
 - **Decks built with `mentipy render`** continue the store's latest run
   by default, so every rebuild changes the store and keeps questions
-  dropped from the end. Pass `--new-run` (≥ 0.17) on the deck's first
-  question to replace the old run. Build such a deck serially, with
+  dropped from the end. Pass `--new-run` on the deck's first question
+  to replace the old run. Build such a deck serially, with
   `.NOTPARALLEL:` or one recipe, because `make -j` makes the order
   depend on timing. Do not mix the two paths in one deck: questions
-  rendered before PythonTeX runs leave the navigation.
+  rendered before PythonTeX runs leave the navigation. A render-built
+  deck that asks a question twice loses the questions before its first
+  place from the navigation, with or without `--new-run`.
 - **A Python upgrade kills the venv.** Its `python3` then fails with
   "No module named 'encodings'". Delete `.venv` and run `make`.
 - In a book of decks, use `\usepackage{mentipy}` and
@@ -162,25 +175,59 @@ notes.pdf slides.pdf: $(wildcard mentipy-obj/Q-*.pdf_tex)
 
 ## Where the QR codes point
 
-Two things write the QR images and their address captions. The deck
-build writes them with the helper's address: `base_url=` if given,
-else `mentipy.base_url`, else the LAN address at compile time.
-`mentipy serve` rewrites them with the address it serves. **Whichever
-ran last wins**, and decks rerun PythonTeX on every build, so a rebuild
-after `serve` reverts the codes (dbosk/mentipy#67).
+**Start the server first, then build.** While a server runs on the store,
+builds use the address it serves, whichever mode it is in: `serve` or
+`present` records it in `mentipy-obj/.served-base-url`, and the deck's
+helpers read that. So the same steps work on the LAN and with
+`--public ssh`, with nothing to configure. `mentipy present` with
+`slides_command` does this order by itself.
 
-- **Never hard-code `base_url` in a deck.** It pins every code to one
-  address, and serving in the other mode is then impossible.
-- **LAN lecture:** build, then run `mentipy serve`. A rebuild on the
-  same machine resolves the same LAN address, so it stays consistent.
-- **Public lecture:** `serve --public` takes the tunnel's address (or
-  `mentipy.public_base_url`), but the build reads only
-  `mentipy.base_url`. So set the public address there too, with
-  `mentipy config mentipy.base_url --set http://host:port`, then build
-  and run `mentipy serve --public ssh`. Back to LAN:
-  `mentipy config mentipy.base_url --set auto`, then rebuild.
+- **Never hard-code `base_url` in a deck.** It wins over the served
+  address, so it pins every code to one address and serving in the
+  other mode is then impossible.
+- **Without a server,** a build uses the `base_url` setting, else the
+  LAN address at compile time. Don't set `base_url` to follow a mode:
+  it is for an address the phones can always reach. Back to LAN with
+  `mentipy config base_url --set auto`.
+- **Stopping the server removes the record,** on Ctrl-C, a plain `kill`
+  or a closed terminal. The codes keep its address until the next
+  build. After `kill -9`, Ctrl-\ or a power cut, builds keep using the
+  dead address, without a warning, until a server starts again or
+  `mentipy-obj/.served-base-url` is removed.
+- **A build started by an older deck venv** writes the configured
+  address whatever the server serves, so the deck venv must be 1.0.
 - **Check:** `grep -ho 'http[^}]*' mentipy-obj/*.pdf_tex | sort -u`
   shows the address the PDF will carry.
+
+## Upgrading to 1.0
+
+1.0 keeps each setting as a top-level key (`base_url`, not
+`mentipy.base_url`), and neither reads nor converts the old `mentipy`
+section. The steps have an order:
+
+1. `uv tool upgrade mentipy`, and check `uv tool list`. A tool on an
+   older Python reports nothing to upgrade: use
+   `uv tool upgrade --python 3.11 mentipy`.
+2. `mentipy config mentipy` shows the old values; set the ones still
+   wanted under their new names. `mentipy latex` lists the keys. Any
+   unset key prints a harmless `KeyError` traceback.
+3. In each deck, raise `MENTIPY_VERSION` to 1.0 and run `make`, or run
+   `mentipy init`, then check `.venv/bin/python3 -m pip show mentipy`.
+   **Both report success on a `.venv` older than Python 3.11, which
+   stays on 0.17:** delete that `.venv` and build again. A deck left at
+   `0.17` splits: an existing venv stays on 0.17 while a fresh clone
+   gets 1.0, with different QR addresses.
+4. Once no deck needs the old section,
+   `mentipy config mentipy --set ""`.
+
+It is not a gradual change. A deck venv on 0.17 reads only the old
+section, and its `view`, `watch` and `export` see none of the answers in
+the log (`Responses: 0`; `export` writes an empty list, which overwrites
+a good export if sent to the same file). No answer is harmed: answers
+from before stay in `mentipy.json` and are read from there. Beware the
+two silent mistakes: `mentipy config mentipy.base_url --set x` exits 0
+and stores a value 1.0 never reads, and a value once stored under a
+short name, which older versions ignored, now takes effect.
 
 ## In the lecture
 
@@ -191,25 +238,57 @@ after `serve` reverts the codes (dbosk/mentipy#67).
    `--interval`, `--window` and `--pin-heat`, and keeps serve's
    start-up lines and any server warnings in a banner, and opens the
    admin index in the browser (`--no-open` to skip; the command is
-   `--open-with` or `mentipy.open_command`, `none` turns it off).
-   Ctrl-C stops both. Use `mentipy serve` alone when the tally should not be on this
-   screen. Off the LAN, add `--public ssh` (reads
-   `mentipy.ssh_tunnel`) or `--public` (UPnP). The banner then holds
-   the admin link, so keep that terminal off the projector. The QR
-   codes must carry the address the students reach (see "Where the QR
-   codes point").
-2. **Recompile after the first `serve`** if the address changed: it
-   rewrites the QR images and their sidecars.
-3. **Pacing** (on by default, `--no-lock` turns it off):
+   `--open-with` or `open_command`, `none` turns it off, while an empty
+   value only deletes the key). Use `mentipy serve` alone when the tally
+   should not be on this screen. Off the LAN, add `--public ssh` (reads
+   `ssh_tunnel`) or `--public` (UPnP). The banner then holds
+   the admin link, so keep that terminal off the projector.
+2. **Build and open the slides** with `slides_command` or
+   `--slides-command`, for example
+   `mentipy config slides_command --set "make slides.pdf && pdfpc -w both slides.pdf"`.
+   It runs once the server is up, so the build gets the served address;
+   the output goes to `mentipy-obj/slides-command.log`. Join the steps
+   with `&&`. Add `--no-slides` when restarting `present` during a
+   lecture, or a second viewer opens. Without the command, build in
+   another terminal after the server is up.
+   - **A fatal LaTeX error deletes the PDF, even a good earlier one, so
+     keep a copy.** It shows as `Slides FAILED`, and the viewer does not
+     open.
+   - **A `pycode` exception shows no failure:** the viewer opens a PDF
+     whose poll frames are stale or empty. `present` adds
+     `Slides may have failed` when the log has `Latexmk: Errors` or
+     `Collected error summary`, but only for a build that ran, so a
+     restart that `make` finds up to date opens that PDF silently. To
+     make such a build fail, put
+     `COMPILE.tex = ${PDFLATEX} ${LATEXFLAGS} -output-directory=${TEX_OUTDIR} $<`
+     before the Makefile's `include`, and never `.DELETE_ON_ERROR:`.
+3. **Stopping.** Ctrl-C, a plain `kill` and closing the terminal all
+   stop `serve` and `present` cleanly: the tunnel, the UPnP mapping and
+   the address record go (a hung router can leave a mapping after a 30 s
+   deadline; `nohup` keeps a server alive past the terminal). The slides
+   command keeps running, so the viewer stays open. A build still running
+   then writes the configured address: stop it with `kill -- -PID` (the
+   banner has the pid) and start `present` again with the command.
+4. **Answers are safe from builds.** They go to the log, which nothing
+   rewrites, so a build during a lecture cannot lose one, and a student
+   is thanked only after the answer was sent to the disk. A server that
+   cannot write the log does not start. If a write fails during the
+   lecture, the student is told it was not saved and to tell you.
+5. **Pacing** (on by default, `--no-lock` turns it off):
    - A question opens for the students when the lecturer opens its
      results page on the server machine (admin). A `lock=False`
      question opens with the one before it.
    - The results page's floating nav row has Previous, Skip and Next.
      A skipped question stays closed until Reopen on its page.
-   - Latecomers go to `/active`, or scan any QR code: one the lecturer
+      - Latecomers go to `/active`, or scan any QR code: one the lecturer
      has passed redirects them to the current question, and one not yet
      reached shows a waiting page.
-4. **Results:**
+   - The admin index (the server's root URL) lists `Current questions`,
+     the deck as last built, and `Old questions` when a rebuild dropped
+     or edited some. The toned row is the question the lecture is on. A
+     question asked twice has one row, at its last place, so a deck
+     A, B, C, A, D lists B first.
+6. **Results:**
    - `--results` sends students to the live tally after answering;
      `results=` overrides that per question.
    - Watch the tally in `present` (or a bare `mentipy watch`, with
@@ -219,7 +298,7 @@ after `serve` reverts the codes (dbosk/mentipy#67).
      `mentipy view PREFIX` or `mentipy watch PREFIX`
      (`--window session|hour|day|all`).
    - Afterwards, `mentipy export PREFIX`.
-5. **Admin can steer the room** (opening, skipping). Admin is a request
+7. **Admin can steer the room** (opening, skipping). Admin is a request
    from the server machine. Under `--public ssh`, students arrive
    through the tunnel and would look local, so a token is required.
    `serve`/`present` then prints an `/?admin=<token>` link: open the lecturer's
@@ -246,16 +325,12 @@ after `serve` reverts the codes (dbosk/mentipy#67).
   while the QR image keeps following the server. Restyle the caption
   through `\mentipyqrcaption` instead.
 - **Language.** Mentipy ships English and Swedish for the slide
-  labels and the web pages. Check `mentipy latex` for the installed
-  version: older releases print English only, and a deck then needs
-  the string-replacing wrapper in `references/beamer-decks.md`.
+  labels and the web pages.
   - A deck sets its language once, with `"locale": "sv"` in the
-    shared keywords (every helper takes `locale=`, newer than 0.14:
-    check that the deck venv's `mentipy latex` lists it). The helper
-    records it with the question, so the server shows that question's
-    pages in it.
-  - Otherwise set `mentipy.locale`
-    (`mentipy config mentipy.locale --set sv`). `serve`/`present
+    shared keywords. The helper records it with the question, so the
+    server shows that question's pages in it.
+  - Otherwise set `locale`
+    (`mentipy config locale --set sv`). `serve`/`present
     --locale` overrides both for one run, for every question.
   - A changed locale reaches the slides only when PythonTeX reruns,
     which is always with the deck Makefile's `--rerun=always`.
@@ -266,7 +341,6 @@ after `serve` reverts the codes (dbosk/mentipy#67).
 ## References
 
 - `references/beamer-decks.md`: polls in a didactic Beamer deck. It
-  covers the shared `pycode` block (`layout="auto"`, `environment=""`,
-  no `base_url`), the label wrapper for older releases, and
-  placement with overlays. It also covers the notes' flat layout, the
+    covers the shared `pycode` block (`layout="auto"`, `environment=""`,
+  no `base_url`) and placement with overlays. It also covers the notes' flat layout, the
   QR caption, and the deck checks.
