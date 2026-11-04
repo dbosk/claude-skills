@@ -276,7 +276,7 @@ short name, which older versions ignored, now takes effect.
      `Slides may have failed` when the log has `Latexmk: Errors` or
      `Collected error summary`, but only for a build that ran, so a
      restart that `make` finds up to date opens that PDF silently. To
-          make such a build fail, put
+     make such a build fail, put
      `COMPILE.tex = ${PDFLATEX} ${LATEXFLAGS} -output-directory=${TEX_OUTDIR} $<`
      before the Makefile's `include`, and never `.DELETE_ON_ERROR:`. The
      failed build still rewrites the PDF, so a restart on the same port
@@ -299,7 +299,7 @@ short name, which older versions ignored, now takes effect.
      question opens with the one before it.
    - The results page's floating nav row has Previous, Skip and Next.
      A skipped question stays closed until Reopen on its page.
-      - Latecomers go to `/active`, or scan any QR code: one the lecturer
+   - Latecomers go to `/active`, or scan any QR code: one the lecturer
      has passed still shows its form, and its Next goes to the current
      question; a skipped one redirects to the current question; one not
      yet reached shows a waiting page.
@@ -368,6 +368,6 @@ short name, which older versions ignored, now takes effect.
 ## References
 
 - `references/beamer-decks.md`: polls in a didactic Beamer deck. It
-    covers the shared `pycode` block (`layout="auto"`, `environment=""`,
-  no `base_url`) and placement with overlays. It also covers the notes' flat layout, the
-  QR caption, and the deck checks.
+  covers the shared `pycode` block (`layout="auto"`, `environment=""`,
+  no `base_url`) and placement with overlays. It also covers the notes'
+  flat layout, the QR caption, and the deck checks.
