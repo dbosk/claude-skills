@@ -194,6 +194,14 @@ fix. Every item below cost an agent real time at least once.
 - Agents sometimes go idle without delivering their final report. Poke them
   with SendMessage ("send me your findings/report now"); a queued message
   ("delivered at next tool round") means the agent is still running — wait.
+- **An agent's background wake-up can get lost, so "running" and "idle" prove
+  nothing.** Observed repeatedly in one campaign: an agent's long job finished,
+  no notification reached it, and it sat silent; three agents idled about 7
+  hours overnight while the orchestrator waited. Keep your own background check
+  running while agents work: `sleep 1200`, then the jobs by working directory
+  (`readlink /proc/<pid>/cwd`), the branch heads and the newest file times. No
+  jobs, no new commit and no report means poke the agent. An idle notice often
+  predates your latest message, so check that it acted before re-sending.
 - A session limit kills all background agents mid-task. Within the same
   session they resume from their transcript with SendMessage — committed work
   and worktrees survive, and resume is near-free while relaunching re-does
@@ -267,6 +275,19 @@ fix. Every item below cost an agent real time at least once.
   1.5 GB on a disk with 500 MB free. Report what is large (`/usr/bin/du -sh`),
   delete nothing, and give every agent "No space left on device → STOP and
   report".
+- **`/tmp` can be a tmpfs with a per-user quota shared by all your sessions.**
+  `df` may look fine while writes fail with `EDQUOT` ("Disk quota exceeded"),
+  including another session's; compare `quota` or the `usrquota` mount option.
+  A reboot also wipes it, worktrees and briefs included. Keep briefs and result
+  tables outside `/tmp`. When the quota is hit, have agents delete only their own
+  regenerable builds, treat overlapping runs as not run, check outputs for
+  truncation, and never touch another session's files.
+- **A build copy can silently read the wrong input.** A real document copied to
+  scratch without its generated files found a test fixture of the same name
+  through `TEXINPUTS`, built without an error, and its wrong page count entered
+  every comparison for hours. Before measuring real documents, audit one pass
+  with `-recorder`: list what each reads from outside its copy, and confirm the
+  main text is there.
 - **Clean up at the end of a round.** Merged worktrees are not free and the
   auto-created branches accumulate silently. Confirm first that
   `git branch --no-merged <base>` lists none of the agent branches. Then
