@@ -3,7 +3,8 @@
 An `exercise` can be a live poll, with a QR code on the slide and a
 plain exercise in the notes. This pattern is verified in the intropy
 decks *Algoritmiskt tänkande*, *Hello, World!* and *Repetition: kursens
-grunder* (with context, mentipy 0.14, 2026-10). The build (venv and
+grunder* (with context, first on mentipy 0.14; the shared block builds
+and renders in Swedish on 1.0). The build (venv and
 version stamp) is in `SKILL.md`. Composition and the rest of the build
 are in the `didactic-decks` skill.
 
@@ -41,9 +42,10 @@ def fraga(helper, *args, **kwargs):
 - **`environment=""`:** the deck writes the `exercise` environment
   around the call, so titles and `\label`s survive.
 - **`locale`:** the deck's language, for the slide labels and for
-  the question's web pages. A deck that still wraps its helpers in a
-  string-replacing `translate` can drop the wrapper (see "Language" in
-  `SKILL.md`).
+  the question's web pages. A deck with a string-replacing wrapper
+  (`translate`, `_pa_svenska`, `re.sub` on `Choose exactly one:`) must
+  replace it with `"locale": "sv"`: on 1.0 it misses most labels without
+  any error, and the web pages stay English.
 
 ## A question
 
@@ -118,8 +120,9 @@ the image.
 
 - Before the final build, run the deck's clean recipe, and check that
   the `pytxcode` counts are equal.
-- `mentipy list --store mentipy.json` lists the questions in slide
-  order, and the prefixes match the ones under the QR codes.
+- `mentipy list --store mentipy.json` holds every prefix under a QR
+  code. It lists the whole store, so `Current questions` on the admin
+  index is the check of the deck's order.
 - `pdftotext notes.pdf - | grep -c <base host>` gives 0.
 - Render and read every question slide. Open every form at phone width
   to check the options and the context.

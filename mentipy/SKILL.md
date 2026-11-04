@@ -7,13 +7,19 @@ description: Author, build and run live classroom polls with Mentipy (self-hoste
 
 Mentipy registers a question while the document compiles (a PythonTeX
 block calls a helper), writes its QR code, and returns the LaTeX for
-the slide or the handout. `mentipy serve` then runs the poll from the lecturer's machine. The questions live in the store, `mentipy.json`,
-and the answers beside it in the log `mentipy-answers.jsonl`.
+the slide or the handout. `mentipy present` (or `serve`) runs the poll
+from the lecturer's machine, and the slides are built while it runs.
+The questions live in the store, `mentipy.json`, and the answers beside
+it in the log `mentipy-answers.jsonl`.
 
 This describes Mentipy 1.0. Install the tool with
-`uv tool install --python 3.11 'mentipy[public,wordcloud]'`, which brings
-Python 3.11 along. Upgrading a machine or a deck from an earlier version
-has an order: see "Upgrading to 1.0".
+`uv tool install --python 3.11 'mentipy[public,wordcloud]'`, which
+brings Python 3.11 along. If pipx has `mentipy`, run
+`pipx uninstall mentipy` first, since uv refuses to replace the
+executable. A deck's venv has no extras, so run `mentipy serve` outside
+an activated `.venv` when `--public` UPnP or the word cloud needs them.
+Upgrading a machine or a deck from an earlier version has an order: see
+"Upgrading to 1.0".
 
 ## First: ask the installed Mentipy
 
@@ -98,7 +104,11 @@ context's text or bytes.
 PythonTeX's `python3` cannot import the tool's mentipy, so each deck (and a
 bound book) has its own venv, which the Makefile makes. It is never a
 manual step. A version stamp upgrades an existing venv once when the
-deck needs a newer Mentipy:
+deck needs a newer Mentipy. The snippet goes in a Makefile with `all:`
+first, `TEX_PYTHONTEX=yes` and `include makefiles/tex.mk`, and the
+preamble needs `\usepackage{pythontex}`, `\setpythontexoutputdir{.}` and
+`\setpythontexworkingdir{..}`. **Without those two lines the build
+succeeds with empty poll frames and no store:**
 
 ```make
 MENTIPY_VENV=	$(CURDIR)/.venv
@@ -144,11 +154,11 @@ notes.pdf slides.pdf: $(wildcard mentipy-obj/Q-*.pdf_tex)
   `uv venv --seed --python 3.11 .venv`. `--seed` adds pip, which
   `mentipy init` and the recipe call.
 - **Git and the answers.** Gitignore `.venv/`, `mentipy-obj/`,
-  `mentipy.json` and `mentipy-answers.jsonl` (what students wrote). A
-  project that deliberately tracks the store must also
-  `git add mentipy-answers.jsonl`: otherwise `git commit -a` leaves the
-  answers out and `git clean -fd` deletes the only copy. Then set
-  `mentipy-answers.jsonl merge=union` in `.gitattributes`. `serve` and
+  `mentipy-images/`, `mentipy.json` and `mentipy-answers.jsonl` (what
+  students wrote). A project that deliberately tracks the store must
+  also `git add mentipy-answers.jsonl`: otherwise `git commit -a` leaves
+  the answers out and `git clean -fd` deletes the only copy. Then set
+  `*-answers.jsonl merge=union` in `.gitattributes`. `serve` and
   `present` warn about both mistakes at the start.
 - **The log and the images follow the store's name.** Rename all three
   together (`lecture1.json`, `lecture1-answers.jsonl`,
@@ -169,7 +179,7 @@ notes.pdf slides.pdf: $(wildcard mentipy-obj/Q-*.pdf_tex)
 - **A Python upgrade kills the venv.** Its `python3` then fails with
   "No module named 'encodings'". Delete `.venv` and run `make`.
 - In a book of decks, use `\usepackage{mentipy}` and
-  `\mentipybasedir{auto}` (mentipy ≥ 0.13). They resolve each deck's
+  `\mentipybasedir{auto}`. They resolve each deck's
   store and QR directory under `\subimport`. See
   `didactic-decks/references/book-binding.md`.
 
@@ -177,8 +187,9 @@ notes.pdf slides.pdf: $(wildcard mentipy-obj/Q-*.pdf_tex)
 
 **Start the server first, then build.** While a server runs on the store,
 builds use the address it serves, whichever mode it is in: `serve` or
-`present` records it in `mentipy-obj/.served-base-url`, and the deck's
-helpers read that. So the same steps work on the LAN and with
+`present` records it in `mentipy-obj/.served-base-url` (the configured
+`qr_dir` beside the store; a deck's `qr_dir=` does not move it), and the
+deck's helpers read that. So the same steps work on the LAN and with
 `--public ssh`, with nothing to configure. `mentipy present` with
 `slides_command` does this order by itself.
 
@@ -213,11 +224,16 @@ section. The steps have an order:
    unset key prints a harmless `KeyError` traceback.
 3. In each deck, raise `MENTIPY_VERSION` to 1.0 and run `make`, or run
    `mentipy init`, then check `.venv/bin/python3 -m pip show mentipy`.
-   **Both report success on a `.venv` older than Python 3.11, which
-   stays on 0.17:** delete that `.venv` and build again. A deck left at
-   `0.17` splits: an existing venv stays on 0.17 while a fresh clone
-   gets 1.0, with different QR addresses.
-4. Once no deck needs the old section,
+   On a `.venv` older than Python 3.11, **`mentipy init` reports success
+   and stays on 0.17**, and `make` stops with a pip error about the
+   Python version. Either way, delete that `.venv` and build again. A
+   deck left at `0.17` splits: an existing venv stays on 0.17 while a
+   fresh clone gets 1.0, with different QR addresses.
+4. In each deck, add `mentipy-answers.jsonl` to `.gitignore`, or
+   `git add` it if the store is tracked. Check that the Makefile has the
+   `$(wildcard mentipy-obj/Q-*.pdf_tex)` line, or a rebuild after the
+   server starts does nothing.
+5. Once no deck needs the old section,
    `mentipy config mentipy --set ""`.
 
 It is not a gradual change. A deck venv on 0.17 reads only the old
@@ -241,13 +257,14 @@ short name, which older versions ignored, now takes effect.
    `--open-with` or `open_command`, `none` turns it off, while an empty
    value only deletes the key). Use `mentipy serve` alone when the tally
    should not be on this screen. Off the LAN, add `--public ssh` (reads
-   `ssh_tunnel`) or `--public` (UPnP). The banner then holds
-   the admin link, so keep that terminal off the projector.
+   `ssh_tunnel`), when the banner holds the admin link, or `--public`
+   (UPnP). Keep that terminal off the projector either way.
 2. **Build and open the slides** with `slides_command` or
    `--slides-command`, for example
    `mentipy config slides_command --set "make slides.pdf && pdfpc -w both slides.pdf"`.
    It runs once the server is up, so the build gets the served address;
-   the output goes to `mentipy-obj/slides-command.log`. Join the steps
+   the output goes to `slides-command.log` beside the served-address
+   record. Join the steps
    with `&&`. Add `--no-slides` when restarting `present` during a
    lecture, or a second viewer opens. Without the command, build in
    another terminal after the server is up.
@@ -259,9 +276,11 @@ short name, which older versions ignored, now takes effect.
      `Slides may have failed` when the log has `Latexmk: Errors` or
      `Collected error summary`, but only for a build that ran, so a
      restart that `make` finds up to date opens that PDF silently. To
-     make such a build fail, put
+          make such a build fail, put
      `COMPILE.tex = ${PDFLATEX} ${LATEXFLAGS} -output-directory=${TEX_OUTDIR} $<`
-     before the Makefile's `include`, and never `.DELETE_ON_ERROR:`.
+     before the Makefile's `include`, and never `.DELETE_ON_ERROR:`. The
+     failed build still rewrites the PDF, so a restart on the same port
+     opens it until a source changes or is `touch`ed.
 3. **Stopping.** Ctrl-C, a plain `kill` and closing the terminal all
    stop `serve` and `present` cleanly: the tunnel, the UPnP mapping and
    the address record go (a hung router can leave a mapping after a 30 s
@@ -281,8 +300,9 @@ short name, which older versions ignored, now takes effect.
    - The results page's floating nav row has Previous, Skip and Next.
      A skipped question stays closed until Reopen on its page.
       - Latecomers go to `/active`, or scan any QR code: one the lecturer
-     has passed redirects them to the current question, and one not yet
-     reached shows a waiting page.
+     has passed still shows its form, and its Next goes to the current
+     question; a skipped one redirects to the current question; one not
+     yet reached shows a waiting page.
    - The admin index (the server's root URL) lists `Current questions`,
      the deck as last built, and `Old questions` when a rebuild dropped
      or edited some. The toned row is the question the lecture is on. A
@@ -307,11 +327,18 @@ short name, which older versions ignored, now takes effect.
 
 ## Checks before the lecture
 
-- `mentipy list --store mentipy.json` lists the questions in slide
-  order. Their prefixes must match the ones printed under the QR codes.
-- Open every question's form on a phone-width window. The options
-  should sit right under the prompt, the context below them, and code
-  spans should render as code.
+- `.venv/bin/python3 -m pip show mentipy` says 1.0 or newer.
+- `grep -ho 'http[^}]*' mentipy-obj/*.pdf_tex | sort -u` shows the
+  address being served.
+- `mentipy list --store mentipy.json` lists the whole store in order of
+  last registration: old questions stay, with no marking. Every prefix
+  under a QR code must be there. For the deck as built, see
+  `Current questions` on the admin index.
+- Open every question's form on a phone-width window, with a server
+  running. The options should sit right under the prompt, the context
+  below them, and code spans should render as code. Opening a results
+  page opens that question for the students, and a server restart locks
+  it again.
 - The notes PDF contains no poll URL:
   `pdftotext notes.pdf - | grep -c <host>` gives 0.
 
