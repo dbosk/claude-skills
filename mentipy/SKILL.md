@@ -55,8 +55,10 @@ poll goes in an `\ltnote` (`didactic-notes`).
 ## Writing the prompt and options
 
 - **Plain text.** Mentipy escapes everything for LaTeX and HTML: no
-  macros, no `\cref`, no math. Quotes are safe. LaTeX prompts are not
-  supported yet (dbosk/mentipy#54).
+  macros, no `\cref`, no math. Quotes, `<`, `>` and a leading `[` are
+  safe. A blank line is a line break, on the slide and on the web. LaTeX
+  prompts are not supported yet (dbosk/mentipy#54). Characters `pdflatex`
+  has no mapping for, such as emoji, stop the build.
 - **Code in backticks**, as in Markdown: ``"What does `len(xs)`
   return?"``, options ``["`2`", "`3`"]``. The slide sets it as
   `\texttt`; the phone shows it as code. Backticks pair left to right,
