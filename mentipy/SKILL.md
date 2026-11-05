@@ -183,8 +183,8 @@ notes.pdf slides.pdf: $(wildcard mentipy-obj/Q-*.pdf_tex)
   `.NOTPARALLEL:` or one recipe, because `make -j` makes the order
   depend on timing. Do not mix the two paths in one deck: questions
   rendered before PythonTeX runs leave the navigation. A render-built
-  deck that asks a question twice loses the questions before its last
-  ask from the navigation, with or without `--new-run`, so word the two
+  deck that asks a question twice loses the questions before its first
+  place from the navigation, with or without `--new-run`, so word the two
   asks differently there above all.
 - **A Python upgrade kills the venv.** Its `python3` then fails with
   "No module named 'encodings'". Delete `.venv` and run `make`.
