@@ -3,7 +3,8 @@
 An `exercise` can be a live poll, with a QR code on the slide and a
 plain exercise in the notes. This pattern is verified in the intropy
 decks *Algoritmiskt tänkande*, *Hello, World!* and *Repetition: kursens
-grunder* (with context, mentipy 0.14, 2026-10). The build (venv and
+grunder* (with context, first on mentipy 0.14; the shared block builds
+and renders in Swedish on 1.0). The build (venv and
 version stamp) is in `SKILL.md`. Composition and the rest of the build
 are in the `didactic-decks` skill.
 
@@ -24,35 +25,27 @@ mentipy_common = {
     "environment": "",                # the exercise is written by hand
     "show_url": False,                # no URL in the notes
     "layout": "auto",                 # QR columns on slides, flat in notes
-    "locale": "sv",                   # labels and web pages (after 0.14)
+    "locale": "sv",                   # labels and web pages
 }
 def fraga(helper, *args, **kwargs):
-    return translate(helper(*args, **{**mentipy_common, **kwargs}))
+    return helper(*args, **{**mentipy_common, **kwargs})
 \end{pycode}
 \mode*
 ```
 
-- **No `base_url` in the deck.** The address comes from
-  `mentipy.base_url` in the config, or else the LAN address at compile
-  time. `mentipy serve` rewrites the QR codes to the address it actually
-  serves. A deck-level `base_url` pins every QR code to one address: the
-  next rebuild (`--rerun=always`) overwrites what `serve` wrote, so
-  serving in the other mode (LAN instead of public, or the reverse)
-  becomes impossible. The SKILL.md section "Where the QR codes point"
-  gives the build order per mode.
+- **No `base_url` in the deck.** While a server runs, a build uses the
+  address it serves; otherwise the `base_url` setting, or else the LAN
+  address at compile time. A deck-level `base_url` wins over all of
+  those and pins every QR code to one address, so serving in the other
+  mode (LAN instead of public, or the reverse) becomes impossible. See
+  "Where the QR codes point" in `SKILL.md`.
 - **`environment=""`:** the deck writes the `exercise` environment
   around the call, so titles and `\label`s survive.
 - **`locale`:** the deck's language, for the slide labels and for
-  the question's web pages. Leave it out on 0.14 and older, which
-  reject the keyword.
-- **`translate`:** only for a Mentipy without translated labels (see
-  "Language" in `SKILL.md`; with one, drop it and set the locale).
-  It replaces Mentipy's fixed English phrases for a deck in another
-  language. Examples: `"Choose exactly one:"`,
-  `"Choose one or more:"`, `\item[Type] Free-text answer`,
-  `\item[Limit] N characters`, `\item[Range]`, `\item[Low]`,
-  `\item[High]`. Use `re.sub` for the one with a number. See the
-  intropy recap deck's `_pa_svenska` for a working example.
+  the question's web pages. A deck with a string-replacing wrapper
+  (`translate`, `_pa_svenska`, `re.sub` on `Choose exactly one:`) must
+  replace it with `"locale": "sv"`: on 1.0 it misses most labels without
+  any error, and the web pages stay English.
 
 ## A question
 
@@ -86,7 +79,8 @@ print(fraga(
 - **Pacing flags:**
   - `lock=True` (the default) paces a question with the slides.
   - `lock=False` is for a second question on the same slide.
-  - `next=False` goes on the deck's last question.
+  - `next=False` goes on the deck's last question. A question asked
+    twice ignores it.
 
 ## Placement with overlays
 
@@ -127,8 +121,9 @@ the image.
 
 - Before the final build, run the deck's clean recipe, and check that
   the `pytxcode` counts are equal.
-- `mentipy list --store mentipy.json` lists the questions in slide
-  order, and the prefixes match the ones under the QR codes.
+- `mentipy list --store mentipy.json` holds every prefix under a QR
+  code. It lists the whole store, so `Current questions` on the admin
+  index is the check of the deck's order.
 - `pdftotext notes.pdf - | grep -c <base host>` gives 0.
 - Render and read every question slide. Open every form at phone width
   to check the options and the context.
