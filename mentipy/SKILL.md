@@ -90,14 +90,23 @@ context's text or bytes.
   question with one answer pool. Its results page opens on the current
   server session (since the last `mentipy serve` start), so an earlier
   run does not show; `?window=all` or `mentipy view --window all` does.
-- The same question asked twice in one deck (a poll before and after an
-  explanation) is also one pool, so both rounds show together, and it
-  has **one stop in the deck, at its last place**. In X, Y, A, B, C, A,
-  Next goes from Y straight to B, and a student scanning A's QR code at
-  its first place waits. Open that first ask from the admin index. It
-  then stays open, so the second ask opens nothing new, and the toned
-  row and `/active` stay on the question before it. A deck wanting two
-  separate results should word the two asks differently.
+- **Never ask the same question twice in one deck: make the texts
+  differ,** for example `"Pretest: ..."` and `"Posttest: ..."`. Only the
+  prompt's text counts: an exercise title or a label changes nothing.
+  Asked twice, it is one question with one pool, so both rounds show
+  together, and it has one stop at its first place: in X, Y, A, B, C, A,
+  D, Next goes X, Y, A, B, C, D. Mentipy warns in the build
+  (`grep 'Package mentipy' ltxobj/*.log`) and when `serve` or `present`
+  starts. A `mentipy render` deck gets neither warning. Two questions in
+  one frame with overlays warn falsely, since the code runs once per
+  overlay: register them before the frame.
+- If a deck does repeat one: the second ask opens nothing new, so the
+  toned row and `/active` stay on C, and a student's Next from A goes to
+  C's form, so C's tally can grow. A phone that followed Next from C
+  waits on D, so students need A's QR code. `lock=False` right after the
+  second ask opens at the first ask, ahead of the lecturer. `next=False`
+  is ignored on a repeat. Opening a question at its second ask for the
+  tally takes the index.
 
 ## The build
 
@@ -174,8 +183,9 @@ notes.pdf slides.pdf: $(wildcard mentipy-obj/Q-*.pdf_tex)
   `.NOTPARALLEL:` or one recipe, because `make -j` makes the order
   depend on timing. Do not mix the two paths in one deck: questions
   rendered before PythonTeX runs leave the navigation. A render-built
-  deck that asks a question twice loses the questions before its first
-  place from the navigation, with or without `--new-run`.
+  deck that asks a question twice loses the questions before its last
+  ask from the navigation, with or without `--new-run`, so word the two
+  asks differently there above all.
 - **A Python upgrade kills the venv.** Its `python3` then fails with
   "No module named 'encodings'". Delete `.venv` and run `make`.
 - In a book of decks, use `\usepackage{mentipy}` and
@@ -306,8 +316,7 @@ short name, which older versions ignored, now takes effect.
    - The admin index (the server's root URL) lists `Current questions`,
      the deck as last built, and `Old questions` when a rebuild dropped
      or edited some. The toned row is the question the lecture is on. A
-     question asked twice has one row, at its last place, so a deck
-     A, B, C, A, D lists B first.
+     question asked twice has one row, at its first place.
 6. **Results:**
    - `--results` sends students to the live tally after answering;
      `results=` overrides that per question.

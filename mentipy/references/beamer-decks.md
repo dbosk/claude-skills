@@ -79,7 +79,8 @@ print(fraga(
 - **Pacing flags:**
   - `lock=True` (the default) paces a question with the slides.
   - `lock=False` is for a second question on the same slide.
-  - `next=False` goes on the deck's last question.
+  - `next=False` goes on the deck's last question. A question asked
+    twice ignores it.
 
 ## Placement with overlays
 
