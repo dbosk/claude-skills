@@ -101,6 +101,11 @@ EDGE_SLACK = 1.0
 # A note number set alone on a margin line is recognised by its size:
 # clearly smaller than the margin's own text.
 NOTE_SIZE_RATIO = 0.7
+# A running head is set off from the text block by more than a line: memoir
+# puts \headsep (about two lines) between them.  1.5 times the usual line
+# spacing tells that from an ordinary line without mistaking a paragraph's
+# first line, which sits only a little further down.
+HEAD_GAP_RATIO = 1.5
 
 # The rest of the constants serve only the guess made without the log
 # line.  The gutter between the body and the margin is narrow in this
@@ -347,14 +352,54 @@ def margin_text_height(pages, cols):
     return hs[len(hs) // 2] if hs else 0.0
 
 
+def baseline(words):
+    """A line's baseline: the median bottom edge of its words, so that a
+    raised marker does not move it."""
+    ys = sorted(w.y1 for w in words)
+    return ys[len(ys) // 2]
+
+
+def running_head(page_lines, col):
+    """The page's running head, as the index of its line, or None.
+
+    The head is the topmost body line, set off from the text below it by
+    more than the page's usual line spacing, with the page number at one
+    of its ends.  It must be recognised because a head long enough to fill
+    the line, as an appendix's title can be, puts the page number right
+    after the last word of the title, in a smaller face, and the number
+    then looks exactly like a marker (memoir's head on an appendix page:
+    \"... help coding agents? 48\" read as marker 48)."""
+    body = [(i, [w for w in line if not in_margin(w, col)])
+            for i, line in enumerate(page_lines)]
+    body = sorted(((baseline(ws), i, ws) for i, ws in body if ws),
+                  key=lambda b: b[0])
+    if len(body) < 3:
+        return None
+    gaps = sorted(b[0] - a[0] for a, b in zip(body, body[1:])
+                  if b[0] - a[0] > 0)
+    if not gaps:
+        return None
+    spacing = gaps[len(gaps) // 2]
+    (top_y, top_i, top_words), (next_y, _, _) = body[0], body[1]
+    ends_in_number = (DIGITS_RE.match(top_words[-1].text)
+                      or DIGITS_RE.match(top_words[0].text))
+    if ends_in_number and next_y - top_y > spacing * HEAD_GAP_RATIO:
+        return top_i
+    return None
+
+
 def markers_and_notes(page_lines, col, note_h):
     """Body markers and margin note numbers on one page.
 
     poppler sometimes merges a body line and the margin line beside it
     into one <line>, so each line is cut at the margin's edges and the two
-    parts are examined separately."""
+    parts are examined separately.  The running head is skipped, since its
+    page number can look like a marker."""
     markers, notes = set(), set()
-    for line in page_lines:
+    head = running_head(page_lines, col)
+    for i, line in enumerate(page_lines):
+        if i == head:
+            continue
         body = [w for w in line if not in_margin(w, col)]
         margin = [w for w in line if in_margin(w, col)]
 
