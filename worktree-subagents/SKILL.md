@@ -194,14 +194,18 @@ fix. Every item below cost an agent real time at least once.
 - Agents sometimes go idle without delivering their final report. Poke them
   with SendMessage ("send me your findings/report now"); a queued message
   ("delivered at next tool round") means the agent is still running — wait.
-- **An agent's background wake-up can get lost, so "running" and "idle" prove
-  nothing.** Observed repeatedly in one campaign: an agent's long job finished,
-  no notification reached it, and it sat silent; three agents idled about 7
-  hours overnight while the orchestrator waited. Keep your own background check
-  running while agents work: `sleep 1200`, then the jobs by working directory
-  (`readlink /proc/<pid>/cwd`), the branch heads and the newest file times. No
-  jobs, no new commit and no report means poke the agent. An idle notice often
-  predates your latest message, so check that it acted before re-sending.
+- **Monitor with the harness's notifications, not with polling.** After
+  launching agents, end the turn and wait for their messages and task
+  notifications. If an agent seems stuck, the user asks for the status; check
+  then, and poke it. Periodic `sleep N; check` loops cost many tokens over a
+  long campaign (user, 2026-11-06). An idle notice often predates your latest
+  message, so check that the agent acted before re-sending.
+  - *Exception:* only when notifications are evidently not arriving **and** the
+    user has asked for the work to finish as fast as possible, keep one
+    background check with a long interval (`sleep 1200`), listing jobs by
+    working directory (`readlink /proc/<pid>/cwd`), branch heads and newest
+    file times. No jobs, no new commit and no report means poke the agent.
+    Stop the check as soon as either condition no longer holds.
 - A session limit kills all background agents mid-task. Within the same
   session they resume from their transcript with SendMessage — committed work
   and worktrees survive, and resume is near-free while relaunching re-does
