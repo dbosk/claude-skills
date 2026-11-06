@@ -220,16 +220,18 @@ fix. Every item below cost an agent real time at least once.
   such wait. `long-job` (`~/.claude/agents/long-job.md`) is the only type
   with a 1-hour cache. Keep short fix agents on the ordinary types, since
   1-hour cache writes cost more; when unsure, pick `long-job`.
-- **Agents cannot sign commits.** With `commit.gpgsign=true` the agent's
-  shell has no pinentry, so `git commit` fails with `gpg: signing failed:
-  Timeout`; agents then commit unsigned (`git log --format=%G?` shows `N`)
-  or not at all. Plan for it: accept unsigned agent commits and re-sign at
-  merge time (`git cherry-pick -x` then `git commit --amend -S --no-edit`,
-  or `git rebase --exec 'git commit --amend -S --no-edit'` over the new
-  commits) in a shell whose gpg-agent holds the passphrase. The Bash tool's
-  own shell also cannot prompt: when signing times out there, ask the user
-  to unlock the agent once (`! echo x | gpg --clearsign >/dev/null`) and
-  retry; never push unsigned commits meant to be signed.
+- **Agents sign their commits as usual.** They use the user's gpg-agent,
+  so `commit.gpgsign=true` works in their shells as in the orchestrator's.
+  Never brief an agent to commit with `-c commit.gpgsign=false`: re-signing
+  later changes every hash, and text that cites a hash goes stale. Signing
+  fails only rarely (`gpg: signing failed: Timeout`, a locked agent or a
+  pinentry bug). Then the agent does not commit unsigned. It reports to the
+  orchestrator and waits, and the orchestrator asks the user to unlock
+  (`! echo x | gpg --clearsign >/dev/null`). If unsigned commits exist
+  anyway, re-sign them without changing trees or merges:
+  `git filter-branch --commit-filter 'git commit-tree -S "$@"' -- <branch>
+  --not --remotes`. Save the old-to-new map, and never push unsigned
+  commits.
 - Branches created in worktrees are visible in the main repo — review diffs,
   push, and open PRs from the main repo; never merge or push from inside an
   agent worktree.
