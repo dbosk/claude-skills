@@ -18,7 +18,16 @@ box and groups the words into lines, and compares, per page:
 
 The defect is a number that is a marker on one page and a note on the page
 beside it, but not a note on its own page: the note printed away from its
-marker.  Footnote numbering restarts per chapter, so the pairing is only
+marker.
+
+With didactic's noteoverflow=foot (the default from v2.18, with a marginfix
+that has \\marginnotefoot) a footnote that doesn't fit the margin is set at the
+foot of its page instead.  Such a note is recognised by its number opening a
+body line, raised above the note's text that follows it, which is smaller
+than the page's body text.  It is in place on the page of its marker; at the
+foot of the page beside its marker it is a defect like a margin note there.
+marginfix logs each one (`marginfix-foot: page=<p> at=<file>:<line>`), and
+the check says when it found fewer at the foot of a page than the log has.  Footnote numbering restarts per chapter, so the pairing is only
 made between neighbouring pages.  A marker or note with no counterpart on
 its own page or either neighbour is reported as a warning: the check did
 not recognise the other half (a marker inside a table cell, or split off
@@ -152,6 +161,7 @@ HALF_RE = re.compile(
     r"(?:\n\(marginfix\).*?)*$", re.M)
 # pdfTeX logs "[<page counter>" as it ships out each page, so the n-th
 # such marker gives the page counter of PDF page n.
+FOOT_LOG_RE = re.compile(r"^marginfix-foot: page=(\d+) at=(\S+)", re.M)
 SHIPOUT_RE = re.compile(r"(?:^|(?<=[\s\]]))\[(\d+)(?=[\]\s{<]|$)", re.M)
 # TeX breaks log lines at max_print_line characters.
 LOG_LINE_MAX = 79
@@ -266,6 +276,7 @@ class Marginfix:
         self.spills = [(int(p), int(q), kind)
                        for p, q, kind in SPILL_RE.findall(text)]
         self.yields = [(int(p), at) for p, at in YIELD_RE.findall(text)]
+        self.feet = [(int(p), at) for p, at in FOOT_LOG_RE.findall(text)]
         self.half_empty = [
             " ".join(part.strip() for part in
                      re.sub(r"\(marginfix\)", "", m.group(0)).split("\n"))
@@ -388,20 +399,39 @@ def running_head(page_lines, col):
     return None
 
 
+def body_text_height(page_lines, col):
+    """The median height of the body's words on a page, or 0."""
+    hs = sorted(w.y1 - w.y0 for line in page_lines for w in line
+                if not in_margin(w, col))
+    return hs[len(hs) // 2] if hs else 0.0
+
+
 def markers_and_notes(page_lines, col, note_h):
-    """Body markers and margin note numbers on one page.
+    """Body markers, margin note numbers and foot note numbers on one page.
 
     poppler sometimes merges a body line and the margin line beside it
     into one <line>, so each line is cut at the margin's edges and the two
     parts are examined separately.  The running head is skipped, since its
     page number can look like a marker."""
-    markers, notes = set(), set()
+    markers, notes, foot = set(), set(), set()
     head = running_head(page_lines, col)
+    body_h = body_text_height(page_lines, col)
     for i, line in enumerate(page_lines):
         if i == head:
             continue
         body = [w for w in line if not in_margin(w, col)]
         margin = [w for w in line if in_margin(w, col)]
+
+        if (len(body) >= 2 and DIGITS_RE.match(body[0].text)
+                and body[1].x0 - body[0].x1 < NOTE_TEXT_GAP
+                and body[1].y1 - body[0].y1 >= RAISE_MIN * MARGIN_RAISE_SCALE
+                and body[0].y1 - body[0].y0
+                    < (body[1].y1 - body[1].y0) * SIZE_RATIO
+                and body[1].y1 - body[1].y0 < body_h * SIZE_RATIO):
+            # A note at the foot: its number opens the line, raised above
+            # the note's text, which is set smaller than the body.
+            foot.add(int(body[0].text))
+            body = body[1:]
 
         for prev, w in zip(body, body[1:]):
             if (MARKER_RE.match(w.text)
@@ -425,7 +455,7 @@ def markers_and_notes(page_lines, col, note_h):
         elif first.y1 - first.y0 < note_h * NOTE_SIZE_RATIO:
             # The number alone on its line, with the note's text below it.
             notes.add(int(first.text))
-    return markers, notes
+    return markers, notes, foot
 
 
 def find_log(args):
@@ -511,11 +541,12 @@ def main():
     for n, (_, page_lines) in enumerate(pages, start=1):
         if args.page is not None and n != args.page:
             continue
-        markers, notes = markers_and_notes(page_lines, cols.of(n), note_h)
-        per_page[n] = (markers, notes)
+        markers, notes, foot = markers_and_notes(page_lines, cols.of(n),
+                                                 note_h)
+        per_page[n] = (markers, notes, foot)
         if args.verbose:
             print(f"page {n}: markers {sorted(markers)}, "
-                  f"notes {sorted(notes)}")
+                  f"notes {sorted(notes)}, at the foot {sorted(foot)}")
 
     mfx = Marginfix(text, len(pages))
     if mfx.any() and not mfx.mapped:
@@ -538,14 +569,29 @@ def main():
                   f"(marginfix-spill capped; not a failure)")
 
     defects, warnings, carried = [], [], []
-    total_markers = total_notes = 0
-    empty = (set(), set())
-    for n, (markers, notes) in sorted(per_page.items()):
+    total_markers = total_notes = total_foot = 0
+    empty = (set(), set(), set())
+    logged_feet = collections.Counter()
+    for p, _ in mfx.feet:
+        for n in mfx.pdf_pages(p)[:1]:
+            logged_feet[n] += 1
+    for n, (markers, notes, foot) in sorted(per_page.items()):
         total_markers += len(markers)
         total_notes += len(notes)
+        total_foot += len(foot)
         near_markers = (per_page.get(n - 1, empty)[0]
                         | per_page.get(n + 1, empty)[0])
-        for k in sorted(markers - notes):
+        if len(foot) < logged_feet[n]:
+            warnings.append(f"page {n}: marginfix set {logged_feet[n]} "
+                            f"note(s) at the foot, {len(foot)} found there")
+        for k in sorted(foot - markers):
+            if k in near_markers:
+                defects.append(f"page {n}: note {k} is at the foot of this "
+                               f"page, its marker on the page beside it")
+            else:
+                warnings.append(f"page {n}: note {k} at the foot has no "
+                                f"marker here or beside it")
+        for k in sorted(markers - notes - foot):
             if k in per_page.get(n + 1, empty)[1]:
                 if intended[(n, n + 1)] > 0:
                     intended[(n, n + 1)] -= 1
@@ -573,8 +619,8 @@ def main():
                 warnings.append(f"page {n}: margin note {k} has no marker "
                                 f"here or beside it")
 
-    print(f"{total_markers} markers and {total_notes} margin notes found "
-          f"on {len(per_page)} pages")
+    print(f"{total_markers} markers, {total_notes} margin notes and "
+          f"{total_foot} notes at the foot found on {len(per_page)} pages")
     for w in warnings:
         print(f"WARNING: {w} --- read that page by eye")
     for label, c in carried:
@@ -588,10 +634,10 @@ def main():
               f"page {n} and set it on page {m} (marginfix-spill "
               f"unresolved)")
     if defects or unresolved:
-        print(f"FAIL: {len(defects)} margin notes print away from their "
+        print(f"FAIL: {len(defects)} notes print away from their "
               f"marker, {len(unresolved)} unresolved marginfix spills")
         return 1
-    if total_notes == 0 and args.page is None:
+    if total_notes + total_foot == 0 and args.page is None:
         # Markers with no note at all, or neither: the notes were lost
         # (marginfix) or the column is wrong.  Either way nothing was
         # paired, so this is not a pass.
@@ -599,7 +645,8 @@ def main():
               "notes were lost, or the margin column is wrong; pass "
               "--no-margin-ok if this PDF really has none")
         return nothing
-    print("every margin note prints on the page carrying its marker")
+    print("every margin note prints on the page carrying its marker"
+          + (", in the margin or at its foot" if total_foot else ""))
     return 0
 
 

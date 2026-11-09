@@ -151,6 +151,10 @@ A margin already at capacity also pushes citation footnotes to the next
 page. That is a defect, not a cosmetic issue: check it with the
 per-page method in `review-checklist.md`, or with
 `scripts/check_margin_notes.py`.
+With didactic's `noteoverflow=foot` (the default from v2.18, with a
+marginfix that has `\marginnotefoot`) a footnote that doesn't fit the
+margin goes to the foot of its own page instead; the checker accepts a note
+there and fails one at the foot of another page than its marker's.
 
 ## The float pool
 
