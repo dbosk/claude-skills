@@ -211,9 +211,9 @@ primary source vs survey, canonical/most-cited, reputable venue, appropriate
 year, closest match to the claim's scope. When the choice is non-obvious, note
 the alternatives you rejected and why — that reasoning is the `PICKED` field.
 **Exclusion criteria are labelled, and the label is the discard reason.**
-Number them in the method (X1, X2, …) and discard with that tag (`llm
-classify -t x1-…`, `sessions decide --discard -t x1-…`): every discard then
-carries its criterion (`references/appendix-guide.md`, "Exclusion criteria").
+Give each a mnemonic label of two or three words (`new-scheme`, not X1) and
+discard with it as tag (`llm classify -t …`, `sessions decide --discard -t
+…`); see `references/appendix-guide.md`, "Exclusion criteria".
 When several independent strands (different subfields, different query
 framings) converge on the same answer, say so — convergence across strands
 backs a claim more strongly than any single source.

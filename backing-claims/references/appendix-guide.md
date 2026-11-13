@@ -263,32 +263,44 @@ without one (see "Redo, don't narrate").
 ### Exclusion criteria
 
 The criteria for leaving a record out are a **labelled list** in the
-method, and the labels are the reasons recorded in the session:
+method, and the labels are the reasons recorded in the session.
+
+**The labels are mnemonic** (author, 2026-11-13: "they should be mnemonic,
+even two-three short, representative words should work as a label"): two or
+three short words that say what the criterion is, and the same words as the
+tag. A count then reads without a key ("212 new scheme, 31 usability
+only"), which "212 under X1" does not. Numbered labels are for a document
+that already has them.
 
 ```latex
-A record is excluded if it
-\begin{enumerate}[label=X\arabic*,ref=X\arabic*]
-  \item\label{x:scheme} proposes a new scheme and offers only its own
-    security argument for it;
-  \item\label{x:machine} concerns authentication between machines;
-  ...
-\end{enumerate}
+A record is excluded if it is one of the following.
+\begin{description}
+  \item[New scheme] It proposes a new scheme and offers only its own
+    security argument for it.
+  \item[Machines only] It concerns authentication between machines, with
+    no human user.
+  \item[Usability only] It studies usability or adoption and reports
+    nothing about security.
+  \item[No evidence] It gives an opinion or an overview without evidence
+    of its own or a stated method.
+\end{description}
 ```
 
 ```bash
 scholar llm classify <session> --no-examples \
   -t supports-claim -t qualifies-claim -t adjacent-subtopic -t off-topic-false-hit \
-  -t x1-new-scheme -t x2-machine -t x3-usability-only -t x4-opinion
-scholar sessions decide <session> --discard --doi <doi> -t x1-new-scheme
+  -t new-scheme -t machines-only -t usability-only -t no-evidence
+scholar sessions decide <session> --discard --doi <doi> -t new-scheme
 ```
 
 The research context given to `llm context` states each criterion with its
 tag, and asks for the criterion tag on every record that is not kept. The
-flow counts in the results are then given per criterion (so many excluded
-under X1, so many under X2), the session export carries the reason for
-every discard, and a reader who doubts a decision can see which rule made
-it. A record discarded for a reason outside the list means the list is
-incomplete: add the criterion, do not invent a tag.
+flow counts in the results are then given per criterion, the session
+export carries the reason for every discard, and a reader who doubts a
+decision can see which rule made it. A record discarded for a reason
+outside the list means the list is incomplete: add the criterion, do not
+invent a tag. Check the tags after a classification run: the model may
+invent one or reuse a theme tag, and those are removed.
 
 ### Vocabulary symmetry
 
