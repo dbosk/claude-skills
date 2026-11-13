@@ -175,20 +175,20 @@ Phrase **counter-searches with field syntax** (WoS
 "maintainability index criticism limitations" returned only off-topic hits
 on WoS/OpenAlex, so a "nothing found" from them is not a real negative.
 
-Two rules that a reviewer had to add after a real appendix broke them:
+Three rules that reviews added (details: `references/appendix-guide.md`):
 
 - **Same queries, all providers.** Run *every* query — support and counter —
-  on the *same* full set of live providers. When a provider needs field
-  syntax, translate the *same* keywords into it; never one keyword set on
-  WoS and a different one on Scopus. Record a query × provider × hits
-  matrix; a cell may be empty only because a provider failed, and then
-  it says so.
-- **Vocabulary symmetry.** The counter-search uses every concept term the
-  support search used, plus the field's indexed names for the concept (the
-  practitioner name — "DRY" — is often unindexed; the academic name — "code
-  clones", "code duplication" — is where the literature is). Never write
-  "the concept is indexed as X and Y" unless both were searched in both
-  directions.
+  on the *same* full set of live providers, translating the *same* keywords
+  into field syntax where needed. Record a query × provider × hits matrix;
+  a cell may be empty only because a provider failed, and then it says so.
+- **Vocabulary symmetry.** The counter-search uses every concept term of the
+  support search, plus the field's indexed names for the concept ("code
+  clones" where practitioners say "DRY").
+- **Never cap a search; ask before capping what follows.** Run every query
+  with `-l 0`: the whole result set belongs in scholar's cache and in the
+  record. When the counts are known, show the user the matrix and **ask**
+  how much to screen and how many to read in full. A cap is the user's
+  decision, reported in the method; never one you set to save time.
 
 **No `scholar` in the environment?** The protocol does not depend on it. Run the
 same two-sided searches with WebSearch, and verify existence and content with
@@ -210,6 +210,10 @@ citation. Only then pick which source(s) to cite, and record **why this one**:
 primary source vs survey, canonical/most-cited, reputable venue, appropriate
 year, closest match to the claim's scope. When the choice is non-obvious, note
 the alternatives you rejected and why — that reasoning is the `PICKED` field.
+**Exclusion criteria are labelled, and the label is the discard reason.**
+Number them in the method (X1, X2, …) and discard with that tag (`llm
+classify -t x1-…`, `sessions decide --discard -t x1-…`): every discard then
+carries its criterion (`references/appendix-guide.md`, "Exclusion criteria").
 When several independent strands (different subfields, different query
 framings) converge on the same answer, say so — convergence across strands
 backs a claim more strongly than any single source.
@@ -357,28 +361,23 @@ repository can follow. `references/appendix-guide.md` is the authority
   compiled text** — those are for the author and go in `%` comments next to
   the table's `\input` and in the bib provenance blocks.
 - **Redo, don't narrate — and never do worse.** A search that was
-  author-driven, partial, malformed or noisy is redone under the rules
-  and only the redone search is documented; the appendix's limitations
-  are facts about the data and tools, not the author's earlier attempts.
-  A redo must recover every relevant result of the search it replaces —
-  close gaps by improving the *concept* queries, never by searching for
-  the missing paper by name. Session names are author-only — one `%`
-  block per chapter with session, exports, date, providers and health,
-  classification model and overrides, the exact table command and the
-  bib keys; query-table captions introduce every abbreviation full name
-  first ("OpenAlex (OA; not open access)") and sit in the margin
-  (`sidecaption`).
+  author-driven, partial, malformed, capped or noisy is redone under the
+  rules and only the redone search is documented; limitations are facts
+  about the data and tools, not earlier attempts. A redo recovers every
+  relevant result of the search it replaces, by improving the *concept*
+  queries, never by searching for the missing paper by name. Session
+  names, exports and commands are author-only (one `%` block per
+  chapter); query-table captions sit in the margin (`sidecaption`).
 - **The hit list is classified and included.** `scholar llm context` +
-  `scholar llm classify --no-examples` over the whole session (two-sided
-  tags: supports-claim / qualifies-claim / adjacent-subtopic /
-  off-topic-false-hit, exactly one per paper; theme tags on the cited
-  ones). Papers the run lists as "Left pending" get their decision with
-  `sessions decide`. Read the low-confidence and every qualifying row
-  yourself, then generate the table with `scholar sessions export
-  <session> -f table --bearing-only --lang sv --label … --track … --theme
-  TAG=NAME -o <base>` (fallback for older scholar:
-  `scripts/session_table.py --csv <export.csv>`, same rows). A discarded
-  row never counts as evidence; the caption counts both sides.
+  `scholar llm classify --no-examples` over the whole session (exactly one
+  of supports-claim / qualifies-claim / adjacent-subtopic /
+  off-topic-false-hit per paper, plus the labelled exclusion criterion on
+  discards and a theme tag on cited ones). Decide "Left pending" papers
+  with `sessions decide`; read the low-confidence and every qualifying
+  row yourself; then `scholar sessions export <session> -f table
+  --bearing-only --lang sv --label … --track … --theme TAG=NAME -o <base>`
+  (older scholar: `scripts/session_table.py --csv <export.csv>`). A
+  discarded row never counts as evidence; the caption counts both sides.
 
 Run each round's searches under one named `scholar` session per paper and
 commit the `sessions export` output to the repo — the export is the audit
@@ -403,8 +402,10 @@ follow it. Run `scholar providers check` first and record which providers
 are alive (a failing dblp is expected while DBLP blocks API clients:
 proceed without it and record it as unavailable). Run EVERY search under
 one named session:
-  scholar search "<topic query>" -n <claim-slug> -p dblp -p wos -p ieee
-    -p openalex -p scopus -f bibtex+prov
+  scholar search "<topic query>" -n <claim-slug> -l 0 -p dblp -p wos
+    -p ieee -p openalex -p scopus -f bibtex+prov
+Never lower the limit (-l 0 = all results) and never cap screening or
+reading yourself: report the counts, the orchestrator asks the user.
 Run every query -- support AND counter -- on the SAME full set of live
 providers (translate the same keywords into WoS TS=(...) / Scopus
 TITLE-ABS-KEY(...) where needed; never different keyword sets per
@@ -427,7 +428,8 @@ recorded verbatim (tool, query, outcome) in FOUND-VIA/COUNTER and in a
 "Search protocol" section of your report. Classify the WHOLE session
 (scholar llm context; scholar llm classify --no-examples; tags
 supports-claim / qualifies-claim / adjacent-subtopic / off-topic-false-hit,
-theme tags on cited papers; decide papers it leaves pending with
+the labelled exclusion criterion on every discard, theme tags on cited
+papers; decide papers it leaves pending with
 scholar sessions decide; read low-confidence and qualifying rows
 yourself) and export it (scholar sessions export) so the audit table can
 be generated. Write a .bib with a provenance block (CLAIM / FOUND-VIA /
@@ -489,11 +491,9 @@ the user as todos (`nytid-todo`), load-bearing first.
 - [ ] Found via recorded, reproducible, **topic-driven** queries (names only for retrieval)
 - [ ] Several providers queried and their **health checked** (`scholar providers check`); known items retrieved by DOI/field search, not buried keyword ranking
 - [ ] **Counter-search run** and its outcome recorded (`COUNTER`): refuting/qualifying work handled, or "none found"
-- [ ] Results screened into supports / refutes / qualifies; claim adjusted if needed
-- [ ] Picked with a written rationale among alternatives
-- [ ] Source actually read (abstract or full text), not just the title
-- [ ] Verbatim supporting quote captured, entails the claim
-- [ ] Provenance block written above the entry; `check_provenance.py` passes
+- [ ] Results screened into supports / refutes / qualifies; discards tagged with their labelled exclusion criterion; claim adjusted if needed
+- [ ] Picked with a written rationale among alternatives; source actually read (abstract or full text), not just the title
+- [ ] Verbatim supporting quote captured, entails the claim; provenance block written above the entry; `check_provenance.py` passes
 - [ ] Citation emitted in the project's markup style (writing-crypto / latex-writing)
-- [ ] Every query run on every live provider; counter vocabulary mirrors support (matrix recorded, failed cells marked failed, never 0)
+- [ ] Every query run on every live provider, **without a limit**; counter vocabulary mirrors support (matrix recorded, failed cells marked failed, never 0); the user asked before any cap on screening or reading
 - [ ] Appendix self-contained: claim cited at first mention, corroborations cited, classified hit-list table included, no export paths/URLs in the compiled text (`references/appendix-guide.md` checklist)

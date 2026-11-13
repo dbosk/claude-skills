@@ -251,6 +251,45 @@ reports.
   programming"), take the full result set rather than the top 40, and say
   so in the query table.
 
+### No caps on searches
+
+Every query is run without a limit (`-l 0`), so a cell of the query table
+is the number of records the database holds for the query, not "at least
+40". If the user then decides to screen or read only part of what came
+back, the method says so in three numbers per question: retrieved,
+screened, read in full. A search that was run with a limit is redone
+without one (see "Redo, don't narrate").
+
+### Exclusion criteria
+
+The criteria for leaving a record out are a **labelled list** in the
+method, and the labels are the reasons recorded in the session:
+
+```latex
+A record is excluded if it
+\begin{enumerate}[label=X\arabic*,ref=X\arabic*]
+  \item\label{x:scheme} proposes a new scheme and offers only its own
+    security argument for it;
+  \item\label{x:machine} concerns authentication between machines;
+  ...
+\end{enumerate}
+```
+
+```bash
+scholar llm classify <session> --no-examples \
+  -t supports-claim -t qualifies-claim -t adjacent-subtopic -t off-topic-false-hit \
+  -t x1-new-scheme -t x2-machine -t x3-usability-only -t x4-opinion
+scholar sessions decide <session> --discard --doi <doi> -t x1-new-scheme
+```
+
+The research context given to `llm context` states each criterion with its
+tag, and asks for the criterion tag on every record that is not kept. The
+flow counts in the results are then given per criterion (so many excluded
+under X1, so many under X2), the session export carries the reason for
+every discard, and a reader who doubts a decision can see which rule made
+it. A record discarded for a reason outside the list means the list is
+incomplete: add the criterion, do not invent a tag.
+
 ### Vocabulary symmetry
 
 The counter-search uses every concept term the support search used, plus
@@ -370,8 +409,8 @@ not open access)", "Web of Science (WoS)". No session name.
     2026-09-02, verktyget \texttt{scholar}.  S = stödfråga, M = motfråga,
     K = känt dokument.  Databaser: OpenAlex (OA; inte
     \foreignlanguage{english}{open access}), DBLP, IEEE Xplore (IEEE),
-    Web of Science (WoS), Scopus.  Högst 40 träffar per databas och fråga,
-    så 40 betyder \enquote{minst 40}.  \enquote{--} betyder att sökningen
+    Web of Science (WoS), Scopus.  Sökningarna har ingen övre gräns:
+    talen är alla träffar.  \enquote{--} betyder att sökningen
     misslyckades: DBLP svarade på varje fråga med en sida som stoppar
     automatiserade klienter i stället för med data, så DBLP kunde inte
     genomsökas.  Web of Science fick nyckelorden som
@@ -382,9 +421,9 @@ not open access)", "Web of Science (WoS)". No session name.
       \toprule
       & Nyckelord & OA & DBLP & IEEE & WoS & Scopus \\
       \midrule
-      S1 & \enquote{code clones} inconsistent changes faults & 40 & -- & 14 & 2 & 4 \\
+      S1 & \enquote{code clones} inconsistent changes faults & 212 & -- & 14 & 2 & 4 \\
       … \\
-      M1 & \enquote{code clones} (beneficial, harmless eller \enquote{considered harmful}) & 40 & -- & 40 & 19 & 31 \\
+      M1 & \enquote{code clones} (beneficial, harmless eller \enquote{considered harmful}) & 388 & -- & 61 & 19 & 31 \\
       \bottomrule
     \end{tabular}
   \end{sidecaption}
@@ -402,7 +441,8 @@ in part gets its lower bound and the same kind of explanation.
 - [ ] Method: date, tool, databases + health, side-captioned query ×
       database × hits table with the abbreviations defined; known-item
       retrievals justified and their verification mode stated
-- [ ] Every query on every live provider; counter vocabulary mirrors support
+- [ ] Every query on every live provider, without a limit; counter vocabulary mirrors support
+- [ ] Exclusion criteria labelled in the method and used as discard tags; flow counts given per criterion; any cap on screening or reading decided by the user and stated
 - [ ] Failed searches reported as failed (query table, method,
       limitations), never as 0; a database that failed every query is
       named as not searched

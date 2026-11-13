@@ -24,6 +24,7 @@ subcommands from an agent.
 
 - [Providers and keys](#providers-and-keys)
 - [Searching](#searching)
+- [Limits: never cap a search](#limits-never-cap-a-search)
 - [Known items](#known-items)
 - [Research-question search](#research-question-search)
 - [Reading the source (verification)](#reading-the-source-verification)
@@ -154,6 +155,38 @@ deduplicated, keeping the richest copy of each paper. Citation keys follow
 one scheme across scholar's outputs (`smith2024`, `smith2024a`, `nd` for no
 year); keys in a `.bib` from an older scholar may differ — see
 `provenance-format.md`, "Bib hygiene the reader sees".
+
+## Limits: never cap a search
+
+`scholar search` takes at most 1000 records per provider by default
+(`--limit`, `-l`); `-l 0` takes all. **Always pass `-l 0`**, and never a
+smaller limit to save time: the whole result set belongs in scholar's cache
+and in the session, and a capped search samples the top of a relevance
+ranking, which buries older and less-cited work. A session searched with a
+limit shows `hits` equal to the limit in `sessions show`; such a cell means
+"at least that many" and is redone without the limit.
+
+```bash
+scholar search "<query>" -n <session> -p openalex -p wos -p scopus -p ieee -p arxiv -l 0
+```
+
+What to expect, and what to do with it:
+
+- **OpenAlex searches the full text**, the other databases title, abstract
+  and keywords. The same query returned 895 records from OpenAlex and 40 to
+  150 from the others; a broad one returned 33 600 (observed 2026-11-13).
+  For a quick count before downloading:
+  `curl -s 'https://api.openalex.org/works?per-page=1&search=<url-encoded
+  query>'` and read `meta.count`
+  (`filter=title_and_abstract.search:<query>` gives the title-and-abstract
+  count for comparison).
+- **IEEE Xplore allows 200 requests a day**; run the searches that failed
+  first and check `scholar providers limits` before a large batch.
+- **Ask before capping what follows.** When the counts are known, give the
+  user the query × provider matrix and ask how much to screen and how many
+  to read in full. Screening everything a full-text search returns may not
+  be worth its cost; that is the user's call, and the answer goes into the
+  method (what was retrieved, what was screened, what was read).
 
 ## Known items
 

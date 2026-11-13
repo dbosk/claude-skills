@@ -405,6 +405,31 @@ The study reports \textcquote[p.~167]{NCOL}{much higher (63\%)} results.
 \enquote{five} for one hand and \enquote{ten} for the other.
 ```
 
+#### Changing a quotation so that it fits the sentence
+
+A quotation is verbatim, so every change to it is marked, with csquotes'
+own commands and never silently. The common case is a quoted sentence that
+begins with a capital and is set in the middle of your own sentence:
+
+```latex
+% INCORRECT — capital in mid-sentence, or a silently lowered letter
+the guideline states that \textcquote{key}{Out-of-band authentication is not ...}
+the guideline states that \textcquote{key}{out-of-band authentication is not ...}
+% CORRECT — the changed letter is marked: [o]ut-of-band
+the guideline states that \textcquote{key}{\textins*{o}ut-of-band authentication is not ...}
+```
+
+| Change | Command | Prints |
+|--------|---------|--------|
+| a changed letter or word (case, tense) | `\textins*{o}ut-of-band` | [o]ut-of-band |
+| words added for clarity | `\textins{the key}` | [the key] |
+| words left out | `\textelp{}` | [...] |
+| words left out, then words added | `\textelp{and}` | [...] [and] |
+
+Check every embedded quotation for its first letter when reviewing. Where a
+mark would be clumsy, change your own sentence instead: end it with a colon
+and let the quotation stand as a sentence of its own.
+
 **Crucial caveat**: `\textcquote`/`\blockcquote` assert the braced text is
 *verbatim* from the source. Verify the words actually appear there before
 wrapping them; do not use these commands for paraphrase, reconstructed dialogue,
@@ -691,6 +716,7 @@ Check for these common issues:
 - [ ] Manual cross-reference prefixes (`\S\ref`, `Section~\ref`, `Figure~\ref`) instead of `\cref`
 - [ ] Manual citation formatting instead of `\cite` commands
 - [ ] Manual quotes (`"..."`, `'...'`, `` `...` ``) instead of `\enquote{...}`
+- [ ] An embedded quotation that begins with a capital in mid-sentence, or was changed silently, instead of `\textins*{}`/`\textins{}`/`\textelp{}`
 - [ ] *Verbatim* source text written as `\enquote{...}` + a detached `\cite`/`\autocite` instead of `\textcquote`/`\blockcquote` (and, conversely, `\textcquote`/`\blockcquote` wrapping paraphrase that is not verbatim)
 - [ ] Images without `figure` environment
 - [ ] Code without proper formatting (listings/verbatim)
