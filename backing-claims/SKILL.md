@@ -175,30 +175,27 @@ Phrase **counter-searches with field syntax** (WoS
 "maintainability index criticism limitations" returned only off-topic hits
 on WoS/OpenAlex, so a "nothing found" from them is not a real negative.
 
-Three rules that reviews added (details: `references/appendix-guide.md`):
+Six rules that reviews added (details: `references/appendix-guide.md`):
 
-- **Same queries, all providers.** Run *every* query — support and counter —
-  on the *same* full set of live providers, translating the *same* keywords
-  into field syntax where needed. Record a query × provider × hits matrix;
-  a cell may be empty only because a provider failed, and then it says so.
+- **Same queries, all providers.** Every query, support and counter, with the
+  same keywords on the same live providers; record the query × provider matrix.
 - **Vocabulary symmetry.** The counter-search uses every concept term of the
-  support search, plus the field's indexed names for the concept ("code
-  clones" where practitioners say "DRY").
-- **Never cap a search; ask before capping what follows.** Run every query
-  with `-l 0`: the whole result set belongs in scholar's cache and in the
-  record. When the counts are known, show the user the matrix and **ask**
-  how much to screen and how many to read in full. A cap is the user's
-  decision, reported in the method; never one you set to save time.
+  support search, plus the field's indexed names ("code clones" for "DRY").
+- **Several wordings per concept.** Never one phrase for a concept: synonyms,
+  noun and verb, the bare word (`"account recovery"` missed "recovery procedures").
+- **Known studies must come back.** Name a few relevant studies in the method;
+  a query that returns none of those on its concept is reworded.
+- **Check by meaning.** The record shows what was found, not what was missed:
+  per concept, run `scripts/semantic_check.py`; a relevant work the sessions lack is a gap.
+- **Never cap a search; ask before capping what follows.** Always `-l 0`; when
+  the counts are known, **ask** the user what to screen and what to read in full.
 
-**No `scholar` in the environment?** The protocol does not depend on it. Run the
-same two-sided searches with WebSearch, and verify existence and content with
-direct API/page retrieval — `api.crossref.org/works/<doi>`,
-`api.openalex.org/works/doi:<doi>`, or WebFetch of the publisher's or issuing
-organization's own page. A source whose existence cannot be verified this way is
-**dropped and recorded as dropped**, never cited.
+**No `scholar` in the environment?** Run the same two-sided searches with
+WebSearch and verify existence and content directly (`api.crossref.org/works/<doi>`,
+`api.openalex.org/works/doi:<doi>`, WebFetch of the publisher's or issuer's page).
+A source that cannot be verified is **dropped and recorded as dropped**, never cited.
 
-`scholar snowball`, `scholar tuxedo` and `scholar search --review` are
-interactive TUIs — **do not** drive them from an agent.
+`scholar snowball`, `scholar tuxedo` and `scholar search --review` are interactive TUIs: **do not** drive them from an agent.
 
 ### 3. Screen into supporting / refuting / qualifying, then pick
 
@@ -415,11 +412,12 @@ query in the session was author-driven, partial or malformed, rerun it
 properly and mark the old one superseded; a redo must recover every
 relevant result of the search it replaces -- close gaps by improving the
 concept queries, never by searching for the missing paper by name. Search
-topic-driven (by concept), not by author name; retrieve known items by
-DOI (curl https://api.crossref.org/works/<doi>) or field search
-(scholar search 'TI=(...)' -p wos). For every claim run COUNTER-searches
-that reuse every concept term of the support searches plus the field's
-indexed names for the concept. Verify each source by opening it (scholar
+topic-driven (by concept), not by author name, and give every concept
+several wordings (synonyms, noun and verb, the bare word), never one exact
+phrase; retrieve known items by DOI (curl api.crossref.org/works/<doi>) or
+field search (scholar search 'TI=(...)' -p wos). For every claim run
+COUNTER-searches that reuse every concept term of the support searches plus
+the field's indexed names. Verify each source by opening it (scholar
 pdf quote / WebFetch of the publisher or an OA copy) and capture a
 VERBATIM quote with locator. Corroborating sources get verified entries
 too (abstract-level flagged as such), not a mention. alphaXiv, WebSearch
@@ -465,6 +463,7 @@ the user as todos (`nytid-todo`), load-bearing first.
 | Back "X is an *established* method" with a quote from X's originator. | The originator shows X was *proposed*, not *adopted*; investigate establishment (formalization, textbooks, adoption, descendants) AND counter-search for criticism — a two-sided review. |
 | "Document" a counter-search by naming its session in passing. | A Method paragraph with the verbatim queries, providers, date, and export path — reproducible from the appendix text alone. |
 | Chapter's answer buried mid-chapter; it ends on raw hit-list tables. | A Conclusion answers the research question explicitly; the tables follow it as audit data. |
+| One exact phrase per concept; trust a search because its query table looks complete. | Several wordings per concept; named studies that must come back; a search by meaning held against the sessions (`scripts/semantic_check.py`); a missed study traced, repaired by concept and reported. |
 | Search one or two providers; trust a "not found"; record a failed search as 0. | Query several (`s2 openalex dblp wos scopus`); run `scholar providers check` first; copy `failed (reason)` cells as failed — a failed cell is "not searched". |
 | Delegate a literature search with "use WebSearch/alphaXiv" and no protocol. | Load this skill first; the subagent prompt carries the preamble above (named `scholar` session, counter-searches, provenance `.bib`, documented complements, report to a file). |
 | Use alphaXiv/WebSearch and mention it in passing. | Record the tool and verbatim query in `FOUND-VIA`/`COUNTER` **and** in the search-protocol appendix — undocumented complements are unbacked. |
@@ -478,10 +477,11 @@ the user as todos (`nytid-todo`), load-bearing first.
 | `references/provenance-format.md` | Full provenance schema, field semantics, worked examples, migrating a `scholar rq` session into `FOUND-VIA` | `FOUND-VIA`, `QUOTE`, `VERIFIED`, `multi-line` |
 | `references/claim-audit.md` | Finding the claims that carry no citation: advice, conventions, "because" clauses, "no claims" statements; the PEP 8 case | `imperative`, `benefit`, `because`, `no claims` |
 | `references/verification-checklist.md` | Applicability tests for deciding whether a source really supports a claim | `scope`, `primary vs secondary`, `over-claim`, `retraction`, `venue` |
-| `references/scholar-cookbook.md` | Non-interactive `scholar` recipes (incl. `bibtex+prov`, `prov`, `verify`, `pdf quote`), provider health and failed searches, sessions and `.bak`, proxy, cache, citation keys + how to phrase `FOUND-VIA` for non-`scholar` sources | `providers check`, `Not reproducible`, `failed (`, `.json.bak`, `--proxy`, `cache clear`, `citation keys`, `bibtex+prov`, `WebFetch` |
+| `references/scholar-cookbook.md` | Non-interactive `scholar` recipes (incl. `bibtex+prov`, `prov`, `verify`, `pdf quote`), provider health and failed searches, search by meaning (tools and limits), sessions and `.bak`, proxy, cache, citation keys + how to phrase `FOUND-VIA` for non-`scholar` sources | `providers check`, `Not reproducible`, `failed (`, `.json.bak`, `--proxy`, `cache clear`, `citation keys`, `bibtex+prov`, `WebFetch` |
 | `references/closed-access.md` | Fetching subscribed full texts through the KTH SOCKS tunnel: the allowed commands, `SCHOLAR_PROXY`, which publishers answer, curl vs `fetch_pdf.py`, bot checks, leftovers as todos | `tunnel`, `SCHOLAR_PROXY`, `socks5h`, `Cloudflare`, `user agent` |
 | `references/scholar-enhancements.md` | Record of what shipped in scholar for this skill (provenance, audit table, honest failures, session integrity, proxy) and a place for future ideas | `shipped`, `PR`, `gh issue`, `future ideas` |
-| `references/appendix-guide.md` | The backing appendix as a short reproducible paper: skeleton, self-containment rules, query-table template, hit-list table generation, checklist | `Self-contained`, `Same queries`, `Vocabulary symmetry`, `Query table`, `session_table` |
+| `references/appendix-guide.md` | The backing appendix as a short reproducible paper: skeleton, self-containment rules, query-table template, hit-list table generation, checklist; query wording, known studies, the check by meaning, what to do about a missed study | `Self-contained`, `Same queries`, `Vocabulary symmetry`, `several wordings`, `must return`, `search by meaning`, `missed`, `Query table`, `session_table` |
+| `scripts/semantic_check.py`, `scripts/openalex_title_abstract.py` | OpenAlex search by meaning held against sessions (gaps in the keyword queries); OpenAlex title-and-abstract matches added to a session | `-s`, `-t`, `search.semantic`, `title_and_abstract` |
 | `scripts/session_table.py` | Fallback for `scholar sessions export -f table`: classified session CSV → the same auditable `longtable` (`--bearing-only`, `--lang sv|en`, `--theme`) | `--csv`, `--label`, `--theme` |
 
 ## Workflow checklist
@@ -495,5 +495,5 @@ the user as todos (`nytid-todo`), load-bearing first.
 - [ ] Picked with a written rationale among alternatives; source actually read (abstract or full text), not just the title
 - [ ] Verbatim supporting quote captured, entails the claim; provenance block written above the entry; `check_provenance.py` passes
 - [ ] Citation emitted in the project's markup style (writing-crypto / latex-writing)
-- [ ] Every query run on every live provider, **without a limit**; counter vocabulary mirrors support (matrix recorded, failed cells marked failed, never 0); the user asked before any cap on screening or reading
+- [ ] Every query run on every live provider, **without a limit**; counter vocabulary mirrors support (matrix recorded, failed cells marked failed, never 0); the user asked before any cap on screening or reading; every concept in several wordings; a search by meaning held against the sessions
 - [ ] Appendix self-contained: claim cited at first mention, corroborations cited, classified hit-list table included, no export paths/URLs in the compiled text (`references/appendix-guide.md` checklist)

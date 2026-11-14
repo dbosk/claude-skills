@@ -26,6 +26,7 @@ subcommands from an agent.
 - [Searching](#searching)
 - [Limits: never cap a search](#limits-never-cap-a-search)
 - [Known items](#known-items)
+- [Search by meaning](#search-by-meaning-a-check-not-the-record)
 - [Research-question search](#research-question-search)
 - [Reading the source (verification)](#reading-the-source-verification)
 - [Provenance commands](#provenance-commands)
@@ -179,7 +180,13 @@ What to expect, and what to do with it:
   `curl -s 'https://api.openalex.org/works?per-page=1&search=<url-encoded
   query>'` and read `meta.count`
   (`filter=title_and_abstract.search:<query>` gives the title-and-abstract
-  count for comparison).
+  count for comparison). To screen the title-and-abstract matches while
+  the full-text matches stay in the cache, uncounted for screening:
+  `scripts/openalex_title_abstract.py <session> "<query>" ...` adds them
+  to the session under the query prefixed `title_and_abstract.search:`.
+  A study that matches only in its full text then goes unscreened (one
+  stood 121st of 1 954 full-text matches), which is one more reason for
+  the check below.
 - **IEEE Xplore allows 200 requests a day**; run the searches that failed
   first and check `scholar providers limits` before a large batch.
 - **Ask before capping what follows.** When the counts are known, give the
@@ -203,6 +210,34 @@ scholar search 'TI=(language-independent conceptual bugs)' -p wos            # W
 scholar search 'TITLE("Language-Independent Conceptual Bugs")' -p scopus     # Scopus: TITLE() AUTH()
 scholar search 'ti:"visual program simulation"' -p arxiv                     # arXiv: ti: au:
 ```
+
+## Search by meaning: a check, not the record
+
+Keyword search misses a study that uses other words for the concept, and
+the record of the search cannot show it. After the keyword searches, hold
+a search by meaning against the sessions (rule and reading of the result:
+`appendix-guide.md`, "Check the keyword search with a search by
+meaning").
+
+```bash
+# OpenAlex search.semantic: one question per concept, written down first.
+# Prints, per question, how the sessions classified each of the 50 works
+# and lists those "not in our records"; -t gives the place of a known study.
+scripts/semantic_check.py -s <session> -s <session2> -t <doi-or-title-part> \
+  -o <dir-kept-with-the-record> "<question in plain words>" ["<question 2>"]
+```
+
+| Tool | What it matches | Limits (2026-11) |
+|---|---|---|
+| OpenAlex `works?search.semantic=` | embeddings of title, abstract, venue | 50 works a question, 2 000 characters, 1 request a second; no other search parameter in the same request |
+| Semantic Scholar `graph/v1/snippet/search` | passages of open-access full texts, by embedding and keyword | without a key the public pool answered 429 through nine minutes of retries; with a rejected key, 403 |
+| Asta (asta.allen.ai), reports | a language model rewords the question; keyword search of abstracts plus the snippet search; re-ranking | run by the user; states no method in the report; list its sources and look them up |
+| alphaXiv `discover_papers` (MCP) | arXiv papers only | timed out three times on 2026-11-13 |
+
+A search that did not answer is recorded as failed, with the reason, like
+any other. `FOUND-VIA` for a work that entered this way names the keyword
+query that then returned it; the search by meaning goes in the method as
+the check that prompted the query.
 
 ## Research-question search
 

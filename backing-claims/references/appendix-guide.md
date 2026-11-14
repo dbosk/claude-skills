@@ -240,6 +240,18 @@ reports.
   `OPENALEX_API_KEY` in `~/.credentials`, never in a prompt or a report).
   Without one, plan a thorough chapter (a hundred-odd queries) against
   the free budget, or run it across two days.
+- **OpenAlex's abstracts are incomplete.** It held one sentence of a CCS
+  paper's abstract (2026-11-13), so a query whose word came later in the
+  abstract matched in Web of Science, Scopus and arXiv and not in OpenAlex;
+  of 44 records compared, 9 had no abstract there and 5 a shortened one
+  (a small, selected sample). A title-and-abstract search in OpenAlex
+  (`scripts/openalex_title_abstract.py`) is therefore not the same search
+  as in Web of Science: say so in the limitations, and do not count on
+  OpenAlex alone for a negative.
+- **Semantic Scholar's paper search is a keyword search** with a trained
+  ranking (its API tutorial says so); only its snippet search matches by
+  meaning. A plain-language question sent to `-p s2` is not a search by
+  meaning.
 - **IEEE Xplore** has a daily quota; **Scopus** may reject every query
   (HTTP 400) on a bad day; an unkeyed **Semantic Scholar** shares a public
   pool and answers 429 when it is busy. Scholar records these searches as
@@ -309,6 +321,104 @@ the field's indexed names for the concept (the practitioner name — "DRY"
 — is often unindexed; the academic name — "code clones", "code
 duplication" — is where the literature is). Never write "the concept is
 indexed as X and Y" unless both X and Y were searched in both directions.
+
+### A concept is several wordings
+
+A keyword search returns what shares its words. List the concepts the
+claim rests on (each threat of a threat model, each sub-claim, each
+population) and give **every one** the words an author might use for it:
+synonyms, the noun and the verb, singular and plural, and the bare word
+beside the phrase. One exact phrase per concept is the fault to look for,
+and a query that strings several concepts together as one phrase each
+(`"SIM swap" OR "push fatigue" OR "account recovery"`) has it for all of
+them at once.
+
+Observed 2026-11-13: a review searched the threat "account recovery or a
+weaker fallback login" with the phrase `"account recovery"`. The largest
+study of that threat says "recovery procedures" and "recover from losing
+access" in its abstract and was returned by none of 20 queries on five
+databases; Web of Science held the whole abstract, so the wording was the
+cause and not a database. `recovery OR recover OR fallback OR reset OR
+lockout OR "backup codes"` returned it, with three further sources.
+
+Before running, tick each concept off against the queries. A concept
+with no term at all is named in the limitations; a concept with one
+phrase is reworded now.
+
+### Studies that the queries must return
+
+Write into the method, before the search is relied on, a few studies
+known to bear on the claim: the ones the user names, the claim's own
+citations, what a first run found. After the search, look each one up in
+the session by DOI or title. A query for a concept that returns none of
+the known studies on that concept is reworded (by concept, as in "A redo
+must not do worse") and run again on every provider. The list and the
+outcome go in the method, one sentence. Without such a list a gap cannot
+show: the query table and the counts of a search that missed a study look
+exactly like those of one that did not.
+
+### Check the keyword search with a search by meaning
+
+The record of a search shows what was found, never what was missed. So
+when the keyword searches are done, and always before a conclusion leans
+on "the search found none", ask a search by meaning one question in plain
+words **per concept** and look each returned work up in the sessions:
+
+```bash
+scripts/semantic_check.py -s <session> [-s <session> ...] -o <dir> \
+  "an attacker uses account recovery or a weaker fallback login to get
+   around multi-factor authentication"
+```
+
+(OpenAlex `search.semantic`; other tools and their limits:
+`scholar-cookbook.md`, "Search by meaning".) Write the questions down
+before running. Then:
+
+- A work that bears on the claim and is **not in our records** is a gap
+  in the queries. Find why (which word of its title or abstract no query
+  has), add the wording to the *concept* query, and rerun on every
+  provider. The work then enters through our own search.
+- Works that name the concept and not the claim's subject (studies of
+  fallback authentication that never say "two-factor") cannot be returned
+  by a query built on the subject's term block. Say so in the
+  limitations, or search the concept alone.
+- Be as precise as for keywords: a general question ("is MFA necessary or
+  sufficient") returned mostly surveys and overviews (all 29 works already
+  screened were excluded ones); one concept as a sentence returned 7
+  bearing works among 27 already screened.
+
+It is a documented complement, never the search: record the tool, the
+questions verbatim, the date and the list returned. It gives at most 50
+works and no count of what matched, because nothing matches or fails to
+match, so it cannot fill a flow table and "the search found none" cannot
+rest on it; its order also depends on citation counts and on a model the
+provider can replace. A report by another tool (Asta, Elicit, a
+deep-research run) on the same question is the same kind of check: list
+its sources and look each one up in the sessions.
+
+### When a study turns out to have been missed
+
+A reviewer, another tool's report or a search by meaning names a study
+that bears on the claim and is not cited. In order:
+
+1. **Look, do not answer from memory.** Is it in a session, and how was
+   it classified? In the full-text matches that were kept and not
+   screened (which queries, which place)? Does a database that searches
+   whole abstracts (Web of Science) hold it, and did it return it?
+2. **Name the cause**: the wording of a query, a database that lacks the
+   record or its abstract, a cap, a wrong exclusion by the classifier.
+   They have different repairs.
+3. **Repair by concept** (see "A redo must not do worse"): reword the
+   concept's query from the claim's own statement of the concept, not from
+   the study. A word taken from the missed study may be added, as a query
+   of its own, and is reported as **fitted to that study**.
+4. **Look for the same fault elsewhere.** The repair shows that the
+   queries now return this study and nothing about what else is missing:
+   check every other concept that was searched in the same way.
+5. **Report it**: a deviation, dated, with what prompted it. If the
+   prompt was another tool's report that the paper compares itself with,
+   the comparison keeps describing the review as it stood before the
+   repair, and the repair is told separately.
 
 ### Redo, don't narrate
 
@@ -454,6 +564,13 @@ in part gets its lower bound and the same kind of explanation.
       database × hits table with the abbreviations defined; known-item
       retrievals justified and their verification mode stated
 - [ ] Every query on every live provider, without a limit; counter vocabulary mirrors support
+- [ ] Every concept of the claim has several wordings in the queries (none
+      searched by one phrase); the studies that the queries must return are
+      named in the method and were returned
+- [ ] A search by meaning (or another tool's report) was held against the
+      sessions, one question per concept; what it returned that the records
+      lack is screened or named in the limitations; a repair after a missed
+      study is reported as a deviation, fitted queries marked
 - [ ] Exclusion criteria labelled in the method and used as discard tags; flow counts given per criterion; any cap on screening or reading decided by the user and stated
 - [ ] Failed searches reported as failed (query table, method,
       limitations), never as 0; a database that failed every query is
