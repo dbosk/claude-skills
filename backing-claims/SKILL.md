@@ -1,7 +1,7 @@
 ---
 name: backing-claims
 description: |
-  IMPORTANT: load BEFORE writing ANY claim of fact in any text or reply, sources asked for or not: that something is true, works, helps, is better, common or established; a number; a cause; advice, guidelines or a README naming a benefit ("fewer bugs", "do X because Y"). Hedging or "general knowledge" is no substitute: load, then back it by a two-sided literature review (support AND COUNTER-search), verified in full text, with provenance. Also: (1) adding OR reusing a citation, page number or attribution (inherited ones are NOT verified), or "X found that…", (2) the user wants a reference found, a citation checked, or an answer backed by evidence or literature, (3) related-work, background or claims sections, (4) mention of scholar, BibTeX, DOI, arXiv, OpenAlex, Crossref or a literature search, (5) a text said to "make no claims needing a search", (6) DELEGATING literature research to a subagent/teammate (load this first). Owns finding, verifying, justifying references (markup: writing-crypto/latex-writing).
+  IMPORTANT: load BEFORE writing ANY claim of fact in any text or reply, asked for sources or not: that something is true, works, helps, is better, common or established; a number; a cause; advice, guidelines or a README naming a benefit ("fewer bugs", "do X because Y"). Nothing from memory, and hedging is no substitute: back it by a two-sided literature review (support AND COUNTER), verified in full text, with provenance; claims about code: prove by running or reading it. Also: (1) adding OR reusing a citation, page number or attribution (inherited ones are NOT verified), "X found that…", (2) the user wants a reference found, a citation checked, or an answer backed by evidence/literature, (3) related-work, background or claims sections, (4) mention of scholar, BibTeX, DOI, arXiv, OpenAlex, Crossref, literature search, (5) a text said to "make no claims needing a search", (6) DELEGATING literature research (load this first). Owns finding, verifying, justifying references (markup: writing-crypto/latex-writing).
 allowed-tools:
   - Bash(ssh -o BatchMode=yes -o ExitOnForwardFailure=yes -f -N -D 127.0.0.1:1081 faculty-shell.sys.kth.se)
   - Bash(SCHOLAR_PROXY=socks5h://127.0.0.1:1081 ~/.claude/skills/backing-claims/scripts/fetch_pdf.py:*)
@@ -17,11 +17,10 @@ a specific source supports a specific statement. This skill makes that assertion
 auditable.
 
 The protocol is **format-independent**: it applies wherever a claim rests on a
-source — a paper, a report or memo, an evidence log, a survey or questionnaire
-answer, a recommendation given in conversation. The find → verify → record core
-is always the same; only the *recording surface* differs (BibTeX provenance
-blocks for papers, the deliverable's own evidence log or notes otherwise), and
-the paper-appendix section at the end applies only when the output is a paper.
+source — a paper, a report or memo, an evidence log, a survey answer, a reply in
+conversation. The find → verify → record core is always the same; only the
+*recording surface* differs (BibTeX provenance blocks for papers, the
+deliverable's own log or notes otherwise); the appendix section is for papers.
 
 Backing a claim is a **small literature review, in both directions**: search
 for literature that *supports* the claim **and** for literature that *refutes
@@ -32,6 +31,14 @@ counter-search is recorded as such.
 
 ## Core principle
 
+**Nothing from memory.** No claim of fact is written because you remember it: not in
+a paper, a memo or a README, not in a two-sentence reply. Verify it by the means that
+fits. A claim about the world: this protocol. A claim about program code or a system:
+run it (a test, the command, the build) or, where it cannot be run, read the code or its
+documentation (skill `testing`), and say which. What cannot be verified is left out, and
+you say so: hedging ("probably", "from general knowledge") is not verification. The
+protocol scales with the claim, from reading one known source to a full sweep, never to memory.
+
 **Never cite from memory, from a title, or from a search-result snippet.** Open
 the source, find the passage that supports the claim, and record it. A reference
 that is merely *about the same topic* is not support — the quote must entail the
@@ -41,18 +48,15 @@ Corollary: **the search tool is free, the documentation is not.** Use any source
 you like — `scholar`, Google Scholar, a publisher database, WebSearch, a
 colleague's tip — but every reference must carry a reproducible `FOUND-VIA`.
 
-Corollary: **an inherited citation is not a verified one.** A key that already
-exists in the `.bib`, or one carried over from slides, notes, a draft, or an
-earlier version, asserts support you have not personally checked. Verify it
-against the source the first time you commit it to prose — and re-verify every
-**page number** and every **"X reports/found/shows that…"** attribution you
-write, since those are fresh claims even when the citation key is old. "The
-cite was already there" is not evidence that it is correct. Trigger this skill
-*while writing the sentence*, not only when a reviewer later asks.
+Corollary: **an inherited citation is not a verified one.** A key already in
+the `.bib`, or carried over from slides, notes or an earlier draft, asserts
+support you have not checked. Verify it against the source the first time you
+commit it to prose, and re-verify every **page number** and every **"X
+reports/found/shows that…"** attribution you write: those are fresh claims even
+when the key is old. Trigger this skill *while writing the sentence*.
 
-This skill owns *find → verify → record*. It hands the citation **markup** off to
-`writing-crypto` (biblatex `\autocite`/`\ac`) and `latex-writing` (`\cite`
-family). Do not duplicate that guidance here.
+This skill owns *find → verify → record*; the citation **markup** belongs to
+`writing-crypto` (biblatex `\autocite`/`\ac`) and `latex-writing` (`\cite` family).
 
 ## The find → verify → record protocol
 
@@ -133,24 +137,20 @@ every provider. Retrieve it directly: OpenAlex `works/doi:<doi>`, Crossref
 `works/<doi>`, or a field search (WoS `TI=`, Scopus `TITLE()`, arXiv
 `ti:`) — recipes in the cookbook, "Known items".
 
-**The user's own library may hold it.** Before declaring a book or a
-closed-access paper unobtainable, search the user's reMarkable
-(`remarkable_browse(query=…)`, then `remarkable_read(…, content_type="raw",
-grep=…)`; a subagent reads page by page) and the backup on `ssh pepper`, then
-try the university's access. Record it as `FOUND-VIA: known item, read on
-the user's reMarkable (<tablet path>)`.
+**The user's own library may hold it.** Before declaring a book or closed-access
+paper unobtainable, search the user's reMarkable (`remarkable_browse(query=…)`,
+then `remarkable_read(…, content_type="raw", grep=…)`; a subagent reads page by
+page) and the backup on `ssh pepper`, then try the university's access. Record
+it as `FOUND-VIA: known item, read on the user's reMarkable (<tablet path>)`.
 
 **Grey literature may be in none of them.** DOI-less conference papers,
-dissertations and tech reports are often absent from every provider — an
-empty `TI=`/`TITLE()` search everywhere means "not indexed here", not "does
-not exist". Reach them via **Google Scholar**, **citation chaining** (walk
-the reference list of a paper that cites the target), or the
-**author's/publisher's own copy**, and say so in `FOUND-VIA` ("not returned
-by provider search; retrieved from author copy").
+dissertations and tech reports are often absent from every provider: an empty
+`TI=`/`TITLE()` search means "not indexed here", not "does not exist". Reach
+them via **Google Scholar**, **citation chaining** or the **author's/publisher's
+own copy**, and say so in `FOUND-VIA` ("not returned by provider search; …").
 
-To get the BibTeX **already wrapped in provenance blocks** with `FOUND-VIA`
-pre-filled from the query, use `-f bibtex+prov` (this is the easiest start —
-you then fill in `CLAIM`/`PICKED`/`QUOTE`/`VERIFIED`):
+`-f bibtex+prov` gives the BibTeX **already wrapped in provenance blocks**, with
+`FOUND-VIA` pre-filled; you then fill in `CLAIM`/`PICKED`/`QUOTE`/`VERIFIED`:
 
 ```bash
 scholar search "authenticated encryption generic composition" -p s2 -p dblp -f bibtex+prov
