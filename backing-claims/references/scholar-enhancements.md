@@ -81,14 +81,17 @@ gh issue create --repo dbosk/scholar --label enhancement \
 ```
 
 
-Gaps seen on 2026-11-13 (MFA review), not yet filed:
+Gaps seen on 2026-11-13 (MFA review), filed 2026-11-15:
 
-- An option on the OpenAlex provider to search title and abstract only
+- [dbosk/scholarcli#135](https://github.com/dbosk/scholarcli/issues/135):
+  an option on the OpenAlex provider to search title and abstract only
   (`title_and_abstract.search`), recorded as its own kind of search in the
   session. `scripts/openalex_title_abstract.py` does it by replacing the
   provider's `_base_query`.
-- A provider, or a `scholar check` command, for OpenAlex's
+- [#136](https://github.com/dbosk/scholarcli/issues/136): a provider, or a
+  `scholar check` command, for OpenAlex's
   `search.semantic`, reporting how a session classified each work
   returned. `scripts/semantic_check.py` does it outside scholar.
-- `scholar enrich --pending-only`: enriching a session of thousands of
+- [#137](https://github.com/dbosk/scholarcli/issues/137):
+  `scholar enrich --pending-only`: enriching a session of thousands of
   records to fill a few hundred new ones ran out of time.
