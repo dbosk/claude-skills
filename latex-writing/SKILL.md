@@ -539,6 +539,10 @@ When using the memoir document class, prefer `sidecaption` over traditional `\ca
 \end{table}
 ```
 
+**Citations in a caption** are inline: `\parencite[Table~2]{key}`, as in
+margin notes. Under the verbose margin-footnote style `\autocite` there
+loses the float (see "Debugging `Float(s) lost`" below).
+
 **Key features of sidecaption:**
 - **Caption placement**: Caption appears alongside the content (figure/table), not above or below
 - **Space efficiency**: Better use of page width, especially for narrow images/tables
@@ -617,8 +621,17 @@ The results in \cref{tab:benchmark} demonstrate...
   `\mintinline{...}{...}` calls, never inside one.
 
 ### Debugging `! LaTeX Error: Float(s) lost.`
-This fatal, location-less error (reported at `\end{document}`) in a dual
-beamer/article didactic+memoir build is typically a citation/footnote inside a
+Under a verbose style with margin footnotes (didactic + memoir), the first
+suspect is an `\autocite`/`\textcite` **inside a float**: a caption, a
+`sidecaption`, a table cell. Its margin footnote is a float inside a float.
+Fix it the way margin notes cite: **inline, with `\parencite`, in the
+caption** (author, 2026-11-16: "use inline citations, same as when we cite
+in margin notes"). Keep the citation in the caption; moving it out to the
+surrounding prose is not the fix. Details: `references/minted-v3-and-floats.md`.
+
+The other common cause, a fatal, location-less error (reported at
+`\end{document}`) in a dual
+beamer/article didactic+memoir build, is a citation/footnote inside a
 **slide-only `\begin{frame}<presentation>` frame** (it suppresses output but
 still executes the body, so the margin footnote gets orphaned) — *not* citations
 in ordinary frames, which are fine. Run a bare `pdflatex -halt-on-error` pass to

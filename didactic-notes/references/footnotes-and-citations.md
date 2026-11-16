@@ -128,8 +128,9 @@ Then drive citations with `\autocite`. Caveats:
 - **Keep `\textcite`** for sentence-integrated citations ("According to
   \textcite{X}, …"); don't convert those to `\autocite` (it breaks the
   sentence). `\textcite` stays textual in the running text.
-- **Inside `\ltnote` (or any other `\marginpar`), use `\parencite` — never
-  `\autocite`.** Under `verbose`, `\autocite` is a footnote, and a footnote
+- **Inside `\ltnote` (or any other `\marginpar`), and inside a float's
+  caption or `sidecaption`, use `\parencite` — never `\autocite`.** The
+  caption keeps its citation, inline; do not move it out to the prose. Under `verbose`, `\autocite` is a footnote, and a footnote
   emitted inside a margin float is orphaned: the article/memoir job dies
   with the fatal, location-less `! LaTeX Error: Float(s) lost.` at
   `\end{document}`. `\parencite`'s long inline citation is exactly right

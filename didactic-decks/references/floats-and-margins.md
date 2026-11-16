@@ -173,5 +173,6 @@ nothing to do with it. `preamble.tex` therefore carries:
 Never `\textcite` or `\autocite` inside a `table` or `figure`: the citation
 becomes a `\marginpar`, the float is lost ("Float(s) lost" in the log) and
 its `\label` goes with it, so every `\cref` to it prints `??`. Use
-`\parencite` inside the float, and put the footnoted first mention in the
-prose outside it.
+`\parencite` inside the float, inline in the caption as in a margin note;
+the caption keeps its citation. A footnoted first mention may in addition
+go in the prose outside the float.

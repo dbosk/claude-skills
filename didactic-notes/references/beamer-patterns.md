@@ -406,6 +406,12 @@ Placement comes first, the caption style second:
 \end{frame}
 ```
 
+In beamer, didactic defines `sidecaption` as a plain `\caption` (with the
+label), so a table in a shared frame uses `sidecaption` with no
+`\mode<presentation>`/`\mode<article>` split: the notes get the margin
+caption, the slides an ordinary one. Cite inside the caption with
+`\parencite`, never `\autocite` (see `footnotes-and-citations.md`).
+
 ### Benefits
 
 - Caption alongside content (better use of horizontal space)
