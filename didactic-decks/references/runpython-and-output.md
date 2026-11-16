@@ -67,7 +67,14 @@ it the program runs from the deck directory and the relative path misses.
 
 ## Verifying transcripts
 
-Two checks catch the two ways transcripts go wrong.
+Three checks catch the three ways transcripts go wrong.
+
+Missing or empty transcripts, after an incremental build:
+`scripts/check_transcripts.py <deck dir> notes`, which `build_deck.sh`
+runs after each job (`review-checklist.md`, "Transcripts"). A run in a
+notes-only frame loses its transcript silently when the slides job's
+PythonTeX run has deleted its `.stdout` (`build-and-gotchas.md`, "The
+shared PythonTeX cache").
 
 Instance-count skew, from a `\pause` in a `\runpython` frame:
 

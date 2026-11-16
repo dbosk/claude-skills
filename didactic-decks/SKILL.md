@@ -261,6 +261,7 @@ for the `##### all done` marker.
 |---|---|
 | Literal `<MINTED>` on every slide, or blank ToC frames | one more `pdflatex` pass |
 | Notes show old output after a chunk changed | `rm -f ltxobj/*.pytx* ltxobj/*.fdb_latexmk didactic_output_*.txt; touch contents.nw` |
+| Transcripts gone after an incremental build (`check_transcripts.py` fails) | the same clean rebuild |
 | Notes transcripts belong to the wrong example | a `\pause` in a `\runpython` frame; split it |
 | "Nothing to do", nothing rebuilds | `rm ltxobj/notes.fdb_latexmk` |
 | `<MINTED>` in the notes, stray `notes.pytxmcr` beside the sources | PythonTeX ran from the deck directory; delete the strays and `ltxobj/notes.*`, rebuild |
@@ -292,6 +293,7 @@ These `scripts/build_deck.sh` runs itself:
 | `check_provenance.py` on `ltnotes.bib` | `Result: OK` |
 | `check_margin_notes.py` on the notes | no note printed away from its marker; a run that checked nothing fails too |
 | `check_overfull.py` on `ltxobj/notes.log` | no line more than 5pt too wide (`--overfull-pt N`); `--draft` lists them without failing |
+| `check_transcripts.py`, each job right after its build | every `\runpython` has a non-empty transcript of its own program in the PDF |
 | blank-ish slides | reported, not failed: poster and section frames are legitimately sparse |
 
 Every row but the last makes the script exit non-zero. It prints the
@@ -313,16 +315,28 @@ column. A box TeX set but never printed (a `<presentation>` frame) is
 listed as not in the PDF and does not count. Details in
 `references/review-checklist.md`, "Overfull lines in the notes".
 
+The transcript check reads what the job's last pass read
+(`ltxobj/<job>.fls`): an incremental build that skips PythonTeX can drop
+transcripts with no `??`, error or `MINTED`, because the slides'
+PythonTeX run deletes the `.stdout` files of notes-only runs
+(`references/build-and-gotchas.md`, "The shared PythonTeX cache"). Its
+warnings name files changed since the pass: the PDF is right, the next
+incremental build of that job is not.
+
 **Four checks it does not run.** Do them yourself before calling a deck
 reviewed:
 
-0. **Clipped verbatim lines.** A long program line or transcript line in a
-   frame without `shrink` runs off the slide's right edge and LaTeX logs
-   nothing. `scripts/cutcheck.py <deck dir> slides notes` finds them two
-   ways (a printed line that is a strict prefix of a tangled or
-   transcript line; a word whose box passes the page width); it needs the
-   deck built. Fix by shortening the text or `shrink`; a chunk frame at
-   the decks' minted size shows about 69 characters.
+0. **Clipped and overflowing verbatim lines.** A long program or
+   transcript line runs off a slide, or out of the notes' text block into
+   the margin column, and LaTeX logs nothing (minted pads each line with
+   `\hss`, so no Overfull `\hbox`). `scripts/cutcheck.py <deck dir>
+   slides notes`, on a built deck, reports a printed line that is a
+   strict prefix of a tangled or transcript line, a word past the page
+   edge, words printed over a margin note (OVERPRINT), and a body line
+   ending more than 5pt past the text block (MARGIN). It cannot judge a
+   line inside a full-width block; read those pages. Fix by shortening
+   the text or `shrink`; a chunk frame at the decks' minted size shows
+   about 69 characters, a notes line about 88.
 
 1. **`check_metadata.py` on `ltnotes.bib`** — left out of the script
    because it queries Crossref over the network. Run it once per revision,

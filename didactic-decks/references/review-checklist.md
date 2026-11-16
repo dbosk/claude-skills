@@ -8,7 +8,9 @@ Contents: [The numeric checks](#the-numeric-checks) ·
 [Tangled examples](#tangled-examples) ·
 [Bibliography](#bibliography) · [Reading the pages](#reading-the-pages) ·
 [Margin notes](#margin-notes) ·
+[Clipped and overflowing verbatim lines](#clipped-and-overflowing-verbatim-lines) ·
 [Overfull lines in the notes](#overfull-lines-in-the-notes) ·
+[Transcripts](#transcripts) ·
 [Known harmless](#known-harmless)
 
 ## The numeric checks
@@ -22,6 +24,7 @@ Contents: [The numeric checks](#the-numeric-checks) ·
 | Overfull lines in the notes | `scripts/check_overfull.py --pdf notes.pdf ltxobj/notes.log` | none over 5pt |
 | Minted placeholders | `pdftotext ltxobj/slides.pdf - \| grep -c MINTED` | 0 |
 | PythonTeX instance skew | `wc -l ltxobj/notes.pytxcode ltxobj/slides.pytxcode` | nearly equal |
+| Transcripts in the PDF | `scripts/check_transcripts.py <deck dir> notes`, right after building that job | every run has a non-empty transcript of its own program |
 | Rerun messages | `LC_ALL=C grep -a -c 'Rerun to get\|undefined references\|run Biber' ltxobj/notes.log` | 0 after convergence |
 | Line length | `awk 'length > 79' contents.nw abstract.tex` | no output |
 | Manual page breaks | `grep -nw -e needspace -e pagebreak -e newpage -e clearpage -e enlargethispage -e nopagebreak -e goodbreak -e filbreak contents.nw` | no output |
@@ -204,19 +207,45 @@ log's shipout markers.
 By hand, for one page: `pdftotext -f N -l N notes.pdf -` and read the
 superscript numbers in the text against the numbers in the margin block.
 
-## Clipped lines on slides
+## Clipped and overflowing verbatim lines
 
-`Overfull \hbox` is silent for verbatim lines that run past a frame's
-right edge, and `pdftotext -bbox` alone misses a line clipped clean off
-(the missing words never reach pdftotext). Run
+minted (fvextra) sets every verbatim line as `\hbox to \linewidth{<line>\hss}`;
+the `\hss` absorbs any excess, so a program or transcript line that runs
+past a frame's edge or out of the notes' text block logs **no** Overfull
+`\hbox`, and `check_overfull.py` cannot see it. Run
 
 ```bash
 python3 ~/.claude/skills/didactic-decks/scripts/cutcheck.py <deck dir> slides notes
 ```
 
-after the build; it reports every page whose printed line is a strict
-prefix of a tangled program or transcript line, and every word past the
-page width. Found in six of eleven decks in one campaign (2026-09-16).
+after the build. It reports
+
+- `CUT`: a printed line that is a strict prefix of a tangled program or
+  transcript line (clipped clean off a slide; found in six of eleven
+  decks in one campaign, 2026-09-16);
+- `OVER`: a word whose box passes the page width;
+- `OVERPRINT` (notes): word boxes that overlap where one reaches into the
+  margin column, i.e. a line printed over a margin note, or two notes
+  over each other. The column comes from the log's `didactic-margin:`
+  line;
+- `MARGIN` (notes): a run of words on a body line ending more than 5pt
+  past the text block (the column's edge less the 7pt `marginparsep`),
+  with or without a note beside it. A program-output line of 102
+  characters ran 50pt into the margin over a note (Variabler och
+  utskrifter, 2026-11-16) and every other check passed; a notes line
+  holds about 88 characters of the transcript font.
+
+`MARGIN` skips lines it cannot judge: a line of a full-width block
+(didactic's definitions, examples and wide code start about 20pt left of
+the body and span the column on purpose; lines of the same display, at
+most 19.5pt apart, count with it) and a line starting right of the text
+block's middle (the right column of two programs side by side). An
+overflow there, or one of 5pt or less, goes unreported: read those
+pages. It also reports prose lines more than 5pt too wide, which
+`check_overfull.py` reports from the log as well. On the eleven decks
+built 2026-11-16 it reports nothing; on older builds the hits checked
+were real (the `{"name": …}` literal below, a quotation running into a
+note; bibliography lines and URLs that `check_overfull.py` also lists).
 
 ## Overfull lines in the notes
 
@@ -256,6 +285,29 @@ a bibliography entry or provenance paragraph (biblatex does not break a
 URL between letters by default; its counters `biburllcpenalty` and
 `biburlucpenalty`, e.g. `\setcounter{biburllcpenalty}{7000}` in the
 preamble, allow it), a wide table (narrow a column).
+
+## Transcripts
+
+Every `\runpython` must leave its transcript in the PDF.
+`scripts/check_transcripts.py <deck dir> [notes|slides]` reads each run
+instance from `ltxobj/<job>.pytxcode`, checks that the job's last pass
+read its `py_*.stdout` (in `ltxobj/<job>.fls`), and that the transcript
+file it names (`didactic_output_<hash>.txt`, `didactic_pair_…`) is not
+empty and, for a `showcommand` run, starts with that program's command
+line. `build_deck.sh` runs it on each job right after building it.
+
+Why: both jobs share `ltxobj/`, and the second job's PythonTeX run
+deletes or rewrites the first job's `.stdout` files. An incremental
+build that skips PythonTeX then typesets **nothing** where the
+transcripts were, with no `??`, error or `MINTED` (Klasser och objekt,
+2026-11-16: 16 of 27 transcripts gone, all checks green;
+`build-and-gotchas.md`, "The shared PythonTeX cache"). Its WARNING lines
+name files changed after the job's last pass: that PDF is right, but its
+next incremental build will not be; rebuild clean before trusting one.
+
+It cannot see a stale but plausible transcript (old output of the right
+program), nor another program's output in a run without `showcommand`:
+read the transcripts against the programs.
 
 ## Cross-deck premises
 

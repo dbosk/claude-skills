@@ -112,7 +112,9 @@ converge() {
     if LC_ALL=C grep -a -q \
         "Rerun to get\|undefined references\|run Biber\|Rerun LaTeX" \
         "ltxobj/$j.log"; then
-      pdflatex -8bit -shell-escape -interaction=nonstopmode \
+      # -recorder keeps ltxobj/$j.fls the record of the last pass, which
+      # check_transcripts.py reads.
+      pdflatex -8bit -shell-escape -interaction=nonstopmode -recorder \
                -output-directory=ltxobj "$j.tex" >> "$LOG" 2>&1 || true
       note "$j: extra pass $i"
     else
@@ -120,6 +122,20 @@ converge() {
     fi
   done
   note "$j: still asking for a rerun after 8 extra passes"
+}
+
+# Every \runpython must have left a non-empty transcript in the job's
+# PDF.  An incremental build that skips PythonTeX can drop them silently
+# (no ??, no error, no MINTED): see check_transcripts.py.
+TRANSCRIPTS=$(dirname "$0")/check_transcripts.py
+declare -A TRANS_OUT TRANS_RC
+transcripts() {
+  local j=$1
+  [ -f "ltxobj/$j.pytxcode" ] || return 0
+  set +e
+  TRANS_OUT[$j]=$(python3 "$TRANSCRIPTS" . "$j" 2>&1)
+  TRANS_RC[$j]=$?
+  set -e
 }
 
 if [ "$CHECK_ONLY" -eq 0 ]; then
@@ -143,6 +159,9 @@ if [ "$CHECK_ONLY" -eq 0 ]; then
     fi
     rm -f "$stamp"
     converge "$j"
+    # Check the job's transcripts now: the next job's PythonTeX run
+    # rewrites and deletes the .stdout files both jobs share in ltxobj/.
+    transcripts "$j"
   done
 fi
 
@@ -210,6 +229,21 @@ for j in "${JOBLIST[@]}"; do
       bad "$j: $m MINTED placeholders (one more pass)"
     fi
   fi
+done
+
+for j in "${JOBLIST[@]}"; do
+  # --check-only: the files may have changed since the job's last pass;
+  # the script then warns rather than fails.
+  [ -n "${TRANS_RC[$j]+x}" ] || transcripts "$j"
+  [ -n "${TRANS_RC[$j]+x}" ] || continue
+  echo "${TRANS_OUT[$j]}" | sed 's/^/transcripts: /'
+  case "${TRANS_RC[$j]}" in
+    0) ;;
+    1) bad "$j: a \\runpython has no transcript in the PDF, or an empty" \
+           "one; rebuild clean (references/build-and-gotchas.md," \
+           "\"Stale PythonTeX transcripts\")" ;;
+    *) bad "$j: transcript check failed (exit ${TRANS_RC[$j]})" ;;
+  esac
 done
 
 # PythonTeX instance skew: a frame combining \pause with \runpython

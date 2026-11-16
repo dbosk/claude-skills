@@ -110,6 +110,7 @@ is 0.
 | Literal `<MINTED>` placeholders on every slide | the make stopped one pass short | one more `pdflatex` pass |
 | Blank ToC frames at every section | same | same |
 | Notes show old program output after a chunk changed | `.pytxcode` unchanged, so latexmk never invoked PythonTeX | the stale-transcript recipe below |
+| "Programmet skriver ut" followed by nothing, after an incremental build; `check_transcripts.py` fails | the slides' PythonTeX run deleted the notes-only runs' `.stdout` files | the stale-transcript recipe below; see "The shared PythonTeX cache" |
 | Notes transcripts belong to the wrong example | `\pause` and `\runpython` in one frame | split the frame; see `runpython-and-output.md` |
 | `Nothing to do` after an error, nothing rebuilds | stuck `ltxobj/<job>.fdb_latexmk` | `rm ltxobj/notes.fdb_latexmk` |
 | `<MINTED>` in the *notes*, `! Package minted Error: Cannot find input file "didactic_output_…txt"`, and stray `notes.pytxmcr`, `notes.pytxpyg`, `notes.unq`, `pythontex_data.pkl`, `py_default_default_*.stderr` in the deck directory | latexmk ran PythonTeX with the deck directory as cwd | delete the strays, `ltxobj/notes.*` and `didactic_output_*.txt`; rebuild (below) |
@@ -179,6 +180,21 @@ Both jobs write into `ltxobj`. Two consequences:
   ```
 
   The two line counts must be nearly equal.
+- A run in a notes-only frame (`\begin{frame}<article>`) has no instance
+  in the slides job. The slides' PythonTeX run, which comes second,
+  deletes that run's `py_*.stdout` (and rewrites the others with its own
+  numbering, so a notes-only run in the middle of the deck shifts every
+  later one). `notes.pdf` is right when built, but the next notes pass
+  that skips PythonTeX (an incremental build: latexmk sees the
+  `.pytxcode` unchanged) prints **nothing** where those transcripts were:
+  no `??`, no error, no `MINTED` (Klasser och objekt, 2026-11-16: 16 of
+  27 gone, every other check green). `build_deck.sh` runs
+  `scripts/check_transcripts.py` on each job right after building it,
+  and fails when the job's last pass (its `ltxobj/<job>.fls`) read no
+  `.stdout` for a run, or the transcript is empty or another program's.
+  Its warnings name the files the other job has deleted or rewritten
+  since: the next incremental build of that job will lose them. Fix with
+  the stale-transcript recipe above.
 
 ### Mentipy live questions
 
