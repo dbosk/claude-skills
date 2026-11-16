@@ -183,8 +183,10 @@ def check_job(deck, job):
             for f in [stdout] + [os.path.join(deck, n) for n in files]
             if os.path.exists(f))
         if inputs is not None and not changed:
+            # inputs holds base names; the .stdout may name the transcript
+            # with a directory (didactic 2.18 writes it to ltxobj/).
             found += [f"the last pass did not read {n} ({name} names it)"
-                      for n in files if n not in inputs]
+                      for n in files if os.path.basename(n) not in inputs]
         if not found:
             ok += 1
         elif changed:
