@@ -1,10 +1,15 @@
 notes.pdf
 slides.pdf
+notes-sv.pdf
+slides-sv.pdf
+# the other edition of a bilingual deck builds in its own output directory
+ltxobj-sv/
 contents.tex
 examples/
-# PythonTeX (didactic's \runpython) writes these next to the sources
+# didactic's \runpython, \codebycode and \runbyrun write these into the
+# output directory since v2.18.1; older versions wrote them here, beside
+# the sources
 didactic_output_*.txt
-# didactic 2.7's \codebycode / \runbyrun write these too
 didactic_pair_*.txt
 *.pytxcode
 pythontex-files-*

@@ -323,7 +323,8 @@ Warning: A line of code side by side is … wider than its column` (grep
 the logs for `than its column`; sides with `breaklines` are not checked
 since they wrap). Fix an overflow with per-side `breaklines` or
 `nodocstring`/`lines=`; `shrink=10` widens the frame only by 11 %. The
-`didactic_pair_*.txt` files it writes are build output (gitignored). The
+`didactic_pair_*.txt` files it writes are build output (in the output
+directory since didactic v2.18.1, gitignored beside the sources). The
 runs of two programs go side by side with `\runbyrun` (a `shell` key for
 a shell command side); stateful runs (a file after "w" vs after "a") are
 written by hand with the documented environment (didactic 2.8):

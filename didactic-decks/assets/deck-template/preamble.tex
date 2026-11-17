@@ -1,6 +1,9 @@
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-% PROJECT: language-specific.  The document's main language goes last.
+% Both languages of the course.  The main language is the edition: the
+% driver passes it, \PassOptionsToPackage{main=british}{babel} or
+% main=swedish, and didactic's onlyin blocks and \ensv follow it.
+% PROJECT: language-specific.
 \usepackage[british,english,swedish]{babel}
 \usepackage{booktabs}
 \usepackage{array}
@@ -53,7 +56,9 @@
 % sessions (didactic's \runpython[transcript]), so the deck never
 % hand-copies its own output: pythontex runs from ltxobj (the outputdir),
 % and workingdir=.. moves it up to the deck directory so examples/...
-% resolves.
+% resolves.  The two editions of a bilingual deck build in different
+% output directories (see the Makefile), since PythonTeX's files there
+% do not say which job made them.
 \usepackage[makestderr]{pythontex}
 \setpythontexoutputdir{.}
 \setpythontexworkingdir{..}
@@ -72,25 +77,41 @@
   {\relax}
   {\usepackage[colorlinks]{hyperref}}
 \makeatother
-% PROJECT: language-specific.  cleveref reads its language from its own
-% package options / global class options, not from babel's package
-% options, so name the language here too.  No [capitalize]: Swedish
-% typography wants lowercase mid-sentence references (use \Cref for a
-% sentence-initial one).
-\usepackage[swedish]{cleveref}
-% cleveref's Swedish names call the appendix type "Appendix", but memoir
-% and babel call it "Bilaga".  Align cleveref with them, in an
-% \AtBeginDocument hook registered after cleveref's own (from the language
-% option) so ours wins.
+% cleveref takes its language from its own options or the class
+% options, not from babel, and its names from the LAST language among
+% them: so the driver passes the languages, the edition's last, and
+% capitalise for English only.  Load it with none here.  (Without
+% capitalise, for Swedish typography, a sentence-initial reference is
+% \Cref.)
+\usepackage{cleveref}
+% Our own reference names, in an \AtBeginDocument hook registered after
+% cleveref's own (from the language option) so ours win.  cleveref's
+% Swedish names call the appendix type "Appendix", but memoir and babel
+% call it "Bilaga"; the prose refers back to numbered lines of a program
+% listing as lines ("rader"), not cleveref's "item"/"punkt".  \ensv picks
+% the edition's half, so a single-language deck needs no change here.
+% capitalise never reaches names set with \crefname, so the English
+% halves are capitalised by hand.  Each \ensv is a pair that
+% didactic-sync.py stamps; only that script writes the stamps.
 \AtBeginDocument{%
-  \crefname{appendix}{bilaga}{bilagor}%
-  \Crefname{appendix}{Bilaga}{Bilagor}%
-  % The prose refers back to numbered lines of a program listing as
-  % "rader", not cleveref's Swedish default "punkt".
-  \crefname{enumi}{rad}{raderna}%
-  \Crefname{enumi}{Rad}{Raderna}%
-  \crefname{footnote}{fotnot}{fotnoterna}%
-  \Crefname{footnote}{Fotnot}{Fotnoterna}%
+  \crefname{appendix}%
+    {\ensv{Appendix}{bilaga}} % sync english=2d4b3e swedish=edf9eb
+    {\ensv{Appendices}{bilagor}} % sync english=c14d56 swedish=84e46d
+  \Crefname{appendix}%
+    {\ensv{Appendix}{Bilaga}} % sync english=2d4b3e swedish=2603a2
+    {\ensv{Appendices}{Bilagor}} % sync english=c14d56 swedish=9dc348
+  \crefname{enumi}%
+    {\ensv{Line}{rad}} % sync english=d7852c swedish=9a07c3
+    {\ensv{Lines}{raderna}} % sync english=3b26a5 swedish=10766e
+  \Crefname{enumi}%
+    {\ensv{Line}{Rad}} % sync english=d7852c swedish=aaa6ca
+    {\ensv{Lines}{Raderna}} % sync english=3b26a5 swedish=9490da
+  \crefname{footnote}%
+    {\ensv{Footnote}{fotnot}} % sync english=aa8885 swedish=4c81fc
+    {\ensv{Footnotes}{fotnoterna}} % sync english=ad6fb5 swedish=bad1f2
+  \Crefname{footnote}%
+    {\ensv{Footnote}{Fotnot}} % sync english=aa8885 swedish=a0b3e4
+    {\ensv{Footnotes}{Fotnoterna}} % sync english=ad6fb5 swedish=50cd70
 }
 
 \usepackage[marginparmargin=outer]{didactic}

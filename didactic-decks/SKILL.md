@@ -1,6 +1,6 @@
 ---
 name: didactic-decks
-description: Build and revise lecture decks that produce slides.pdf (beamer) and notes.pdf (memoir + beamerarticle) from one literate contents.nw with didactic, PythonTeX transcripts and a noweb/minted weave. Use proactively when (1) creating, converting or revising a directory of contents.nw, slides.tex and notes.tex, (2) such a build fails or the two PDFs disagree (wrong transcripts, literal MINTED placeholders, blank ToC frames, "Float(s) lost", stuck latexmk, margin notes on the wrong page), (3) running the pre-review checks, (4) the user mentions deck, lecture notes, ltnote, runpython, beamerarticle, sidecaption, or "the deck standard", (5) writing or reviewing a Swedish, English or bilingual deck (house styles in references/house-style-sv.md, -en.md), (6) briefing agents that convert or sweep decks, (7) binding decks into one book (teacher/student editions, \deck). Pair with literate-programming, didactic-notes, variation-theory, try-first-tell-later and backing-claims; course facts stay in the project's CLAUDE.md.
+description: Build and revise lecture decks that produce slides.pdf (beamer) and notes.pdf (memoir + beamerarticle) from one literate contents.nw with didactic, PythonTeX transcripts and a noweb/minted weave. Use proactively when (1) creating, converting or revising a directory of contents.nw, slides.tex and notes.tex, (2) such a build fails or the two PDFs disagree (wrong transcripts, literal MINTED placeholders, blank ToC frames, "Float(s) lost", stuck latexmk, margin notes on the wrong page), (3) running the pre-review checks, (4) the user mentions deck, lecture notes, ltnote, runpython, beamerarticle, sidecaption, or "the deck standard", (5) writing or reviewing a Swedish, English or bilingual deck (house styles; onlyin blocks, \ensv, sync stamps), (6) briefing agents that convert or sweep decks, (7) binding decks into one book (teacher/student editions, \deck). Pair with literate-programming, didactic-notes, variation-theory, try-first-tell-later and backing-claims; course facts stay in the project's CLAUDE.md.
 ---
 
 # Didactic decks: one source, two PDFs
@@ -42,7 +42,8 @@ two places is a defect.
 | Toolchain, build, checks, deck anatomy | this skill |
 | Wording rules for every language | `references/wording.md` (this skill) |
 | Swedish house style for decks | `references/house-style-sv.md` (this skill) |
-| English house style for decks; bilingual decks | `references/house-style-en.md` (this skill) |
+| English house style for decks | `references/house-style-en.md` (this skill) |
+| Bilingual decks: editions, block pairs, stamps | `references/bilingual.md` (this skill) |
 | Editing `.nw` files, chunk discipline, tangling | `literate-programming` |
 | LaTeX markup, cleveref, csquotes, dual beamer/article | `latex-writing` |
 | Instructor notes: what belongs in an `\ltnote` | `didactic-notes` |
@@ -66,8 +67,9 @@ Read the one you need; do not read them all.
 | `references/floats-and-margins.md` | float placement, captions, the side-caption decision, no manual page breaks |
 | `references/review-checklist.md` | the checks with their exact commands and thresholds |
 | `references/wording.md` | wording rules that hold in every language: load with either house style |
-| `references/house-style-sv.md` | Swedish wording rules (load only for a Swedish deck, or the sv blocks of a bilingual one) |
-| `references/house-style-en.md` | English wording rules: every English deck, and the en blocks of a bilingual one |
+| `references/house-style-sv.md` | Swedish wording rules (load only for a Swedish deck, or the Swedish blocks of a bilingual one) |
+| `references/house-style-en.md` | English wording rules: every English deck, and the English blocks of a bilingual one |
+| `references/bilingual.md` | a bilingual deck: the four edition drivers and two output directories, writing `onlyin` pairs and `\ensv` (didactic v2.18), migrating a v2.17 source, the `.nw` rules, stamping with `didactic-sync.py`, reference names, the script's limits |
 | `references/book-binding.md` | binding a set of decks into one book: layout, the `\deck` macro, paths, unique names, Makefile, adding a deck |
 
 Quick ways in: `grep -n 'MINTED\|pytxcode\|_minted\|fdb_latexmk\|Mentipy' references/build-and-gotchas.md`
@@ -83,23 +85,27 @@ for a margin or float problem.
 | `examples/` | **no** | tangled from `contents.nw` |
 | `slides.tex` | yes | beamer driver |
 | `notes.tex` | yes | memoir + beamerarticle driver |
+| `slides-body.tex`, `notes-body.tex` | yes | in a deck from the current template: the documents, which the drivers above (four lines each, choosing the edition) input |
+| `slides-sv.tex`, `notes-sv.tex` | yes | a bilingual deck's Swedish edition drivers (`references/bilingual.md`) |
 | `preamble.tex` | yes | shared by both drivers |
 | `abstract.tex` | yes | overview, learning objectives, prerequisites |
 | `sokprotokoll.tex` | yes | method appendix plus one chapter per backed claim |
 | `ltnotes.bib` | yes | sources, each with a provenance block |
 | `litteratursokning/*.tex` | yes | generated hit-list tables, `\input` by the appendices |
 | `Makefile`, `.gitignore`, `figs/` | yes | |
-| `notes.pdf`, `slides.pdf`, `latexmkrc`, `ltxobj/` | **no** | build outputs |
+| `notes.pdf`, `slides.pdf`, `latexmkrc`, `ltxobj/` (and `-sv`) | **no** | build outputs |
 
 **Never edit `contents.tex` or anything under `examples/`.** They are
 regenerated on every build; an edit there is lost and misleads the next
 reader. Data files a deck *reads* are tracked inputs and must be excluded
 from the `examples/` ignore rule.
 
-The two drivers are not interchangeable boilerplate. `slides.tex` guts the
-noweb cross-referencing apparatus, because beamer overlays re-execute
-frame bodies and would define the sub-page labels twice; `notes.tex` keeps
-that apparatus and hides only the identifier index. `preamble.tex` must
+The two drivers are not interchangeable boilerplate (in a deck from the
+current template, read `slides-body.tex` and `notes-body.tex` for them).
+`slides.tex` guts the noweb cross-referencing apparatus, because beamer
+overlays re-execute frame bodies and would define the sub-page labels
+twice; `notes.tex` keeps that apparatus and hides only the identifier
+index. `preamble.tex` must
 carry `\extrafloats{200}` and `\ifdefined\setsidecappos\setsidecappos{b}\fi`
 right after loading didactic, and must load minted **without**
 `[outputdir=...]`. Details in `references/deck-anatomy.md`.
@@ -114,9 +120,10 @@ cp -r ~/.claude/skills/didactic-decks/assets/deck-template <module>/slides
 
 `assets/deck-template/README.md` lists the placeholders (`TITLE`,
 `AUTHOR`, `INSTITUTE`, the module name in the learning-objective labels,
-the makefiles path) and the files the template deliberately omits
-(`ltnotes.bib`, `figs/`, `litteratursokning/`). Lines marked `% PROJECT:`
-are language- or project-specific.
+the makefiles path) and the placeholder files it carries so that it
+builds as it is (`ltnotes.bib`, `figs/example.png`,
+`litteratursokning/claim-full.tex`). Lines marked `% PROJECT:` are
+language- or project-specific.
 
 When converting an existing deck, keep the old `contents.tex` only as a
 reading copy until `contents.nw` reproduces it, then delete it and add it
@@ -227,7 +234,9 @@ Each line points at the reference that explains it.
 ## Building
 
 **One job at a time. Never build both PDFs of one deck concurrently** —
-they share `ltxobj`.
+they share `ltxobj`. A bilingual deck has two more jobs, `notes-sv` and
+`slides-sv`, which share `ltxobj-sv`; the script builds them whenever
+their drivers exist.
 
 ```bash
 ~/.claude/skills/didactic-decks/scripts/build_deck.sh --deck <dir>
@@ -235,9 +244,13 @@ they share `ltxobj`.
 
 The script pre-cleans `ltxobj/_minted`, builds each job, converges the
 cross references where latexmk stops short, runs every mechanical check
-and exits non-zero on a hard failure. `--check-only` runs the checks on
-existing PDFs; `--jobs notes` builds one job; `--exempt GLOB` excludes
-hand-written inputs from `black --check`; `--makefiles DIR` sets
+and exits non-zero on a hard failure. Before it rebuilds a job whose
+output directory was last used by the other job's PythonTeX run, it
+removes the job's `.pytxmcr`, so latexmk runs PythonTeX again and the job
+cannot print the other job's transcripts. `--check-only` runs the checks on
+existing PDFs; `--jobs notes` builds one job (`notes-sv` names a
+Swedish one); `--exempt GLOB` excludes hand-written inputs from `black
+--check`; `--makefiles DIR` sets
 `INCLUDE_MAKEFILES`; `--log FILE` puts the build log somewhere other than
 `ltxobj/`; `--overfull-pt N` sets the overfull-line threshold (default
 5); `--draft` reports the overfull lines without failing on them, for a
@@ -260,8 +273,9 @@ for the `##### all done` marker.
 | Symptom | Fix |
 |---|---|
 | Literal `<MINTED>` on every slide, or blank ToC frames | one more `pdflatex` pass |
-| Notes show old output after a chunk changed | `rm -f ltxobj/*.pytx* ltxobj/*.fdb_latexmk didactic_output_*.txt; touch contents.nw` |
+| Notes show old output after a chunk changed | `rm -f ltxobj/*.pytx* ltxobj/*.fdb_latexmk ltxobj/didactic_output_*.txt; touch contents.nw` (the same for `ltxobj-sv/` in a bilingual deck; before didactic v2.18.1 the transcripts were `didactic_output_*.txt` in the deck directory) |
 | Notes transcripts belong to the wrong example | a `\pause` in a `\runpython` frame; split it |
+| One edition prints the other's transcripts | the editions share an output directory: `notes-sv.pdf slides-sv.pdf: TEX_OUTDIR=ltxobj-sv` in the `Makefile`, then rebuild from clean |
 | "Nothing to do", nothing rebuilds | `rm ltxobj/notes.fdb_latexmk` |
 | `<MINTED>` in the notes, stray `notes.pytxmcr` beside the sources | PythonTeX ran from the deck directory; delete the strays and `ltxobj/notes.*`, rebuild |
 | Build hangs immediately | `rm -rf ltxobj/_minted` |
@@ -281,14 +295,17 @@ These `scripts/build_deck.sh` runs itself:
 
 | Check | Threshold |
 |---|---|
-| `^!` lines in `ltxobj/*.log` | 0, both jobs |
+| `^!` lines in `ltxobj/*.log` | 0, every job (`ltxobj-sv/` for the `-sv` jobs) |
 | `??` in `pdftotext` of both PDFs | 0 |
 | "empty citation" in the logs | 0 |
 | `Overfull \vbox` in `ltxobj/slides.log` | 0 |
 | `MINTED` in `pdftotext` of both PDFs | 0 (in the notes it means a PythonTeX run from the wrong directory) |
-| `wc -l ltxobj/*.pytxcode`, the two jobs | nearly equal |
+| `wc -l ltxobj/*.pytxcode`, the two jobs | nearly equal (per edition) |
+| `check_transcripts.py` per job | no transcript printed from another job's PythonTeX run (`scripts/check_transcripts.py` says how it decides) |
 | `black --check` on the tangled `.py` files | clean, `--exempt GLOB` for hand-written inputs |
-| source lines over 79 characters | none |
+| source lines over 79 characters | none; a trailing `% sync` stamp does not count |
+| `didactic-sync.py` on the deck's `.nw` and `.tex` sources (bilingual decks) | exit 0: every pair stamped and in step; exit 1 or 2, or no script, fails |
+| bilingual: the logs of two editions in one output directory | none |
 | `check_provenance.py` on `ltnotes.bib` | `Result: OK` |
 | `check_margin_notes.py` on the notes | no note printed away from its marker; a run that checked nothing fails too |
 | `check_overfull.py` on `ltxobj/notes.log` | no line more than 5pt too wide (`--overfull-pt N`); `--draft` lists them without failing |

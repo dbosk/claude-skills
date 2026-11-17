@@ -13,6 +13,10 @@ Contents: [The numeric checks](#the-numeric-checks) ·
 
 ## The numeric checks
 
+The commands name the main edition's notes job and `ltxobj`. Run each for
+every job: `slides`, and in a bilingual deck `notes-sv` and `slides-sv`,
+whose files are in `ltxobj-sv/`.
+
 | Check | Command | Threshold |
 |---|---|---|
 | LaTeX errors | `LC_ALL=C grep -a -c '^!' ltxobj/notes.log` | 0, both jobs |
@@ -21,9 +25,11 @@ Contents: [The numeric checks](#the-numeric-checks) ·
 | Overfull vbox on slides | `LC_ALL=C grep -a -c 'Overfull .vbox' ltxobj/slides.log` | 0 |
 | Overfull lines in the notes | `scripts/check_overfull.py --pdf notes.pdf ltxobj/notes.log` | none over 5pt |
 | Minted placeholders | `pdftotext ltxobj/slides.pdf - \| grep -c MINTED` | 0 |
-| PythonTeX instance skew | `wc -l ltxobj/notes.pytxcode ltxobj/slides.pytxcode` | nearly equal |
+| PythonTeX instance skew | `wc -l ltxobj/notes.pytxcode ltxobj/slides.pytxcode` | nearly equal (per edition: `ltxobj-sv/*-sv.pytxcode`) |
+| Transcripts from another job's run | `scripts/check_transcripts.py --job notes --outdir ltxobj` | exit 0 |
 | Rerun messages | `LC_ALL=C grep -a -c 'Rerun to get\|undefined references\|run Biber' ltxobj/notes.log` | 0 after convergence |
-| Line length | `awk 'length > 79' contents.nw abstract.tex` | no output |
+| Line length | `awk '{ sub(/[ \t]*% sync [a-z]+=[^%]*$/, "") } length > 79' contents.nw abstract.tex` (a trailing `% sync` stamp does not count) | no output |
+| Languages in step (bilingual) | `python3 "$(kpsewhich didactic-sync.py)" contents.nw abstract.tex ...` (the deck's own `.nw` and `.tex`) | exit 0 |
 | Manual page breaks | `grep -nw -e needspace -e pagebreak -e newpage -e clearpage -e enlargethispage -e nopagebreak -e goodbreak -e filbreak contents.nw` | no output |
 
 Quote the grep pattern in **single** quotes, or use `grep -a -c "Overfull

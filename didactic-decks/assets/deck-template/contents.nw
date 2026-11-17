@@ -46,7 +46,10 @@ print("Hej!")
 \end{frame}
 
 The explanation follows the output, not the other way round.  Say what
-happened, in the words the student just saw on the screen.
+happened, in the words the student just saw on the screen.  A pointer to
+an appendix or to another deck goes in a footnote anchored at the
+claim.\footnote{didactic sets a footnote, and every \texttt{\textbackslash
+  autocite}, as a numbered note in the margin beside its line.}
 
 \begin{frame}
   \begin{definition}[The term]
@@ -71,9 +74,9 @@ figure is referenced from the student-facing prose, not only from an
 \section{The next idea}
 \label{sec:next-idea}
 
-\verb|\mode<article>| holds notes-only structure;
-\verb|\mode<presentation>| holds slide-only tweaks.  No manual page breaks:
-didactic splits a long \verb|\ltnote| across pages, so a poor page is
+[[\mode<article>]] holds notes-only structure;
+[[\mode<presentation>]] holds slide-only tweaks.  No manual page breaks:
+didactic splits a long [[\ltnote]] across pages, so a poor page is
 fixed in the content.
 
 \begin{frame}

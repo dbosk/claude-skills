@@ -1,13 +1,20 @@
+# The unsuffixed PDFs are the course's main language.  A bilingual deck
+# also has drivers for the other edition, notes-sv.tex and slides-sv.tex,
+# and builds their PDFs too; a single-language deck deletes those two
+# drivers, and the list below drops their PDFs by itself.
+PDFS=		notes.pdf slides.pdf
+PDFS+=		$(patsubst %.tex,%.pdf,$(wildcard notes-sv.tex slides-sv.tex))
+
 .PHONY: all
-all: notes.pdf slides.pdf
+all: ${PDFS}
 
 LATEXFLAGS+=	-shell-escape
 # The example programs' terminal sessions are run and embedded with
 # PythonTeX (didactic's \runpython[transcript]), so code and output cannot
 # drift apart.
 TEX_PYTHONTEX=	yes
-# The two jobs share ltxobj, so the second job would otherwise reuse the
-# first job's PythonTeX cache.
+# The two jobs of an edition share an output directory, so the second
+# job would otherwise reuse the first job's PythonTeX cache.
 PYTHONTEXFLAGS=	--interpreter python:python3 --rerun=always
 
 # The deck is a literate program: contents.nw is the single source.
@@ -52,15 +59,26 @@ examples/%.py: contents.nw
 .PHONY: examples
 examples: ${EXAMPLES}
 
-notes.pdf: notes.tex
-slides.pdf: slides.tex
+# Each driver sets its edition and inputs the shared body.
+notes.pdf notes-sv.pdf: notes-body.tex
+slides.pdf slides-sv.pdf: slides-body.tex
 
-notes.pdf slides.pdf: ${SRC} ${EXAMPLES}
+# PythonTeX writes its outputs (pythontex_data.pkl, py_*.stdout) into the
+# output directory under names that do not say which job made them, and
+# the two editions run different programs under the same instance
+# numbers.  In one shared ltxobj, a job that latexmk rebuilds without
+# rerunning PythonTeX prints the other edition's transcripts, without an
+# error.  So each edition has its own output directory; the two jobs of
+# one edition share it, as the two jobs of a single-language deck do.
+notes-sv.pdf slides-sv.pdf: TEX_OUTDIR=ltxobj-sv
+
+${PDFS}: ${SRC} ${EXAMPLES}
 
 
 .PHONY: clean
 clean:
-	${RM} notes.pdf slides.pdf
+	${RM} notes.pdf slides.pdf notes-sv.pdf slides-sv.pdf
+	${RM} -R ltxobj-sv
 	${RM} contents.tex
 	${RM} ${EXAMPLES}
 

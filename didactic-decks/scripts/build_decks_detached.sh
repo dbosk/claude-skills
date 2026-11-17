@@ -19,7 +19,8 @@
 #
 #   --makefiles DIR   passed on to build_deck.sh
 #   --logdir DIR      where the per-deck logs go (default: /tmp/deck-builds)
-#   --jobs LIST       passed on to build_deck.sh (default: notes,slides)
+#   --jobs LIST       passed on to build_deck.sh (default: its own, i.e.
+#                     notes,slides plus a bilingual deck's -sv jobs)
 #   --exempt GLOB     passed on to build_deck.sh (repeatable)
 set -uo pipefail
 
@@ -30,7 +31,7 @@ usage() {
 
 HERE=$(cd "$(dirname "$0")" && pwd)
 BUILD=$HERE/build_deck.sh
-MAKEFILES=""; LOGDIR=/tmp/deck-builds; JOBS="notes,slides"; EXEMPT=()
+MAKEFILES=""; LOGDIR=/tmp/deck-builds; JOBS=""; EXEMPT=()
 
 while [ $# -gt 0 ]; do
   case "$1" in
@@ -59,14 +60,18 @@ for d in "$@"; do
   slug=$(echo "${d#./}" | tr '/' '-')
   log=$LOGDIR/$slug.log
 
-  # The title is the running head the blank-slide check strips.
+  # The title is the running head the blank-slide check strips.  An
+  # edition driver holds none, and a bilingual title (\ensv) is left to
+  # build_deck.sh, which reads both halves itself.
   title=""
   if [ -f "$d/notes.tex" ]; then
     title=$(grep -o '\\title{[^}]*' "$d/notes.tex" | head -1 \
             | sed 's/\\title{//;s/%//' | tr -d '\n' | sed 's/^ *//;s/ *$//')
+    case "$title" in *'\ensv'*|*'\didactictr'*) title="" ;; esac
   fi
 
-  args=(--deck "$d" --log "$log" --jobs "$JOBS")
+  args=(--deck "$d" --log "$log")
+  [ -n "$JOBS" ] && args+=(--jobs "$JOBS")
   [ -n "$MAKEFILES" ] && args+=(--makefiles "$MAKEFILES")
   [ -n "$title" ] && args+=(--title "$title")
   [ ${#EXEMPT[@]} -gt 0 ] && args+=("${EXEMPT[@]}")

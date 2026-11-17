@@ -25,8 +25,11 @@ import sys
 
 def sources(deck):
     out = set()
+    # The transcripts are in the output directories since didactic
+    # v2.18.1, beside the sources before that.
     pats = [os.path.join(deck, "examples", "*.py"),
-            os.path.join(deck, "didactic_output_*.txt")]
+            os.path.join(deck, "didactic_output_*.txt"),
+            os.path.join(deck, "ltxobj*", "didactic_output_*.txt")]
     for pat in pats:
         for f in glob.glob(pat):
             try:

@@ -16,6 +16,8 @@ One deck directory builds two PDFs from one source.
 | `examples/` | **no** | tangled from `contents.nw`; entirely generated |
 | `slides.tex` | yes | beamer driver |
 | `notes.tex` | yes | memoir + beamerarticle driver |
+| `slides-body.tex`, `notes-body.tex` | yes | current template: the two documents, input by the drivers |
+| `slides-sv.tex`, `notes-sv.tex` | yes | current template, bilingual deck: the Swedish edition's drivers |
 | `preamble.tex` | yes | shared by both drivers |
 | `abstract.tex` | yes | overview, learning objectives, prerequisites |
 | `sokprotokoll.tex` | yes | the appendices: method + one chapter per backed claim |
@@ -23,19 +25,31 @@ One deck directory builds two PDFs from one source.
 | `litteratursokning/*.tex` | yes | generated hit-list tables, `\input` by the appendices |
 | `figs/` | yes | figures the deck includes |
 | `Makefile` | yes | see `build-and-gotchas.md` |
-| `notes.pdf`, `slides.pdf` | **no** | symlinks into `ltxobj/` |
+| `notes.pdf`, `slides.pdf` | **no** | symlinks into `ltxobj/` (`-sv` ones into `ltxobj-sv/`) |
 | `latexmkrc` | **no** | tangled from the makefiles submodule's `tex.mk.nw` |
 | `ltxobj/` | **no** | build directory, ignored repo-wide |
 
+**Two layouts of the drivers.** A deck made from the current template
+has thin drivers: `slides.tex` and `notes.tex` are four lines that choose
+the edition (babel's main language and cleveref's languages) and input
+`slides-body.tex` or `notes-body.tex`, which hold what the sections below
+call `slides.tex` and `notes.tex`; a bilingual deck adds `slides-sv.tex`
+and `notes-sv.tex` (`bilingual.md`). A deck made before has thick
+drivers, `slides.tex` and `notes.tex` holding the whole document, and
+keeps working as it is.
+
 `.gitignore` must list the PDFs, `contents.tex`, `examples/`, `latexmkrc`
-and PythonTeX's `didactic_output_*.txt`, `*.pytxcode`,
-`pythontex-files-*`. Data files a deck *reads* (a directory of CSV files
+and PythonTeX's `*.pytxcode`, `pythontex-files-*`, and didactic's
+`didactic_output_*.txt` and `didactic_pair_*.txt` (since didactic v2.18.1
+these are written into the output directory, `ltxobj/`; older versions
+wrote them beside the sources). Data files a deck *reads* (a directory of CSV files
 under `examples/`, say) are tracked inputs and must be excluded from the
 `examples/` ignore rule.
 
 ## slides.tex
 
-After `\input{preamble.tex}`:
+(`slides-body.tex` in a deck from the current template.) After
+`\input{preamble.tex}`:
 
 ```latex
 \usepackage[minted]{noweb}
@@ -67,12 +81,13 @@ references.
 
 **Block titles in the document's language.** beamer names its
 example/definition/theorem blocks through the `translator` package, which
-ships no Swedish dictionary, so without this block the titles come out in
-English. Put it **before** `\usetheme`:
+takes its language from the class options, not from babel. didactic
+(v2.17.1 or later) sets translator up for babel's Swedish itself, so the
+titles follow babel's main language: Swedish in a Swedish deck or
+edition, English in an English one. The slides document carries only the
+house terms, **before** `\usetheme`:
 
 ```latex
-\uselanguage{Swedish}
-\languagepath{Swedish}
 \deftranslation[to=Swedish]{Example}{Exempel}
 \deftranslation[to=Swedish]{Definition}{Definition}
 \deftranslation[to=Swedish]{Theorem}{Sats}
@@ -81,12 +96,20 @@ English. Put it **before** `\usetheme`:
 \deftranslation[to=Swedish]{Proof}{Bevis}
 ```
 
-Add `\deftranslation[to=Swedish]{Summary}{Sammanfattning}` if didactic's
+translator's own Swedish dictionary says Teorem and Korollarium, so the
+`\deftranslation` lines keep Sats and Följdsats. Never the class option
+`swedish`, which turns cleveref's names round. A deck made before this
+template has `\uselanguage{Swedish}` and `\languagepath{Swedish}` above
+the house terms (from when didactic did not set translator up); that keeps
+a Swedish-only deck right, but would make an English edition Swedish, so
+delete the two lines when making the deck bilingual. Add
+`\deftranslation[to=Swedish]{Summary}{Sammanfattning}` if didactic's
 `summary` block still shows "Summary" on the rendered slides.
 
-didactic's theorem-style environments (`remark`, `idea`, `question`,
-`exercise`, ...) have no beamer counterpart; `slides.tex` maps each onto a
-block with `\ProvideDocumentEnvironment`. Keep only the ones the deck uses.
+didactic defines its theorem-style environments (`remark`, `idea`,
+`question`, `exercise`, ...) as beamer blocks itself. Older decks map them
+again with `\ProvideDocumentEnvironment` in `slides.tex`; since didactic
+has defined them first, those blocks do nothing and may be deleted.
 
 The bibliography frame stays commented out: the sources belong to the
 notes, since the `\ltnote`s are instructor-facing and the search protocol
@@ -94,7 +117,7 @@ is an appendix of the notes.
 
 ## notes.tex
 
-`memoir` with `[a4paper,10pt,oneside,openright,oldfontcommands]`, then
+(`notes-body.tex` in a deck from the current template.) `memoir` with `[a4paper,10pt,oneside,openright,oldfontcommands]`, then
 `\input{preamble.tex}`, then `\usepackage[noamsthm,notheorems]{beamerarticle}`,
 then:
 
@@ -150,10 +173,17 @@ Requirements beyond the ordinary packages:
   height; anchoring the caption at the bottom moves it below the notes.
   `\setsidecappos` is memoir's, so guard it with `\ifdefined` — beamer does
   not define it.
-- cleveref's language comes from **its own** package options, not babel's:
-  `\usepackage[swedish]{cleveref}`. Fix the names memoir and babel disagree
-  about in an `\AtBeginDocument` hook registered after cleveref's own, so
-  yours wins (`appendix` → bilaga, `enumi` → rad, `footnote` → fotnot).
+- cleveref's language comes from **its own** package options, not babel's,
+  and its names from the last language among them. The current template
+  loads `\usepackage{cleveref}` with no language and the driver passes it
+  (`\PassOptionsToPackage{english,swedish}{cleveref}` for Swedish,
+  `swedish,english,capitalise` for English); a deck made before has
+  `\usepackage[swedish]{cleveref}` here, which stays right for it. Fix the
+  names memoir and babel disagree about in an `\AtBeginDocument` hook
+  registered after cleveref's own, so yours wins (`appendix` → bilaga,
+  `enumi` → rad, `footnote` → fotnot); the template writes them as
+  `\ensv{Appendix}{bilaga}` and so on, stamped, so they fit either
+  edition (`bilingual.md`, "Reference names").
 - The `lo` environment for learning objectives:
 
   ```latex

@@ -80,10 +80,12 @@ The two counts must be nearly equal.
 Stale output, after a chunk changed but no frame did: the `.pytxcode` is
 unchanged, so latexmk never invokes PythonTeX and the old
 `didactic_output_*.txt` files stay referenced (they are named by output
-content).
+content; since didactic v2.18.1 they are in the job's output directory,
+before that in the deck directory).
 
 ```bash
-rm -f ltxobj/*.pytx* ltxobj/*.fdb_latexmk didactic_output_*.txt
+rm -f ltxobj/*.pytx* ltxobj/*.fdb_latexmk ltxobj/didactic_output_*.txt
+rm -f didactic_output_*.txt didactic_pair_*.txt  # left by didactic < 2.18.1
 touch contents.nw
 ```
 

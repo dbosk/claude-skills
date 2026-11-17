@@ -150,15 +150,20 @@ practice writes its own sentence, the same in every chapter.
 
 ## Wording set elsewhere in the build
 
-- **Block titles.** English is beamer's default: delete the
-  `\deftranslation` block from `slides.tex` (`deck-anatomy.md`).
-- **cleveref names.** `\usepackage[english,capitalise]{cleveref}`
-  (cleveref reads its own options, not babel's; it has no `british`
-  option). English decks capitalise mid-sentence ("Figure 3",
-  "Appendix B"), as the existing English decks do; Swedish ones do not.
-  cleveref's English names agree with memoir's "Appendix"; override only
-  `enumi` → "line"/"lines" in the `\AtBeginDocument` hook, for
-  references to numbered program lines.
+- **Block titles.** English is beamer's default. In a deck from the
+  current template the `\deftranslation` house terms in `slides-body.tex`
+  apply to Swedish only, so an English deck keeps them; in an older deck,
+  delete the translator block from `slides.tex` (`deck-anatomy.md`).
+- **cleveref names.** `english,capitalise` (cleveref reads its own
+  options, not babel's; it has no `british` option): in a deck from the
+  current template the driver passes them, otherwise
+  `\usepackage[english,capitalise]{cleveref}`. English decks capitalise
+  mid-sentence ("Figure 3", "Appendix B"), as the existing English decks
+  do; Swedish ones do not. cleveref's English names agree with memoir's
+  "Appendix"; the one to override is `enumi` → "Line"/"Lines" in the
+  `\AtBeginDocument` hook, for references to numbered program lines,
+  capitalised by hand since `capitalise` does not reach names set there
+  (the template's preamble does this with `\ensv`).
 - **The abstract's parts**: *Overview*, *Learning objectives*,
   *Prerequisites*, optionally *Reading*.
 - **Section headings in the appendices**: Method, Results, Discussion and
@@ -169,14 +174,14 @@ practice writes its own sentence, the same in every chapter.
 ## Bilingual decks
 
 A bilingual deck has English and Swedish blocks side by side in one
-`contents.nw`; the mechanism (the `en` and `sv` blocks, `\tr`, the sync
-stamps) belongs to the didactic package. For the wording:
+`contents.nw`; the mechanism (the `onlyin` blocks, `\ensv`, the sync
+stamps, the edition drivers) is in `bilingual.md`. For the wording:
 
-- **The en blocks follow this file, the sv blocks `house-style-sv.md`**,
-  and each `\tr{English}{Svenska}` its two halves likewise. So the sv
-  block gives the Swedish term with the English once in parentheses,
-  the en block the English term alone; each block follows its own
-  language's number rule.
+- **The `english` blocks follow this file, the `swedish` blocks
+  `house-style-sv.md`**, and each `\ensv{English}{Svenska}` its two
+  halves likewise. So the Swedish block gives the Swedish term with the
+  English once in parentheses, the English block the English term alone;
+  each block follows its own language's number rule.
 - **A pair says the same thing; it is not a word-for-word translation.**
   The same claims at the same strength, the same steps, the same
   references and pointers, each written as a native writer would. If one
@@ -188,8 +193,10 @@ stamps) belongs to the didactic package. For the wording:
   both languages spell and pronounce alike, and identifiers and file
   names are ASCII. A chunk name is shared too; which language the shared
   names use is the project's decision, recorded in its `CLAUDE.md`.
-- **Program output in a language** needs a chunk per language; a shell's
-  messages are set per edition with `LC_ALL` instead.
+- **Program output in a language** needs a program per language, each
+  tangled to its own file name; a shell's messages are set per edition
+  with `LC_ALL` instead.
 - **Cross-references differ per edition**: cleveref is capitalised in
-  English and not in Swedish, so its language and capitalisation follow
-  the edition and cannot be fixed in the shared preamble.
+  English and not in Swedish, so its language and capitalisation are set
+  in the edition drivers, not in the shared preamble (`bilingual.md`,
+  "Reference names").

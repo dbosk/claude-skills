@@ -108,14 +108,21 @@ sentence in every chapter.
 
 ## Wording set elsewhere in the build
 
-- **Block titles.** beamer's `translator` package ships no Swedish
-  dictionary, so `slides.tex` must carry the `\deftranslation[to=Swedish]`
-  block before `\usetheme`, or the blocks come out in English. See
-  `deck-anatomy.md`.
-- **cleveref names.** `\usepackage[swedish]{cleveref}` (cleveref reads its
-  own package options, not babel's), no `[capitalize]` — Swedish
-  typography wants lowercase mid-sentence references, and `\Cref` for a
-  sentence-initial one. Then override `appendix` → "bilaga", `enumi` →
-  "rad", `footnote` → "fotnot" in an `\AtBeginDocument` hook.
+- **Block titles.** beamer's `translator` package takes its language from
+  the class options, not from babel; didactic v2.17.1 or later sets it up
+  for babel's Swedish itself, and the slides document carries the
+  `\deftranslation[to=Swedish]` house terms (Sats, Följdsats) before
+  `\usetheme`. The current template has them in `slides-body.tex`; an
+  older deck has its own `\uselanguage`/`\languagepath` block, which keeps
+  working; see `deck-anatomy.md`.
+- **cleveref names.** Swedish without `capitalize` — Swedish typography
+  wants lowercase mid-sentence references, and `\Cref` for a
+  sentence-initial one. cleveref reads its own package options, not
+  babel's: in a deck from the current template the driver passes
+  `english,swedish` (Swedish last); a deck made before has
+  `\usepackage[swedish]{cleveref}` in its preamble. Then override
+  `appendix` → "bilaga", `enumi` → "rad", `footnote` → "fotnot" in an
+  `\AtBeginDocument` hook; the template's preamble already does, through
+  `\ensv` (`bilingual.md`, "Reference names").
 - **Section headings in the appendices**: Metod, Resultat, Diskussion och
   begränsningar, Slutsats, Fortsatt arbete, Träffar som rör påståendet.

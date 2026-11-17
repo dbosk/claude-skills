@@ -162,7 +162,9 @@ directory is the main document's directory. With the deck-standard
 `\setpythontexoutputdir{.}` plus `\setpythontexworkingdir{..}` under
 `ltxobj/`, it is; with anything else, give the base directory explicitly.
 didactic writes its transcript files (`didactic_output_*.txt`) in the
-directory PythonTeX started in (the book's), whatever the base directory.
+book's PythonTeX output directory since v2.18.1 (in the directory
+PythonTeX started in, the book's, before that), whatever the base
+directory.
 
 **Fallback only**, for a Mentipy without `\mentipybasedir` (before
 0.13): change the whole PythonTeX session into the deck's directory for

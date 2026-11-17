@@ -6,6 +6,10 @@
 # references by hand where latexmk stops short, then report every check
 # with its number.  Exits non-zero when a hard check fails.
 #
+# A deck with notes-sv.tex or slides-sv.tex is bilingual: those jobs build
+# the Swedish edition into ltxobj-sv, every check runs per edition, and
+# didactic-sync.py must find the two languages in step.
+#
 # Usage:
 #   build_deck.sh --deck DIR [options]
 #
@@ -13,8 +17,11 @@
 #   --makefiles DIR   passed as INCLUDE_MAKEFILES (default: the Makefile's)
 #   --log FILE        build log (default: DIR/ltxobj/build_deck.log)
 #   --title STR       running-head title, stripped before the blank-slide
-#                     check (default: read from notes.tex)
-#   --jobs LIST       comma-separated: notes,slides (default: notes,slides)
+#                     check (default: read from notes.tex, or from
+#                     notes-body.tex when notes.tex is an edition driver)
+#   --jobs LIST       comma-separated: notes,slides,notes-sv,slides-sv
+#                     (default: notes,slides, and the -sv jobs whose
+#                     drivers exist)
 #   --check-only      skip the build, run the checks on existing PDFs
 #   --exempt GLOB     path glob excluded from black --check; repeatable
 #   --overfull-pt N   notes lines more than N pt too wide fail the build
@@ -34,7 +41,7 @@ usage() {
   awk 'NR > 1 && /^#/ { sub(/^# ?/, ""); print; next } NR > 1 { exit }' "$0"
 }
 
-DECK=""; MAKEFILES=""; LOG=""; TITLE=""; JOBS="notes,slides"
+DECK=""; MAKEFILES=""; LOG=""; TITLE=""; JOBS=""
 CHECK_ONLY=0; EXEMPT=(); OVERFULL_PT=5; DRAFT=0
 
 die() { echo "build_deck.sh: $*" >&2; exit 2; }
@@ -61,6 +68,36 @@ DECK=$(cd "$DECK" && pwd)
 [ -f "$DECK/Makefile" ] || die "no Makefile in $DECK"
 cd "$DECK"
 
+# The editions other than the course's main language, by the suffix of
+# their drivers, PDFs and output directory: notes-sv.tex builds
+# notes-sv.pdf in ltxobj-sv.  Another language is one more suffix here.
+OTHER_EDITIONS=(-sv)
+
+# A job's edition suffix ("" for the main edition), its base job (notes
+# or slides) and its output directory.  Each edition builds in its own
+# directory, since PythonTeX's files there do not say which job made them.
+suffix_of() {
+  local sfx
+  for sfx in "${OTHER_EDITIONS[@]}"; do
+    case "$1" in *"$sfx") echo "$sfx"; return ;; esac
+  done
+  echo ""
+}
+base_of() { local s; s=$(suffix_of "$1"); echo "${1%"$s"}"; }
+outdir() { echo "ltxobj$(suffix_of "$1")"; }
+
+BILINGUAL=0
+for sfx in "${OTHER_EDITIONS[@]}"; do
+  if [ -f "notes$sfx.tex" ] || [ -f "slides$sfx.tex" ]; then BILINGUAL=1; fi
+done
+if [ -z "$JOBS" ]; then
+  JOBS="notes,slides"
+  for sfx in "${OTHER_EDITIONS[@]}"; do
+    [ -f "notes$sfx.tex" ] && JOBS="$JOBS,notes$sfx"
+    [ -f "slides$sfx.tex" ] && JOBS="$JOBS,slides$sfx"
+  done
+fi
+
 mkdir -p ltxobj
 LOG=${LOG:-$DECK/ltxobj/build_deck.log}
 : > "$LOG"
@@ -68,22 +105,72 @@ LOG=${LOG:-$DECK/ltxobj/build_deck.log}
 # The running head and foot (title, author, institute) appear on every
 # slide; strip them before deciding a slide is blank.  The driver often
 # wraps them over several lines, so flatten the file first.
+#
+# An edition driver (no \documentclass; it inputs notes-body.tex) holds
+# no title: read its body.  A bilingual title is \ensv{English}{Svenska},
+# so a file that uses \ensv or \didactictr is read with balanced braces
+# and both halves are stripped; any other file keeps the one-level
+# reading it always had.
+title_parts() {
+  python3 - "$1" <<'PYEOF'
+import re, sys
+text = open(sys.argv[1], encoding="utf-8").read()
+# comments go first: a trailing "% sync ..." stamp is not part of a title
+text = re.sub(r"(?<!\\)%[^\n]*", "", text)
+def arg(s, i):
+    # the balanced-brace argument whose "{" is at s[i]
+    depth = 0
+    for j in range(i, len(s)):
+        depth += {"{": 1, "}": -1}.get(s[j], 0)
+        if depth == 0:
+            return s[i + 1:j], j + 1
+    return s[i + 1:], len(s)
+def parts(s):
+    # the text outside the pairs, and both halves of each pair
+    out, i = [], 0
+    while (m := re.search(r"\\(?:ensv|didactictr)\s*\{", s[i:])):
+        a, k = arg(s, i + m.end() - 1)
+        k += len(s[k:]) - len(s[k:].lstrip())
+        b, k = arg(s, k) if s[k:k + 1] == "{" else ("", k)
+        out += [s[i:i + m.start()]] + parts(a) + parts(b)
+        i = k
+    return out + [s[i:]]
+for m in re.finditer(r"\\(?:title|author|institute)\s*\{", text):
+    body, _ = arg(text, m.end() - 1)
+    for p in parts(body):
+        p = " ".join(p.split())
+        if p:
+            print(p)
+PYEOF
+}
 STRIP=()
 [ -n "$TITLE" ] && STRIP+=("$TITLE")
 for f in notes.tex slides.tex; do
   [ -f "$f" ] || continue
-  while IFS= read -r t; do
-    [ -n "$t" ] && STRIP+=("$t")
-  done < <(tr '\n' ' ' < "$f" \
-           | grep -o '\\title{[^}]*}\|\\author{[^}]*}\|\\institute{[^}]*}' \
-           | sed 's/^\\[a-z]*{//;s/}$//;s/%//g' | tr -s ' ' \
-           | sed 's/^ *//;s/ *$//')
+  if ! grep -q '\\documentclass' "$f" \
+     && grep -q "\\\\input{\\?${f%.tex}-body" "$f"; then
+    f=${f%.tex}-body.tex
+    [ -f "$f" ] || continue
+  fi
+  if grep -q '\\ensv\|\\didactictr' "$f"; then
+    while IFS= read -r t; do
+      [ -n "$t" ] && STRIP+=("$t")
+    done < <(title_parts "$f")
+  else
+    while IFS= read -r t; do
+      [ -n "$t" ] && STRIP+=("$t")
+    done < <(tr '\n' ' ' < "$f" \
+             | grep -o '\\title{[^}]*}\|\\author{[^}]*}\|\\institute{[^}]*}' \
+             | sed 's/^\\[a-z]*{//;s/}$//;s/%//g' | tr -s ' ' \
+             | sed 's/^ *//;s/ *$//')
+  fi
   break
 done
 
 IFS=',' read -r -a JOBLIST <<< "$JOBS"
 for j in "${JOBLIST[@]}"; do
-  case "$j" in notes|slides) ;; *) die "unknown job: $j" ;; esac
+  case "$(base_of "$j")" in notes|slides) ;; *) die "unknown job: $j" ;; esac
+  mkdir -p "$(outdir "$j")"
 done
 
 MAKEARGS=(LATEXFLAGS="-shell-escape -interaction=nonstopmode")
@@ -94,7 +181,11 @@ note() { echo "$*"; }
 bad()  { echo "FAIL: $*"; FAIL=1; }
 
 # A killed build leaves ltxobj/_minted behind, and it hangs the next run.
-pre_clean() { rm -rf ltxobj/_minted; }
+pre_clean() {
+  local sfx
+  rm -rf ltxobj/_minted
+  for sfx in "${OTHER_EDITIONS[@]}"; do rm -rf "ltxobj$sfx/_minted"; done
+}
 
 # latexmk under -use-make can stop before the final passes: blank ToC
 # frames on the slides, literal MINTED placeholders, unresolved refs.
@@ -103,17 +194,18 @@ pre_clean() { rm -rf ltxobj/_minted; }
 # their cap, \marginnoteyieldlimit) settle a run at a time, and a notes
 # PDF dense with citations in the margin has needed 6 after latexmk.
 converge() {
-  local j=$1 i
+  local j=$1 i od
+  od=$(outdir "$j")
   for i in 1 2 3 4 5 6 7 8; do
-    [ -f "ltxobj/$j.log" ] || return 0
-    if LC_ALL=C grep -a -q "run Biber" "ltxobj/$j.log"; then
-      biber --output-directory ltxobj "ltxobj/$j" >> "$LOG" 2>&1 || true
+    [ -f "$od/$j.log" ] || return 0
+    if LC_ALL=C grep -a -q "run Biber" "$od/$j.log"; then
+      biber --output-directory "$od" "$od/$j" >> "$LOG" 2>&1 || true
     fi
     if LC_ALL=C grep -a -q \
         "Rerun to get\|undefined references\|run Biber\|Rerun LaTeX" \
-        "ltxobj/$j.log"; then
+        "$od/$j.log"; then
       pdflatex -8bit -shell-escape -interaction=nonstopmode \
-               -output-directory=ltxobj "$j.tex" >> "$LOG" 2>&1 || true
+               -output-directory="$od" "$j.tex" >> "$LOG" 2>&1 || true
       note "$j: extra pass $i"
     else
       return 0
@@ -129,19 +221,64 @@ if [ "$CHECK_ONLY" -eq 0 ]; then
     # previous run's log behind.  That is correct when nothing changed
     # (the log belongs to the PDF), and misleading after a failed run
     # that the fix did not touch; say which run the checks describe.
-    stamp=$(mktemp "ltxobj/.stamp.$j.XXXXXX")
+    od=$(outdir "$j")
+    # The jobs that build in one directory share PythonTeX's .stdout files
+    # there, and latexmk reruns PythonTeX only when the job's .pytxcode
+    # changed.  After a small edit that leaves it unchanged, a job would
+    # be typeset from the files the other job's run left behind, which is
+    # wrong wherever the two run different code at the same instance (a
+    # \runpython in \mode<article>, a \pause).  So when the last PythonTeX
+    # run here was another job's, the job's .pytxmcr is moved aside:
+    # latexmk's PythonTeX rule (the makefiles' latexmkrc) then has to run
+    # again if latexmk runs at all.  If make finds the PDF up to date and
+    # never calls latexmk, the file is put back unchanged.
+    last=""
+    for f in "$od"/*.pytxmcr; do
+      [ -f "$f" ] || continue
+      if [ -z "$last" ] || [ "$f" -nt "$last" ]; then last=$f; fi
+    done
+    aside=""
+    if [ -n "$last" ] && [ "$last" != "$od/$j.pytxmcr" ] \
+       && [ -f "$od/$j.pytxmcr" ]; then
+      aside=$od/.$j.pytxmcr.aside
+      mv "$od/$j.pytxmcr" "$aside"
+    fi
+    stamp=$(mktemp "$od/.stamp.$j.XXXXXX")
     set +e
     make "$j.pdf" "${MAKEARGS[@]}" >> "$LOG" 2>&1
     rc=$?
     set -e
     note "$j: make exit $rc"
     [ "$rc" -eq 0 ] || bad "$j: make failed (see $LOG)"
-    if [ ! "ltxobj/$j.log" -nt "$stamp" ]; then
+    if [ "$BILINGUAL" -eq 1 ] && [ ! -f "$od/$j.log" ]; then
+      # The checks below read $od; a Makefile without the edition's
+      # TEX_OUTDIR builds into ltxobj, and they would check nothing.
+      bad "$j: no $od/$j.log after make: does the Makefile set" \
+          "TEX_OUTDIR=$od for the $(suffix_of "$j") jobs?"
+    elif [ ! "$od/$j.log" -nt "$stamp" ]; then
       note "$j: nothing was rebuilt (PDF up to date): the checks describe" \
-           "the run that produced it; after a failed run, rm ltxobj/$j.pdf" \
+           "the run that produced it; after a failed run, rm $od/$j.pdf" \
            "to force a rebuild"
     fi
     rm -f "$stamp"
+    if [ -n "$aside" ]; then
+      if [ -f "$od/$j.pytxmcr" ]; then
+        rm -f "$aside"
+        note "$j: PythonTeX rerun for it (the last run in $od was" \
+             "$(basename "$last" .pytxmcr)'s)"
+      else
+        mv "$aside" "$od/$j.pytxmcr"
+      fi
+    fi
+    # PythonTeX ran but latexmk saw no reason for another pass (nothing
+    # it tracks changed): typeset once more, so that the PDF is the one
+    # these outputs give.
+    if [ -f "$od/$j.pytxmcr" ] && [ -f "$od/$j.log" ] \
+       && [ "$od/$j.pytxmcr" -nt "$od/$j.log" ]; then
+      pdflatex -8bit -shell-escape -interaction=nonstopmode \
+               -output-directory="$od" "$j.tex" >> "$LOG" 2>&1 || true
+      note "$j: one more pass after its PythonTeX run"
+    fi
     converge "$j"
   done
 fi
@@ -149,22 +286,23 @@ fi
 ##### checks #####
 
 for j in "${JOBLIST[@]}"; do
-  if [ ! -f "$j.pdf" ] && [ ! -f "ltxobj/$j.pdf" ]; then
+  od=$(outdir "$j")
+  if [ ! -f "$j.pdf" ] && [ ! -f "$od/$j.pdf" ]; then
     bad "$j: no PDF"
     continue
   fi
-  PDF=$j.pdf; [ -f "$PDF" ] || PDF=ltxobj/$j.pdf
+  PDF=$j.pdf; [ -f "$PDF" ] || PDF=$od/$j.pdf
 
   errors=0; reruns=0; vbox=0; hbox=0; emptycit=0
-  if [ -f "ltxobj/$j.log" ]; then
-    errors=$(LC_ALL=C grep -a -c '^!' "ltxobj/$j.log" || true)
+  if [ -f "$od/$j.log" ]; then
+    errors=$(LC_ALL=C grep -a -c '^!' "$od/$j.log" || true)
     reruns=$(LC_ALL=C grep -a -c \
-      'Rerun to get\|undefined references\|run Biber' "ltxobj/$j.log" || true)
-    vbox=$(LC_ALL=C grep -a -c 'Overfull .vbox' "ltxobj/$j.log" || true)
-    hbox=$(LC_ALL=C grep -a -c 'Overfull .hbox' "ltxobj/$j.log" || true)
-    emptycit=$(LC_ALL=C grep -a -c 'empty citation' "ltxobj/$j.log" || true)
+      'Rerun to get\|undefined references\|run Biber' "$od/$j.log" || true)
+    vbox=$(LC_ALL=C grep -a -c 'Overfull .vbox' "$od/$j.log" || true)
+    hbox=$(LC_ALL=C grep -a -c 'Overfull .hbox' "$od/$j.log" || true)
+    emptycit=$(LC_ALL=C grep -a -c 'empty citation' "$od/$j.log" || true)
   else
-    note "$j: no ltxobj/$j.log (check-only on a clean tree?)"
+    note "$j: no $od/$j.log (check-only on a clean tree?)"
   fi
   pages=$(pdfinfo "$PDF" 2>/dev/null | awk '/Pages/{print $2}')
   qq=$(pdftotext "$PDF" - 2>/dev/null | grep -c '??' || true)
@@ -178,14 +316,14 @@ for j in "${JOBLIST[@]}"; do
   # A malformed bib entry (e.g. an unclosed brace) makes biber skip it:
   # the citations then print as bold keys, with no "empty citation" in
   # the LaTeX log. biber's own log says ERROR.
-  if [ -f "ltxobj/$j.blg" ]; then
-    biberr=$(LC_ALL=C grep -a -c '^\[[0-9]*\] .*ERROR\|> ERROR' "ltxobj/$j.blg" || true)
-    [ "$biberr" -eq 0 ] || bad "$j: $biberr biber errors (ltxobj/$j.blg)"
+  if [ -f "$od/$j.blg" ]; then
+    biberr=$(LC_ALL=C grep -a -c '^\[[0-9]*\] .*ERROR\|> ERROR' "$od/$j.blg" || true)
+    [ "$biberr" -eq 0 ] || bad "$j: $biberr biber errors ($od/$j.blg)"
   fi
   # An Overfull \vbox on a slide is content off the bottom of the frame;
   # in the notes it is ordinary typesetting.
-  if [ "$j" = slides ] && [ "$vbox" -ne 0 ]; then
-    bad "slides: $vbox Overfull \\vbox (content off the frame)"
+  if [ "$(base_of "$j")" = slides ] && [ "$vbox" -ne 0 ]; then
+    bad "$j: $vbox Overfull \\vbox (content off the frame)"
   fi
   # A rerun message left over after convergence is harmless only when ??
   # is 0 (a margin citation at a page boundary can two-cycle forever).
@@ -198,14 +336,14 @@ done
 # short; in the notes PythonTeX ran from the deck directory and every
 # transcript is missing (see references/build-and-gotchas.md).
 for j in "${JOBLIST[@]}"; do
-  JPDF=$j.pdf; [ -f "$JPDF" ] || JPDF=ltxobj/$j.pdf
+  JPDF=$j.pdf; [ -f "$JPDF" ] || JPDF=$(outdir "$j")/$j.pdf
   [ -f "$JPDF" ] || continue
   m=$(pdftotext "$JPDF" - 2>/dev/null | grep -c MINTED || true)
   note "$j: MINTED placeholders $m"
   if [ "$m" -ne 0 ]; then
-    if [ "$j" = notes ]; then
-      bad "notes: $m MINTED placeholders (a PythonTeX run from the deck" \
-          "directory: delete the stray notes.pytx* files and rebuild)"
+    if [ "$(base_of "$j")" = notes ]; then
+      bad "$j: $m MINTED placeholders (a PythonTeX run from the deck" \
+          "directory: delete the stray $j.pytx* files and rebuild)"
     else
       bad "$j: $m MINTED placeholders (one more pass)"
     fi
@@ -214,20 +352,71 @@ done
 
 # PythonTeX instance skew: a frame combining \pause with \runpython
 # doubles the slides job's instances and the shared cache then prints the
-# wrong transcripts in the notes.
-if [ -f ltxobj/notes.pytxcode ] && [ -f ltxobj/slides.pytxcode ]; then
-  n=$(wc -l < ltxobj/notes.pytxcode)
-  s=$(wc -l < ltxobj/slides.pytxcode)
-  d=$(( n > s ? n - s : s - n ))
-  lim=$(( (n > s ? n : s) / 10 + 5 ))
-  note "pytxcode lines: notes $n, slides $s (diff $d, tolerance $lim)"
-  [ "$d" -le "$lim" ] || bad "pytxcode skew $d --- \\pause in a \\runpython frame?"
+# wrong transcripts in the notes.  The two jobs of one edition share an
+# output directory, and so the cache: compare within each edition.
+for sfx in "" "${OTHER_EDITIONS[@]}"; do
+  od=ltxobj$sfx
+  if [ -f "$od/notes$sfx.pytxcode" ] && [ -f "$od/slides$sfx.pytxcode" ]; then
+    n=$(wc -l < "$od/notes$sfx.pytxcode")
+    s=$(wc -l < "$od/slides$sfx.pytxcode")
+    d=$(( n > s ? n - s : s - n ))
+    lim=$(( (n > s ? n : s) / 10 + 5 ))
+    note "pytxcode lines: notes$sfx $n, slides$sfx $s (diff $d, tolerance $lim)"
+    [ "$d" -le "$lim" ] || bad "pytxcode skew $d --- \\pause in a \\runpython frame?"
+  fi
+done
+
+# Transcripts printed from another job's PythonTeX run.  Jobs sharing an
+# output directory share PythonTeX's .stdout files, and a job typeset
+# again without a run of its own prints what the last run left there:
+# the other edition's programs, if the editions were built into one
+# directory, or the slides' shifted instances.  Nothing in the log says
+# so.  check_transcripts.py explains how it decides.
+TRANSCRIPTS=$(dirname "$0")/check_transcripts.py
+for j in "${JOBLIST[@]}"; do
+  od=$(outdir "$j")
+  [ -f "$od/$j.pytxcode" ] || continue
+  set +e
+  out=$(python3 "$TRANSCRIPTS" --job "$j" --outdir "$od" 2>&1)
+  rc=$?
+  set -e
+  echo "$out" | sed 's/^/transcripts: /'
+  case "$rc" in
+    0) ;;
+    1) bad "$j: transcripts printed from another job's run: rm" \
+           "$od/$j.pytxmcr and build $j again, so that latexmk reruns" \
+           "PythonTeX for it" ;;
+    *) bad "$j: transcript check failed (exit $rc)" ;;
+  esac
+done
+
+# The editions of a bilingual deck must not build into one output
+# directory: a directory that holds the logs of two editions' jobs was
+# shared, in this build or an earlier one, and its .stdout files may be
+# the other edition's.
+if [ "$BILINGUAL" -eq 1 ]; then
+  for d in ltxobj*/; do
+    d=${d%/}
+    eds=$(for f in "$d"/notes*.log "$d"/slides*.log; do
+            [ -f "$f" ] || continue
+            j=$(basename "$f" .log)
+            case "$(base_of "$j")" in notes|slides) ;; *) continue ;; esac
+            echo "edition$(suffix_of "$j")"
+          done | sort -u | tr '\n' ' ')
+    if [ "$(echo "$eds" | wc -w)" -gt 1 ]; then
+      bad "$d holds the logs of two editions ($eds): they shared an" \
+          "output directory; set TEX_OUTDIR per edition in the Makefile," \
+          "remove $d and rebuild"
+    fi
+  done
 fi
 
 # Blank-ish slides: a broken frame looks empty apart from the running
-# head and foot.
-case ",$JOBS," in *,slides,*)
-  SPDF=slides.pdf; [ -f "$SPDF" ] || SPDF=ltxobj/slides.pdf
+# head and foot.  The main edition's lines carry no prefix.
+for sj in "${JOBLIST[@]}"; do
+  [ "$(base_of "$sj")" = slides ] || continue
+  pfx=""; [ -z "$(suffix_of "$sj")" ] || pfx="$sj: "
+  SPDF=$sj.pdf; [ -f "$SPDF" ] || SPDF=$(outdir "$sj")/$sj.pdf
   if [ -f "$SPDF" ] && command -v pdfinfo > /dev/null; then
     n=$(pdfinfo "$SPDF" | awk '/Pages/{print $2}')
     GREPV=()
@@ -243,46 +432,47 @@ case ",$JOBS," in *,slides,*)
       fi
       [ "$w" -lt 6 ] && blanks="$blanks $p"
     done
-    note "running head stripped: ${STRIP[*]:-(none found)}"
-    note "blank-ish slides:${blanks:- none}"
+    note "${pfx}running head stripped: ${STRIP[*]:-(none found)}"
+    note "${pfx}blank-ish slides:${blanks:- none}"
     [ -z "$blanks" ] || note "  (check those pages by eye: poster frames" \
                              "and section pages are legitimately sparse)"
   fi
-  ;;
-esac
+done
 
 # Margin notes printed away from their marker.  check_margin_notes.py
 # reads the margin column from the didactic-margin line in the notes log
 # and exits 2 when it checked nothing (no column, no note found), so a
 # skipped check cannot pass for a clean one.
 MARGIN=$(dirname "$0")/check_margin_notes.py
-case ",$JOBS," in *,notes,*)
-  NPDF=notes.pdf; [ -f "$NPDF" ] || NPDF=ltxobj/notes.pdf
+for nj in "${JOBLIST[@]}"; do
+  [ "$(base_of "$nj")" = notes ] || continue
+  nod=$(outdir "$nj")
+  pfx=""; [ -z "$(suffix_of "$nj")" ] || pfx="$nj "
+  NPDF=$nj.pdf; [ -f "$NPDF" ] || NPDF=$nod/$nj.pdf
   if [ -f .no-margin-check ]; then
-    note "margin notes: skipped, .no-margin-check says:" \
+    note "${pfx}margin notes: skipped, .no-margin-check says:" \
          "$(head -1 .no-margin-check)"
   elif [ -f "$NPDF" ]; then
     MARGS=("$NPDF")
-    [ -f ltxobj/notes.log ] && MARGS+=(--log ltxobj/notes.log)
+    [ -f "$nod/$nj.log" ] && MARGS+=(--log "$nod/$nj.log")
     set +e
     out=$(python3 "$MARGIN" "${MARGS[@]}" 2>&1)
     rc=$?
     set -e
-    echo "$out" | grep -a -v '^WARNING:' | sed 's/^/margin notes: /'
+    echo "$out" | grep -a -v '^WARNING:' | sed "s/^/${pfx}margin notes: /"
     w=$(echo "$out" | grep -a -c '^WARNING:' || true)
-    [ "$w" -eq 0 ] || note "margin notes: $w warnings (unpaired marker" \
+    [ "$w" -eq 0 ] || note "${pfx}margin notes: $w warnings (unpaired marker" \
                           "or note): python3 $MARGIN $NPDF lists them"
     case "$rc" in
       0) ;;
-      1) bad "notes: margin notes print away from their marker, or" \
+      1) bad "$nj: margin notes print away from their marker, or" \
              "marginfix logged an unresolved spill" ;;
-      *) bad "notes: margin-note check checked nothing (exit $rc);" \
+      *) bad "$nj: margin-note check checked nothing (exit $rc);" \
              "if the deck really has no margin notes, say so in" \
              ".no-margin-check" ;;
     esac
   fi
-  ;;
-esac
+done
 
 # Overfull lines in the notes: an inline code literal or a URL running
 # out of the text block, possibly over a margin note.  The margin check
@@ -290,10 +480,13 @@ esac
 # A slide's overfull \hbox is left to the eye: beamer frames overflow
 # by design (columns, wide code), and the vbox check catches the bad case.
 OVERFULL=$(dirname "$0")/check_overfull.py
-case ",$JOBS," in *,notes,*)
-  NPDF=notes.pdf; [ -f "$NPDF" ] || NPDF=ltxobj/notes.pdf
-  if [ -f ltxobj/notes.log ]; then
-    OARGS=(--pt "$OVERFULL_PT" ltxobj/notes.log)
+for nj in "${JOBLIST[@]}"; do
+  [ "$(base_of "$nj")" = notes ] || continue
+  nod=$(outdir "$nj")
+  pfx=""; [ -z "$(suffix_of "$nj")" ] || pfx="$nj "
+  NPDF=$nj.pdf; [ -f "$NPDF" ] || NPDF=$nod/$nj.pdf
+  if [ -f "$nod/$nj.log" ]; then
+    OARGS=(--pt "$OVERFULL_PT" "$nod/$nj.log")
     # With the PDF, a box TeX set and threw away (a <presentation> frame)
     # is listed as not in the PDF and does not count.
     [ -f "$NPDF" ] && OARGS+=(--pdf "$NPDF")
@@ -301,20 +494,19 @@ case ",$JOBS," in *,notes,*)
     out=$(python3 "$OVERFULL" "${OARGS[@]}" 2>&1)
     rc=$?
     set -e
-    echo "$out" | sed 's/^/overfull: /'
+    echo "$out" | sed "s/^/${pfx}overfull: /"
     case "$rc" in
       0) ;;
       1) if [ "$DRAFT" -eq 1 ]; then
-           note "overfull: --draft, not failing on the lines above"
+           note "${pfx}overfull: --draft, not failing on the lines above"
          else
-           bad "notes: lines more than ${OVERFULL_PT}pt too wide (fix them," \
+           bad "$nj: lines more than ${OVERFULL_PT}pt too wide (fix them," \
                "or --draft for a quick compile for review)"
          fi ;;
-      *) bad "notes: overfull check failed (exit $rc)" ;;
+      *) bad "$nj: overfull check failed (exit $rc)" ;;
     esac
   fi
-  ;;
-esac
+done
 
 # Tangled Python must be black-clean: the tangle rule pipes it through
 # black and the file has to match the slide byte for byte.
@@ -348,15 +540,72 @@ if [ -d examples ]; then
   fi
 fi
 
-# Source lines longer than 79 characters.
+# Source lines longer than 79 characters.  A trailing stamp,
+# "% sync english=... swedish=...", does not count: only didactic-sync.py
+# writes it, and it adds 37 characters to a line (31 more for each
+# further pair ending there).  The pattern takes any language key, and
+# only a comment at the end of the line with no further % in it.
 LONG=0
 for f in contents.nw abstract.tex; do
   [ -f "$f" ] || continue
-  c=$(awk 'length > 79' "$f" | wc -l)
+  c=$(awk '{ sub(/[ \t]*% sync [a-z]+=[^%]*$/, "") } length > 79' "$f" \
+      | wc -l)
   [ "$c" -eq 0 ] || { note "$f: $c lines > 79 chars"; LONG=$((LONG + c)); }
 done
 [ "$LONG" -eq 0 ] && note "line length: all <= 79"
 [ "$LONG" -eq 0 ] || bad "$LONG source lines longer than 79 characters"
+
+# The two languages of a bilingual deck must be in step.  didactic-sync.py
+# exits 1 when a pair is behind, unstamped, or a stamp has lost its pair,
+# and 2 when a file cannot be read as blocks (an \end{onlyin} out of
+# column 1, a block in a frame that is not [fragile], a source still in
+# version 2.17's form, which names didactic-sync.py --migrate).  Both fail the build, so
+# ALL CHECKS PASSED means the two languages are in step.  It reads the
+# deck's own sources: every .nw and .tex file except a woven X.tex beside
+# its X.nw, nothing under the output directories, examples/ or
+# mentipy-obj/, and in litteratursokning/ only what was written by hand:
+# not the search tool's hit lists (*-full.tex, or a file whose head says
+# "Generated by: scholar") nor its older standalone exports (a file that
+# starts with \documentclass).
+if [ "$BILINGUAL" -eq 1 ]; then
+  SYNC=$(kpsewhich didactic-sync.py 2>/dev/null || true)
+  SYNCFILES=()
+  while IFS= read -r f; do
+    case "$f" in *.tex) [ -f "${f%.tex}.nw" ] && continue ;; esac
+    case "$f" in
+      litteratursokning/*-full.tex) continue ;;
+      litteratursokning/*.tex)
+        head -n 12 "$f" | grep -q 'Generated by: scholar\|^\\documentclass' \
+          && continue ;;
+    esac
+    SYNCFILES+=("$f")
+  done < <(find . \( -name 'ltxobj*' -o -name examples -o -name '_minted*' \
+                     -o -name 'pythontex-files-*' -o -name mentipy-obj \
+                     -o -name '.?*' \) -prune \
+                -o -type f \( -name '*.nw' -o -name '*.tex' \) -print \
+           | sed 's|^\./||' | sort)
+  if [ -z "$SYNC" ]; then
+    bad "didactic-sync.py not found (kpsewhich): the two languages are" \
+        "unchecked; install didactic v2.18 or later"
+  elif [ ${#SYNCFILES[@]} -eq 0 ]; then
+    bad "sync: no .nw or .tex sources found"
+  else
+    set +e
+    out=$(python3 "$SYNC" "${SYNCFILES[@]}" 2>&1)
+    rc=$?
+    set -e
+    case "$rc" in
+      0) note "sync: all pairs in step (${#SYNCFILES[@]} files:" \
+              "${SYNCFILES[*]})"
+         [ -z "$out" ] || echo "$out" | sed 's/^/sync: /' ;;
+      1) echo "$out" | sed 's/^/sync: /'
+         bad "the two languages are not in step: read both sides of each" \
+             "pair above, then didactic-sync.py --stamp FILE:LINE as named" ;;
+      *) echo "$out" | sed 's/^/sync: /'
+         bad "didactic-sync.py cannot read the sources (exit $rc)" ;;
+    esac
+  fi
+fi
 
 # Provenance blocks in the bibliography.  check_provenance.py is offline
 # and cheap, so it belongs in every build; its companion check_metadata.py
@@ -377,6 +626,18 @@ if [ -f ltnotes.bib ]; then
   else
     note "WARNING: $PROV not found --- provenance unchecked"
   fi
+fi
+
+# Transcript files left beside the sources by didactic before v2.18.1,
+# which writes them into the output directory; a build under a newer one
+# no longer reads them.
+legacy=$(find . -maxdepth 1 \( -name 'didactic_output_*.txt' \
+                              -o -name 'didactic_pair_*.txt' \) | wc -l)
+if [ "$legacy" -gt 0 ] \
+   && grep -a -q 'ltxobj[^ ]*/didactic_output_' ltxobj*/*.fls 2>/dev/null; then
+  note "$legacy transcript files beside the sources are left from didactic" \
+       "before v2.18.1 and no longer read: rm -f didactic_output_*.txt" \
+       "didactic_pair_*.txt"
 fi
 
 command -v montage > /dev/null \

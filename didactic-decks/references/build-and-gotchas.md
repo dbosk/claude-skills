@@ -20,8 +20,23 @@ PYTHONTEXFLAGS=	--interpreter python:python3 --rerun=always
 ```
 
 `-shell-escape` is minted's. `PYTHONTEXFLAGS` matters because both jobs
-share `ltxobj`: without `--rerun=always` the second job reuses the first
-job's PythonTeX cache.
+share `ltxobj` (in a bilingual deck the two jobs of each edition share
+its directory, `ltxobj` or `ltxobj-sv`): without `--rerun=always` the
+second job reuses the first job's PythonTeX cache. They share the
+`.stdout` files too, and latexmk reruns PythonTeX only when a job's
+`.pytxcode` changed, so a job rebuilt after a small edit prints the other
+job's outputs wherever the two run different code at one instance;
+before such a rebuild `build_deck.sh` removes the job's `.pytxmcr`,
+which makes latexmk run PythonTeX again (by hand: `rm
+ltxobj/notes.pytxmcr` before `make`). Since didactic v2.18.1 the
+transcript files themselves (`didactic_output_*.txt`) are written into
+PythonTeX's output directory, so jobs in different directories no longer
+share or delete each other's (didactic#118); the two jobs of one
+directory still can, and a build directory per job is planned as an
+include in didactic (didactic#116). That needs PythonTeX's working
+directory to be the one LaTeX runs in (`..` from `ltxobj`, as the decks
+have it), and an output directory whose name holds no `%`, which stops
+minted.
 
 `contents.tex: contents.nw` — the pattern rule in `noweb.mk` does the
 weave. The default weave runs the dbosk noweb fork's `autolang` +
@@ -77,9 +92,9 @@ a LaTeX error would otherwise leave `pdflatex` hung at its `?` prompt
 forever. Passing it on the command line replaces the Makefile's `+=`
 value, so keep `-shell-escape` in the same string.
 
-`scripts/build_deck.sh` does the whole sequence — pre-clean, both jobs,
-the convergence loop, all the checks — and exits non-zero on a hard
-failure.
+`scripts/build_deck.sh` does the whole sequence — pre-clean, both jobs
+(four in a bilingual deck), the convergence loop, all the checks — and
+exits non-zero on a hard failure.
 
 ## The convergence loop
 
@@ -94,6 +109,8 @@ biber --output-directory ltxobj ltxobj/notes
 pdflatex -8bit -shell-escape -interaction=nonstopmode \
          -output-directory=ltxobj notes.tex
 ```
+
+For a `-sv` job, use `ltxobj-sv` and `notes-sv` in both commands.
 
 On slides the symptom of a build that stopped short is blank
 table-of-contents frames at every section and subsection, which didactic
@@ -112,7 +129,7 @@ is 0.
 | Notes show old program output after a chunk changed | `.pytxcode` unchanged, so latexmk never invoked PythonTeX | the stale-transcript recipe below |
 | Notes transcripts belong to the wrong example | `\pause` and `\runpython` in one frame | split the frame; see `runpython-and-output.md` |
 | `Nothing to do` after an error, nothing rebuilds | stuck `ltxobj/<job>.fdb_latexmk` | `rm ltxobj/notes.fdb_latexmk` |
-| `<MINTED>` in the *notes*, `! Package minted Error: Cannot find input file "didactic_output_…txt"`, and stray `notes.pytxmcr`, `notes.pytxpyg`, `notes.unq`, `pythontex_data.pkl`, `py_default_default_*.stderr` in the deck directory | latexmk ran PythonTeX with the deck directory as cwd | delete the strays, `ltxobj/notes.*` and `didactic_output_*.txt`; rebuild (below) |
+| `<MINTED>` in the *notes*, `! Package minted Error: Cannot find input file "didactic_output_…txt"`, and stray `notes.pytxmcr`, `notes.pytxpyg`, `notes.unq`, `pythontex_data.pkl`, `py_default_default_*.stderr` in the deck directory | latexmk ran PythonTeX with the deck directory as cwd | delete the strays, `ltxobj/notes.*` and any `didactic_output_*.txt`; rebuild (below) |
 | The checks report the *previous* build's numbers | the PDF was up to date, so no pass ran and the log is stale | `rm ltxobj/<job>.pdf` (or touch a source), rerun |
 | Build hangs immediately | a killed run left `ltxobj/_minted` | `rm -rf ltxobj/_minted` |
 | "empty citation" / `??` after adding bib keys | latexmk under `-use-make` did not rerun biber | run biber by hand, touch a source, make again |
@@ -138,12 +155,15 @@ placeholders on every slide; one more `pdflatex` pass clears it.
 When only the tangled programs change (a name in a chunk, nothing in the
 frames), the `.pytxcode` is unchanged and latexmk never invokes PythonTeX,
 so the notes keep the old transcripts. didactic's `didactic_output_*.txt`
-files are named by output content, so the stale ones stay referenced.
-Removing the PythonTeX files alone leaves latexmk with "nothing to do", so
-touch the source as well:
+files are named by output content, so the stale ones stay referenced;
+since didactic v2.18.1 they are written into the job's output directory
+(`ltxobj/`), before that into the deck directory. Removing the PythonTeX
+files alone leaves latexmk with "nothing to do", so touch the source as
+well:
 
 ```bash
-rm -f ltxobj/*.pytx* ltxobj/*.fdb_latexmk *.pytxcode didactic_output_*.txt \
+rm -f ltxobj/*.pytx* ltxobj/*.fdb_latexmk *.pytxcode \
+      ltxobj/didactic_output_*.txt didactic_output_*.txt \
       ltxobj/pythontex_data.pkl ltxobj/py_*.stdout ltxobj/py_*.stderr
 rm -rf ltxobj/pythontex-files-* pythontex-files-*
 touch contents.nw
@@ -203,7 +223,8 @@ Cure:
 
 ```bash
 rm -f notes.pytxmcr notes.pytxpyg notes.unq pythontex_data.pkl \
-      py_default_default_*.std* ltxobj/notes.* didactic_output_*.txt
+      py_default_default_*.std* ltxobj/notes.* didactic_output_*.txt \
+      ltxobj/didactic_output_*.txt
 make notes.pdf LATEXFLAGS="-shell-escape -interaction=nonstopmode"
 ```
 
