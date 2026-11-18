@@ -71,10 +71,15 @@ Instead:
   margin twice and buys nothing.
 - Anchor a note just before the passage it discusses; split a long one and
   anchor the second half further on.
-- A margin at capacity also pushes **citation footnotes** to the next page.
-  A footnote marker on one page with its note on the next is a defect, not a
-  cosmetic detail: check every page where notes are dense, comparing the
-  superscript numbers in the text against the note numbers in the margin.
+- A margin at capacity also displaces **citation footnotes**. Since didactic
+  v2.19 a footnote that doesn't fit beside its line goes whole to the foot
+  of its own page; only when that fails either is it carried to a later
+  page, and the log then names it ("Margin note called out at … is set on
+  page …"). A carried footnote is placed by the rules, not a defect, but
+  the reader still meets the marker a page before its note: treat it as a
+  sign of a crowded page and shorten notes or move the callout. Any
+  footnote off its marker's page that no warning names is a defect.
+  `check_margin_notes.py` (didactic-decks) checks both.
 
 ---
 
