@@ -307,7 +307,7 @@ These `scripts/build_deck.sh` runs itself:
 | `didactic-sync.py` on the deck's `.nw` and `.tex` sources (bilingual decks) | exit 0: every pair stamped and in step; exit 1 or 2, or no script, fails |
 | bilingual: the logs of two editions in one output directory | none |
 | `check_provenance.py` on `ltnotes.bib` | `Result: OK` |
-| `check_margin_notes.py` on the notes | no note printed away from its marker; a run that checked nothing fails too |
+| `check_margin_notes.py` on the notes | no note printed away from its marker unless a didactic warning names it; a run that checked nothing fails too |
 | `check_overfull.py` on `ltxobj/notes.log` | no line more than 5pt too wide (`--overfull-pt N`); `--draft` lists them without failing |
 | `check_transcripts.py`, each job right after its build | every `\runpython` has a non-empty transcript of its own program in the PDF, and the job's last pass read its own PythonTeX run's output (not the other job's, nor the other edition's) |
 | blank-ish slides | reported, not failed: poster and section frames are legitimately sparse |
@@ -317,9 +317,12 @@ counts either way, so read its output rather than only its exit status.
 
 The margin check takes the margin column from the `didactic-margin:` line
 didactic writes to `ltxobj/notes.log`; without it (an older didactic) it
-guesses the column and says GUESSED. A note marginfix logged as carried
-on purpose (`marginfix-spill: … intended`) passes as INTENDED; an
-`unresolved` spill fails. A deck whose notes really have no
+guesses the column and says GUESSED. Under didactic v2.19 a note off its
+marker's page passes only when a didactic warning names it (CARRIED:
+shorten the note or move its callout); PAST FOOT and LOOK lines are
+reported for the author to read, UNFORESEEN, LOST and INSTALL fail. A
+log from an older didactic is judged by its `marginfix-spill` records.
+A deck whose notes really have no
 margin notes opts out with a committed `.no-margin-check` file whose first
 line says why.
 

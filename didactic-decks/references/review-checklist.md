@@ -171,10 +171,13 @@ slide; pass the deck's own author, institute and title.
 
 ## Margin notes
 
-Every margin footnote must print on the page that carries its marker. A
-note pushed to the next page is a defect, fixed in the content: a shorter
-note, the citation moved earlier, the prose moved or reworded; never a
-page break (`floats-and-margins.md`, "No manual page breaks").
+Every margin footnote must print on the page that carries its marker:
+beside its line or, if it doesn't fit there, at the foot of that page
+(didactic v2.19 sets it there whole, in the text's width, and logs
+nothing). A note didactic had to carry to a later page is named in the
+log and passes the check, but is still worth fixing in the content: a
+shorter note, the citation moved earlier, the prose moved or reworded;
+never a page break (`floats-and-margins.md`, "No manual page breaks").
 
 The mechanical check, per page, compares the superscript markers in the
 body against the note numbers in the margin. `build_deck.sh` runs it on
@@ -187,27 +190,59 @@ python3 ~/.claude/skills/didactic-decks/scripts/check_margin_notes.py \
 
 It takes the margin column from the line `didactic-margin: odd=… even=…
 width=…` that didactic writes to the notes log (found beside the PDF or in
-`ltxobj/` by default). Without that line it guesses the column from the
+`ltxobj/` by default; a log counts only when it shipped out as many pages
+as the PDF has, so a stale `notes.log` left beside the PDF by an old build
+is passed over with a NOTICE, and when no log matches the check refuses
+with exit 2). Without that line it guesses the column from the
 word positions and prints GUESSED; the guess has failed on code reaching
 into the 4pt gutter and on notes with few margin words, so give a PDF
 copied away from its build `--log` or `--margin-x`. Exit 1 is a note
-printed away from its marker; exit 2 means nothing was checked (no
-column, or no margin note found) and is a failure, not a pass. A deck
+printed away from its marker that nothing in the log names (DEFECT), or a
+warning classed UNFORESEEN, LOST or INSTALL below; a note off its page
+that a warning names (CARRIED) exits 0. Exit 2 means nothing was checked
+(no column, no margin note found, or only another build's log) and is a
+failure, not a pass. A deck
 that really has no margin notes says so in a committed `.no-margin-check`
 (first line: why), which makes `build_deck.sh` skip the check;
 `--no-margin-ok` does the same for one manual run. WARNING lines (a
-marker or note with no partner nearby) name pages to read by eye.
+marker or note with no partner nearby) name pages to read by eye. A note
+up to three pages after its marker that nothing names is a DEFECT; when a
+marker in between has the same or a lower number (a new chapter, or
+another note's number) the pairing is unsure and stays a WARNING, which
+then says where the note with that number is. Deferrable notes
+(`\ltnote`), which marginfix splits or moves on with its own warning
+(`Package marginfix Warning: Deferrable margin note … moved from page P
+to the next`), have no number: the check doesn't see them.
 
-It also reads what marginfix (1.6 on) logged about notes that did not
-fit. A note on the page after its marker is printed as INTENDED, not a
-defect, when the log has a matching `marginfix-spill: page=P to=Q
-intended` (the note carried on purpose); every `… unresolved` spill (it
-should have fitted) is a failure even when the pairing did not see it.
-`marginfix-yield` lines (a page ended early for a note) and marginfix's
-warning that such a page is less than half full are printed as NOTICE
-lines: look at those pages, they are not failures. The log's page numbers
-are the page counter's; the script maps them to PDF pages through the
-log's shipout markers.
+It also reads didactic's warnings about notes, joining the lines TeX
+broke them over, and classes each:
+
+| Line | Warning (`Package didactic Warning: …`) | Verdict | What the author does |
+|---|---|---|---|
+| CARRIED | `Margin note called out at F:L on page P is set on page Q: <why>` | passes; covers that one note off its page | shorten the note or move its callout so it fits beside its line or at the foot |
+| PAST FOOT | `… runs <d>pt past the foot of the margin: …` | passes | nothing needed; shorten a note above it if the page looks crowded |
+| LOOK | `Footnote called out at Y is set at the foot of page P before the one called out at X, which is still waiting in the margin`; `TeX ended page P before the line of the footnote … page P is <n> lines short`; a footnote in multicols set at the foot of another page; `Can't read the callouts of page P`; `With \nofiles …` | passes | read the page; reword or move the text near the callout |
+| UNFORESEEN | `… is set on page Q (found from the last run): nothing said so in that run` | fails | the known cause (didactic#104) gives this wording: a foot that mixes didactic's footnotes with LaTeX's own (`\footnotesatfoot`, or multicols with memoir), taken on by a later line; move that footnote. Otherwise rebuild from clean, and if it stays, report it to didactic with the log |
+| LOST | `… wasn't printed (found from the last run)`; `A footnote in … multicols … is lost`; `A margin note in multicols is lost` | fails | move the note out of the multicols, or out of the note it is nested in; under TeX Live's marginfix 1.2, shorten a note taller than the margin |
+| INSTALL | `Can't place margin notes that don't fit: …`; `Couldn't patch \<name>, …` | fails | didactic and marginfix don't match: install the two together |
+| NOTICE | `<n> footnote(s) wasn't/weren't plain: …`; `Can't patch memoir's side captions …` and `Can't patch noweb's code chunks …` (features other than the notes' placement); any other didactic warning that mentions a note | information | nothing, unless a note or that feature looks wrong |
+
+A note found off its marker's page that no warning names is a DEFECT
+(exit 1). A warning covers only a note of its kind: CARRIED one in the
+margin of page Q, except a carried margin note without a number ("it
+doesn't fit beside its line, and only a footnote can go to the foot"),
+which covers none; the multicols footnote one at the foot of page Q. The
+warnings' page numbers are as printed; the script matches them against
+the PDF's page labels (with `pdftk`, so roman iv and arabic 4 stay apart)
+or, without labels, through the log's shipout markers. The output ends
+with a `to look at:` count of the CARRIED, PAST FOOT and LOOK lines.
+
+A log from a didactic older than 2.19 (its `Package: didactic … v2.18.1`
+line says which) was made under marginfix 1.6's rule and is judged by it,
+as when it was built: a note on the next page passes when a
+`marginfix-spill: page=P to=Q intended` or `… capped` line names it, an
+`… unresolved` spill fails, and `marginfix-yield` lines are NOTICEs. The
+first line of output after the column says which rule was applied.
 
 By hand, for one page: `pdftotext -f N -l N notes.pdf -` and read the
 superscript numbers in the text against the numbers in the margin block.

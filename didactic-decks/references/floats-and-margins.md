@@ -147,14 +147,23 @@ author instead of adding a break.
 
 - Never anchor a note within a few lines of a `sidecaption` figure.
 
-A margin already at capacity also pushes citation footnotes to the next
-page. That is a defect, not a cosmetic issue: check it with the
-per-page method in `review-checklist.md`, or with
-`scripts/check_margin_notes.py`.
-With didactic's `noteoverflow=foot` (the default from v2.18, with a
-marginfix that has `\marginnotefoot`) a footnote that doesn't fit the
-margin goes to the foot of its own page instead; the checker accepts a note
-there and fails one at the foot of another page than its marker's.
+A margin already at capacity used to push citation footnotes to the
+next page. With didactic v2.19 (`noteoverflow=foot`, the default, with
+marginfix 1.7) a footnote that doesn't fit the margin goes to the foot of
+its own page, whole, in the text's width; a note that misses the margin's
+foot by up to two lines runs past it, with a warning; anything that fits
+neither is carried to a later page, with a warning that names it and says
+why (`noteoverflow=carry`, the default under `draft`, carries every such
+note). `noteoverflow=break` no longer exists. A carried note is far from
+its marker: fix it in the content as above. `scripts/check_margin_notes.py`
+fails a note off its marker's page that no warning names, and lists the
+named ones (`review-checklist.md`, "Margin notes").
+Deferrable notes (`\ltnote` and the like) are outside this: marginfix
+splits them or moves them on by design, with its own warning (`Package
+marginfix Warning: Deferrable margin note from F:L split at the end of
+page P` or `… moved from page P to the next`), not didactic's; they have
+no number, so the margin check doesn't see them. Read those pages when an
+`\ltnote` should stand beside its passage.
 
 ## The float pool
 

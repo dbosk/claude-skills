@@ -283,7 +283,8 @@ checks below.
   "empty citation"; `check_labels.py` clean; each appendix chapter's
   letters match the standalone notes; the student edition's `pdftotext`
   has no `\ltnote` text and the teacher edition has it.
-- **Margin-note spills** (a note printed on the page after its marker):
+- **Margin notes off their page** (a note printed on another page than
+  its marker):
   run `scripts/check_margin_notes.py` on **each book PDF**, with
   `--log` naming that edition's build log (the `didactic-margin` line in
   it gives the margin column). A clean standalone deck says nothing about
