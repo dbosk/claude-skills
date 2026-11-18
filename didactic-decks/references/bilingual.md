@@ -237,6 +237,7 @@ jobs of one edition still share their directory; `build_deck.sh`'s rerun
 of PythonTeX before each rebuilt job keeps a deck's own build right.
 
 Not yet tested with this layout: Mentipy polls per edition, binding
-bilingual decks into a book with `\deck` (`book-binding.md`),
-`\selectlanguage`/`otherlanguage` against cleveref's names, and
-`cutcheck.py` (it reads `ltxobj/<job>.pdf` only, not `ltxobj-sv`).
+bilingual decks into a book with `\deck` (`book-binding.md`), and
+`\selectlanguage`/`otherlanguage` against cleveref's names.
+`cutcheck.py` reads the `-sv` jobs in `ltxobj-sv/` (detector C needs
+their log beside the PDF), so far tried on one deck only.

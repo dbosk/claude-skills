@@ -204,7 +204,9 @@ converge() {
     if LC_ALL=C grep -a -q \
         "Rerun to get\|undefined references\|run Biber\|Rerun LaTeX" \
         "$od/$j.log"; then
-      pdflatex -8bit -shell-escape -interaction=nonstopmode \
+      # -recorder keeps $od/$j.fls the record of the last pass, which
+      # check_transcripts.py reads.
+      pdflatex -8bit -shell-escape -interaction=nonstopmode -recorder \
                -output-directory="$od" "$j.tex" >> "$LOG" 2>&1 || true
       note "$j: extra pass $i"
     else
@@ -212,6 +214,22 @@ converge() {
     fi
   done
   note "$j: still asking for a rerun after 8 extra passes"
+}
+
+# Every \runpython must have left a non-empty transcript of its own in
+# the job's PDF.  An incremental build that skips PythonTeX can drop them
+# silently (no ??, no error, no MINTED), or print another job's: the
+# other edition's programs if the editions were built into one
+# directory, or the slides' shifted instances.  See check_transcripts.py.
+TRANSCRIPTS=$(dirname "$0")/check_transcripts.py
+declare -A TRANS_OUT TRANS_RC
+transcripts() {
+  local j=$1
+  [ -f "$(outdir "$j")/$j.pytxcode" ] || return 0
+  set +e
+  TRANS_OUT[$j]=$(python3 "$TRANSCRIPTS" . "$j" 2>&1)
+  TRANS_RC[$j]=$?
+  set -e
 }
 
 if [ "$CHECK_ONLY" -eq 0 ]; then
@@ -275,11 +293,16 @@ if [ "$CHECK_ONLY" -eq 0 ]; then
     # these outputs give.
     if [ -f "$od/$j.pytxmcr" ] && [ -f "$od/$j.log" ] \
        && [ "$od/$j.pytxmcr" -nt "$od/$j.log" ]; then
-      pdflatex -8bit -shell-escape -interaction=nonstopmode \
+      pdflatex -8bit -shell-escape -interaction=nonstopmode -recorder \
                -output-directory="$od" "$j.tex" >> "$LOG" 2>&1 || true
       note "$j: one more pass after its PythonTeX run"
     fi
     converge "$j"
+    # Check the job's transcripts now: the next job's PythonTeX run
+    # rewrites and deletes the .stdout files both jobs of an edition share
+    # in its output directory.  (The rerun forced above happens before
+    # this job's make, so the check sees the job's own run.)
+    transcripts "$j"
   done
 fi
 
@@ -350,6 +373,22 @@ for j in "${JOBLIST[@]}"; do
   fi
 done
 
+for j in "${JOBLIST[@]}"; do
+  # --check-only: the files may have changed since the job's last pass;
+  # the script then warns rather than fails.
+  [ -n "${TRANS_RC[$j]+x}" ] || transcripts "$j"
+  [ -n "${TRANS_RC[$j]+x}" ] || continue
+  echo "${TRANS_OUT[$j]}" | sed 's/^/transcripts: /'
+  case "${TRANS_RC[$j]}" in
+    0) ;;
+    1) bad "$j: a \\runpython has no transcript in the PDF, an empty" \
+           "one or another job's; rm $(outdir "$j")/$j.pytxmcr and build" \
+           "$j again, or rebuild clean (references/build-and-gotchas.md," \
+           "\"Stale PythonTeX transcripts\")" ;;
+    *) bad "$j: transcript check failed (exit ${TRANS_RC[$j]})" ;;
+  esac
+done
+
 # PythonTeX instance skew: a frame combining \pause with \runpython
 # doubles the slides job's instances and the shared cache then prints the
 # wrong transcripts in the notes.  The two jobs of one edition share an
@@ -364,30 +403,6 @@ for sfx in "" "${OTHER_EDITIONS[@]}"; do
     note "pytxcode lines: notes$sfx $n, slides$sfx $s (diff $d, tolerance $lim)"
     [ "$d" -le "$lim" ] || bad "pytxcode skew $d --- \\pause in a \\runpython frame?"
   fi
-done
-
-# Transcripts printed from another job's PythonTeX run.  Jobs sharing an
-# output directory share PythonTeX's .stdout files, and a job typeset
-# again without a run of its own prints what the last run left there:
-# the other edition's programs, if the editions were built into one
-# directory, or the slides' shifted instances.  Nothing in the log says
-# so.  check_transcripts.py explains how it decides.
-TRANSCRIPTS=$(dirname "$0")/check_transcripts.py
-for j in "${JOBLIST[@]}"; do
-  od=$(outdir "$j")
-  [ -f "$od/$j.pytxcode" ] || continue
-  set +e
-  out=$(python3 "$TRANSCRIPTS" --job "$j" --outdir "$od" 2>&1)
-  rc=$?
-  set -e
-  echo "$out" | sed 's/^/transcripts: /'
-  case "$rc" in
-    0) ;;
-    1) bad "$j: transcripts printed from another job's run: rm" \
-           "$od/$j.pytxmcr and build $j again, so that latexmk reruns" \
-           "PythonTeX for it" ;;
-    *) bad "$j: transcript check failed (exit $rc)" ;;
-  esac
 done
 
 # The editions of a bilingual deck must not build into one output

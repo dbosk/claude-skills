@@ -31,13 +31,13 @@ counter-search is recorded as such.
 
 ## Core principle
 
-**Nothing from memory.** No claim of fact is written because you remember it: not in
-a paper, a memo or a README, not in a two-sentence reply. Verify it by the means that
-fits. A claim about the world: this protocol. A claim about program code or a system:
-run it (a test, the command, the build) or, where it cannot be run, read the code or its
-documentation (skill `testing`), and say which. What cannot be verified is left out, and
-you say so: hedging ("probably", "from general knowledge") is not verification. The
-protocol scales with the claim, from reading one known source to a full sweep, never to memory.
+**Nothing from memory.** No claim of fact is written because you remember it: not in a paper,
+a memo or a README, not in a two-sentence reply. Verify it by the means that fits. A claim about
+the world: this protocol; how a thing works counts (a mechanism, a protocol, a definition cites a
+textbook or paper you opened). A claim about program code or a system: run it (a test, the command,
+the build) or, where it cannot be run, read the code or its documentation (skill `testing`), and say
+which. What cannot be verified is left out, and you say so: hedging or a note that the text is unbacked
+is not verification. The protocol scales with the claim, from one known source to a full sweep, never to memory.
 
 **Never cite from memory, from a title, or from a search-result snippet.** Open
 the source, find the passage that supports the claim, and record it. A reference

@@ -130,9 +130,10 @@ references). Those undefined references are the useful clue, because they name
 the float that vanished; the error itself names nothing.
 
 Fix: inside a float use `\parencite`, which prints an inline parenthetical and
-emits no footnote. When the source deserves a footnoted first mention, put that
-mention in the **prose outside the float** and let the caption cite
-parenthetically:
+emits no footnote, the same as in a margin note. The caption keeps its
+citation: removing it from the caption and citing only in the prose is the
+wrong fix (author, 2026-11-16). When the source also deserves a footnoted
+first mention, add that mention in the **prose outside the float** as well:
 
 ```latex
 Urvalet följer \textcite{Kitchenham2007}.       % prose, outside: footnote is fine
