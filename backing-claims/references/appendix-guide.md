@@ -239,14 +239,16 @@ reports.
   (https://help.openalex.org/api/authentication/; set it as
   `OPENALEX_API_KEY` in `~/.credentials`, never in a prompt or a report).
   Without one, plan a thorough chapter (a hundred-odd queries) against
-  the free budget, or run it across two days.
+  the free budget, or run it across two days. `scholar providers check`
+  shows the daily budget left and any prepaid or one-time credit; a spent
+  daily allowance does not block searches while such credit remains.
 - **OpenAlex's abstracts are incomplete.** It held one sentence of a CCS
   paper's abstract (2026-11-13), so a query whose word came later in the
   abstract matched in Web of Science, Scopus and arXiv and not in OpenAlex;
   of 44 records compared, 9 had no abstract there and 5 a shortened one
   (a small, selected sample). A title-and-abstract search in OpenAlex
-  (`scripts/openalex_title_abstract.py`) is therefore not the same search
-  as in Web of Science: say so in the limitations, and do not count on
+  (`scholar search … -p openalex --in title-abstract`) is therefore not the
+  same search as in Web of Science: say so in the limitations, and do not count on
   OpenAlex alone for a negative.
 - **Semantic Scholar's paper search is a keyword search** with a trained
   ranking (its API tutorial says so); only its snippet search matches by
@@ -307,8 +309,11 @@ scholar sessions decide <session> --discard --doi <doi> -t new-scheme
 
 **One criterion is always on the list: No abstract.** A title and an
 author list cannot be screened against the claim. Before classifying, run
-`scholar enrich` on the session so every record with a DOI or another
-identifier gets its abstract where a provider has one; a record that gains
+`scholar enrich <session> --pending-only --fields abstract
+--enrich-providers openalex,s2,arxiv,ieee,wos,scopus` (OpenAlex first:
+batched lookups; through the tunnel, for Scopus; recipe in
+`scholar-cookbook.md`, "Reading the source") so every record with a DOI or
+another identifier gets its abstract where a provider has one; a record that gains
 one stays in. The rest are discarded with the tag `no-abstract` before the
 classification, not left to the model. The flow counts give the records
 without an abstract, the ones enrichment rescued and the ones removed, and
@@ -381,16 +386,16 @@ on "the search found none", ask a search by meaning one question in plain
 words **per concept** and look each returned work up in the sessions:
 
 ```bash
-scripts/semantic_check.py -s <session> [-s <session> ...] -o <dir> \
-  "an attacker uses account recovery or a weaker fallback login to get
-   around multi-factor authentication"
+scholar sessions check <session> [<session> ...] -o <dir> \
+  -s "an attacker uses account recovery or a weaker fallback login to get
+      around multi-factor authentication"
 ```
 
-(OpenAlex `search.semantic`; other tools and their limits:
-`scholar-cookbook.md`, "Search by meaning".) Write the questions down
+(OpenAlex `search.semantic`; its buckets, tally line and the other tools
+and their limits: `scholar-cookbook.md`, "Search by meaning".) Write the questions down
 before running. Then:
 
-- A work that bears on the claim and is **not in our records** is a gap
+- A work that bears on the claim and is **not in any session** is a gap
   in the queries. Find why (which word of its title or abstract no query
   has), add the wording to the *concept* query, and rerun on every
   provider. The work then enters through our own search.

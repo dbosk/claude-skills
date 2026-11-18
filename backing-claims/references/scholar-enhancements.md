@@ -69,6 +69,27 @@ Not delivered: DBLP itself. It blocks API clients with an anti-bot
 page (dbosk/scholar#94); scholar does not try to get past it, so DBLP
 coverage stays lost until DBLP lifts the block.
 
+## Delivered November 2026 (PRs #141–#147, merged 2026-11-18)
+
+The repository is now `dbosk/scholarcli`. Until the pipx install is rebuilt
+from main, the installed scholar lacks these (`scholar sessions check
+--help` failing is the tell).
+
+| Issue | Capability | Command |
+|-------|------------|---------|
+| [#135](https://github.com/dbosk/scholarcli/issues/135) | Match title and abstract only: OpenAlex and its preprint servers (`search.title_and_abstract`), Scopus (`TITLE-ABS-KEY()` unless the query names fields), WoS `TS=` already; s2, dblp, ieee, arxiv, hal warn and do not record it; `scholar syntax` lists each provider's default fields | `scholar search … --in title-abstract` (also `rq`) |
+| [#140](https://github.com/dbosk/scholarcli/issues/140) | A search record is identified by query, provider and filters: full-text and `--in title-abstract` runs (or different `--year`) are separate records; `sessions show` and the report print the flags | `sessions show` |
+| [#136](https://github.com/dbosk/scholarcli/issues/136) | OpenAlex search by meaning held against sessions: per question each work's place and bucket (bearing, adjacent, unclassified, other topic, excluded, not in any session), a tally, known studies' places; read-only. Replaces `scripts/semantic_check.py` | `scholar sessions check S [S…] -s "Q" [-k DOI-or-title] [-o DIR]` |
+| #136 | The ranked list itself, labelled `top N, ranked (not a count)`; only provider of a run, no filters | `scholar search "Q" -p openalex-semantic` |
+| [#137](https://github.com/dbosk/scholarcli/issues/137) | Enrich only pending papers and only the named fields; batched OpenAlex DOI lookups (name `openalex` first); saved every 50 papers; Ctrl-C/SIGTERM keeps the progress (exit 130) | `scholar enrich S --pending-only --fields abstract --enrich-providers openalex,…` |
+| [#138](https://github.com/dbosk/scholarcli/issues/138) | OpenAlex prepaid and one-time credit shown; a spent daily allowance no longer blocks while credit remains | `scholar providers check` |
+| [#139](https://github.com/dbosk/scholarcli/issues/139) | Clear one provider's cache; a WARNING when cached standard-view (abstract-less) Scopus results are served because COMPLETE could not be confirmed | `scholar cache clear --provider scopus` |
+| [#130](https://github.com/dbosk/scholarcli/issues/130) | Start-up about 2.3 s faster (snowball and tuxedo imported lazily) | — |
+
+`scripts/openalex_title_abstract.py` is replaced by `--in title-abstract`;
+both scripts were removed from this skill. Pending, not merged: #148
+(Semantic Scholar paced to one request a second across processes).
+
 ## Future ideas (not yet built)
 
 When a new gap appears, offer to file it as a `gh issue`
@@ -81,17 +102,5 @@ gh issue create --repo dbosk/scholar --label enhancement \
 ```
 
 
-Gaps seen on 2026-11-13 (MFA review), filed 2026-11-15:
-
-- [dbosk/scholarcli#135](https://github.com/dbosk/scholarcli/issues/135):
-  an option on the OpenAlex provider to search title and abstract only
-  (`title_and_abstract.search`), recorded as its own kind of search in the
-  session. `scripts/openalex_title_abstract.py` does it by replacing the
-  provider's `_base_query`.
-- [#136](https://github.com/dbosk/scholarcli/issues/136): a provider, or a
-  `scholar check` command, for OpenAlex's
-  `search.semantic`, reporting how a session classified each work
-  returned. `scripts/semantic_check.py` does it outside scholar.
-- [#137](https://github.com/dbosk/scholarcli/issues/137):
-  `scholar enrich --pending-only`: enriching a session of thousands of
-  records to fill a few hundred new ones ran out of time.
+Gaps seen on 2026-11-13 (MFA review), filed 2026-11-15 as #135, #136
+and #137: delivered, see "Delivered November 2026".

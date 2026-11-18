@@ -16,9 +16,13 @@ subcommands from an agent.
 > integrity, `--proxy`, `cache clear --include-llm` and `sessions decide
 > --confidence` described below come from dbosk/scholar PRs #115–#118,
 > #124 and #125 (October 2026, no version bump): if `scholar --help` has
-> no `--proxy`, the installed scholar predates them. If a command is
-> missing, upgrade: `pipx upgrade scholarcli` (or reinstall from
-> `~/devel/scholar`).
+> no `--proxy`, the installed scholar predates them. `search --in
+> title-abstract`, `-p openalex-semantic`, `sessions check`, `enrich
+> --pending-only --fields`, `cache clear --provider` and the OpenAlex
+> prepaid credit in `providers check` come from PRs #142–#147 (merged
+> 2026-11-18): if `scholar sessions check --help` fails, the installed
+> scholar predates them. If a command is missing, upgrade: `pipx upgrade
+> scholarcli` (or reinstall from `~/devel/scholar`).
 
 ## Table of contents
 
@@ -50,6 +54,7 @@ scholar syntax          # per-provider query operators (AND/OR/NOT, phrases, fie
 | arXiv (preprints) | `arxiv` | none |
 | HAL (French open archive) | `hal` | none |
 | Preprint servers via OpenAlex | `ssrn`, `biorxiv`, `medrxiv`, … or the group `-p preprints` | none |
+| OpenAlex search by meaning (ranked top 50, a check, never by default) | `openalex-semantic` | as `openalex` |
 | Web of Science | `wos` | required |
 | IEEE Xplore | `ieee` | required |
 | Scopus | `scopus` | required |
@@ -91,7 +96,10 @@ searches may still fail — read the per-cell outcomes below before trusting
 its coverage, and rerun its failed cells later.
 
 Run the check again partway through a long session: keys get rejected and
-daily quotas run out mid-run.
+daily quotas run out mid-run. With a key, the OpenAlex row's detail gives
+the budget left, e.g. `$0.412 of $1.00 daily + $5.00 prepaid left;
+resets …` (one-time credits likewise); a spent daily allowance no longer
+blocks OpenAlex searches while prepaid or one-time credit remains.
 
 **Failed searches are recorded as failed.** Scholar records each search's
 outcome per query × provider, and every view uses the same words:
@@ -177,20 +185,37 @@ scholar search "<query>" -n <session> -p openalex -p wos -p scopus -p ieee -p ar
 
 What to expect, and what to do with it:
 
-- **OpenAlex searches the full text**, the other databases title, abstract
-  and keywords. The same query returned 895 records from OpenAlex and 40 to
+- **OpenAlex searches the full text** by default, the other databases
+  title, abstract and keywords (`scholar syntax`, "Default Search
+  Fields"). The same query returned 895 records from OpenAlex and 40 to
   150 from the others; a broad one returned 33 600 (observed 2026-11-13).
   For a quick count before downloading:
   `curl -s 'https://api.openalex.org/works?per-page=1&search=<url-encoded
   query>'` and read `meta.count`
   (`filter=title_and_abstract.search:<query>` gives the title-and-abstract
-  count for comparison). To screen the title-and-abstract matches while
-  the full-text matches stay in the cache, uncounted for screening:
-  `scripts/openalex_title_abstract.py <session> "<query>" ...` adds them
-  to the session under the query prefixed `title_and_abstract.search:`.
-  A study that matches only in its full text then goes unscreened (one
-  stood 121st of 1 954 full-text matches), which is one more reason for
-  the check below.
+  count for comparison). `--in title-abstract` restricts the match to
+  title and abstract on OpenAlex and its preprint servers (Scopus: wraps
+  the query in `TITLE-ABS-KEY()` unless it names fields; WoS `TS=` already
+  does; s2, dblp, ieee, arxiv and hal ignore it with a warning and do not
+  record it):
+
+  ```bash
+  scholar search "<query>" -p openalex --in title-abstract -l 0 -n <session>
+  ```
+
+  A search record is identified by query, provider and filters, so the
+  full-text and the title-and-abstract search of one query are two
+  records of the session, and `sessions show` and the report print the
+  flag (`openalex: <query> --in title-abstract --limit 0 — hits: 212`). Every
+  paper either search returns lands in the session as pending: to screen
+  only the title-and-abstract matches while the full-text count stays on
+  record, run the full-text search under a companion session
+  (`-n <session>-fulltext`). A study that matches only in its full text
+  then goes unscreened (one stood 121st of 1 954 full-text matches),
+  which is one more reason for the check below. Sessions built with the
+  former `scripts/openalex_title_abstract.py` hold such searches under
+  the query prefixed `title_and_abstract.search:`, which no command
+  reproduces: re-run them with `--in title-abstract -n <session>`.
 - **IEEE Xplore allows 200 requests a day**; run the searches that failed
   first and check `scholar providers limits` before a large batch.
 - **Ask before capping what follows.** When the counts are known, give the
@@ -225,15 +250,33 @@ meaning").
 
 ```bash
 # OpenAlex search.semantic: one question per concept, written down first.
-# Prints, per question, how the sessions classified each of the 50 works
-# and lists those "not in our records"; -t gives the place of a known study.
-scripts/semantic_check.py -s <session> -s <session2> -t <doi-or-title-part> \
-  -o <dir-kept-with-the-record> "<question in plain words>" ["<question 2>"]
+# Sessions are positional; -s is --semantic (one question each, repeatable);
+# -k/--known places a known study (exact DOI or part of a title).
+scholar sessions check <session> <session2> \
+  -s "<question in plain words>" [-s "<question 2>"] \
+  -k <doi-or-title-part> -o <dir-kept-with-the-record>
 ```
+
+Per question it prints the provider line (`openalex-semantic: top 50,
+ranked (not a count); checked <date>; fetched <date>`, or `cached,
+fetched <date>` when answered from the cache), a tally (`50 works: 7
+bearing, 3 adjacent, 2 excluded, 38 not in any session`), each work's
+place, bucket, year, DOI and title with every session's status and
+category, `k of 50 in no session`, and each known study's place or
+`not returned`. Buckets, most relevant first: bearing, adjacent,
+unclassified, other topic, excluded, not in any session. `-o` writes
+`<n>.json` (the works, with relevance scores) and `<n>.txt` (the list)
+per question; `-f csv|json` for scripts; `-l` lowers the 50. The
+sessions are only read; exit 1 if a session is missing or a question's
+search failed. To look at the ranked list alone: `scholar search
+"<question>" -p openalex-semantic` (only provider of the run, no
+filters; counts read `top N, ranked (not a count)`; `rq` refuses it).
+Keep it out of the claim's session (`-n`): its works would enter
+screening by a route that is a check, not the search.
 
 | Tool | What it matches | Limits (2026-11) |
 |---|---|---|
-| OpenAlex `works?search.semantic=` | embeddings of title, abstract, venue | 50 works a question, 2 000 characters, 1 request a second; no other search parameter in the same request |
+| OpenAlex `search.semantic` (`scholar sessions check`, `-p openalex-semantic`) | embeddings of title, abstract, venue | 50 works a question, 2 000 characters, 1 request a second (scholar paces it); no filters |
 | Semantic Scholar `graph/v1/snippet/search` | passages of open-access full texts, by embedding and keyword | without a key the public pool answered 429 through nine minutes of retries; with a rejected key, 403 |
 | Asta (asta.allen.ai), reports | a language model rewords the question; keyword search of abstracts plus the snippet search; re-ranking | run by the user; states no method in the report; list its sources and look them up |
 | alphaXiv `discover_papers` (MCP) | arXiv papers only | timed out three times on 2026-11-13 |
@@ -262,6 +305,8 @@ Then pull the recorded query into `FOUND-VIA` (see `provenance-format.md`).
 
 ```bash
 scholar enrich "<session>"             # fill missing abstracts via DOI lookup
+scholar enrich "<session>" --pending-only --fields abstract \
+  --enrich-providers openalex,s2,arxiv,ieee,wos,scopus   # before screening
 scholar search "..." --enrich -f bibtex  # enrich inline during a search
 scripts/fetch_pdf.py --text "<url-or-doi>"  # download into the cache, no viewer;
                                        # prints <source>\t<cache pdf>\tOK\t<text file>
@@ -281,6 +326,19 @@ scholar pdf quote "<pdf-url>" --claim "<claim>" -n 8 --no-llm --json
 scholar verify "<session>"
 scholar verify "<session>" --json
 ```
+
+**Enriching a large session for screening.** `--pending-only` fills only
+the papers still pending a decision (decided ones are left as they are),
+and `--fields abstract` skips the PDF-link, Unpaywall and preprint
+lookups that the default `abstract,pdf_url,keywords` brings. OpenAlex
+answers DOI lookups in batches (50 DOIs a request), so naming it first in
+`--enrich-providers` is the fast path; the list replaces the default
+order (s2, arxiv, openalex, ieee, wos, scopus), so name every provider
+you want, Scopus last (it adds abstracts only with the COMPLETE view,
+i.e. through the tunnel). The session is saved after every 50 papers; on
+Ctrl-C or SIGTERM the command prints `Interrupted: saved N of M …; run
+again to continue.` and exits 130; a re-run asks the providers only
+about papers still missing a requested field.
 
 `scholar pdf quote` options: `--claim` (required), `--limit/-n` (passages, default
 5), `--model/-m` (rerank model), `--lexical/--no-lexical`, `--llm/--no-llm`,
@@ -457,10 +515,15 @@ export SCHOLAR_PROXY=socks5h://127.0.0.1:1081
 scholar providers check      # must print "Route: proxy socks5h://…"
 ```
 
-Mind the search cache: it does not record which route or Scopus view a
-result came from, so a query first run without the tunnel is answered from
-the cache without abstracts. If any search of the session ran without the
-tunnel, `scholar cache clear` (it keeps the LLM caches) before re-running.
+Mind the search cache. Scopus results are cached per view: through the
+tunnel scholar confirms the COMPLETE view with one probe and runs a query
+cached only in the standard view again. When it cannot confirm COMPLETE
+(the probe failed), it serves the cached standard-view results and says
+so once: `scopus: serving cached standard-view results (no abstracts,
+first author only) because the COMPLETE view could not be confirmed
+(…)`. On that WARNING, check the route, then `scholar cache clear
+--provider scopus` (only that provider's cache; repeatable) and search
+again.
 
 Every request scholar makes — searches, enrichment, PDF downloads — leaves
 by one route: `--proxy URL` (a global option, before the command:
@@ -488,6 +551,7 @@ redirect through a login host may be a session round trip instead: see
 ```bash
 scholar cache info                 # sizes, incl. an "LLM caches" row
 scholar cache clear                # search/enrichment caches; keeps paid LLM output
+scholar cache clear --provider scopus  # one provider's cache (repeatable)
 scholar cache clear --include-llm  # also the LLM synthesis caches
 ```
 

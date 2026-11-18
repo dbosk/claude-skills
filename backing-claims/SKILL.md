@@ -119,11 +119,14 @@ scholar rq "How do LLMs support novice programming?" -p openalex -p dblp -l 0
 **Query several providers, and check they are actually alive.** A "not
 found" under a narrow or degraded provider set is not a real negative.
 **Search and enrich through the KTH tunnel** (cookbook, "Network route"):
-only there does Scopus return abstracts. Run **`scholar providers check`**
-first (`Route: proxy …`) and record it. DBLP serves API clients an anti-bot
-page (since September 2026): record it as unavailable. Query
-at least s2 + openalex (+ dblp while it answers), plus wos/scopus (strong
-for older and non-CS/education literature) when keys are configured.
+only there does Scopus return abstracts; on the WARNING `scopus: serving
+cached standard-view results`, `scholar cache clear --provider scopus`.
+Run **`scholar providers check`** first (`Route: proxy …`) and record it.
+DBLP serves API clients an anti-bot page (since September 2026): record it
+as unavailable. Query at least s2 + openalex (+ dblp while it answers), plus
+wos/scopus (strong for older and non-CS/education literature) when keys are
+configured. OpenAlex matches full text: run its queries `--in title-abstract`
+too (cookbook, "Limits"); both records stay in the session.
 **A failed search reads as failed, never as 0**: `sessions show` and the
 CSV's `# Results:` line give each query × provider cell as a count,
 `failed (reason)`, `N, incomplete (reason)` or `N after k retries`; copy
@@ -150,11 +153,7 @@ them via **Google Scholar**, **citation chaining** or the **author's/publisher's
 own copy**, and say so in `FOUND-VIA` ("not returned by provider search; …").
 
 `-f bibtex+prov` gives the BibTeX **already wrapped in provenance blocks**, with
-`FOUND-VIA` pre-filled; you then fill in `CLAIM`/`PICKED`/`QUOTE`/`VERIFIED`:
-
-```bash
-scholar search "authenticated encryption generic composition" -p s2 -p dblp -f bibtex+prov
-```
+`FOUND-VIA` pre-filled; you then fill in `CLAIM`/`PICKED`/`QUOTE`/`VERIFIED` (step 5).
 
 **Complementary sources are allowed — and every one of them is documented.**
 Google Scholar, a publisher site, alphaXiv, WebSearch + WebFetch, Crossref/
@@ -185,8 +184,8 @@ Six rules that reviews added (details: `references/appendix-guide.md`):
   noun and verb, the bare word (`"account recovery"` missed "recovery procedures").
 - **Known studies must come back.** Name a few relevant studies in the method;
   a query that returns none of those on its concept is reworded.
-- **Check by meaning.** The record shows what was found, not what was missed:
-  per concept, run `scripts/semantic_check.py`; a relevant work the sessions lack is a gap.
+- **Check by meaning.** The record shows what was found, not what was missed: per concept,
+  `scholar sessions check <sessions> -s "<question>"`; a relevant work in no session is a gap.
 - **Never cap a search; ask before capping what follows.** Always `-l 0`; when
   the counts are known, **ask** the user what to screen and what to read in full.
 
@@ -211,7 +210,8 @@ the alternatives you rejected and why — that reasoning is the `PICKED` field.
 Give each a mnemonic label of two or three words (`new-scheme`, not X1) and
 discard with it as tag (`llm classify -t …`, `sessions decide --discard -t
 …`); see `references/appendix-guide.md`, "Exclusion criteria".
-**No abstract:** enrich the record, else exclude it as `no-abstract`, counted.
+**No abstract:** enrich (`scholar enrich <s> --pending-only --fields
+abstract`), else exclude as `no-abstract`, counted.
 When several independent strands (different subfields, different query
 framings) converge on the same answer, say so — convergence across strands
 backs a claim more strongly than any single source.
@@ -464,7 +464,7 @@ the user as todos (`nytid-todo`), load-bearing first.
 | Back "X is an *established* method" with a quote from X's originator. | The originator shows X was *proposed*, not *adopted*; investigate establishment (formalization, textbooks, adoption, descendants) AND counter-search for criticism — a two-sided review. |
 | "Document" a counter-search by naming its session in passing. | A Method paragraph with the verbatim queries, providers, date, and export path — reproducible from the appendix text alone. |
 | Chapter's answer buried mid-chapter; it ends on raw hit-list tables. | A Conclusion answers the research question explicitly; the tables follow it as audit data. |
-| One exact phrase per concept; trust a search because its query table looks complete. | Several wordings per concept; named studies that must come back; a search by meaning held against the sessions (`scripts/semantic_check.py`); a missed study traced, repaired by concept and reported. |
+| One exact phrase per concept; trust a search because its query table looks complete. | Several wordings per concept; named studies that must come back; a search by meaning held against the sessions (`scholar sessions check`); a missed study traced, repaired by concept and reported. |
 | Search one or two providers; trust a "not found"; record a failed search as 0. | Query several (`s2 openalex dblp wos scopus`); run `scholar providers check` first; copy `failed (reason)` cells as failed — a failed cell is "not searched". |
 | Delegate a literature search with "use WebSearch/alphaXiv" and no protocol. | Load this skill first; the subagent prompt carries the preamble above (named `scholar` session, counter-searches, provenance `.bib`, documented complements, report to a file). |
 | Use alphaXiv/WebSearch and mention it in passing. | Record the tool and verbatim query in `FOUND-VIA`/`COUNTER` **and** in the search-protocol appendix — undocumented complements are unbacked. |
@@ -478,11 +478,10 @@ the user as todos (`nytid-todo`), load-bearing first.
 | `references/provenance-format.md` | Full provenance schema, field semantics, worked examples, migrating a `scholar rq` session into `FOUND-VIA` | `FOUND-VIA`, `QUOTE`, `VERIFIED`, `multi-line` |
 | `references/claim-audit.md` | Finding the claims that carry no citation: advice, conventions, "because" clauses, "no claims" statements; the PEP 8 case | `imperative`, `benefit`, `because`, `no claims` |
 | `references/verification-checklist.md` | Applicability tests for deciding whether a source really supports a claim | `scope`, `primary vs secondary`, `over-claim`, `retraction`, `venue` |
-| `references/scholar-cookbook.md` | Non-interactive `scholar` recipes (incl. `bibtex+prov`, `prov`, `verify`, `pdf quote`), provider health and failed searches, search by meaning (tools and limits), sessions and `.bak`, proxy, cache, citation keys + how to phrase `FOUND-VIA` for non-`scholar` sources | `providers check`, `Not reproducible`, `failed (`, `.json.bak`, `--proxy`, `cache clear`, `citation keys`, `bibtex+prov`, `WebFetch` |
+| `references/scholar-cookbook.md` | Non-interactive `scholar` recipes (incl. `bibtex+prov`, `prov`, `verify`, `pdf quote`), provider health and failed searches, OpenAlex full text vs `--in title-abstract`, search by meaning (`sessions check`, tools and limits), enriching for screening, sessions and `.bak`, proxy, cache, citation keys + how to phrase `FOUND-VIA` for non-`scholar` sources | `providers check`, `Not reproducible`, `failed (`, `title-abstract`, `sessions check`, `pending-only`, `.json.bak`, `--proxy`, `cache clear`, `citation keys`, `bibtex+prov`, `WebFetch` |
 | `references/closed-access.md` | Fetching subscribed full texts through the KTH SOCKS tunnel: the allowed commands, `SCHOLAR_PROXY`, which publishers answer, curl vs `fetch_pdf.py`, bot checks, leftovers as todos | `tunnel`, `SCHOLAR_PROXY`, `socks5h`, `Cloudflare`, `user agent` |
 | `references/scholar-enhancements.md` | Record of what shipped in scholar for this skill (provenance, audit table, honest failures, session integrity, proxy) and a place for future ideas | `shipped`, `PR`, `gh issue`, `future ideas` |
 | `references/appendix-guide.md` | The backing appendix as a short reproducible paper: skeleton, self-containment rules, query-table template, hit-list table generation, checklist; query wording, known studies, the check by meaning, what to do about a missed study | `Self-contained`, `Same queries`, `Vocabulary symmetry`, `several wordings`, `must return`, `search by meaning`, `missed`, `Query table`, `session_table` |
-| `scripts/semantic_check.py`, `scripts/openalex_title_abstract.py` | OpenAlex search by meaning held against sessions (gaps in the keyword queries); OpenAlex title-and-abstract matches added to a session | `-s`, `-t`, `search.semantic`, `title_and_abstract` |
 | `scripts/session_table.py` | Fallback for `scholar sessions export -f table`: classified session CSV → the same auditable `longtable` (`--bearing-only`, `--lang sv|en`, `--theme`) | `--csv`, `--label`, `--theme` |
 
 ## Workflow checklist
