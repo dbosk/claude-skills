@@ -158,6 +158,12 @@ note). `noteoverflow=break` no longer exists. A carried note is far from
 its marker: fix it in the content as above. `scripts/check_margin_notes.py`
 fails a note off its marker's page that no warning names, and lists the
 named ones (`review-checklist.md`, "Margin notes").
+Deferrable notes (`\ltnote` and the like) are outside this: marginfix
+splits them or moves them on by design, with its own warning (`Package
+marginfix Warning: Deferrable margin note from F:L split at the end of
+page P` or `… moved from page P to the next`), not didactic's; they have
+no number, so the margin check doesn't see them. Read those pages when an
+`\ltnote` should stand beside its passage.
 
 ## The float pool
 

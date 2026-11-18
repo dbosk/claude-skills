@@ -13,17 +13,24 @@ box and groups the words into lines, and compares, per page:
     word before it on its line and is raised above that word's baseline;
   * note numbers in the margin -- a digits-only word that opens a margin
     line and is raised above the note text that follows it;
-  * note numbers at the foot -- a digits-only word that opens a body line,
-    raised above the note's text that follows it, which is smaller than
-    the page's body text.  didactic sets a footnote that doesn't fit the
-    margin at the foot of its page, whole, in the text's width, and logs
-    nothing: on the page of its marker that is a placed note.
+  * note numbers at the foot -- a digits-only word that opens a body line
+    (or stands alone on a line poppler split off), abutting the note's
+    text and raised above it, the text smaller than the document's body
+    text.  didactic sets a footnote that doesn't fit the margin at the
+    foot of its page, whole, in the text's width, and logs nothing: on the
+    page of its marker that is a placed note.
 
-Footnote numbering restarts per chapter, so a marker and a note are only
-paired on the same or neighbouring pages, or on the pages a warning names.
-A marker or note with no counterpart there is reported as a WARNING: the
-check did not recognise the other half (a marker inside a table cell, or
-split off by a line break, are the known cases) -- look at that page by eye.
+Footnote numbering restarts per chapter, so a marker and a note are paired
+on the same or neighbouring pages, on the pages a warning names, or up to
+FAR_PAGES pages after the marker when no marker on the pages in between,
+or on the note's page, has that number or a lower one (either would mean
+another note's number or a new chapter).  A marker or note with no
+counterpart that can be paired so is reported as a WARNING, not a DEFECT:
+the check did not recognise the other half (a marker inside a table cell,
+or run together with the punctuation before it, are the known cases), or
+the note is lost or too far away to pair -- look at that page by eye.
+Deferrable notes (\\ltnote and the like), which marginfix splits or moves
+on with its own warning, have no number and are not checked.
 
 Where the margin column is comes from the build: didactic writes one line
 to the job's log,
@@ -32,7 +39,11 @@ to the job's log,
 
 the x of the column's left edge on odd and even pages and its width, in
 PDF points.  The log is looked for beside the PDF and in ltxobj/ beside
-it; --log names it, --margin-x overrides it.  Without that line (a PDF
+it, and --log names it; a log belongs to the PDF only when it shipped out
+as many pages as the PDF has.  A log left beside the PDF by an older build
+is passed over (with a NOTICE); when no log matches, the check refuses
+(exit 2) rather than judge the PDF by another build's warnings.
+--margin-x overrides the column.  Without that line (a PDF
 copied away from its build, an older didactic) the column is guessed from
 the word positions, and the output says so: the guess has failed on wide
 code reaching into the gutter and on decks with few margin notes.
@@ -42,9 +53,15 @@ than its marker passes if and only if a didactic warning
 
     Margin note called out at <file:line> on page <P> is set on page <Q>...
 
-names it; the check pairs the warning's P and Q (page counters, mapped to
-PDF pages through the log's shipout markers) with a marker on P whose note
-is on Q.  Every warning about notes is classed and printed:
+names it; the check pairs the warning's P and Q with a marker on P whose
+note is in Q's margin.  P and Q are page numbers as printed: they are
+matched against the PDF's page labels (read with pdftk, when a label isn't
+arabic), so that roman page iv and arabic page 4 stay apart, else through
+the log's shipout markers.  A warning covers only a note of its kind: a
+carried note whose reason is "it doesn't fit beside its line, and only a
+footnote can go to the foot" is a margin note without a number and covers
+none; a multicols footnote "set at the foot of page Q" covers only a note
+at Q's foot.  Every warning about notes is classed and printed:
 
   CARRIED     "... is set on page Q: <why>": placed by the rules and
               named, not a failure.  Shorten the note or move its callout
@@ -59,8 +76,12 @@ is on Q.  Every warning about notes is classed and printed:
               Not failures: read the page, reword or move the text near
               the callout.
   UNFORESEEN  "... (found from the last run): nothing said so in that
-              run": a placement didactic didn't foresee.  A failure:
-              rebuild from clean; if it stays, report it with the log.
+              run": a placement didactic didn't foresee.  A failure.  One
+              cause is known (didactic#104): a foot that mixes didactic's
+              footnotes with LaTeX's own (\\footnotesatfoot, or multicols
+              with memoir), which a later line takes to the next page;
+              move such a footnote.  Otherwise rebuild from clean, and if
+              it stays, report it to didactic with the log.
   LOST        "... wasn't printed (found from the last run)", "A footnote
               in ... multicols ... is lost", "A margin note in multicols
               is lost": the note is not in the PDF.  A failure: move it
@@ -90,17 +111,20 @@ lines and marginfix's half-empty-page warning are NOTICEs.  A log with no
 version line is judged by whichever records it carries.  Both rules come
 to the same for a note off its page that nothing names: a DEFECT.
 
-Exit status: 0 clean; 1 a note printed away from its marker that nothing
-names, or a warning classed UNFORESEEN, LOST or INSTALL (or an unresolved
-spill in an old log); 2 nothing was checked (no column found, no margin
-note found), which is never a pass unless --no-margin-ok says the PDF
-really has no margin notes.
+Exit status: 0 clean (a note off its page that a warning names is clean);
+1 a note printed away from its marker that nothing names, or a warning
+classed UNFORESEEN, LOST or INSTALL (or an unresolved spill in an old
+log); 2 nothing was checked (no column found, no margin note found, or
+only a log of another build), which is never a pass; --no-margin-ok
+accepts the first two for a PDF that really has no margin notes.
 
 Usage:
     check_margin_notes.py NOTES.pdf [--log FILE | --margin-x BP]
                           [--page N] [--verbose] [--no-margin-ok]
 
-Requires pdftotext (poppler-utils).
+Requires pdftotext (poppler-utils); pdftk for the page labels of a PDF
+whose pages aren't all numbered in arabic (without it, such pages are
+matched by the page counter, and the output says so).
 """
 
 import argparse
@@ -125,6 +149,12 @@ RAISE_MIN = 2.5
 # a deep descender, the size alone would accept a baseline digit next to a
 # word of digits.
 SIZE_RATIO = 0.95
+# A note's number at the foot of the page abuts the note's text, raised
+# above it by a superscript's raise.  Measured in memoir's footnotes: a
+# gap of 0.5pt and a raise of 4.5 to 5.1pt; the number of a table's row
+# set in oldstyle figures beside small capitals has a gap of 2.3pt or
+# more and a raise of 2.2pt, and must not pass for one.
+FOOT_TEXT_GAP = ABUT_GAP
 # The margin is set smaller than the body, so its superscripts clear the
 # baseline by proportionally less.
 MARGIN_RAISE_SCALE = 0.8
@@ -136,6 +166,10 @@ EDGE_SLACK = 1.0
 # A note number set alone on a margin line is recognised by its size:
 # clearly smaller than the margin's own text.
 NOTE_SIZE_RATIO = 0.7
+# An unnamed note is looked for this many pages after its marker's: a note
+# carried further than the next page.  Beyond that, a number is more likely
+# another chapter's note than this one.
+FAR_PAGES = 3
 # A running head is set off from the text block by more than a line: memoir
 # puts \headsep (about two lines) between them.  1.5 times the usual line
 # spacing tells that from an ordinary line without mistaking a paragraph's
@@ -265,8 +299,11 @@ ADVICE = {
     "PAST FOOT": "fine to ship; shorten a note above it if the page looks "
                  "crowded",
     "LOOK": "read the page; reword or move the text near the callout",
-    "UNFORESEEN": "a placement didactic didn't foresee: rebuild from "
-                  "clean, and if it stays, report it with the log",
+    "UNFORESEEN": "a placement didactic didn't foresee; known cause "
+                  "(didactic#104): a footnote in \\footnotesatfoot or in "
+                  "multicols beside didactic's at one foot, so move it; "
+                  "else rebuild from clean, and if it stays, report it to "
+                  "didactic with the log",
     "LOST": "the note is not in the PDF: move it out of the multicols, or "
             "out of the note it is nested in; under TeX Live's marginfix "
             "1.2, shorten a note taller than the margin",
@@ -356,6 +393,66 @@ def parse_pages(xhtml):
     return pages
 
 
+LABEL_STYLES = {
+    "DecimalArabicNumerals": lambda n: str(n),
+    "LowercaseRomanNumerals": lambda n: roman(n),
+    "UppercaseRomanNumerals": lambda n: roman(n).upper(),
+    "LowercaseLetters": lambda n: letters(n),
+    "UppercaseLetters": lambda n: letters(n).upper(),
+    "NoNumber": lambda n: "",
+}
+
+
+def roman(n):
+    out = ""
+    for v, r in ((1000, "m"), (900, "cm"), (500, "d"), (400, "cd"),
+                 (100, "c"), (90, "xc"), (50, "l"), (40, "xl"), (10, "x"),
+                 (9, "ix"), (5, "v"), (4, "iv"), (1, "i")):
+        while n >= v:
+            out, n = out + r, n - v
+    return out
+
+
+def letters(n):
+    return chr(ord("a") + (n - 1) % 26) * ((n - 1) // 26 + 1)
+
+
+def pdf_labels(pdf, npages):
+    """The PDF's page labels (hyperref writes them: "iv" in roman front
+    matter, "12" after it), one string per page, from pdftk; None when
+    pdftk is missing or the PDF has none."""
+    if shutil.which("pdftk") is None:
+        return None
+    try:
+        out = subprocess.run(["pdftk", pdf, "dump_data_utf8"], check=True,
+                             capture_output=True, text=True,
+                             errors="replace").stdout
+    except subprocess.CalledProcessError:
+        return None
+    ranges = []
+    for block in out.split("PageLabelBegin")[1:]:
+        f = dict(re.findall(r"^PageLabel(\w+): (.*)$", block, re.M))
+        try:
+            ranges.append((int(f["NewIndex"]), int(f.get("Start", 1)),
+                           f.get("NumStyle", "NoNumber"),
+                           f.get("Prefix", "")))
+        except (KeyError, ValueError):
+            return None
+    if not ranges:
+        return None
+    ranges.sort()
+    labels = []
+    for n in range(1, npages + 1):
+        current = [r for r in ranges if r[0] <= n]
+        if not current:
+            labels.append(str(n))
+            continue
+        index, start, style, prefix = current[-1]
+        number = LABEL_STYLES.get(style, LABEL_STYLES["NoNumber"])
+        labels.append(prefix + number(start + n - index))
+    return labels
+
+
 def default_logs(pdf):
     """notes.pdf is built in ltxobj/ and copied up beside the sources, so
     its log is beside it or in ltxobj/ beside it."""
@@ -436,11 +533,28 @@ def page_number(label):
 
 
 class Event:
-    """One classed warning: its kind, its words, and the pages it names
-    (page counters; q is None when it names one page)."""
+    """One classed warning: its kind, its words, the pages it names as TeX
+    printed them (q is None when it names one page), and for a warning
+    that names a note off its page, where on page q the note is: "margin",
+    "foot", or None when it is not a numbered note."""
 
-    def __init__(self, kind, text, p=None, q=None):
+    def __init__(self, kind, text, p=None, q=None, place=None):
         self.kind, self.text, self.p, self.q = kind, text, p, q
+        self.place = place
+
+
+# A carried note that is not a footnote ("only a footnote can go to the
+# foot"): an \ltnote or a \marginpar, which has no number to pair.
+UNNUMBERED_RE = re.compile(r"it doesn.t fit beside its line, and")
+
+
+def note_place(kind, regex, line):
+    """Where on page Q a warning puts the note it names, for pairing."""
+    if regex is CARRIED_RE:
+        return None if UNNUMBERED_RE.search(line) else "margin"
+    if regex is MCOL_FOOT_RE:
+        return "foot"
+    return None
 
 
 def warning_text(line):
@@ -452,7 +566,7 @@ def warning_text(line):
 class Log:
     """What the build log says about the notes, in PDF pages."""
 
-    def __init__(self, text, npages):
+    def __init__(self, text, npages, pdf_labels=None):
         text = text or ""
         m = VERSION_RE.search(text)
         self.version = m.group(1) if m else None
@@ -463,9 +577,8 @@ class Log:
                 if m:
                     groups = m.groupdict()
                     self.events.append(Event(
-                        kind, warning_text(line),
-                        page_number(groups.get("p")),
-                        page_number(groups.get("q"))))
+                        kind, warning_text(line), groups.get("p"),
+                        groups.get("q"), note_place(kind, rx, line)))
                     break
             else:
                 if NOTE_WORD_RE.search(line) and not BOX_RE.match(line):
@@ -475,9 +588,14 @@ class Log:
         self.yields = [(int(p), at) for p, at in YIELD_RE.findall(text)]
         self.feet = [(int(p), at) for p, at in FOOT_LOG_RE.findall(text)]
         self.half_empty = HALF_RE.findall(text)
-        labels = [int(n) for n in SHIPOUT_RE.findall(text)]
-        self.mapped = len(labels) == npages
-        self.labels = labels if self.mapped else list(range(1, npages + 1))
+        counters = [int(n) for n in SHIPOUT_RE.findall(text)]
+        self.mapped = len(counters) == npages
+        self.counters = (counters if self.mapped
+                         else list(range(1, npages + 1)))
+        # The page numbers as printed, to match a warning's: the PDF's own
+        # labels when it has them, so that roman page iv and arabic page 4
+        # stay apart; else the counter, roman numbers folded into it.
+        self.pdf_labels = pdf_labels
 
     def version_tuple(self):
         if self.version is None:
@@ -490,21 +608,29 @@ class Log:
                     or self.half_empty)
 
     def pdf_pages(self, page):
-        return [n for n, lab in enumerate(self.labels, start=1)
-                if lab == page]
+        """The PDF pages with this page number: a label as TeX printed it
+        (a string) or marginfix's page counter (an int)."""
+        if isinstance(page, str) and self.pdf_labels is not None:
+            return [n for n, lab in enumerate(self.pdf_labels, start=1)
+                    if lab == page]
+        if isinstance(page, str):
+            page = page_number(page)
+        return [n for n, c in enumerate(self.counters, start=1)
+                if c == page]
 
     def pdf_page(self, page):
-        """The first PDF page with this page counter, or the counter."""
-        return (self.pdf_pages(page) or [page])[0]
+        """The first PDF page with this page number, or the number."""
+        found = self.pdf_pages(page)
+        return found[0] if found else page
 
     def pdf_pair(self, p, q):
         """The PDF pages (marker, note) of a note called out on page p and
-        set on page q: of the PDF pages labelled q, the nearest to a page
-        labelled p (a later one first)."""
+        set on page q: of the PDF pages numbered q, the nearest to a page
+        numbered p (a later one first)."""
         best = None
         for n in self.pdf_pages(p):
-            for m, lab in enumerate(self.labels, start=1):
-                if lab == q and m != n:
+            for m in self.pdf_pages(q):
+                if m != n:
                     key = (abs(m - n), m < n)
                     if best is None or key < best[0]:
                         best = (key, (n, m))
@@ -512,17 +638,20 @@ class Log:
 
     def covers(self):
         """The (marker page, note page) pairs that a warning or a record
-        accounts for: for each, one entry per note, saying what names it."""
+        accounts for: for each, one (place, what names it) per note, place
+        being where the note is on the second page, "margin" or "foot".  A
+        warning covers only a note of its kind: a carried footnote one in
+        the margin, a multicols footnote one at the foot, a carried margin
+        note (no number) none."""
         c = collections.defaultdict(list)
         for e in self.events:
-            if e.q is not None and e.p is not None and e.kind in (
-                    "CARRIED", "LOOK"):
+            if e.q is not None and e.p is not None and e.place:
                 c[self.pdf_pair(e.p, e.q)].append(
-                    f"a didactic warning ({e.kind})")
+                    (e.place, f"a didactic warning ({e.kind})"))
         for p, q, kind in self.spills:
             if kind in ("intended", "capped"):
                 c[self.pdf_pair(p, q)].append(
-                    f"a marginfix-spill {kind} record")
+                    ("margin", f"a marginfix-spill {kind} record"))
         return c
 
     def unresolved(self):
@@ -621,14 +750,39 @@ def running_head(page_lines, col):
     return None
 
 
-def body_text_height(page_lines, col):
-    """The median height of the body's words on a page, or 0."""
-    hs = sorted(w.y1 - w.y0 for line in page_lines for w in line
-                if not in_margin(w, col))
+def body_text_height(pages, cols):
+    """The median height of the body's words in the whole document, or 0.
+    The whole document's, not the page's: on a page of small tables the
+    page's median is the footnotes' own size."""
+    hs = sorted(w.y1 - w.y0
+                for n, (_, page_lines) in enumerate(pages, start=1)
+                for line in page_lines for w in line
+                if not in_margin(w, cols.of(n)))
     return hs[len(hs) // 2] if hs else 0.0
 
 
-def markers_and_notes(page_lines, col, note_h):
+def foot_text_after(number, page_lines, col, body_h):
+    """Whether a number set alone on its line (poppler splits a raised
+    number off) opens a note at the foot: a line of the body that starts
+    right after it, at its height, its baseline below the number's by a
+    raise, set smaller than the body and larger than the number."""
+    size = number.y1 - number.y0
+    for line in page_lines:
+        body = [w for w in line if not in_margin(w, col)]
+        if not body or body[0] is number:
+            continue
+        text = body[0]
+        h = text.y1 - text.y0
+        raise_ = text.y1 - number.y1
+        if (0 <= text.x0 - number.x1 < FOOT_TEXT_GAP
+                and RAISE_MIN <= raise_ < h
+                and size < h * SIZE_RATIO
+                and h < body_h * SIZE_RATIO):
+            return True
+    return False
+
+
+def markers_and_notes(page_lines, col, note_h, body_h):
     """Body markers, margin note numbers and foot note numbers on one page.
 
     poppler sometimes merges a body line and the margin line beside it
@@ -637,7 +791,6 @@ def markers_and_notes(page_lines, col, note_h):
     page number can look like a marker."""
     markers, notes, foot = set(), set(), set()
     head = running_head(page_lines, col)
-    body_h = body_text_height(page_lines, col)
     for i, line in enumerate(page_lines):
         if i == head:
             continue
@@ -645,8 +798,8 @@ def markers_and_notes(page_lines, col, note_h):
         margin = [w for w in line if in_margin(w, col)]
 
         if (len(body) >= 2 and DIGITS_RE.match(body[0].text)
-                and body[1].x0 - body[0].x1 < NOTE_TEXT_GAP
-                and body[1].y1 - body[0].y1 >= RAISE_MIN * MARGIN_RAISE_SCALE
+                and body[1].x0 - body[0].x1 < FOOT_TEXT_GAP
+                and body[1].y1 - body[0].y1 >= RAISE_MIN
                 and body[0].y1 - body[0].y0
                     < (body[1].y1 - body[1].y0) * SIZE_RATIO
                 and body[1].y1 - body[1].y0 < body_h * SIZE_RATIO):
@@ -654,6 +807,11 @@ def markers_and_notes(page_lines, col, note_h):
             # the note's text, which is set smaller than the body.
             foot.add(int(body[0].text))
             body = body[1:]
+        elif (len(body) == 1 and DIGITS_RE.match(body[0].text)
+                and foot_text_after(body[0], page_lines, col, body_h)):
+            # The same, with the number on a line of its own.
+            foot.add(int(body[0].text))
+            body = []
 
         for prev, w in zip(body, body[1:]):
             if (MARKER_RE.match(w.text)
@@ -680,14 +838,36 @@ def markers_and_notes(page_lines, col, note_h):
     return markers, notes, foot
 
 
-def find_log(args):
-    """The build log's path and text: --log, else the first log found
-    beside the PDF.  (None, None) when there is none."""
+def find_log(args, npages):
+    """The build log's path, its text and a list of NOTICE lines: --log,
+    else a log beside the PDF or in ltxobj/.  A log belongs to the PDF
+    when it shipped out as many pages as the PDF has: a log left over from
+    an older build (one beside the PDF from September, say) must not judge
+    a new PDF.  Of several that match, the newest.  (None, None, notices)
+    when there is no log; the text is None and the notices say why when
+    no log matches."""
+    found, notices = [], []
     for log in [args.log] if args.log else default_logs(args.pdf):
         text = read_log(log)
         if text is not None:
-            return log, text
-    return None, None
+            found.append((log, text, len(SHIPOUT_RE.findall(text))))
+    if not found:
+        return None, None, notices
+    match = [f for f in found if f[2] == npages]
+    if not match:
+        notices += [f"{log} shipped out {count} pages, the PDF has "
+                    f"{npages}" for log, _, count in found]
+        return found[0][0], None, notices
+    match.sort(key=lambda f: os.path.getmtime(f[0]), reverse=True)
+    log, text, _ = match[0]
+    for other, _, count in found:
+        if other == log:
+            continue
+        why = ("older" if count == npages else
+               f"shipped out {count} pages, the PDF has {npages}")
+        notices.append(f"NOTICE: {other} passed over ({why}); "
+                       f"{log} is the build's log")
+    return log, text, notices
 
 
 def find_columns(args, log, text):
@@ -738,7 +918,18 @@ def main():
     if not pages:
         sys.exit(f"check_margin_notes.py: no pages parsed from {args.pdf}")
 
-    log, text = find_log(args)
+    log, text, notices = find_log(args, len(pages))
+    if log is not None and text is None:
+        # A log of another build: its warnings and its margin column would
+        # judge this PDF by another's pages.  Not a pass, not a guess.
+        for line in notices:
+            print(line)
+        print("FAIL: no log of this build: the log found belongs to another "
+              "build (its page count differs from the PDF's); rebuild, or "
+              "pass the build's own log with --log; nothing checked")
+        return 2
+    for line in notices:
+        print(line)
     cols, source = find_columns(args, log, text)
     if cols is None:
         print(source)
@@ -755,6 +946,7 @@ def main():
         return nothing
 
     note_h = margin_text_height(pages, cols)
+    body_h = body_text_height(pages, cols)
     print(f"{args.pdf}: {len(pages)} pages, margin column at "
           f"{cols.describe()} ({source}), "
           f"margin text {note_h:.1f}pt tall")
@@ -764,7 +956,7 @@ def main():
         if args.page is not None and n != args.page:
             continue
         markers, notes, foot = markers_and_notes(page_lines, cols.of(n),
-                                                 note_h)
+                                                 note_h, body_h)
         per_page[n] = (markers, notes, foot)
         if args.verbose:
             print(f"page {n}: markers {sorted(markers)}, "
@@ -772,9 +964,18 @@ def main():
 
     log_ = Log(text, len(pages))
     print(rule_of(log_, text is not None))
-    if (log_.events or log_.old_records()) and not log_.mapped:
-        print("NOTICE: the log's shipout markers do not match the PDF's "
-              "pages; its page numbers are taken as PDF pages")
+    if any(isinstance(e.p, str) and not e.p.isdigit() for e in log_.events):
+        # A warning names a page by a label that isn't a plain number: the
+        # PDF's own labels tell roman page iv from arabic page 4.
+        log_.pdf_labels = pdf_labels(args.pdf, len(pages))
+        if log_.pdf_labels is None:
+            print("NOTICE: a warning names a page that isn't numbered in "
+                  "arabic, and the PDF's page labels can't be read "
+                  "(pdftk): such a page is matched by its counter")
+    elif any(e.p for e in log_.events):
+        labels = pdf_labels(args.pdf, len(pages))
+        if labels is not None and any(not lab.isdigit() for lab in labels):
+            log_.pdf_labels = labels
 
     def on_page(n, m=None):
         return args.page is None or args.page in (n, m)
@@ -809,21 +1010,49 @@ def main():
     empty = (set(), set(), set())
     accounted = set()
 
-    def placed(m):
-        """The note numbers set on PDF page m, in the margin or at the
-        foot."""
+    def placed(m, place=None):
+        """The note numbers set on PDF page m: in the margin, at the foot,
+        or (place None) either."""
         _, notes, foot = per_page.get(m, empty)
-        return notes | foot
+        return {"margin": notes, "foot": foot}.get(place, notes | foot)
+
+    def cover(n, k):
+        """The page and the naming of a warning or record that covers a
+        note k called out on page n: a note of the kind it names, on the
+        page it names.  (None, None) when none does."""
+        for (pn, m), entries in sorted(covers.items()):
+            if pn != n:
+                continue
+            for i, (place, how) in enumerate(entries):
+                if k in placed(m, place) and (m, k) not in accounted:
+                    del entries[i]
+                    return m, how
+        return None, None
+
+    def far(n, k):
+        """The page, two to FAR_PAGES pages after n, where note k is set
+        though nothing names it, or None.  The number must not be a
+        marker on any page in between or there, and no marker there may
+        have a lower number: either would mean that the note belongs to
+        another marker, or the numbering restarted (a new chapter)."""
+        for m in range(n + 2, n + FAR_PAGES + 1):
+            if m not in per_page:
+                return None
+            between = per_page[m][0] | set().union(
+                *(per_page[j][0] for j in range(n + 1, m)))
+            if k in between or any(j < k for j in between):
+                return None
+            if k in placed(m) and (m, k) not in accounted:
+                return m
+        return None
 
     for n, (markers, notes, foot) in sorted(per_page.items()):
         total_markers += len(markers)
         total_notes += len(notes)
         total_foot += len(foot)
         for k in sorted(markers - notes - foot):
-            m = next((m for (pn, m), c in sorted(covers.items())
-                      if pn == n and c and k in placed(m)), None)
+            m, how = cover(n, k)
             if m is not None:
-                how = covers[(n, m)].pop(0)
                 accounted.add((m, k))
                 named.append(f"page {n}: marker {k} is here, its note on "
                              f"page {m}, named by {how}")
@@ -837,9 +1066,21 @@ def main():
                 defects.append(f"page {n}: marker {k} is here, its note is "
                                f"on the previous page, and nothing in the "
                                f"log names it")
+            elif far(n, k) is not None:
+                m = far(n, k)
+                accounted.add((m, k))
+                defects.append(f"page {n}: marker {k} is here, its note is "
+                               f"on page {m}, and nothing in the log names "
+                               f"it")
             else:
-                warnings.append(f"page {n}: marker {k} has no margin note "
-                                f"here or beside it")
+                later = [m for m in range(n + 2, n + FAR_PAGES + 1)
+                         if k in placed(m)]
+                warnings.append(
+                    f"page {n}: marker {k} has no margin note here or beside "
+                    f"it" + (f" (a note {k} is on page {later[0]}, but a "
+                             f"marker in between makes the pairing unsure: "
+                             f"a new chapter, or another note's)"
+                             if later else ""))
     logged_feet = collections.Counter()
     for p, _ in log_.feet:
         logged_feet[log_.pdf_page(p)] += 1
