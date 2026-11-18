@@ -181,7 +181,7 @@ never hand-transcribed (the judgement fields stay yours):
 
 ```bash
 # Whole search, each entry pre-wrapped with FOUND-VIA + DATE filled in
-# (no COUNTER line on main at 51c296e, dbosk/scholarcli#176 open: add it):
+# (COUNTER is a TODO line too, since dbosk/scholarcli#176):
 scholar search "..." -p s2 -p dblp -f bibtex+prov
 
 # One paper's reproducible FOUND-VIA line, rebuilt from the saved session(s):

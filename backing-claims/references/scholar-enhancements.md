@@ -117,14 +117,11 @@ Merged the same day, from the MFA review's follow-ups (PRs #149, #155–#158,
 | [#170](https://github.com/dbosk/scholarcli/issues/170) | A DOI-less copy folds into the DOI copy of the same work within a search; copies across searches listed by `sessions show` and folded on request; DOI-less works no longer merge across years | `scholar sessions reconcile S [--dry-run]` |
 | [#174](https://github.com/dbosk/scholarcli/issues/174) | Tests clear provider key attributes set at import | — |
 | [#175](https://github.com/dbosk/scholarcli/issues/175) | Concurrent scholar processes no longer empty the cache (locked, atomic, merged saves; unreadable files never overwritten) | — |
+| [#176](https://github.com/dbosk/scholarcli/issues/176) | `bibtex+prov` stubs carry `% COUNTER: TODO`; `prov import/export` keep `COUNTER` and read wrapped (indented continuation) field lines as one value | `scholar search ... -f bibtex+prov`, `scholar prov` |
 | [#177](https://github.com/dbosk/scholarcli/issues/177) | Re-deciding with a new status replaces the old category tags | `sessions decide` |
 
-Open: [#176](https://github.com/dbosk/scholarcli/issues/176), a `% COUNTER:
-TODO` line in the `bibtex+prov` stub. Main at 51c296e writes none, so the
-skill says to add `COUNTER` by hand; `check_provenance.py` fails a missing
-and a `TODO` `COUNTER` alike, so it needs no change when #176 lands.
-`scholar llm sample --help` says "95% Wilson score interval" while the
-report computes and names the modified Wilson interval.
+`scholar llm sample --help` now names the modified Wilson interval the
+report computes (dbosk/scholarcli PR #187).
 
 ## Future ideas (not yet built)
 

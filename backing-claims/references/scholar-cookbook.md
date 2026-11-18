@@ -203,9 +203,8 @@ session per paper: the session becomes the reproducible record that
 `bibtex+prov` is the fastest honest start: it fills the reproducible `FOUND-VIA`
 line (including `--limit`) and `DATE`, and leaves the fields that require human
 judgement (`CLAIM`, `PICKED`, `QUOTE`, `VERIFIED`) as `TODO` and the `QUOTE`
-location as `(<loc>)`. On main at 51c296e it writes **no `COUNTER`
-line** (a `% COUNTER: TODO` stub is proposed in the open
-dbosk/scholarcli#176): add one yourself. `DATE` is the day the database
+location as `(<loc>)`, and `COUNTER` as `TODO` too (since
+dbosk/scholarcli#176; fill it after the counter-search). `DATE` is the day the database
 answered, not today: a cache hit carries its original fetch date, and an
 answer cached before fetch dates were recorded reads `unknown (cached
 answer, fetch date not recorded)`. `DATE` in the record is the
