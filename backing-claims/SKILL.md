@@ -113,7 +113,7 @@ auditable record.
 ```bash
 scholar search "authenticated encryption generic composition" -p s2 -p dblp -f bibtex
 scholar search "authenticated encryption composition insecure attacks" -p s2 -p dblp -f bibtex   # counter-search
-scholar rq "How do LLMs support novice programming?" -p openalex -p dblp --count 20
+scholar rq "How do LLMs support novice programming?" -p openalex -p dblp -l 0
 ```
 
 **Query several providers, and check they are actually alive.** A "not

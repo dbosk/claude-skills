@@ -133,8 +133,8 @@ scholar search "authenticated encryption generic composition" -f bibtex
 # CLAIM/PICKED/QUOTE/VERIFIED left as TODO for you to complete)
 scholar search "authenticated encryption generic composition" -p s2 -p dblp -f bibtex+prov
 
-# Pick providers; cap results per provider
-scholar search "cognitive load theory" -p s2 -p openalex -l 50 -f bibtex
+# Pick providers; take all results (never cap: -l 0)
+scholar search "cognitive load theory" -p s2 -p openalex -l 0 -f bibtex
 
 # JSON/CSV for programmatic screening
 scholar search "federated learning privacy" -p s2 -f json
@@ -246,8 +246,10 @@ LLM and records them for reproducibility — ideal when you want the `FOUND-VIA`
 trail captured for you.
 
 ```bash
-scholar rq "How do LLMs support novice programming?" -p openalex -p dblp --count 20
-scholar rq "..." -y 2020- -oa          # year range, open-access only
+scholar rq "How do LLMs support novice programming?" -p openalex -p dblp -l 0
+scholar rq "..." -y 2020- -oa -l 0     # year range, open-access only
+# --count (default 20) only sets how many papers the LLM pre-labels; it
+# does not screen the rest: screen every result yourself
 ```
 
 Then pull the recorded query into `FOUND-VIA` (see `provenance-format.md`).
@@ -324,11 +326,13 @@ Find the cause first:
   ```
   Not reproducible: the session did not record which of its 7 openalex
                     searches returned it. Re-run them exactly as below ...
-    scholar search '...' -p openalex --limit 40 -n w45-roundtrip
+    scholar search '...' -p openalex -l 0 -n w45-roundtrip
     ...
   ```
 
-  Re-running them records the link (fix below).
+  Re-running them records the link (fix below). A printed command that
+  carries a limit (`--limit N`, `-l N` with N > 0) was a capped search:
+  re-run it with `-l 0` instead, or the re-run repeats the truncation.
 - **No candidates.** If the message lists no commands, no search in the
   session matches the paper's provider (an old or hand-edited session).
   Nothing can be re-run: write the honest fallback below.
