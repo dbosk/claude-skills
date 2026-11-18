@@ -321,7 +321,10 @@ author list cannot be screened against the claim. Before classifying, run
 batched lookups; through the tunnel, for Scopus; recipe in
 `scholar-cookbook.md`, "Reading the source") so every record with a DOI or
 another identifier gets its abstract where a provider has one; a record that gains
-one stays in. The rest are discarded with the tag `no-abstract` before the
+one stays in. A DOI or URL saves a record only if it leads to an abstract
+or the full text: a landing page with nothing more than the title adds
+nothing to screen (author, 2026-11-18: "if the link adds nothing, we
+discard it"). The rest are discarded with the tag `no-abstract` before the
 classification, not left to the model. The flow counts give the records
 without an abstract, the ones enrichment rescued and the ones removed, and
 the limitations paragraph says that older or grey-literature work indexed

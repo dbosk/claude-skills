@@ -213,7 +213,8 @@ Give each a mnemonic label of two or three words (`new-scheme`, not X1) and
 discard with it as tag (`llm classify -t …`, `sessions decide --discard -t
 …`); see `references/appendix-guide.md`, "Exclusion criteria".
 **No abstract:** enrich (`scholar enrich <s> --pending-only --fields
-abstract`), else exclude as `no-abstract`, counted. A machine summary
+abstract`), else exclude as `no-abstract`, counted; a DOI or URL with no
+abstract or full text behind it does not save a record. A machine summary
 (`tldr`) screens only, marked as such; it is never evidence.
 When several independent strands (different subfields, different query
 framings) converge on the same answer, say so — convergence across strands
