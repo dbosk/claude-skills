@@ -217,6 +217,13 @@ reports.
 
 ### Provider quirks that fake a negative
 
+- **Test a zero before recording it.** A cell of 0 is only a negative if
+  the provider can answer that kind of query at all: send that same
+  provider one query known to match (a known study's title words in the
+  same syntax and filters) and record its count beside the zero. A provider
+  that returns nothing for the known query too has failed, whatever it
+  reported; the cell is *failed*, not 0. Practice in the MFA review
+  (2026-11-18); the quirks below are the reasons a zero can lie.
 - **DBLP** has answered every API request with an anti-bot (Anubis)
   page since September 2026; scholar records each such search as
   `failed (non-JSON response (HTTP 200, text/html))` and `providers check`
@@ -362,6 +369,16 @@ databases; Web of Science held the whole abstract, so the wording was the
 cause and not a database. `recovery OR recover OR fallback OR reset OR
 lockout OR "backup codes"` returned it, with three further sources.
 
+**Fix the wordings before the queries.** Before writing a concept's query,
+put the concept as a plain question to a search that returns passages
+(the cookbook's "Search by meaning" table lists the tools and their
+limits) and read the first passages for the words authors use for it.
+Those words, read by a person, go into the query. Observed in the MFA
+review (2026-11-18): the passages held the bare word "recovery" in 84 of
+677 papers and "reset" in 48, while the query had only the phrase
+"account recovery"; the phrase "prompt bombing" occurred in none of them.
+Counting words by program, without a reader, found nothing usable there.
+
 Before running, tick each concept off against the queries. A concept
 with no term at all is named in the limitations; a concept with one
 phrase is reworded now.
@@ -413,7 +430,14 @@ questions verbatim, the date and the list returned. It gives at most 50
 works and no count of what matched, because nothing matches or fails to
 match, so it cannot fill a flow table and "the search found none" cannot
 rest on it; its order also depends on citation counts and on a model the
-provider can replace. A report by another tool (Asta, Elicit, a
+provider can replace.
+
+**A ranked list has no honest stopping point.** Wherever it is cut, relevant
+work lies below the cut. Observed in the MFA review (2026-11-18): for one
+question, 13 of 37 known relevant papers were in the first 100 places of
+the ranked list, and their median place was 171. So a list from a search
+by meaning informs the queries and checks them; it is never the source of
+a count, of a flow-table number, or of "none found". A report by another tool (Asta, Elicit, a
 deep-research run) on the same question is the same kind of check: list
 its sources and look each one up in the sessions.
 
@@ -586,15 +610,17 @@ in part gets its lower bound and the same kind of explanation.
       retrievals justified and their verification mode stated
 - [ ] Every query on every live provider, without a limit; counter vocabulary mirrors support
 - [ ] Every concept of the claim has several wordings in the queries (none
-      searched by one phrase); the studies that the queries must return are
-      named in the method and were returned
+      searched by one phrase), taken from passages read before the queries
+      were written; the studies that the queries must return are named in
+      the method and were returned
 - [ ] A search by meaning (or another tool's report) was held against the
       sessions, one question per concept; what it returned that the records
       lack is screened or named in the limitations; a repair after a missed
       study is reported as a deviation, fitted queries marked
 - [ ] Exclusion criteria labelled in the method and used as discard tags; flow counts given per criterion; any cap on screening or reading decided by the user and stated
 - [ ] Failed searches reported as failed (query table, method,
-      limitations), never as 0; a database that failed every query is
+      limitations), never as 0; every 0 tested with a query known to
+      match on that provider; a database that failed every query is
       named as not searched
 - [ ] Redone searches recover every baseline item (coverage checked);
       no narration of earlier attempts; no session names in the text

@@ -11,6 +11,8 @@ the reference does not back the claim — find a better one.
 - [Strength words that must match](#strength-words-that-must-match)
 - [Source-quality red flags](#source-quality-red-flags)
 - [What "verified" requires](#what-verified-requires)
+- [Machine summaries screen, never verify](#machine-summaries-screen-never-verify)
+- [Choosing among supporting sources: compare evidence grades](#choosing-among-supporting-sources-compare-evidence-grades)
 - [Reading `check_metadata.py` output](#reading-check_metadatapy-output)
 
 ## The applicability tests
@@ -83,9 +85,34 @@ overstate the source.
   read — it does not verify; you still read and confirm entailment.
 - **For a precise quantitative or causal claim:** the relevant results section
   was read in full text, not just the abstract.
-- **Never acceptable:** title-only, snippet-only, or "the model recalls this
-  paper says…". Record in `VERIFIED` exactly what you read (`abstract` vs
-  `full-text`) so the record is honest.
+- **Never acceptable:** title-only, snippet-only, a machine summary (a
+  provider's `tldr`), or "the model recalls this paper says…". Record in
+  `VERIFIED` exactly what you read, as its first word (`full-text` or
+  `abstract`), so the record is honest; `scripts/check_provenance.py` fails
+  any other level, and an `abstract` level on a causal or quantitative claim
+  (see `provenance-format.md`, "Validating").
+
+## Machine summaries screen, never verify
+
+A machine-written summary of a paper (a `tldr` field, a model's
+digest) may help decide what to read. It is marked as a machine summary
+wherever it appears in screening notes, and it is never quoted, never the
+basis of a `VERIFIED` level and never evidence for or against a claim.
+Observed in the MFA review (2026-11-18): one record with no author, no
+year and no venue carried a summary that, taken as evidence, would have
+contradicted a result of the review; nothing about the record could be
+checked against the paper.
+
+## Choosing among supporting sources: compare evidence grades
+
+Before picking which supporting source to cite, line up **the whole
+supports pile** by the kind of evidence each source offers (a refereed
+controlled experiment, a field study, a survey, a vendor's demonstration or
+white paper, an opinion) and cite the strongest for the point, not the one
+found first. Re-run the comparison when a new source joins the pile.
+Observed in the MFA review (2026-11-18): a refereed experiment sat uncited
+in the supports pile for six days while the report cited a vendor's
+demonstration for the same point.
 
 ## Reading `check_metadata.py` output
 

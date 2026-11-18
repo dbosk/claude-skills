@@ -167,7 +167,9 @@ session per paper: the session becomes the reproducible record that
 
 `bibtex+prov` is the fastest honest start: it fills the reproducible `FOUND-VIA`
 line (including `--limit`) and `DATE`, and leaves the fields that require human
-judgement (`CLAIM`, `PICKED`, `QUOTE`, `VERIFIED`) as `TODO`. Results are
+judgement (`CLAIM`, `PICKED`, `QUOTE`, `VERIFIED`) as `TODO` and the `QUOTE`
+location as `(<loc>)`; it writes no `COUNTER` line. `check_provenance.py`
+fails such a stub until all of them are written. Results are
 deduplicated, keeping the richest copy of each paper. Citation keys follow
 one scheme across scholar's outputs (`smith2024`, `smith2024a`, `nd` for no
 year); keys in a `.bib` from an older scholar may differ — see
@@ -303,7 +305,11 @@ scholar rq "..." -y 2020- -oa -l 0     # year range, open-access only
 # does not screen the rest: screen every result yourself
 ```
 
-Then pull the recorded query into `FOUND-VIA` (see `provenance-format.md`).
+Then take `FOUND-VIA` from `scholar prov found-via`: for an `rq` session it
+prints the per-provider `scholar search` commands with the queries the model
+wrote, never the `rq` line. Re-running `rq` asks the model again, so it does
+not reproduce the search; those `scholar search` commands do (see
+`provenance-format.md`, "Generating the block").
 
 ## Reading the source (verification)
 
@@ -579,8 +585,9 @@ Patterns by source:
 ```text
 # scholar (preferred — records the query; or use `prov found-via`)
 FOUND-VIA: scholar search "authenticated encryption" -p s2 -p dblp
-FOUND-VIA: scholar rq "How do LLMs support novice programming?" -p openalex
-             (session "llm-novice-programming")
+# an rq session too: one `scholar search` per provider query rq ran, never `scholar rq`
+FOUND-VIA: scholar search '("large language model" OR LLM) AND novice programming'
+             -p openalex --limit 0 (session "rq-demo"; research question: "...")
 FOUND-VIA: scholar search 'TS=("command line" AND novice*)' -p wos
              (session "vt-terminal-systematic")   # prefer naming the session
 

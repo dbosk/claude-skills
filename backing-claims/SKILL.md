@@ -16,11 +16,9 @@ Back every claim with scientific literature you have **read and verified**, and
 a specific source supports a specific statement. This skill makes that assertion
 auditable.
 
-The protocol is **format-independent**: it applies wherever a claim rests on a
-source — a paper, a report or memo, an evidence log, a survey answer, a reply in
-conversation. The find → verify → record core is always the same; only the
-*recording surface* differs (BibTeX provenance blocks for papers, the
-deliverable's own log or notes otherwise); the appendix section is for papers.
+The protocol is **format-independent**: a paper, a report, an evidence log, a reply
+in conversation. Find → verify → record is always the same; only the *recording
+surface* differs (step 5); the appendix section is for papers.
 
 Backing a claim is a **small literature review, in both directions**: search
 for literature that *supports* the claim **and** for literature that *refutes
@@ -130,8 +128,9 @@ too (cookbook, "Limits"); both records stay in the session.
 **A failed search reads as failed, never as 0**: `sessions show` and the
 CSV's `# Results:` line give each query × provider cell as a count,
 `failed (reason)`, `N, incomplete (reason)` or `N after k retries`; copy
-a failed cell as *failed* — it was not searched, and a negative resting
-on it is unsupported. Details: `references/scholar-cookbook.md`.
+a failed cell as *failed*: it was not searched. **A 0 is tested before it
+is recorded**: send that provider one query known to match
+(`references/appendix-guide.md`, "Provider quirks that fake a negative").
 
 **Keyword search is for discovery; use field/DOI retrieval for a known
 item.** Relevance ranking buries older and grey-literature works under
@@ -153,7 +152,7 @@ them via **Google Scholar**, **citation chaining** or the **author's/publisher's
 own copy**, and say so in `FOUND-VIA` ("not returned by provider search; …").
 
 `-f bibtex+prov` gives the BibTeX **already wrapped in provenance blocks**, with
-`FOUND-VIA` pre-filled; you then fill in `CLAIM`/`PICKED`/`QUOTE`/`VERIFIED` (step 5).
+`FOUND-VIA` pre-filled; you fill in `CLAIM`/`PICKED`/`QUOTE`/`VERIFIED` and add `COUNTER` (step 5).
 
 **Complementary sources are allowed — and every one of them is documented.**
 Google Scholar, a publisher site, alphaXiv, WebSearch + WebFetch, Crossref/
@@ -180,12 +179,13 @@ Six rules that reviews added (details: `references/appendix-guide.md`):
   same keywords on the same live providers; record the query × provider matrix.
 - **Vocabulary symmetry.** The counter-search uses every concept term of the
   support search, plus the field's indexed names ("code clones" for "DRY").
-- **Several wordings per concept.** Never one phrase for a concept: synonyms,
-  noun and verb, the bare word (`"account recovery"` missed "recovery procedures").
+- **Several wordings per concept, fixed before the queries.** Synonyms, noun and verb, the
+  bare word; read the words authors use in a passage search first (appendix guide).
 - **Known studies must come back.** Name a few relevant studies in the method;
   a query that returns none of those on its concept is reworded.
 - **Check by meaning.** The record shows what was found, not what was missed: per concept,
   `scholar sessions check <sessions> -s "<question>"`; a relevant work in no session is a gap.
+  A ranked list has no honest stopping point: it informs and checks, never counts or says "none found".
 - **Never cap a search; ask before capping what follows.** Always `-l 0`; when
   the counts are known, **ask** the user what to screen and what to read in full.
 
@@ -206,12 +206,15 @@ citation. Only then pick which source(s) to cite, and record **why this one**:
 primary source vs survey, canonical/most-cited, reputable venue, appropriate
 year, closest match to the claim's scope. When the choice is non-obvious, note
 the alternatives you rejected and why — that reasoning is the `PICKED` field.
+Compare **evidence grades across the whole supports pile** first: a refereed
+experiment over a vendor's demonstration (`references/verification-checklist.md`).
 **Exclusion criteria are labelled, and the label is the discard reason.**
 Give each a mnemonic label of two or three words (`new-scheme`, not X1) and
 discard with it as tag (`llm classify -t …`, `sessions decide --discard -t
 …`); see `references/appendix-guide.md`, "Exclusion criteria".
 **No abstract:** enrich (`scholar enrich <s> --pending-only --fields
-abstract`), else exclude as `no-abstract`, counted.
+abstract`), else exclude as `no-abstract`, counted. A machine summary
+(`tldr`) screens only, marked as such; it is never evidence.
 When several independent strands (different subfields, different query
 framings) converge on the same answer, say so — convergence across strands
 backs a claim more strongly than any single source.
@@ -261,9 +264,7 @@ bot check (Cloudflare) or a login form actually served is a stopping point,
 never something to get around; **a redirect through a login host is not**,
 so read the redirects first. Details: `references/closed-access.md`.
 
-`scholar pdf quote` proposes candidate supporting passages (with location) — the
-**judgement stays yours**; read the passage and confirm it entails the claim.
-`scholar verify` runs the currency/retraction test for you via Crossref.
+`scholar pdf quote` only proposes passages: the **judgement stays yours**.
 
 Extract a **verbatim** passage that supports the claim, and apply the tests in
 `references/verification-checklist.md` (scope/strength match, primary vs
@@ -298,14 +299,14 @@ Full schema and worked examples: `references/provenance-format.md`.
 ```
 
 Required fields: `CLAIM`, `FOUND-VIA`, `PICKED`, `QUOTE`, `VERIFIED`
-(`DATE` recommended). For load-bearing claims also record `COUNTER`: the
-counter-search query and its outcome — refuting/qualifying work found (and
-how the claim was adjusted or the other side cited), or explicitly
-"none found". You do not have to type the skeleton by hand:
+(first word `full-text` or `abstract`), `COUNTER` (`DATE` recommended).
+`COUNTER` is the counter-search query and its outcome — refuting/qualifying
+work found (and how the claim was adjusted), or "none found, searched:
+<query>". You do not have to type the skeleton by hand:
 
 ```bash
 scholar search "..." -f bibtex+prov     # entries pre-wrapped, FOUND-VIA + DATE filled
-scholar prov found-via "<paper-id>"     # FOUND-VIA line(s); "Not reproducible:" → cookbook
+scholar prov found-via "<paper-id>"     # `scholar search` line(s), also for rq; "Not reproducible:" → cookbook
 scholar prov export refs.bib --in-place # write notes' provenance blocks above entries
 scholar prov import refs.bib            # pull .bib provenance blocks back into notes
 ```
@@ -313,17 +314,16 @@ scholar prov import refs.bib            # pull .bib provenance blocks back into 
 Validate any `.bib` you touch:
 
 ```bash
-scripts/check_provenance.py refs.bib        # exit 1 if any entry lacks provenance
+scripts/check_provenance.py refs.bib        # exit 1: missing field, TODO, weak VERIFIED, no COUNTER
+scripts/check_provenance.py --quotes refs.bib   # + each QUOTE in the cached full text (--fetch: download)
 scripts/check_metadata.py refs.bib [...]    # cross-check every DOI entry's
                                             # title/authors/year against Crossref
 ```
 
-**Self- and companion-references are references too.** Author names and
-metadata for the user's own or companion papers are copied from the source
-repo's `\author{}` block, never written from memory — a fabricated
-co-author name is the canonical failure here. After any bib work, run
-`check_metadata.py` over the touched files; treat diacritic and subtitle
-differences as benign, investigate everything else.
+**Self- and companion-references are references too.** Their author names come
+from the source repo's `\author{}` block, never from memory (a fabricated
+co-author is the canonical failure). After any bib work run `check_metadata.py`;
+diacritic and subtitle differences are benign, everything else is investigated.
 
 **Bib hygiene the reader sees** (quotes inside titles, abstract-only
 reading, inferred page numbers, citation keys that changed between
@@ -408,7 +408,8 @@ Run every query -- support AND counter -- on the SAME full set of live
 providers (translate the same keywords into WoS TS=(...) / Scopus
 TITLE-ABS-KEY(...) where needed; never different keyword sets per
 provider) and record a query x provider x hits matrix, copying failed
-cells from `scholar sessions show` as failed, never 0. If an earlier
+cells from `scholar sessions show` as failed, never 0; test every 0
+with one query known to match on that provider. If an earlier
 query in the session was author-driven, partial or malformed, rerun it
 properly and mark the old one superseded; a redo must recover every
 relevant result of the search it replaces -- close gaps by improving the
@@ -434,7 +435,7 @@ yourself) and export it (scholar sessions export) so the audit table can
 be generated. Write a .bib with a provenance block (CLAIM / FOUND-VIA /
 PICKED / QUOTE / VERIFIED / COUNTER / DATE) above every entry to
 <scratchpad>/<slug>.bib and run <skill>/scripts/check_provenance.py on
-it. Sources you cannot verify are listed as DROPPED, never cited. Write
+it (--quotes). Sources you cannot verify are listed as DROPPED, never cited. Write
 the COMPLETE report to <scratchpad>/<slug>-report.md (agent replies are
 truncated at ~4 KB) and reply with a one-paragraph summary plus the paths.
 ```
@@ -475,9 +476,9 @@ the user as todos (`nytid-todo`), load-bearing first.
 
 | File | Content | Search patterns |
 |------|---------|-----------------|
-| `references/provenance-format.md` | Full provenance schema, field semantics, worked examples, migrating a `scholar rq` session into `FOUND-VIA` | `FOUND-VIA`, `QUOTE`, `VERIFIED`, `multi-line` |
+| `references/provenance-format.md` | Full provenance schema, field semantics, worked examples, `FOUND-VIA` for a `scholar rq` session, what `check_provenance.py` checks (`--quotes`) | `FOUND-VIA`, `QUOTE`, `VERIFIED`, `COUNTER`, `--quotes`, `multi-line` |
 | `references/claim-audit.md` | Finding the claims that carry no citation: advice, conventions, "because" clauses, "no claims" statements; the PEP 8 case | `imperative`, `benefit`, `because`, `no claims` |
-| `references/verification-checklist.md` | Applicability tests for deciding whether a source really supports a claim | `scope`, `primary vs secondary`, `over-claim`, `retraction`, `venue` |
+| `references/verification-checklist.md` | Applicability tests for deciding whether a source really supports a claim | `scope`, `primary vs secondary`, `over-claim`, `retraction`, `venue`, `tldr`, `evidence grades` |
 | `references/scholar-cookbook.md` | Non-interactive `scholar` recipes (incl. `bibtex+prov`, `prov`, `verify`, `pdf quote`), provider health and failed searches, OpenAlex full text vs `--in title-abstract`, search by meaning (`sessions check`, tools and limits), enriching for screening, sessions and `.bak`, proxy, cache, citation keys + how to phrase `FOUND-VIA` for non-`scholar` sources | `providers check`, `Not reproducible`, `failed (`, `title-abstract`, `sessions check`, `pending-only`, `.json.bak`, `--proxy`, `cache clear`, `citation keys`, `bibtex+prov`, `WebFetch` |
 | `references/closed-access.md` | Fetching subscribed full texts through the KTH SOCKS tunnel: the allowed commands, `SCHOLAR_PROXY`, which publishers answer, curl vs `fetch_pdf.py`, bot checks, leftovers as todos | `tunnel`, `SCHOLAR_PROXY`, `socks5h`, `Cloudflare`, `user agent` |
 | `references/scholar-enhancements.md` | Record of what shipped in scholar for this skill (provenance, audit table, honest failures, session integrity, proxy) and a place for future ideas | `shipped`, `PR`, `gh issue`, `future ideas` |
@@ -493,7 +494,7 @@ the user as todos (`nytid-todo`), load-bearing first.
 - [ ] **Counter-search run** and its outcome recorded (`COUNTER`): refuting/qualifying work handled, or "none found"
 - [ ] Results screened into supports / refutes / qualifies; discards tagged with their labelled exclusion criterion; claim adjusted if needed
 - [ ] Picked with a written rationale among alternatives; source actually read (abstract or full text), not just the title
-- [ ] Verbatim supporting quote captured, entails the claim; provenance block written above the entry; `check_provenance.py` passes
+- [ ] Verbatim supporting quote captured, entails the claim; provenance block written above the entry; `check_provenance.py --quotes` passes
 - [ ] Citation emitted in the project's markup style (writing-crypto / latex-writing)
 - [ ] Every query run on every live provider, **without a limit**; counter vocabulary mirrors support (matrix recorded, failed cells marked failed, never 0); the user asked before any cap on screening or reading; every concept in several wordings; a search by meaning held against the sessions
 - [ ] Appendix self-contained: claim cited at first mention, corroborations cited, classified hit-list table included, no export paths/URLs in the compiled text (`references/appendix-guide.md` checklist)

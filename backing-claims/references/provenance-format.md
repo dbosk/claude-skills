@@ -25,17 +25,18 @@ reordering, and is invisible in the compiled document. The validator
 % FOUND-VIA: <reproducible tool + provider + query>
 % PICKED: <why this source among the results>
 % QUOTE (<location>): "<verbatim passage that supports CLAIM>"
-% VERIFIED: <abstract | full-text> ; applies because <one line>
+% VERIFIED: <full-text | abstract> ; applies because <one line>
 % COUNTER: <counter-search query> -- <refuting/qualifying work found and how
 %   the claim was adjusted or the other side cited | none found>
 % DATE: <YYYY-MM-DD>
 @<type>{<bibkey>, ... }
 ```
 
-Required: `CLAIM`, `FOUND-VIA`, `PICKED`, `QUOTE`, `VERIFIED`.
-Recommended: `DATE` (warning if missing); `COUNTER` for load-bearing claims
-(the two-sided-review record — see SKILL.md step 2). The header line
+Required: `CLAIM`, `FOUND-VIA`, `PICKED`, `QUOTE`, `VERIFIED`, `COUNTER`.
+Recommended: `DATE` (warning if missing). The header line
 `% === provenance: <bibkey> ===` is recommended and should match the entry key.
+A field still holding a placeholder (an unquoted `TODO`, a `<template>`, the
+location `(<loc>)`) counts as missing.
 
 ## Field semantics
 
@@ -52,9 +53,21 @@ Recommended: `DATE` (warning if missing); `COUNTER` for load-bearing claims
 - **QUOTE** — a **verbatim** passage, in quotation marks, with a location in
   parentheses on the field header: a page `(p.7)`, section `(§3.2)`, or
   `(abstract)`. The quote must *entail* the claim, not merely share its topic.
-- **VERIFIED** — what you actually read (`abstract` or `full-text`) and a
-  one-line reason it applies. This is the auditable record of the double-check;
-  "title only" is never acceptable.
+- **VERIFIED** — what you actually read, as the **first word**: `full-text`
+  (or `full text`) or `abstract`; then a one-line reason it applies. This is
+  the auditable record of the double-check. A title, a search-result snippet,
+  a machine summary (`tldr`) or memory is never acceptable (the levels of
+  `verification-checklist.md`, "What verified requires"). A precise
+  causal or quantitative claim ("improves", "reduces … by 15 %") needs
+  `full-text`; a corroborating source that could only be read in abstract
+  says so: `VERIFIED: abstract only, corroboration (closed access)`. Write
+  "full text not obtainable" after the level, not before it.
+- **COUNTER** — the counter-search behind the claim (SKILL.md step 2), in one
+  of three forms: `<counter-search query> -- <outcome>`; `none found,
+  searched: <query>` (an empty counter-search still names its query: an
+  unrun one is not backing); or `see <bibkey>` when another entry of the same
+  `.bib` backs the same claim and records the search. Required for every
+  entry: a bare "none found" fails.
 - **DATE** — when the reference was verified (sources get retracted, superseded).
 
 ## Multi-line values
@@ -84,6 +97,8 @@ value.
 % QUOTE (p.262): "the cognitive load imposed by ... means-ends analysis ...
 %   interferes with schema acquisition"
 % VERIFIED: full-text PDF read; the quoted mechanism is exactly the claimed impairment.
+% COUNTER: scholar search "cognitive load theory criticism measurement" -p s2
+%   -p openalex -- <what the counter-search found, and how the claim was adjusted>
 % DATE: 2026-06-24
 @article{Sweller1988, ... }
 ```
@@ -97,6 +112,8 @@ value.
 % PICKED: high-citation synthesis; appropriate because the claim asserts consensus, not a new finding.
 % QUOTE (p.81): "feedback is among the most powerful influences on achievement"
 % VERIFIED: abstract + p.81 read via WebFetch of the publisher page.
+% COUNTER: none found, searched: Google Scholar "feedback effects negative
+%   meta-analysis"
 % DATE: 2026-06-24
 @article{HattieTimperley2007, ... }
 ```
@@ -140,6 +157,7 @@ block:
 % PICKED: the study this text summarises; no published version exists yet.
 % QUOTE (§4): "..."
 % VERIFIED: full-text; the manuscript's results section states the claim.
+% COUNTER: scholar search "..." -p openalex -p wos -- ...
 % DATE: 2026-09-07
 @unpublished{BoskMisconceptions,
   author = {Bosk, Daniel},
@@ -170,12 +188,23 @@ scholar prov export refs.bib --in-place
 scholar prov import refs.bib
 ```
 
-`scholar rq` records the provider-specific queries it generated; `prov found-via`
-surfaces them as a ready-to-paste line, e.g.:
+`found-via` always prints `scholar search` commands, one per search that
+returned the paper, never a `scholar rq` line. That holds for an `rq`
+session too, and is what makes it reproducible: `rq` has a language model
+write one query per provider, so running the `rq` line again would ask the
+model again (the queries are not cached), and nothing makes it write the
+same ones; the session records the queries it
+did run, and each `FOUND-VIA` re-runs one of them. A paper that an `rq`
+session found on two providers gets two lines (`found-via` output, long
+lines broken here):
 
 ```bibtex
-% FOUND-VIA: scholar rq "How do LLMs support novice programming?" -p openalex -p dblp
-%   (session "llm-novice-programming")
+% FOUND-VIA: scholar search '("large language model" OR LLM) AND novice
+%   programming' -p openalex --limit 0
+%   (session "rq-demo"; research question: "How do LLMs support novice programming?")
+% FOUND-VIA: scholar search 'TS=("large language model*" AND novice* AND
+%   programming)' -p wos --limit 0
+%   (session "rq-demo"; research question: "How do LLMs support novice programming?")
 ```
 
 See `scholar-cookbook.md` for the full `prov`, `verify`, and `pdf quote`
@@ -210,13 +239,43 @@ recipes.
 ```bash
 scripts/check_provenance.py refs.bib          # full report, exit 1 on any error
 scripts/check_provenance.py --quiet refs/*.bib  # print only files that fail
+scripts/check_provenance.py --quotes refs.bib   # + each QUOTE in the full text
+scripts/check_provenance.py --fetch refs.bib    # + download missing full texts
 ```
 
 Run it before committing a `.bib`, and consider it in a pre-commit hook for
 projects where every reference must be backed.
 
-The status gradient is deliberate: a missing provenance block **fails** (exit 1);
-a `-f bibtex+prov` stub whose `QUOTE` is still `TODO` passes with a **warning**
-(the fields exist but the quote is not yet verbatim); a completed block is
-**OK**. So a fresh `bibtex+prov` export won't break CI, but the warning keeps
-nagging until you paste the real supporting quote.
+**Errors (exit 1):** a missing block; a missing or empty required field
+(`COUNTER` included); a placeholder (an unquoted `TODO`, a `<template>`, the
+location `(<loc>)`); a `VERIFIED` that does not begin with `full-text` or
+`abstract`, or names a title, snippet, `tldr`, summary or memory; an
+`abstract` `VERIFIED` on a claim with a causal verb (causes, improves,
+reduces, increases, decreases, prevents, leads to) or a quantity (`15%`,
+`3-fold`, `by 2`), unless marked as corroboration; a `COUNTER` that does
+not name its search, or a `see <key>` to an entry that does not. A fresh
+`-f bibtex+prov` stub therefore **fails** until its judgement fields and a
+`COUNTER` line are written: the stub is a start, not a record. A word "TODO"
+that belongs to a claim (a study of TODO comments) is written in quotes,
+`"TODO"`, and is then not taken for a placeholder. **Warnings:** no `DATE`,
+no or a mismatched header, a `QUOTE` without a quoted passage or a location.
+
+**`--quotes`** looks every `QUOTE` up in the paper's text. The quoted
+passage is split at ellipses (`...`, `…`, `[...]`) and bracketed insertions,
+and each fragment must occur, in order; both sides are compared as
+case-folded letters and digits only, so line breaks, hyphenation at line
+ends, punctuation, quote marks, ligatures and accents do not count. The
+text is looked for in `--text KEY=PATH`, `--fulltext-dir DIR`
+(`DIR/<key>.pdf` or `.txt`, e.g. the curl downloads of `closed-access.md`),
+the entry's `file` field, scholar's PDF cache (the file `fetch_pdf.py` or
+`scholar pdf quote` left for the entry's `url`, `pdf` or
+`https://doi.org/<doi>`; `SCHOLAR_CACHE_DIR` is honoured) and the entry's
+`abstract` field. The cache is keyed by the PDF's URL, and a PDF fetched by
+DOI is cached under the URL it was found at, so an entry with only a DOI
+needs `--fetch` (network: `fetch_pdf.py --text`, through scholar's route,
+into the cache) or `--text`. A PDF is read with `pdftotext` in reading
+order and in content-stream order (`-raw`); either may split a sentence the
+other keeps whole. A quote found in none of the texts is an error; an entry
+with no text, or a non-abstract quote with only the abstract field to look
+in, is a warning ("not checked"). The check confirms the words, not the
+locator, and not that the passage entails the claim.
