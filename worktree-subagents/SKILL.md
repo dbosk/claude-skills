@@ -20,7 +20,7 @@ Lessons from a real campaign: 7 review agents + dozens of fix agents, each in
 its own worktree of a literate-programming (noweb) repo, one branch and PR per
 fix. Every item below cost an agent real time at least once.
 
-## The ten worktree traps (put these in every agent prompt)
+## The eleven worktree traps (put these in every agent prompt)
 
 0. **The auto-created worktree may be based on the DEFAULT branch, not the
    branch you are on.** Agent-tool worktree isolation has been observed to
@@ -145,9 +145,23 @@ fix. Every item below cost an agent real time at least once.
     WITHOUT isolation and name the worktree path in the brief; use isolation
     only for a fresh branch.
 
+11. **Worktrees isolate the code, not the tool's home directories.** Every
+    agent that runs the project's own CLI outside the test suite (an import
+    check, `--help`, a live recording) uses the user's real cache and data
+    directories. Observed (scholar, 2026-11-18): six agents' setup imports
+    plus a sibling session ran at once, one read a pickle another was
+    writing, failed, and its exit hook saved `{}` over it; most of the real
+    cache was lost, with no backup. Put the tool's directory variables (for
+    scholar `SCHOLAR_CACHE_DIR`/`SCHOLAR_DATA_DIR`) on **every** such command,
+    pointing into the agent's scratch dir: an `export` does not persist
+    between an agent's Bash calls, and one agent that exported once still
+    ran a command against the real cache. Brief it as setup step 0, before
+    the first import, and tell sibling sessions to run the tool one process
+    at a time until the tool itself is safe under concurrency.
+
 ## Prompt-engineering the fix agents
 
-- Include a SETUP preamble with the ten traps above. Agents without it each
+- Include a SETUP preamble with the eleven traps above. Agents without it each
   lose ~15 minutes rediscovering the venv trap; agents with it don't.
 - When several agents edit the same file on different branches, assign each an
   explicit region ("keep your diff to function X; branches A/B own areas Y/Z")
@@ -160,7 +174,7 @@ fix. Every item below cost an agent real time at least once.
   of the repo and cleaned up. Observed twice in one campaign: `/tmp/b1.log`
   and `scratchpad/probe.py` overwritten by siblings mid-task, making one
   agent's build look further along than it was.
-- Include the ten traps' SETUP preamble verbatim; in one round the
+- Include the eleven traps' SETUP preamble verbatim; in one round the
   preamble said "build the dirs you touch" instead of "build ALL" and four
   agents independently lost ~20 minutes to trap 6 before their import-path
   check caught it.
