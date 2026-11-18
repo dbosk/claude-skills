@@ -30,7 +30,7 @@ whose files are in `ltxobj-sv/`.
 | PythonTeX instance skew | `wc -l ltxobj/notes.pytxcode ltxobj/slides.pytxcode` | nearly equal (per edition: `ltxobj-sv/*-sv.pytxcode`) |
 | Transcripts in the PDF | `scripts/check_transcripts.py <deck dir> notes` (or `notes-sv`, read in `ltxobj-sv/`), right after building that job | every run has a non-empty transcript of its own program, and the job's last pass read its own PythonTeX run's output |
 | Rerun messages | `LC_ALL=C grep -a -c 'Rerun to get\|undefined references\|run Biber' ltxobj/notes.log` | 0 after convergence |
-| Line length | `awk '{ sub(/[ \t]*% sync [a-z]+=[^%]*$/, "") } length > 79' contents.nw abstract.tex` (a trailing `% sync` stamp does not count) | no output |
+| Line length | `awk '{ sub(/[ \t]*% sync [A-Za-z]+=[^%]*$/, "") } length > 79' contents.nw abstract.tex` (a trailing `% sync` stamp does not count) | no output |
 | Languages in step (bilingual) | `python3 "$(kpsewhich didactic-sync.py)" contents.nw abstract.tex ...` (the deck's own `.nw` and `.tex`) | exit 0 |
 | Manual page breaks | `grep -nw -e needspace -e pagebreak -e newpage -e clearpage -e enlargethispage -e nopagebreak -e goodbreak -e filbreak contents.nw` | no output |
 

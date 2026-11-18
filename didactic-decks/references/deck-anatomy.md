@@ -117,7 +117,8 @@ is an appendix of the notes.
 
 ## notes.tex
 
-(`notes-body.tex` in a deck from the current template.) `memoir` with `[a4paper,10pt,oneside,openright,oldfontcommands]`, then
+(`notes-body.tex` in a deck from the current template.) `memoir` with
+`[a4paper,10pt,oneside,openright,oldfontcommands]`, then
 `\input{preamble.tex}`, then `\usepackage[noamsthm,notheorems]{beamerarticle}`,
 then:
 

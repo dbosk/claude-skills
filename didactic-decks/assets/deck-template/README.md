@@ -64,12 +64,15 @@ in step. Change those names only together with a new stamp
 ## Placeholder files
 
 The template builds and passes `build_deck.sh` as it is, so it carries
-three placeholders to replace:
+four placeholders to replace:
 
 - `ltnotes.bib` — empty but for a comment; every entry needs a provenance
   block (load the `backing-claims` skill).
 - `figs/example.png` — the figure `contents.nw` includes; replace it or
   delete that float.
+- the footnote in `contents.nw` ("A pointer to an appendix or to another
+  deck goes in a footnote …") — the numbered margin note the margin check
+  needs; a real deck's own footnotes and `\autocite`s replace it.
 - `litteratursokning/claim-full.tex` — stands where the search tool's hit
   list goes, `\input` from `sokprotokoll.tex`; the tool writes the real
   file under the claim's name.

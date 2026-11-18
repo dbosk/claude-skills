@@ -2,7 +2,9 @@ notes.pdf
 slides.pdf
 notes-sv.pdf
 slides-sv.pdf
-# the other edition of a bilingual deck builds in its own output directory
+# the build directory, and the one the other edition of a bilingual deck
+# builds in
+ltxobj/
 ltxobj-sv/
 contents.tex
 examples/
