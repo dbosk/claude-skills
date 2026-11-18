@@ -142,8 +142,10 @@ A deck made before the current template has thick `slides.tex` and
   pairs it with the wrong block.
 - **A pair with an empty side cannot be stamped**: write the word one
   language lacks as `\ensv{the }{\relax}`.
-- **`\ltnote`s are written once, in English, outside the blocks**: they
-  show in both editions and are not translated.
+- **`\ltnote`s are translated like the prose** (author, 2026-11-18: the
+  Swedish edition goes into a Swedish teacher's book): a pair of blocks
+  around two `\ltnote`s, or `\ltnote{\ensv{…}{…}}` for a short one. Each
+  is stamped as a pair. The `sv` side follows `house-style-sv.md`.
 
 ## In contents.nw
 
