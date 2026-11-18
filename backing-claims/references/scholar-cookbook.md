@@ -61,8 +61,12 @@ means *a key*, not *no access*. Gap/negative-result claims are only as
 strong as the databases searched: WoS and Scopus index the education
 venues the CS-specific indexes miss. Their relevance ranking is poor for
 natural-language queries — prefer their field-tagged syntax (see
-`scholar syntax`). The S2 key may be expired; S2 still works keyless at
-a lower rate limit.
+`scholar syntax`). The keys live in `~/.credentials`: run `source
+~/.credentials` in the shell before `scholar`, since a shell started
+before a key was renewed still holds the old value. A keyed S2 allows
+about one request a second, so a quick burst answers 429: pace the
+queries and retry, never count a 429 as zero hits. Keyless, S2 shares
+the public pool and is often 429 for minutes on end.
 
 **Check provider health before *and* during a long session.**
 
