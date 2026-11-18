@@ -305,6 +305,22 @@ scholar llm classify <session> --no-examples \
 scholar sessions decide <session> --discard --doi <doi> -t new-scheme
 ```
 
+**One criterion is always on the list: No abstract.** A title and an
+author list cannot be screened against the claim. Before classifying, run
+`scholar enrich` on the session so every record with a DOI or another
+identifier gets its abstract where a provider has one; a record that gains
+one stays in. The rest are discarded with the tag `no-abstract` before the
+classification, not left to the model. The flow counts give the records
+without an abstract, the ones enrichment rescued and the ones removed, and
+the limitations paragraph says that older or grey-literature work indexed
+without an abstract can be missed this way. A known item that comes back
+without an abstract is not discarded: it is read in full instead.
+
+```latex
+  \item[No abstract] The record has no abstract, and none could be added
+    from its DOI or other identifier.
+```
+
 The research context given to `llm context` states each criterion with its
 tag, and asks for the criterion tag on every record that is not kept. The
 flow counts in the results are then given per criterion, the session

@@ -211,6 +211,12 @@ the alternatives you rejected and why — that reasoning is the `PICKED` field.
 Give each a mnemonic label of two or three words (`new-scheme`, not X1) and
 discard with it as tag (`llm classify -t …`, `sessions decide --discard -t
 …`); see `references/appendix-guide.md`, "Exclusion criteria".
+**A record without an abstract is enriched or excluded** (`no-abstract`):
+first `scholar enrich` every record that has a DOI or another identifier,
+and keep any that gains an abstract; exclude the rest under the label, never
+silently, and report how many came in without one, how many enrichment
+rescued and how many were removed (author, 2026-11-18: "Only a title and
+list of authors isn't that useful").
 When several independent strands (different subfields, different query
 framings) converge on the same answer, say so — convergence across strands
 backs a claim more strongly than any single source.
