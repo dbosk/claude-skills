@@ -21,7 +21,7 @@ then the definition last.
   Relevant learning objectives: \cref{ModuleLOFirst}.
 
   Why this example and not another; which misconception it targets; what
-  varies and what stays invariant (contrast, generalisation or fusion ---
+  varies and what stays invariant (contrast, generalization or fusion ---
   the label must match what the example actually varies).
   \texttt{\textbackslash parencite} is used only inside an
   \texttt{\textbackslash ltnote}; the prose cites with
