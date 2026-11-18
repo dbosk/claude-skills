@@ -76,12 +76,15 @@ at Q's foot.  Every warning about notes is classed and printed:
               Not failures: read the page, reword or move the text near
               the callout.
   UNFORESEEN  "... (found from the last run): nothing said so in that
-              run": a placement didactic didn't foresee.  A failure.  One
-              cause is known (didactic#104): a foot that mixes didactic's
-              footnotes with LaTeX's own (\\footnotesatfoot, or multicols
-              with memoir), which a later line takes to the next page;
-              move such a footnote.  Otherwise rebuild from clean, and if
-              it stays, report it to didactic with the log.
+              run": a placement didactic didn't foresee.  A failure.  Two
+              causes are known: a foot that mixes didactic's footnotes
+              with LaTeX's own (\\footnotesatfoot, or multicols with
+              memoir), which a later line takes to the next page
+              (didactic#104; move such a footnote); and a note carried
+              across \\mainmatter from page i to page 1 (didactic#120; move
+              its callout off the front matter's last page).  Otherwise
+              rebuild from clean, and if it stays, report it to didactic
+              with the log.
   LOST        "... wasn't printed (found from the last run)", "A footnote
               in ... multicols ... is lost", "A margin note in multicols
               is lost": the note is not in the PDF.  A failure: move it
@@ -299,11 +302,12 @@ ADVICE = {
     "PAST FOOT": "fine to ship; shorten a note above it if the page looks "
                  "crowded",
     "LOOK": "read the page; reword or move the text near the callout",
-    "UNFORESEEN": "a placement didactic didn't foresee; known cause "
-                  "(didactic#104): a footnote in \\footnotesatfoot or in "
-                  "multicols beside didactic's at one foot, so move it; "
-                  "else rebuild from clean, and if it stays, report it to "
-                  "didactic with the log",
+    "UNFORESEEN": "a placement didactic didn't foresee; known causes: "
+                  "a footnote in \\footnotesatfoot or in multicols beside "
+                  "didactic's at one foot (didactic#104), so move it; a "
+                  "note carried across \\mainmatter (didactic#120), so "
+                  "move its callout; else rebuild from clean, and if it "
+                  "stays, report it to didactic with the log",
     "LOST": "the note is not in the PDF: move it out of the multicols, or "
             "out of the note it is nested in; under TeX Live's marginfix "
             "1.2, shorten a note taller than the margin",
