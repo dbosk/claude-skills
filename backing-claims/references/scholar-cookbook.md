@@ -69,9 +69,13 @@ natural-language queries — prefer their field-tagged syntax (see
 `scholar syntax`). The keys live in `~/.credentials`: run `source
 ~/.credentials` in the shell before `scholar`, since a shell started
 before a key was renewed still holds the old value. A keyed S2 allows
-about one request a second, so a quick burst answers 429: pace the
-queries and retry, never count a 429 as zero hits. Keyless, S2 shares
-the public pool and is often 429 for minutes on end.
+one request a second on all endpoints; scholar (from #148) paces it at
+0.9 a second across endpoints, retries, threads and concurrent `scholar`
+processes, and records a 429 that outlasts its retries as failed, never
+as zero hits. `scholar snowball` has its own S2 client that sends every
+0.5 s (rjglasse/snowball#50): do not run it while scholar uses the same
+key. Keyless, S2 shares the public pool and is often 429 for minutes on
+end.
 
 **Check provider health before *and* during a long session.**
 

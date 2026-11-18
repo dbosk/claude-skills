@@ -85,10 +85,10 @@ from main, the installed scholar lacks these (`scholar sessions check
 | [#138](https://github.com/dbosk/scholarcli/issues/138) | OpenAlex prepaid and one-time credit shown; a spent daily allowance no longer blocks while credit remains | `scholar providers check` |
 | [#139](https://github.com/dbosk/scholarcli/issues/139) | Clear one provider's cache; a WARNING when cached standard-view (abstract-less) Scopus results are served because COMPLETE could not be confirmed | `scholar cache clear --provider scopus` |
 | [#130](https://github.com/dbosk/scholarcli/issues/130) | Start-up about 2.3 s faster (snowball and tuxedo imported lazily) | — |
+| [#148](https://github.com/dbosk/scholarcli/issues/148) | Semantic Scholar kept at one request a second (0.9/s) across endpoints, retries, threads and processes; retries reported, a lost connection pauses S2 for 60 s | `scholar providers limits` |
 
 `scripts/openalex_title_abstract.py` is replaced by `--in title-abstract`;
-both scripts were removed from this skill. Pending, not merged: #148
-(Semantic Scholar paced to one request a second across processes).
+both scripts were removed from this skill.
 
 ## Future ideas (not yet built)
 
