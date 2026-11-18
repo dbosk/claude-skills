@@ -16,8 +16,9 @@ session was classified with `scholar llm classify` (columns used: status,
 title, year, provider, tags, decision_source, llm_confidence,
 llm_review_outcome).  Tags may be separated by ";" or "|".  A row is
 
-  * cited      -- kept by a human decision (decision_source human or
-                  llm_reviewed) with a THEME tag (any tag that is neither a
+  * cited      -- kept by a human decision (decision_source human,
+                  llm_reviewed or agent_reviewed; blank in old exports)
+                  with a THEME tag (any tag that is neither a
                   category nor a bookkeeping tag) or no tag at all; --theme
                   maps the tag to text and, when given, is the allowlist
                   of theme tags (other free tags are shown as notes);
@@ -33,9 +34,10 @@ llm_review_outcome).  Tags may be separated by ";" or "|".  A row is
                   shown as a parenthesised note, or as the reason when
                   nothing else applies.
 
-Machine-labelled rows (decision_source llm, or an LLM decision a human
-confirmed unchanged) show the model's confidence, or "n/a"/"saknas" when
-none was recorded.
+Machine-labelled rows (decision_source llm or agent, or a machine
+decision a human confirmed unchanged) show the model's confidence, or
+"n/a"/"saknas" when none was recorded.  An unreviewed agent or LLM keep,
+and a source scholar does not know, is never cited.
 
 The caption's database sentence names the providers that occur in the
 rows.  A session CSV records neither the searches that found nothing nor
@@ -235,11 +237,17 @@ def short_provider(p):
     return [PROVIDER_SHORT.get(x.lower(), x) for x in parts]
 
 
+MACHINE_SOURCES = ("llm", "agent")                  # unreviewed
+REVIEWED_SOURCES = ("llm_reviewed", "agent_reviewed")
+HUMAN_SOURCES = ("", "human") + REVIEWED_SOURCES     # "": exports before sources
+
+
 def confidence_for(row, strings):
     """" (0.83)" for a machine-labelled row, " (n/a)" without a value, else ""."""
     src = (row.get("decision_source") or "").strip().lower()
     outcome = (row.get("llm_review_outcome") or "").strip().lower()
-    if not (src == "llm" or (src == "llm_reviewed" and outcome != "changed")):
+    if not (src in MACHINE_SOURCES
+            or (src in REVIEWED_SOURCES and outcome != "changed")):
         return ""
     try:
         return " (%.2f)" % float((row.get("llm_confidence") or "").strip())
@@ -259,7 +267,7 @@ def reason_for(row, strings, themes):
     if themes:   # --theme is an allowlist; other free tags become notes
         note_texts += [tex(t) for t in theme_tags if t not in themes]
         theme_tags = [t for t in theme_tags if t in themes]
-    human = src != "llm"     # human, or an LLM decision a human reviewed
+    human = src in HUMAN_SOURCES   # human, or a machine decision a human reviewed
     conf = confidence_for(row, strings)
 
     # A row a human kept with a theme tag (or no tag) is a cited source,

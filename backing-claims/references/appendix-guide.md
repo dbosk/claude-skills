@@ -24,6 +24,29 @@ provenance fields — goes into **source comments**, never into the PDF.
    DOI-less proceedings, a book) and how each was verified (full text;
    OCR of a scan; abstract only). Session names, export paths and bib
    details are for the author: `%` comments, never the compiled text.
+   The method also states, each in a sentence or two:
+   - **when** each database answered: the search dates from `sessions
+     show` (a cache hit carries its original fetch date), as the caption's
+     "Searched A to B." gives them. PRISMA-S item 13: "For each search
+     strategy, provide the date when the last search occurred."
+   - **which search** a database ran when it has several: Semantic
+     Scholar's bulk search (title and abstract, stemmed) or its relevance
+     search (`s2 (via bulk)` in `sessions show`; cookbook, "Providers and
+     keys").
+   - **deduplication** (PRISMA-S item 16: "Describe the processes and any
+     software used to deduplicate records from multiple database
+     searches and other information sources."): scholar deduplicates a
+     search's results (`search --dedup`, the default): copies with one
+     id (DOI, else a title-and-author hash) merge, the richest copy as
+     base, DOI-less copies only when their years are at most one apart;
+     a DOI-less copy folds into the DOI copy of the same work; a
+     preprint and its published version collapse onto the published
+     one when the match is unambiguous. Copies that reach a session from different searches are listed
+     by `sessions show` and folded by `sessions reconcile`; copies
+     decided differently are settled by hand (say how many). Cite
+     PRISMA-S (Rethlefsen et al., *Systematic Reviews* 10:39, 2021,
+     doi:10.1186/s13643-020-01542-z) where the method follows it.
+   - **who screened** (see "Who screened" below).
 3. **Results**, one paragraph per sub-question — origin, establishment,
    criticism — every source cited with a full reference (footnote
    citation in verbose styles) and a verbatim quote with locator for the
@@ -165,8 +188,10 @@ is part of the claim, not an afterthought.
   %                     failed, anti-bot page, every query)
   %   classification  : scholar llm context + llm classify --no-examples,
   %                     model github_copilot/gpt-5.4; 53 human overrides via
-  %                     scholar sessions decide (read: every qualifies row,
-  %                     every row < 0.7)
+  %                     scholar sessions decide --source human (read: every
+  %                     qualifies row, every row < 0.7)
+  %   sample          : scholar llm sample dry-principle --discarded -n 50
+  %                     --seed 20260902; --report: 3 of 50 changed
   %   hit-list table  : scholar sessions export dry-principle -f table
   %                     --bearing-only --lang sv --label sok-dry
   %                     --track "DRY-principen" --theme clones-faults="..." ...
@@ -260,7 +285,12 @@ reports.
 - **Semantic Scholar's paper search is a keyword search** with a trained
   ranking (its API tutorial says so); only its snippet search matches by
   meaning. A plain-language question sent to `-p s2` is not a search by
-  meaning.
+  meaning. Its relevance search takes no operators and stops at 1 000; a
+  Boolean query sent there answered 0 with HTTP 200 in the MFA review
+  (2026-11-18), where the bulk search matched 780. Scholar now sends
+  Boolean queries and `-l 0` to the bulk search and records which one
+  answered; a record from before that (no `via bulk`) with an operator
+  query and 0 hits is not a negative: rerun it.
 - **IEEE Xplore** has a daily quota; **Scopus** may reject every query
   (HTTP 400) on a bad day; an unkeyed **Semantic Scholar** shares a public
   pool and answers 429 when it is busy. Scholar records these searches as
@@ -311,7 +341,7 @@ A record is excluded if it is one of the following.
 scholar llm classify <session> --no-examples \
   -t supports-claim -t qualifies-claim -t adjacent-subtopic -t off-topic-false-hit \
   -t new-scheme -t machines-only -t usability-only -t no-evidence
-scholar sessions decide <session> --discard --doi <doi> -t new-scheme
+scholar sessions decide <session> --source agent --discard --doi <doi> -t new-scheme
 ```
 
 **One criterion is always on the list: No abstract.** A title and an
@@ -325,7 +355,13 @@ one stays in. A DOI or URL saves a record only if it leads to an abstract
 or the full text: a landing page with nothing more than the title adds
 nothing to screen (author, 2026-11-18: "if the link adds nothing, we
 discard it"). The rest are discarded with the tag `no-abstract` before the
-classification, not left to the model. The flow counts give the records
+classification, not left to the model (an agent: `sessions decide
+--source agent --discard -t no-abstract`). The audit caption counts
+discards by criterion, apart from duplicates of cited sources: "…, 31
+excluded for lack of an abstract", "…, 12 excluded by the criterion
+new-scheme". A discard is counted by its criterion only when it carries no
+category tag and no note tag (the criterion is its last other tag); one
+with a category tag counts under the category. The flow counts give the records
 without an abstract, the ones enrichment rescued and the ones removed, and
 the limitations paragraph says that older or grey-literature work indexed
 without an abstract can be missed this way. A known item that comes back
@@ -529,7 +565,12 @@ run — decide those with `scholar sessions decide`. Read the low-confidence
 rows and every `qualifies-claim` row yourself and override with `scholar
 sessions decide` where the model is wrong; tag the sources you cite with a
 theme tag (`decide … -t dry-origin`) so they show as *cited* with a
-reason. Then generate the table with scholar:
+reason. **An agent passes `--source agent`** on every `decide` (required
+off a terminal). Its decisions, like the classifier's, stay unreviewed and
+are never *cited* until the author confirms them (TUI, or `decide --source
+human`), and it never uses `--force` to replace a decision the author made
+or reviewed (cookbook, "Notes and sessions"). Then generate the table with
+scholar:
 
 ```bash
 scholar sessions export dry-principle -f table --bearing-only --lang sv \
@@ -538,8 +579,10 @@ scholar sessions export dry-principle -f table --bearing-only --lang sv \
   -o litteratursokning/dry-principle-full        # writes …-full.tex
 ```
 
-Cited = a human-decided kept row whose first non-category tag is in the
-`--theme` allowlist; other non-category tags are audit notes shown in
+Cited = a kept row decided or confirmed by a human (source `human`,
+`llm_reviewed` or `agent_reviewed`) whose first non-category tag is in the
+`--theme` allowlist; an unreviewed agent or LLM keep, and a decision of
+unknown source, is a candidate and never cited. Other non-category tags are audit notes shown in
 parentheses; machine-labelled rows show their category and the model's
 confidence, or "n/a" ("saknas") when none was recorded. The status wins:
 a discarded row never counts as supporting or qualifying, whatever its
@@ -561,7 +604,44 @@ full name first, every database that answered at least one query (one
 that answered with zero hits included), and notes partial failures —
 "DBLP (failed for 4 of 5 queries)". A database that failed *every* query
 is not named at all, since it was not searched; say so in the method and
-the limitations ("DBLP could not be searched: …").
+the limitations ("DBLP could not be searched: …"). A database whose
+searches hit a limit reads "capped at the limit for 2 of 5 queries" (redo
+them with `-l 0`); one known only from a merged record of several
+providers (saved before #164) reads "failed or incomplete for k of n
+queries, in a merged record" (rerun per provider). The caption then gives
+the dates the databases answered, "Searched 2026-11-13 to 2026-11-18."
+(cache hits count from their fetch date), or says for how many searches
+the date is unknown.
+
+## Who screened
+
+Scholar records who made each decision (cookbook, "Notes and sessions"),
+and the report counts them by source. The method says it in plain words:
+which decisions a person made, which a classifier or an agent proposed,
+and how many of those the author reviewed. A machine's screening is part
+of the method only together with a measure of its error, so the method
+includes a **review of a random sample** as a step:
+
+1. After `llm classify` (and any agent decisions), draw a seeded sample of
+   the unreviewed discards (and, if kept rows matter, of the keeps):
+   `scholar llm sample <session> --discarded -n <N> --seed <K>`. The size
+   is the author's call; record the seed.
+2. The author reviews every sampled paper, in the drawn order (TUI filter
+   `s`, or `sessions decide --source human`). An agent does not review
+   the sample.
+3. `scholar llm sample <session> --report` gives the reviewed count, the
+   number changed, the disagreement rate and its 95% modified Wilson
+   interval.
+4. The method or the appendix states the sample and the rate, e.g. "Of a
+   random sample of 50 of the 412 discards made by the model (seed
+   20261118), the author changed 3 (6.0 %; 95 % modified Wilson interval
+   …)", citing the interval's source, Brown, Cai and DasGupta (2001,
+   doi:10.1214/ss/1009213286), verified per this skill before it is
+   cited. The report's "LLM screening" section gives the same sentence
+   together with the model, prompt version and dates of the decisions.
+
+A high rate is a finding, not a reason to redraw: say what it means for
+the discards that were not reviewed, or have them all reviewed.
 
 ## Query table template
 
@@ -621,6 +701,12 @@ in part gets its lower bound and the same kind of explanation.
       lack is screened or named in the limitations; a repair after a missed
       study is reported as a deviation, fitted queries marked
 - [ ] Exclusion criteria labelled in the method and used as discard tags; flow counts given per criterion; any cap on screening or reading decided by the user and stated
+- [ ] Method states the search dates, which S2 search answered, the
+      deduplication (PRISMA-S item 16; `sessions reconcile`) and who
+      screened: decisions by source, a seeded sample of the machine's
+      decisions reviewed by the author, its disagreement rate with interval
+- [ ] Every agent decision recorded `--source agent`; nothing cited that
+      the author has not decided or confirmed; no `--force`
 - [ ] Failed searches reported as failed (query table, method,
       limitations), never as 0; every 0 tested with a query known to
       match on that provider; a database that failed every query is

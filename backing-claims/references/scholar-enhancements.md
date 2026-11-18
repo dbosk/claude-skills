@@ -28,7 +28,7 @@ files: `src/scholar/cli.nw` (commands), `src/scholar/crossref.nw` (verify),
 | Capability | Command |
 |------------|---------|
 | Audit table of a classified session as an `\input` fragment; cited = kept by a human decision (source `human` or `llm_reviewed`) with a non-category tag or none, theme = first non-category tag; LLM keeps show category + confidence | `scholar sessions export SESSION -f table --lang sv --label sok-A --track "sökspår 1" --theme TAG=NAME -o base` → `base.tex` |
-| Record who decided | `scholar sessions decide … --source human\|llm` (a human decision on an LLM row marks it `llm_reviewed`) |
+| Record who decided | `scholar sessions decide … --source human\|llm` (a human decision on an LLM row marks it `llm_reviewed`; `agent` added by #162, below) |
 | OpenAlex API key (bearer token; a free key raises the metered daily budget tenfold) | `OPENALEX_API_KEY` in the environment; `scholar providers check` shows remaining budget and reset time; a 429 with the budget spent blocks the group until the reset |
 | `\input`-able report / synthesis | `scholar sessions export -f latex --no-standalone`; `scholar llm synthesize -f latex --no-standalone --output …` |
 | List-valued venues no longer crash the export | — |
@@ -89,6 +89,42 @@ from main, the installed scholar lacks these (`scholar sessions check
 
 `scripts/openalex_title_abstract.py` is replaced by `--in title-abstract`;
 both scripts were removed from this skill.
+
+Merged the same day, from the MFA review's follow-ups (PRs #149, #155–#158,
+#178–#184; installed via pipx from main at 51c296e; `scholar llm sample
+--help` failing is the tell of an older install):
+
+| Issue | Capability | Command |
+|-------|------------|---------|
+| [#150](https://github.com/dbosk/scholarcli/issues/150) | An OpenAlex search cut short by a rate-limit block is recorded `N, incomplete (…)` (pages kept), never 0 | `sessions show` |
+| [#151](https://github.com/dbosk/scholarcli/issues/151) | OpenAlex refusals carry OpenAlex's own message, plus a key hint when a key would help | `failed (HTTP 503: …; no API key: set OPENALEX_API_KEY)` |
+| [#152](https://github.com/dbosk/scholarcli/issues/152) | Spent-budget warning of the semantic search has the key hint; an authorless match is not labelled title+author | `sessions check` |
+| [#153](https://github.com/dbosk/scholarcli/issues/153) | `enrich` keeps a copy from before the run | `<name>.json.pre-enrich-<time>.bak` |
+| [#154](https://github.com/dbosk/scholarcli/issues/154) | Dependencies updated (Dependabot alerts closed) | — |
+| PR #155 | User-Agent and help name `dbosk/scholarcli` | — |
+| [#159](https://github.com/dbosk/scholarcli/issues/159), [#160](https://github.com/dbosk/scholarcli/issues/160) | API keys and `mailto` addresses redacted from error text; the contact email kept out of test runs | `providers check` |
+| [#161](https://github.com/dbosk/scholarcli/issues/161) | S2: Boolean queries and `-l 0` go to the bulk search (title+abstract, stemmed, most cited first when capped, 100 000 cap); plain words with a limit to relevance (stops at 1 000, marked incomplete); endpoint recorded as `via`; other databases' field syntax refused as failed | `-p s2`; `sessions show` `s2 (via bulk)` |
+| #161 | Semantic Scholar snippet search as a backend of the check by meaning | `sessions check -b s2-snippets` |
+| [#162](https://github.com/dbosk/scholarcli/issues/162) | `--source agent` (and `agent_reviewed`); `--source` required off a terminal (exit 2); a machine decision cannot replace a human or reviewed one without `--force`; unknown sources read as unknown, unreviewed, uncited | `sessions decide --source human\|agent\|llm` |
+| [#163](https://github.com/dbosk/scholarcli/issues/163) | The LaTeX report counts decisions by source, shows unreviewed machine decisions and names every search | `sessions export -f latex` |
+| [#164](https://github.com/dbosk/scholarcli/issues/164) | One search record per provider; old merged records labelled as such, naming each failing provider | `sessions show` |
+| [#165](https://github.com/dbosk/scholarcli/issues/165) | A provider skipped for a cooldown or spent quota is recorded as `failed (skipped: …; resets …)` | `sessions show` |
+| [#166](https://github.com/dbosk/scholarcli/issues/166) | Totals and caps: `100 of 2,130 (capped at 100)`; the record kept is the latest answered run of the widest scope; caption "capped at the limit for k of n queries" | `sessions show`, caption |
+| [#167](https://github.com/dbosk/scholarcli/issues/167) | `searched_at`/`fetched_at` per record; caption "Searched A to B."; `bibtex+prov` `DATE` is the fetch date, never today for a cache hit | `sessions show`, `-f bibtex+prov` |
+| [#168](https://github.com/dbosk/scholarcli/issues/168) | Each LLM decision stores model, time, prompt version, reason, truncated-abstract flag; an unusable answer leaves the paper pending; only reviewed examples by default; report section "LLM screening" | `llm classify`, report |
+| [#173](https://github.com/dbosk/scholarcli/issues/173) | Seeded random sample of unreviewed LLM/agent decisions for the author's review; disagreement rate with a 95% modified Wilson interval | `scholar llm sample S --discarded\|--kept -n N --seed K [--report]` |
+| [#169](https://github.com/dbosk/scholarcli/issues/169) | Audit caption counts exclusion-criterion discards per criterion ("excluded for lack of an abstract"), not as duplicates of cited sources | `sessions export -f table` |
+| [#170](https://github.com/dbosk/scholarcli/issues/170) | A DOI-less copy folds into the DOI copy of the same work within a search; copies across searches listed by `sessions show` and folded on request; DOI-less works no longer merge across years | `scholar sessions reconcile S [--dry-run]` |
+| [#174](https://github.com/dbosk/scholarcli/issues/174) | Tests clear provider key attributes set at import | — |
+| [#175](https://github.com/dbosk/scholarcli/issues/175) | Concurrent scholar processes no longer empty the cache (locked, atomic, merged saves; unreadable files never overwritten) | — |
+| [#177](https://github.com/dbosk/scholarcli/issues/177) | Re-deciding with a new status replaces the old category tags | `sessions decide` |
+
+Open: [#176](https://github.com/dbosk/scholarcli/issues/176), a `% COUNTER:
+TODO` line in the `bibtex+prov` stub. Main at 51c296e writes none, so the
+skill says to add `COUNTER` by hand; `check_provenance.py` fails a missing
+and a `TODO` `COUNTER` alike, so it needs no change when #176 lands.
+`scholar llm sample --help` says "95% Wilson score interval" while the
+report computes and names the modified Wilson interval.
 
 ## Future ideas (not yet built)
 

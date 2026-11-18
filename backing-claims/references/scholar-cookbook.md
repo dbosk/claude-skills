@@ -21,8 +21,13 @@ subcommands from an agent.
 > --pending-only --fields`, `cache clear --provider` and the OpenAlex
 > prepaid credit in `providers check` come from PRs #142–#147 (merged
 > 2026-11-18): if `scholar sessions check --help` fails, the installed
-> scholar predates them. If a command is missing, upgrade: `pipx upgrade
-> scholarcli` (or reinstall from `~/devel/scholar`).
+> scholar predates them. Decision sources (`sessions decide --source
+> agent`), `llm sample`, `sessions reconcile`, per-provider search records
+> with totals, caps and dates, and the S2 bulk search come from PRs
+> #149–#184 (merged 2026-11-18, `scholar-enhancements.md`): if `scholar llm
+> sample --help` fails, the installed scholar predates them. If a command
+> is missing, upgrade: `pipx upgrade scholarcli` (or reinstall from
+> `~/devel/scholar`).
 
 ## Table of contents
 
@@ -48,7 +53,7 @@ scholar syntax          # per-provider query operators (AND/OR/NOT, phrases, fie
 
 | Provider | `-p` name | Key needed |
 |----------|-----------|------------|
-| Semantic Scholar | `s2` | optional (`S2_API_KEY`) |
+| Semantic Scholar (two endpoints, see below) | `s2` | optional (`S2_API_KEY`) |
 | OpenAlex | `openalex` | optional (`OPENALEX_API_KEY`; `SCHOLAR_EMAIL`) |
 | DBLP (CS) | `dblp` | none (blocked for API clients since Sep 2026) |
 | arXiv (preprints) | `arxiv` | none |
@@ -77,6 +82,23 @@ as zero hits. `scholar snowball` has its own S2 client that sends every
 key. Keyless, S2 shares the public pool and is often 429 for minutes on
 end.
 
+**Semantic Scholar has two searches, and scholar picks one per query**
+(`scholar syntax`). A query with operators, quotes or parentheses, or any
+search with `-l 0`, goes to the **bulk search**: it matches title and
+abstract, stems the terms, has no relevance order (with a limit: the most
+cited first) and stops at a 100 000-paper safety cap (recorded as
+incomplete). Plain words with a limit go to the **relevance search**,
+which stops at 1 000 (a larger limit is recorded `…, incomplete
+(relevance search stops at 1000)`). The record keeps the endpoint
+(`sessions show`: `s2 (via bulk)`; `-f json`: `"via"`), and the method
+names it, since the two do not match the same records. Observed in the MFA
+review (2026-11-18): the relevance search answered a Boolean query with 0
+hits and HTTP 200, the bulk search matched 780; over 28 queries the bulk
+search returned 5 321 records, 804 of them from no other provider
+(dbosk/scholarcli#161). An S2 count is not comparable word for word with a
+provider that does not stem. A query in WoS, Scopus or arXiv field syntax
+is not sent to S2 and is recorded as failed.
+
 **Check provider health before *and* during a long session.**
 
 ```bash
@@ -103,7 +125,12 @@ Run the check again partway through a long session: keys get rejected and
 daily quotas run out mid-run. With a key, the OpenAlex row's detail gives
 the budget left, e.g. `$0.412 of $1.00 daily + $5.00 prepaid left;
 resets …` (one-time credits likewise); a spent daily allowance no longer
-blocks OpenAlex searches while prepaid or one-time credit remains.
+blocks OpenAlex searches while prepaid or one-time credit remains. When
+OpenAlex refuses, the reason is its own message (`HTTP 503: <OpenAlex's
+text>`), with `; no API key: set OPENALEX_API_KEY` when a key would lift
+the refusal. Key and `mailto` parameters of the URLs in error text are
+redacted (`api_key=…`), so such a reason can be copied into a report;
+check any other text before pasting it.
 
 **Failed searches are recorded as failed.** Scholar records each search's
 outcome per query × provider, and every view uses the same words:
@@ -113,17 +140,25 @@ outcome per query × provider, and every view uses the same words:
 | `12` | answered with 12 hits | 12 |
 | `0` | answered, nothing found | 0 |
 | `failed (reason)` | no answer (e.g. `failed (non-JSON response (HTTP 200, text/html))`, a 429, a rejected key) | *failed*/*unavailable*, never 0 |
-| `7, incomplete (reason)` | broke off part-way; 7 is a lower bound | "≥7, incomplete" |
+| `7, incomplete (reason)` | broke off part-way (an OpenAlex search cut short keeps its pages); 7 is a lower bound | "≥7, incomplete" |
+| `100 of 2,130 (capped at 100)` | a limit stopped it; the database reported 2 130 (`of about` when it estimates) | redo with `-l 0` |
+| `failed (skipped: <reason>; resets <time>)` | not sent: the provider was in a cooldown or out of quota | *failed* |
 | `3 after 2 retries` | answered only on a repeat (DBLP's empty answers, see below) | 3 |
+| `merged record (providers a, b): outcome cannot be split` | a record saved before #164 for several providers at once | rerun per provider |
 
 Read them from `scholar sessions show <session>` (under "Queries by
 provider:", failures highlighted), from `search -f csv` (the `# Results:`
 header line, plus `# Retries: N` when there were any) or from the report.
 A script that parses `# Results:` must treat anything that is not a plain
-number as a failure, not as 0. A failed re-run never overwrites an earlier
-record that had an answer, and a failed result is never cached, so rerunning
-a failed cell later is safe. See `appendix-guide.md`, "Provider quirks that
-fake a negative", for the per-provider failure modes.
+number as a failure, not as 0. Each provider has its own record, with the
+dates: `searched 2026-11-18`, or `searched …, cached answer fetched
+2026-11-13` for a cache hit (`-f json`: `searched_at`, `fetched_at`,
+`from_cache`). Of two runs of one search the record kept is the latest
+answered run of the widest scope: a failed re-run never replaces an
+answered one, nor a capped run an unlimited one. A failed result is
+never cached, so rerunning a failed cell later is safe. See
+`appendix-guide.md`, "Provider quirks that fake a negative", for the
+per-provider failure modes.
 
 Query syntax differs per provider (run `scholar syntax`): e.g. OpenAlex/WoS need
 UPPERCASE boolean operators; DBLP treats space as implicit AND and disables NOT;
@@ -168,8 +203,15 @@ session per paper: the session becomes the reproducible record that
 `bibtex+prov` is the fastest honest start: it fills the reproducible `FOUND-VIA`
 line (including `--limit`) and `DATE`, and leaves the fields that require human
 judgement (`CLAIM`, `PICKED`, `QUOTE`, `VERIFIED`) as `TODO` and the `QUOTE`
-location as `(<loc>)`; it writes no `COUNTER` line. `check_provenance.py`
-fails such a stub until all of them are written. Results are
+location as `(<loc>)`. On main at 51c296e it writes **no `COUNTER`
+line** (a `% COUNTER: TODO` stub is proposed in the open
+dbosk/scholarcli#176): add one yourself. `DATE` is the day the database
+answered, not today: a cache hit carries its original fetch date, and an
+answer cached before fetch dates were recorded reads `unknown (cached
+answer, fetch date not recorded)`. `DATE` in the record is the
+verification date: write it over the stub's when you verify
+(`provenance-format.md`). `check_provenance.py` fails such a stub until all of them are
+written, a missing or `TODO` `COUNTER` included. Results are
 deduplicated, keeping the richest copy of each paper. Citation keys follow
 one scheme across scholar's outputs (`smith2024`, `smith2024a`, `nd` for no
 year); keys in a `.bib` from an older scholar may differ — see
@@ -181,9 +223,12 @@ year); keys in a `.bib` from an older scholar may differ — see
 (`--limit`, `-l`); `-l 0` takes all. **Always pass `-l 0`**, and never a
 smaller limit to save time: the whole result set belongs in scholar's cache
 and in the session, and a capped search samples the top of a relevance
-ranking, which buries older and less-cited work. A session searched with a
-limit shows `hits` equal to the limit in `sessions show`; such a cell means
-"at least that many" and is redone without the limit.
+ranking, which buries older and less-cited work. A search a limit cut
+short reads `100 of 2,130 (capped at 100)` in `sessions show` (or `100
+(capped at 100)` when the database gives no total); such a cell means "at
+least that many" and is redone without the limit. `-l 0` is not
+everything on S2's relevance search (see "Providers and keys"); scholar
+sends `-l 0` to the bulk search instead.
 
 ```bash
 scholar search "<query>" -n <session> -p openalex -p wos -p scopus -p ieee -p arxiv -l 0
@@ -261,6 +306,8 @@ meaning").
 scholar sessions check <session> <session2> \
   -s "<question in plain words>" [-s "<question 2>"] \
   -k <doi-or-title-part> -o <dir-kept-with-the-record>
+# The same check against Semantic Scholar's passage search (full text too):
+scholar sessions check <session> -b s2-snippets -s "<question>" -o <dir>
 ```
 
 Per question it prints the provider line (`openalex-semantic: top 50,
@@ -283,7 +330,7 @@ screening by a route that is a check, not the search.
 | Tool | What it matches | Limits (2026-11) |
 |---|---|---|
 | OpenAlex `search.semantic` (`scholar sessions check`, `-p openalex-semantic`) | embeddings of title, abstract, venue | 50 works a question, 2 000 characters, 1 request a second (scholar paces it); no filters |
-| Semantic Scholar `graph/v1/snippet/search` | passages of open-access full texts, by embedding and keyword | without a key the public pool answered 429 through nine minutes of retries; with a rejected key, 403 |
+| Semantic Scholar `graph/v1/snippet/search` (`scholar sessions check --backend s2-snippets`) | passages of title, abstract and open-access full text, by embedding and keyword | needs a working key in practice: without one the public pool answered 429 through nine minutes of retries; with a rejected key, 403 |
 | Asta (asta.allen.ai), reports | a language model rewords the question; keyword search of abstracts plus the snippet search; re-ranking | run by the user; states no method in the report; list its sources and look them up |
 | alphaXiv `discover_papers` (MCP) | arXiv papers only | timed out three times on 2026-11-13 |
 
@@ -452,14 +499,15 @@ The full review loop runs headlessly: search with `-n`, decide with
 ```bash
 # Record screening decisions non-interactively; discarding REQUIRES a --tag
 # stating the motivation; a selector matching nothing saves no changes.
-scholar sessions decide vt-terminal-systematic --keep \
-    --doi 10.1145/3502718.3524753 -t shell-teaching-intervention
-scholar sessions decide vt-terminal-systematic --discard \
-    --doi 10.1109/ISED67359.2025.11405208 -t "LLM tutoring tool, no learner findings"
-# An agent's own screening is recorded as an LLM decision, with the
-# model's confidence (0-1; ignored, with a note, for human decisions):
-scholar sessions decide vt-terminal-systematic --source llm -c 0.7 \
-    --keep --paper-id hash:115f4c4a5e6a6b32 -t supports-claim
+# An agent ALWAYS passes --source agent (off a terminal --source is
+# required: exit 2 without it), with its confidence (0-1) if it has one:
+scholar sessions decide vt-terminal-systematic --source agent --keep \
+    --doi 10.1145/3502718.3524753 -t supports-claim -t shell-teaching-intervention
+scholar sessions decide vt-terminal-systematic --source agent -c 0.8 --discard \
+    --doi 10.1109/ISED67359.2025.11405208 -t off-topic-false-hit
+# The author's own decision, or the author confirming an agent's:
+scholar sessions decide vt-terminal-systematic --source human --keep \
+    --paper-id hash:115f4c4a5e6a6b32 -t supports-claim
 
 # Export a session's audit trail (bib + csv + latex report) into the paper
 # repo, e.g. literature-review/ (the vt-* papers' layout)
@@ -478,6 +526,63 @@ scholar notes export notes.json        # dump all notes (machine-readable)
 Notes are an optional secondary store; the **authoritative** provenance lives in
 the `.bib` comment block (see `provenance-format.md`).
 
+**Who decided is recorded, and only a human cites.** Sources: `human`,
+`agent` (an AI agent: you), `llm` (a classifier run), and `agent_reviewed`
+/ `llm_reviewed` once the author confirmed or changed them (in the TUI, or
+`decide --source human`). An unreviewed agent or LLM keep is a candidate:
+the audit table never shows it as *cited*, and a stored source scholar
+does not know reads as `unknown source '<value>'`, unreviewed and uncited.
+A machine decision never replaces one a human made or reviewed: the whole
+batch is refused (exit 2) unless `--force`. **Never pass `--force` to
+override the author**; report the disagreement instead. When the status
+changes, the old category tags are replaced by the new `--tag` values
+(other tags kept); re-deciding the same status adds tags. `sessions show
+-f json` (`decision_sources`) and the report count decisions by source
+("Decisions by source: 12 human; 40 agent, unreviewed; …").
+
+**LLM screening is recorded and sampled.** Each `llm classify` decision
+stores the model, the time (UTC), a prompt version, the model's reason and
+whether the abstract was truncated; an unusable answer leaves the paper
+pending (nothing is filled in). The report has an "LLM screening"
+section saying so. To measure how often the machine is wrong, draw a
+seeded sample of its unreviewed decisions for the author to review:
+
+```bash
+scholar llm sample <session> [<session> …] --discarded -n 50 --seed 20261118
+scholar llm sample <session> --kept --min-confidence 0.9 -n 30 --seed 20261119
+# the author reviews the sample: TUI filter s, or sessions decide --source human
+scholar llm sample <session> --report          # -f json for scripts
+```
+
+`--seed` is required (the draw is reproducible); the sample (seed,
+criteria, date, papers) is stored in each session, pools LLM and agent
+decisions, and is queued for review. `--report` gives per sample the
+reviewed count, how many the reviewer changed, the disagreement rate and
+its 95% modified Wilson interval (the code cites Brown, Cai and DasGupta,
+*Statistical Science* 16(2):101–133, 2001, doi:10.1214/ss/1009213286; its
+`--help` says "Wilson score interval"). The report's "LLM screening"
+section states the same in one sentence per sample; while part of the
+sample is unreviewed it adds that the rate covers only the reviewed part
+and may be biased if papers were skipped. Review the whole sample, in the
+drawn order. Put the draw and the rate in the method (`appendix-guide.md`,
+"Who screened").
+
+**Copies of one work.** Within one search, a DOI-less copy folds into the
+DOI copy of the same work; a work that reaches the session with a DOI from
+one search and without from another (or from an older scholar) stays two
+entries. `sessions show` lists `Foldable copies: N — run scholar
+sessions reconcile <name>`, `Conflicting copies` (decided differently,
+left to you), `Copies decided alike, not merged` and `Possible copies, not
+reconciled` (ids in `-f json`). Fold them explicitly:
+
+```bash
+scholar sessions reconcile <session> --dry-run   # list what would be folded
+scholar sessions reconcile <session>             # fold; notes move with them
+```
+
+A copy nobody screened folds into the decided one; two equal decisions
+become one. Describe this in the method's deduplication paragraph.
+
 **Sessions are safe to work on in parallel.** A save merges with the file on
 disk, so a long `scholar enrich` no longer wipes an `llm context`/`llm
 classify` run that saved in the meantime; if two processes decide the same
@@ -485,6 +590,9 @@ paper differently, the later save wins and a warning names both decisions.
 Every save is atomic and keeps the previous version as `<name>.json.bak` in
 the sessions directory (`$SCHOLAR_DATA_DIR/review_sessions/`, by default
 `~/.local/share/scholar/review_sessions/`); notes files get a `.bak` too.
+`scholar enrich` also keeps a copy from before the run,
+`<name>.json.pre-enrich-<UTC time>.bak` (the newest three), since it saves
+every 50 papers and `.bak` then holds only the last of those saves.
 
 - An unreadable session file is a hard error ("Cannot read session file …
   Nothing was saved"): `search -n`, `--review` and `rq` exit 1 instead of
@@ -506,7 +614,8 @@ Note tags such as `duplicate-record-of-cited-source` are for humans: the
 model is never offered them and its attempts are dropped. A paper still
 without exactly one category after the one retry is left pending and
 listed at the end of the run under "Left pending, not exactly one category
-tag (N):" with its paper id — decide each with `sessions decide`.
+tag (N):" with its paper id — decide each with `sessions decide --source
+agent` (the author confirms it later) or leave it to the author.
 
 ## Network route and identity
 
@@ -548,7 +657,7 @@ of a third party (ipify), so only on request. The university tunnel and
 the full-text recipe: `closed-access.md`.
 
 Scholar identifies itself as `scholar/<version>
-(+https://github.com/dbosk/scholar)`, without an e-mail address
+(+https://github.com/dbosk/scholarcli)`, without an e-mail address
 (`SCHOLAR_EMAIL` still goes to OpenAlex, Crossref and Unpaywall through
 their own parameters); `SCHOLAR_USER_AGENT` overrides it. Never set it to a
 browser's user agent: a bot check (Cloudflare, a login form actually served,
@@ -566,7 +675,12 @@ scholar cache clear --include-llm  # also the LLM synthesis caches
 ```
 
 `cache clear` keeps the synthesis caches, which hold paid model output, and
-says how many it kept. The citation-key change (#115) invalidated cached
+says how many it kept. Several `scholar` processes may run at once (e.g.
+parallel agents' searches): since #175 saves are locked, atomic and merged
+with the file on disk, and an unreadable cache file is never overwritten
+(the process's entries go to `<name>.pkl.unmerged-<pid>` beside it, with
+a warning). One race remains: a process running during `cache clear` may
+write its loaded entries back, so clear with no other scholar running. The citation-key change (#115) invalidated cached
 synthesis prose once, so the first `llm synthesize` after upgrading calls
 the model again.
 

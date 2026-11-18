@@ -124,12 +124,14 @@ DBLP serves API clients an anti-bot page (since September 2026): record it
 as unavailable. Query at least s2 + openalex (+ dblp while it answers), plus
 wos/scopus (strong for older and non-CS/education literature) when keys are
 configured. OpenAlex matches full text: run its queries `--in title-abstract`
-too (cookbook, "Limits"); both records stay in the session.
-**A failed search reads as failed, never as 0**: `sessions show` and the
-CSV's `# Results:` line give each query × provider cell as a count,
-`failed (reason)`, `N, incomplete (reason)` or `N after k retries`; copy
-a failed cell as *failed*: it was not searched. **A 0 is tested before it
-is recorded**: send that provider one query known to match
+too (cookbook, "Limits"). S2 sends Boolean queries and `-l 0` to its bulk
+search, plain words with a limit to a relevance search that stops at 1000:
+the method names which one answered (`s2 (via bulk)`).
+**A failed search reads as failed, never as 0**: `sessions show` gives each
+query × provider cell as a count, `failed (reason)` (also `skipped: …`),
+`N, incomplete (reason)`, `N of M (capped at L)` or `N after k retries`;
+copy a failed cell as *failed* (not searched), redo a capped one. **A 0 is
+tested before it is recorded**: send that provider one query known to match
 (`references/appendix-guide.md`, "Provider quirks that fake a negative").
 
 **Keyword search is for discovery; use field/DOI retrieval for a known
@@ -151,9 +153,6 @@ dissertations and tech reports are often absent from every provider: an empty
 them via **Google Scholar**, **citation chaining** or the **author's/publisher's
 own copy**, and say so in `FOUND-VIA` ("not returned by provider search; …").
 
-`-f bibtex+prov` gives the BibTeX **already wrapped in provenance blocks**, with
-`FOUND-VIA` pre-filled; you fill in `CLAIM`/`PICKED`/`QUOTE`/`VERIFIED` and add `COUNTER` (step 5).
-
 **Complementary sources are allowed — and every one of them is documented.**
 Google Scholar, a publisher site, alphaXiv, WebSearch + WebFetch, Crossref/
 OpenAlex/DataCite REST lookups, the `deep-research` skill for hard/contested
@@ -163,9 +162,8 @@ not *which* tool but *what is recorded*: **capture the tool and the query/URL
 verbatim** in `FOUND-VIA`/`COUNTER`, **and** list every non-`scholar` search
 (tool, verbatim query, date, retained/dropped) in the search-protocol
 appendix or the deliverable's evidence log. A complement that is not written
-down did not happen; a complement that is written down is as good as a
-`scholar` session. `references/scholar-cookbook.md` shows how to phrase each
-source's `FOUND-VIA` line.
+down did not happen; one written down is as good as a `scholar` session
+(cookbook: how to phrase each source's `FOUND-VIA` line).
 
 Phrase **counter-searches with field syntax** (WoS
 `TS=("cyclomatic complexity" AND (critique OR criticism))`, Scopus
@@ -210,8 +208,8 @@ Compare **evidence grades across the whole supports pile** first: a refereed
 experiment over a vendor's demonstration (`references/verification-checklist.md`).
 **Exclusion criteria are labelled, and the label is the discard reason.**
 Give each a mnemonic label of two or three words (`new-scheme`, not X1) and
-discard with it as tag (`llm classify -t …`, `sessions decide --discard -t
-…`); see `references/appendix-guide.md`, "Exclusion criteria".
+discard with it as tag (`llm classify -t …`, `sessions decide --source agent
+--discard -t …`); see `references/appendix-guide.md`, "Exclusion criteria".
 **No abstract:** enrich (`scholar enrich <s> --pending-only --fields
 abstract`), else exclude as `no-abstract`, counted; a DOI or URL with no
 abstract or full text behind it does not save a record. A machine summary
@@ -306,7 +304,7 @@ work found (and how the claim was adjusted), or "none found, searched:
 <query>". You do not have to type the skeleton by hand:
 
 ```bash
-scholar search "..." -f bibtex+prov     # entries pre-wrapped, FOUND-VIA + DATE filled
+scholar search "..." -f bibtex+prov     # pre-wrapped, FOUND-VIA + DATE filled; add COUNTER
 scholar prov found-via "<paper-id>"     # `scholar search` line(s), also for rq; "Not reproducible:" → cookbook
 scholar prov export refs.bib --in-place # write notes' provenance blocks above entries
 scholar prov import refs.bib            # pull .bib provenance blocks back into notes
@@ -326,9 +324,7 @@ from the source repo's `\author{}` block, never from memory (a fabricated
 co-author is the canonical failure). After any bib work run `check_metadata.py`;
 diacritic and subtitle differences are benign, everything else is investigated.
 
-**Bib hygiene the reader sees** (quotes inside titles, abstract-only
-reading, inferred page numbers, citation keys that changed between
-scholar versions): `references/provenance-format.md`.
+Bib hygiene the reader sees (quoted titles, inferred pages, changed keys): `references/provenance-format.md`.
 
 ## Mirror the searches into a paper appendix
 
@@ -371,9 +367,12 @@ repository can follow. `references/appendix-guide.md` is the authority
   `scholar llm classify --no-examples` over the whole session (exactly one
   of supports-claim / qualifies-claim / adjacent-subtopic /
   off-topic-false-hit per paper, plus the labelled exclusion criterion on
-  discards and a theme tag on cited ones). Decide "Left pending" papers
-  with `sessions decide`; read the low-confidence and every qualifying
-  row yourself; then `scholar sessions export <session> -f table
+  discards and a theme tag on cited ones). An agent decides with
+  `sessions decide --source agent` (never `--force` over the author);
+  only the author's decisions or confirmations are *cited*. Read the
+  low-confidence and every qualifying row; have the author review a
+  seeded `scholar llm sample` and report its disagreement rate in the
+  method (appendix guide, "Who screened"); then `scholar sessions export <session> -f table
   --bearing-only --lang sv --label … --track … --theme TAG=NAME -o <base>`
   (older scholar: `scripts/session_table.py --csv <export.csv>`). A
   discarded row never counts as evidence; the caption counts both sides.
@@ -430,8 +429,8 @@ recorded verbatim (tool, query, outcome) in FOUND-VIA/COUNTER and in a
 (scholar llm context; scholar llm classify --no-examples; tags
 supports-claim / qualifies-claim / adjacent-subtopic / off-topic-false-hit,
 the labelled exclusion criterion on every discard, theme tags on cited
-papers; decide papers it leaves pending with
-scholar sessions decide; read low-confidence and qualifying rows
+papers; decide papers it leaves pending with scholar sessions decide
+--source agent, never --force; read low-confidence and qualifying rows
 yourself) and export it (scholar sessions export) so the audit table can
 be generated. Write a .bib with a provenance block (CLAIM / FOUND-VIA /
 PICKED / QUOTE / VERIFIED / COUNTER / DATE) above every entry to
@@ -469,9 +468,8 @@ the user as todos (`nytid-todo`), load-bearing first.
 | One exact phrase per concept; trust a search because its query table looks complete. | Several wordings per concept; named studies that must come back; a search by meaning held against the sessions (`scholar sessions check`); a missed study traced, repaired by concept and reported. |
 | Search one or two providers; trust a "not found"; record a failed search as 0. | Query several (`s2 openalex dblp wos scopus`); run `scholar providers check` first; copy `failed (reason)` cells as failed — a failed cell is "not searched". |
 | Delegate a literature search with "use WebSearch/alphaXiv" and no protocol. | Load this skill first; the subagent prompt carries the preamble above (named `scholar` session, counter-searches, provenance `.bib`, documented complements, report to a file). |
-| Use alphaXiv/WebSearch and mention it in passing. | Record the tool and verbatim query in `FOUND-VIA`/`COUNTER` **and** in the search-protocol appendix — undocumented complements are unbacked. |
 | "Six further studies agree — they are in the export." | Each corroborating study verified, in the bib, and cited with its one-clause finding. |
-| "The export lies in `litteratursokning/x.csv`" in the compiled appendix; URLs inline in prose. | Hit-list table `\input` at the end of the chapter; sources cited with bib entries/footnotes; paths only in `%` comments. |
+| Record an agent's screening as the author's, or cite what only a machine kept. | `sessions decide --source agent`; cited only after the author confirms; a reviewed `llm sample` measures the machine's error. |
 
 ## Reference files
 
@@ -480,10 +478,10 @@ the user as todos (`nytid-todo`), load-bearing first.
 | `references/provenance-format.md` | Full provenance schema, field semantics, worked examples, `FOUND-VIA` for a `scholar rq` session, what `check_provenance.py` checks (`--quotes`) | `FOUND-VIA`, `QUOTE`, `VERIFIED`, `COUNTER`, `--quotes`, `multi-line` |
 | `references/claim-audit.md` | Finding the claims that carry no citation: advice, conventions, "because" clauses, "no claims" statements; the PEP 8 case | `imperative`, `benefit`, `because`, `no claims` |
 | `references/verification-checklist.md` | Applicability tests for deciding whether a source really supports a claim | `scope`, `primary vs secondary`, `over-claim`, `retraction`, `venue`, `tldr`, `evidence grades` |
-| `references/scholar-cookbook.md` | Non-interactive `scholar` recipes (incl. `bibtex+prov`, `prov`, `verify`, `pdf quote`), provider health and failed searches, OpenAlex full text vs `--in title-abstract`, search by meaning (`sessions check`, tools and limits), enriching for screening, sessions and `.bak`, proxy, cache, citation keys + how to phrase `FOUND-VIA` for non-`scholar` sources | `providers check`, `Not reproducible`, `failed (`, `title-abstract`, `sessions check`, `pending-only`, `.json.bak`, `--proxy`, `cache clear`, `citation keys`, `bibtex+prov`, `WebFetch` |
+| `references/scholar-cookbook.md` | Non-interactive `scholar` recipes (incl. `bibtex+prov`, `prov`, `verify`, `pdf quote`), provider health and failed searches, OpenAlex full text vs `--in title-abstract`, search by meaning (`sessions check`, tools and limits), decision sources and the LLM sample, copies, enriching for screening, sessions and `.bak`, proxy, cache, citation keys + how to phrase `FOUND-VIA` for non-`scholar` sources | `providers check`, `Not reproducible`, `failed (`, `capped at`, `via bulk`, `--source agent`, `llm sample`, `reconcile`, `title-abstract`, `sessions check`, `pending-only`, `.json.bak`, `--proxy`, `cache clear`, `citation keys`, `bibtex+prov`, `WebFetch` |
 | `references/closed-access.md` | Fetching subscribed full texts through the KTH SOCKS tunnel: the allowed commands, `SCHOLAR_PROXY`, which publishers answer, curl vs `fetch_pdf.py`, bot checks, leftovers as todos | `tunnel`, `SCHOLAR_PROXY`, `socks5h`, `Cloudflare`, `user agent` |
 | `references/scholar-enhancements.md` | Record of what shipped in scholar for this skill (provenance, audit table, honest failures, session integrity, proxy) and a place for future ideas | `shipped`, `PR`, `gh issue`, `future ideas` |
-| `references/appendix-guide.md` | The backing appendix as a short reproducible paper: skeleton, self-containment rules, query-table template, hit-list table generation, checklist; query wording, known studies, the check by meaning, what to do about a missed study | `Self-contained`, `Same queries`, `Vocabulary symmetry`, `several wordings`, `must return`, `search by meaning`, `missed`, `Query table`, `session_table` |
+| `references/appendix-guide.md` | The backing appendix as a short reproducible paper: skeleton, self-containment rules, query-table template, hit-list table generation, checklist; query wording, known studies, the check by meaning, what to do about a missed study; dates, deduplication, who screened (sample) | `Self-contained`, `Who screened`, `PRISMA-S`, `Same queries`, `Vocabulary symmetry`, `several wordings`, `must return`, `search by meaning`, `missed`, `Query table`, `session_table` |
 | `scripts/session_table.py` | Fallback for `scholar sessions export -f table`: classified session CSV → the same auditable `longtable` (`--bearing-only`, `--lang sv|en`, `--theme`) | `--csv`, `--label`, `--theme` |
 
 ## Workflow checklist
@@ -494,6 +492,7 @@ the user as todos (`nytid-todo`), load-bearing first.
 - [ ] Several providers queried and their **health checked** (`scholar providers check`); known items retrieved by DOI/field search, not buried keyword ranking
 - [ ] **Counter-search run** and its outcome recorded (`COUNTER`): refuting/qualifying work handled, or "none found"
 - [ ] Results screened into supports / refutes / qualifies; discards tagged with their labelled exclusion criterion; claim adjusted if needed
+- [ ] Agent decisions recorded `--source agent`, none cited unconfirmed; a seeded `llm sample` reviewed by the author, its rate in the method
 - [ ] Picked with a written rationale among alternatives; source actually read (abstract or full text), not just the title
 - [ ] Verbatim supporting quote captured, entails the claim; provenance block written above the entry; `check_provenance.py --quotes` passes
 - [ ] Citation emitted in the project's markup style (writing-crypto / latex-writing)

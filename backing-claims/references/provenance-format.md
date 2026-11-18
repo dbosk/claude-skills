@@ -69,6 +69,10 @@ location `(<loc>)`) counts as missing.
   `.bib` backs the same claim and records the search. Required for every
   entry: a bare "none found" fails.
 - **DATE** — when the reference was verified (sources get retracted, superseded).
+  A `-f bibtex+prov` stub fills in the day the database answered the search
+  (for a cache hit, its original fetch date; `unknown (cached answer, fetch
+  date not recorded)` for answers cached before scholar recorded it): write
+  the verification date over it when you verify.
 
 ## Multi-line values
 
@@ -176,7 +180,8 @@ path never reaches the compiled text.
 never hand-transcribed (the judgement fields stay yours):
 
 ```bash
-# Whole search, each entry pre-wrapped with FOUND-VIA + DATE filled in:
+# Whole search, each entry pre-wrapped with FOUND-VIA + DATE filled in
+# (no COUNTER line on main at 51c296e, dbosk/scholarcli#176 open: add it):
 scholar search "..." -p s2 -p dblp -f bibtex+prov
 
 # One paper's reproducible FOUND-VIA line, rebuilt from the saved session(s):

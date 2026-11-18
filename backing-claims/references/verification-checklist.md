@@ -11,7 +11,7 @@ the reference does not back the claim — find a better one.
 - [Strength words that must match](#strength-words-that-must-match)
 - [Source-quality red flags](#source-quality-red-flags)
 - [What "verified" requires](#what-verified-requires)
-- [Machine summaries screen, never verify](#machine-summaries-screen-never-verify)
+- [Machine summaries screen, never verify](#machine-summaries-screen-never-verify) (also machine screening decisions)
 - [Choosing among supporting sources: compare evidence grades](#choosing-among-supporting-sources-compare-evidence-grades)
 - [Reading `check_metadata.py` output](#reading-check_metadatapy-output)
 
@@ -80,7 +80,9 @@ overstate the source.
 ## What "verified" requires
 
 - **Minimum:** the abstract or the specific passage was actually read (via
-  `scholar enrich`, `scholar pdf open`, or WebFetch of the source page).
+  `scholar enrich`, `scripts/fetch_pdf.py --text`, or WebFetch of the
+  source page; `scholar pdf open` only at the user's own terminal, since
+  it launches a viewer).
   `scholar pdf quote "<url>" --claim "<claim>"` proposes candidate passages to
   read — it does not verify; you still read and confirm entailment.
 - **For a precise quantitative or causal claim:** the relevant results section
@@ -102,6 +104,12 @@ Observed in the MFA review (2026-11-18): one record with no author, no
 year and no venue carried a summary that, taken as evidence, would have
 contradicted a result of the review; nothing about the record could be
 checked against the paper.
+
+The same holds for a screening decision. A classifier's or an agent's
+keep (`llm`, `agent` in the session) says a paper may bear on the claim;
+it is not a reading of the paper, and scholar never shows it as *cited*
+until the author confirms it. The reason the model stored (`llm_reason`)
+screens like a `tldr`: it is never quoted and never evidence.
 
 ## Choosing among supporting sources: compare evidence grades
 

@@ -90,7 +90,7 @@ provider from there (it asks ipify, a third party, only with
   Python `requests`' default user agent, which most publishers refused
   (403, or an HTML page instead of the PDF) whatever the address; curl
   got through where Python did not. Scholar now sends its own
-  `scholar/<version> (+https://github.com/dbosk/scholar)` user agent
+  `scholar/<version> (+https://github.com/dbosk/scholarcli)` user agent
   (dbosk/scholar#118; no e-mail address in it); whether publishers
   treat that better has not been tested yet, so keep 2b as the fallback
   and note which publishers answer 2a in the next round.
