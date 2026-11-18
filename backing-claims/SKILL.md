@@ -118,10 +118,10 @@ scholar rq "How do LLMs support novice programming?" -p openalex -p dblp -l 0
 
 **Query several providers, and check they are actually alive.** A "not
 found" under a narrow or degraded provider set is not a real negative.
-Run **`scholar providers check`** first and record its output; it exits 1
-when a configured provider is unusable. Since September 2026 **DBLP
-answers API clients with an anti-bot page**, so a failing `dblp` is
-expected: proceed with the others and record DBLP as unavailable. Query
+**Search and enrich through the KTH tunnel** (cookbook, "Network route"):
+only there does Scopus return abstracts. Run **`scholar providers check`**
+first (`Route: proxy …`) and record it. DBLP serves API clients an anti-bot
+page (since September 2026): record it as unavailable. Query
 at least s2 + openalex (+ dblp while it answers), plus wos/scopus (strong
 for older and non-CS/education literature) when keys are configured.
 **A failed search reads as failed, never as 0**: `sessions show` and the
@@ -396,10 +396,10 @@ subagent prompt with this preamble (adapt the slug and paths):
 
 ```
 Load the `backing-claims` skill (Skill tool: skill="backing-claims") and
-follow it. Run `scholar providers check` first and record which providers
-are alive (a failing dblp is expected while DBLP blocks API clients:
-proceed without it and record it as unavailable). Run EVERY search under
-one named session:
+follow it. Everything through the KTH tunnel (SCHOLAR_PROXY=socks5h://
+127.0.0.1:1081; Scopus abstracts need it). Run `scholar providers check`,
+record the live providers (dblp fails: record it). Run EVERY search
+under one named session:
   scholar search "<topic query>" -n <claim-slug> -l 0 -p dblp -p wos
     -p ieee -p openalex -p scopus -f bibtex+prov
 Never lower the limit (-l 0 = all results) and never cap screening or

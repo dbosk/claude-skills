@@ -438,6 +438,26 @@ tag (N):" with its paper id — decide each with `sessions decide`.
 
 ## Network route and identity
 
+**Run every search and enrichment through the KTH tunnel** (author,
+2026-11-18). Scopus answers only from the university's network with its
+COMPLETE view, the one that carries abstracts and full author lists; from
+anywhere else scholar falls back to the standard view ("the COMPLETE view
+is not authorized from this network … using the standard view"), and every
+Scopus record then lacks its abstract and falls to the `no-abstract`
+criterion. Measured 2026-11-18: the same Scopus queries gave 0 of 3 abstracts
+directly and 3 of 3 through the tunnel. Open the tunnel as in
+`closed-access.md` (step 1), then set the route once for the shell:
+
+```bash
+export SCHOLAR_PROXY=socks5h://127.0.0.1:1081
+scholar providers check      # must print "Route: proxy socks5h://…"
+```
+
+Mind the search cache: it does not record which route or Scopus view a
+result came from, so a query first run without the tunnel is answered from
+the cache without abstracts. If any search of the session ran without the
+tunnel, `scholar cache clear` (it keeps the LLM caches) before re-running.
+
 Every request scholar makes — searches, enrichment, PDF downloads — leaves
 by one route: `--proxy URL` (a global option, before the command:
 `scholar --proxy socks5h://127.0.0.1:1081 search …`), else `SCHOLAR_PROXY`,
