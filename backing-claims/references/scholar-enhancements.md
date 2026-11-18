@@ -1,7 +1,7 @@
 # `scholar` support for this skill: shipped + future ideas
 
 The workflow ideas captured here have been implemented in `scholar` (repo
-`dbosk/scholar`). This file records what shipped, so a missing command can
+`dbosk/scholarcli`, formerly `dbosk/scholar`). This file records what shipped, so a missing command can
 be traced to the change that brings it, and holds any future ideas.
 
 ## Shipped (use these; see `scholar-cookbook.md` for recipes)
@@ -97,7 +97,7 @@ on `dbosk/scholar` (per the `document-issues` convention) rather than building i
 ad hoc:
 
 ```bash
-gh issue create --repo dbosk/scholar --label enhancement \
+gh issue create --repo dbosk/scholarcli --label enhancement \
   --title "<short title>" --body "<motivation + sketch>"
 ```
 
