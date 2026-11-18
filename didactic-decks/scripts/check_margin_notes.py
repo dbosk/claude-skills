@@ -2,11 +2,9 @@
 """Check that every margin footnote prints on the page carrying its marker.
 
 didactic sets footnotes -- and, under the verbose citation style, every
-\\autocite -- as margin notes.  When the margin is at capacity the note is
-pushed to the next page, away from the superscript marker that refers to
-it.  That is a layout defect (fix it with a shorter note, the citation
-moved earlier, or the prose moved or reworded; never a page break), and
-it is invisible in the LaTeX log.
+\\autocite -- as margin notes.  A note printed on another page than its
+marker is hard to find; with didactic v2.19 it happens only where the
+package says so in the log, and anything else off its page is a defect.
 
 The check runs `pdftotext -bbox-layout`, which gives every word a bounding
 box and groups the words into lines, and compares, per page:
@@ -14,24 +12,18 @@ box and groups the words into lines, and compares, per page:
   * superscript markers in the body -- a digits-only word that abuts the
     word before it on its line and is raised above that word's baseline;
   * note numbers in the margin -- a digits-only word that opens a margin
-    line and is raised above the note text that follows it.
+    line and is raised above the note text that follows it;
+  * note numbers at the foot -- a digits-only word that opens a body line,
+    raised above the note's text that follows it, which is smaller than
+    the page's body text.  didactic sets a footnote that doesn't fit the
+    margin at the foot of its page, whole, in the text's width, and logs
+    nothing: on the page of its marker that is a placed note.
 
-The defect is a number that is a marker on one page and a note on the page
-beside it, but not a note on its own page: the note printed away from its
-marker.
-
-With didactic's noteoverflow=foot (the default from v2.18, with a marginfix
-that has \\marginnotefoot) a footnote that doesn't fit the margin is set at the
-foot of its page instead.  Such a note is recognised by its number opening a
-body line, raised above the note's text that follows it, which is smaller
-than the page's body text.  It is in place on the page of its marker; at the
-foot of the page beside its marker it is a defect like a margin note there.
-marginfix logs each one (`marginfix-foot: page=<p> at=<file>:<line>`), and
-the check says when it found fewer at the foot of a page than the log has.  Footnote numbering restarts per chapter, so the pairing is only
-made between neighbouring pages.  A marker or note with no counterpart on
-its own page or either neighbour is reported as a warning: the check did
-not recognise the other half (a marker inside a table cell, or split off
-by a line break, are the known cases) -- look at that page by eye.
+Footnote numbering restarts per chapter, so a marker and a note are only
+paired on the same or neighbouring pages, or on the pages a warning names.
+A marker or note with no counterpart there is reported as a WARNING: the
+check did not recognise the other half (a marker inside a table cell, or
+split off by a line break, are the known cases) -- look at that page by eye.
 
 Where the margin column is comes from the build: didactic writes one line
 to the job's log,
@@ -45,30 +37,64 @@ copied away from its build, an older didactic) the column is guessed from
 the word positions, and the output says so: the guess has failed on wide
 code reaching into the gutter and on decks with few margin notes.
 
-marginfix (1.6 on) logs what it did with the notes that did not fit:
+The rule (didactic v2.19, marginfix 1.7).  A note printed on another page
+than its marker passes if and only if a didactic warning
 
-    marginfix-spill: page=<p> to=<q> intended     carried on purpose
-    marginfix-spill: page=<p> to=<q> capped       carried, since ending
-                                                  page p early would leave
-                                                  more empty than the limit
-                                                  (didactic noteyieldmaxgap)
-    marginfix-spill: page=<p> to=<q> unresolved   should have fitted
-    marginfix-yield: page=<p> before=<file>:<line>  page ended early
+    Margin note called out at <file:line> on page <P> is set on page <Q>...
 
-A note on the page after its marker is INTENDED, not a defect, when the
-log has a matching intended spill, and CAPPED, not a defect either, when
-it has a matching capped spill; the capped spills are also listed as
-notices, since the note is away from its marker (look at the page: is it
-still easy to find?).  Every unresolved spill is a failure, whether or
-not the pairing found it.  The yields, and marginfix's warning
-when such a page is less than half full, are printed as notices.  The
-page numbers in the log are the page counter's, mapped to PDF pages
-through the log's shipout markers.
+names it; the check pairs the warning's P and Q (page counters, mapped to
+PDF pages through the log's shipout markers) with a marker on P whose note
+is on Q.  Every warning about notes is classed and printed:
 
-Exit status: 0 clean; 1 a note printed away from its marker, or an
-unresolved spill; 2 nothing was checked (no column found, no margin note
-found), which is never a pass unless --no-margin-ok says the PDF really
-has no margin notes.
+  CARRIED     "... is set on page Q: <why>": placed by the rules and
+              named, not a failure.  Shorten the note or move its callout
+              so that it fits beside its line or at the foot.
+  PAST FOOT   "... runs <d>pt past the foot of the margin": fine to ship.
+              Shorten a note above it if the page looks crowded.
+  LOOK        footnotes set out of sequence ("... before the one called
+              out at X, which is still waiting in the margin"); a page
+              TeX ended short before a footnote's line ("... page P is <n>
+              lines short"); a footnote in multicols set at the foot of
+              another page; callouts that couldn't be read; \\nofiles.
+              Not failures: read the page, reword or move the text near
+              the callout.
+  UNFORESEEN  "... (found from the last run): nothing said so in that
+              run": a placement didactic didn't foresee.  A failure:
+              rebuild from clean; if it stays, report it with the log.
+  LOST        "... wasn't printed (found from the last run)", "A footnote
+              in ... multicols ... is lost", "A margin note in multicols
+              is lost": the note is not in the PDF.  A failure: move it
+              out of the multicols, or out of the note it is nested in.
+  INSTALL     "Can't place margin notes that don't fit: ...", "Couldn't
+              patch \\<name>, ...": didactic and marginfix or the kernel
+              don't match.  A failure: install the two together.
+  NOTICE      "<n> footnote(s) wasn't/weren't plain", and the rest
+              (foot works as carry in two columns, side captions or noweb
+              chunks not patched, a reused footnote that repeats, any
+              unclassified didactic warning that mentions a note).
+
+The log is read as TeX wrote it: TeX breaks a log line at 79 bytes
+(pdfTeX, LuaTeX) or characters (XeTeX), wherever that falls, and a
+package continues a message after \\MessageBreak on lines that start with
+"(didactic)".  The check joins both before it matches, with the rules of
+didactic's testlog.py (41ab439), copied here so that the check does not
+depend on that file.
+
+Logs from an older didactic (before 2.19; the log's "Package: didactic
+<date> v<version>" line says which) were made under marginfix 1.6's rule,
+and are judged by it, as when they were built, with the rule said in the
+output: a note carried to the next page passes when the log has a matching
+`marginfix-spill: page=P to=Q intended` or `... capped` line (CAPPED is
+also listed), and every `... unresolved` spill fails; `marginfix-yield`
+lines and marginfix's half-empty-page warning are NOTICEs.  A log with no
+version line is judged by whichever records it carries.  Both rules come
+to the same for a note off its page that nothing names: a DEFECT.
+
+Exit status: 0 clean; 1 a note printed away from its marker that nothing
+names, or a warning classed UNFORESEEN, LOST or INSTALL (or an unresolved
+spill in an old log); 2 nothing was checked (no column found, no margin
+note found), which is never a pass unless --no-margin-ok says the PDF
+really has no margin notes.
 
 Usage:
     check_margin_notes.py NOTES.pdf [--log FILE | --margin-x BP]
@@ -151,20 +177,118 @@ NUM = r"(\d+(?:\.\d+)?)(?:bp|pt)?"
 MARGIN_LINE_RE = re.compile(
     r"didactic-margin:\s*odd=" + NUM + r"\s+even=" + NUM
     + r"\s+width=" + NUM)
+VERSION_RE = re.compile(r"^Package: didactic \S+ v(\d+(?:\.\d+)*)", re.M)
+# The version from which the rule is didactic's warnings, not marginfix's
+# spill records.
+ONEPASS = (2, 19)
+# pdfTeX logs "[<page counter>" as it ships out each page, so the n-th
+# such marker gives the page counter of PDF page n.
+SHIPOUT_RE = re.compile(r"(?:^|(?<=[\s\]]))\[(\d+)(?=[\]\s{<]|$)", re.M)
+
+# didactic v2.19's warnings about notes, matched on the joined log, where
+# each message is one line.  <P> and <Q> are page numbers as TeX prints
+# them; a reason, when there is one, follows a colon.
+WARN = r"^Package didactic Warning: "
+# A page number ends at a space, a colon, a parenthesis, a comma or the
+# message's full stop.
+PAGE = r"[^\s:(),.]+"
+# PackageWarning (not ...NoLine) ends its message with the input line.
+INPUT_LINE_RE = re.compile(r"\s+on input line \d+\.?$")
+LATE_MOVE_RE = re.compile(
+    WARN + r"Margin note called out at (?P<place>\S+) on page (?P<p>" + PAGE
+    + r") is set on page (?P<q>" + PAGE + r") \(found from the last run\)",
+    re.M)
+CARRIED_RE = re.compile(
+    WARN + r"Margin note called out at (?P<place>\S+) on page (?P<p>" + PAGE
+    + r") is set on page (?P<q>" + PAGE + r")(?! \(found)(?P<why>.*)$",
+    re.M)
+NOT_PRINTED_RE = re.compile(
+    WARN + r"Margin note called out (?:at (?P<place>\S+) )?on page (?P<p>"
+    + PAGE + r")(?: \(no place known\))? wasn't printed \(found from the "
+    r"last run\)", re.M)
+MCOL_FOOT_RE = re.compile(
+    WARN + r"Footnote called out at (?P<place>\S+) in multicols on page "
+    r"(?P<p>" + PAGE + r") is set at the foot of page (?P<q>" + PAGE + r")",
+    re.M)
+PAST_FOOT_RE = re.compile(
+    WARN + r"Margin note called out at (?P<place>\S+) on page (?P<p>" + PAGE
+    + r") runs (?P<d>[\d.]+)pt past the foot of the margin", re.M)
+OUT_OF_ORDER_RE = re.compile(
+    WARN + r"Footnote called out at (?P<place>\S+) is set at the foot of "
+    r"page (?P<p>" + PAGE + r") before the one called out at (?P<x>\S+), "
+    r"which is still waiting in the margin", re.M)
+SHORT_PAGE_RE = re.compile(
+    WARN + r"TeX ended page (?P<p>" + PAGE + r") before the line of the "
+    r"footnote called out at (?P<place>\S+),.* is (?P<n>\d+) lines short",
+    re.M)
+LOST_RE = re.compile(
+    WARN + r"(?:A footnote in (?:nested multicols|multicols in a margin "
+    r"note or a footnote)|A margin note in multicols) is lost", re.M)
+INSTALL_RE = re.compile(
+    WARN + r"(?:Can't place margin notes that don't fit|Couldn't patch \\)",
+    re.M)
+NOT_PLAIN_RE = re.compile(
+    WARN + r"\d+ footnotes? (?:wasn't|weren't) plain", re.M)
+LOOK_RE = re.compile(
+    WARN + r"(?:Can't read the callouts of page (?P<p>" + PAGE + r")|With "
+    r"\\nofiles, a margin note)", re.M)
+# Patches of other features than the notes' placement.
+OTHER_PATCH_RE = re.compile(
+    WARN + r"Can't patch (?:memoir's side captions|noweb's code chunks)",
+    re.M)
+# Any other didactic warning about notes is printed as a NOTICE, except a
+# box's badness in a note, which is typesetting, not placement.
+NOTE_WORD_RE = re.compile(r"\bnote|\bfootnote|noteoverflow", re.I)
+BOX_RE = re.compile(r"^Package didactic Warning: (?:Under|Over)full \\[hv]box")
+
+# (kind, pattern), tried in this order on each warning: the first that
+# matches classes it.
+CLASSES = [
+    ("UNFORESEEN", LATE_MOVE_RE),
+    ("LOST", NOT_PRINTED_RE),
+    ("LOST", LOST_RE),
+    ("INSTALL", INSTALL_RE),
+    ("CARRIED", CARRIED_RE),
+    ("PAST FOOT", PAST_FOOT_RE),
+    ("LOOK", MCOL_FOOT_RE),
+    ("LOOK", OUT_OF_ORDER_RE),
+    ("LOOK", SHORT_PAGE_RE),
+    ("LOOK", LOOK_RE),
+    ("NOTICE", NOT_PLAIN_RE),
+    ("NOTICE", OTHER_PATCH_RE),
+]
+FAILING = ("UNFORESEEN", "LOST", "INSTALL")
+# What the author does about each kind, said once per kind in the output.
+ADVICE = {
+    "CARRIED": "shorten the note or move its callout, so that it fits "
+               "beside its line or at the foot",
+    "PAST FOOT": "fine to ship; shorten a note above it if the page looks "
+                 "crowded",
+    "LOOK": "read the page; reword or move the text near the callout",
+    "UNFORESEEN": "a placement didactic didn't foresee: rebuild from "
+                  "clean, and if it stays, report it with the log",
+    "LOST": "the note is not in the PDF: move it out of the multicols, or "
+            "out of the note it is nested in; under TeX Live's marginfix "
+            "1.2, shorten a note taller than the margin",
+    "INSTALL": "didactic does not match marginfix or the kernel: install "
+               "the two together",
+}
+
+# Before didactic v2.19: marginfix 1.6's records of the notes it moved.
 SPILL_RE = re.compile(
     r"marginfix-spill:\s*page=(\d+)\s+to=(\d+)\s+(intended|capped|unresolved)")
 YIELD_RE = re.compile(r"marginfix-yield:\s*page=(\d+)\s+before=(\S+)")
-# marginfix's warning for a page that ended early and is less than half
-# full: its first line and the "(marginfix)" lines continuing it.
-HALF_RE = re.compile(
-    r"^Package marginfix Warning: Page \d+ ends early.*?"
-    r"(?:\n\(marginfix\).*?)*$", re.M)
-# pdfTeX logs "[<page counter>" as it ships out each page, so the n-th
-# such marker gives the page counter of PDF page n.
 FOOT_LOG_RE = re.compile(r"^marginfix-foot: page=(\d+) at=(\S+)", re.M)
-SHIPOUT_RE = re.compile(r"(?:^|(?<=[\s\]]))\[(\d+)(?=[\]\s{<]|$)", re.M)
-# TeX breaks log lines at max_print_line characters.
-LOG_LINE_MAX = 79
+# marginfix's warning for a page that ended early and is less than half
+# full, its "(marginfix)" lines joined to it.
+HALF_RE = re.compile(r"^Package marginfix Warning: Page \d+ ends early.*$",
+                     re.M)
+
+# TeX breaks a log line at max_print_line, 79.
+LOG_WRAP = 79
+# A package's message goes on after \MessageBreak on lines that start with
+# its name in parentheses.
+GOESON_RE = re.compile(rb"\n\((?:didactic|marginfix|hyperref)\) *")
 
 
 class Word:
@@ -241,22 +365,45 @@ def default_logs(pdf):
 
 
 def read_log(path):
-    """The log's text with TeX's line breaks at LOG_LINE_MAX undone, or
-    None when it cannot be read."""
+    """The log's text with TeX's line breaks undone and each message's
+    continuation lines joined to it, one message per line, or None when it
+    cannot be read.  The joining follows didactic's testlog.py (lines()
+    and joined(), at 41ab439), copied so as not to depend on it."""
     try:
-        with open(path, encoding="latin-1") as f:
-            raw = f.read().split("\n")
+        with open(path, "rb") as f:
+            data = f.read()
     except OSError:
         return None
-    lines, buf = [], ""
-    for line in raw:
-        buf += line
-        if len(line) != LOG_LINE_MAX:
-            lines.append(buf)
-            buf = ""
-    if buf:
-        lines.append(buf)
-    return "\n".join(lines)
+    first = data.split(b"\n", 1)[0]
+    if b"XeTeX" in first:
+        # XeTeX counts characters, not bytes.
+        text = data.decode("utf-8", errors="replace")
+        text = re.sub(r"(?m)^(.{%d})\n" % LOG_WRAP, r"\1", text)
+        data = text.encode("utf-8")
+    else:
+        lua = b"LuaTeX" in first or b"LuaHBTeX" in first
+        out, last = [], None
+        for line in data.split(b"\n"):
+            if last is not None and broken(last, line, lua):
+                out[-1] += line
+            else:
+                out.append(line)
+            last = line
+        data = b"\n".join(out)
+    return GOESON_RE.sub(b" ", data).decode("utf-8", errors="replace")
+
+
+def broken(line, after, lua):
+    """Whether TeX broke the physical line `line`, followed by `after`
+    (bytes).  A line of exactly 79 bytes is always a break.  LuaTeX moves
+    a character of several bytes that would cross the 79th to the next
+    line, so its line is then shorter."""
+    if len(line) == LOG_WRAP:
+        return True
+    if lua and after and after[0] >= 0xC0:
+        size = 2 if after[0] < 0xE0 else 3 if after[0] < 0xF0 else 4
+        return len(line) < LOG_WRAP <= len(line) + size
+    return False
 
 
 def columns_from_log(text):
@@ -268,52 +415,127 @@ def columns_from_log(text):
     return Columns(odd, even, width)
 
 
-class Marginfix:
-    """What marginfix logged about the notes it moved, in PDF pages."""
+ROMAN = {"i": 1, "v": 5, "x": 10, "l": 50, "c": 100, "d": 500, "m": 1000}
+
+
+def page_number(label):
+    """The page counter of a page number as TeX prints it (arabic or
+    roman), or None."""
+    if label is None:
+        return None
+    if label.isdigit():
+        return int(label)
+    s = label.lower()
+    if s and all(c in ROMAN for c in s):
+        total = 0
+        for c, d in zip(s, s[1:] + " "):
+            v = ROMAN[c]
+            total += -v if d in ROMAN and ROMAN[d] > v else v
+        return total
+    return None
+
+
+class Event:
+    """One classed warning: its kind, its words, and the pages it names
+    (page counters; q is None when it names one page)."""
+
+    def __init__(self, kind, text, p=None, q=None):
+        self.kind, self.text, self.p, self.q = kind, text, p, q
+
+
+def warning_text(line):
+    """A warning's words without the package's prefix and the input line."""
+    text = line[len("Package didactic Warning: "):]
+    return INPUT_LINE_RE.sub("", text).rstrip(".")
+
+
+class Log:
+    """What the build log says about the notes, in PDF pages."""
 
     def __init__(self, text, npages):
         text = text or ""
+        m = VERSION_RE.search(text)
+        self.version = m.group(1) if m else None
+        self.events = []
+        for line in re.findall(r"^Package didactic Warning: .*$", text, re.M):
+            for kind, rx in CLASSES:
+                m = rx.match(line)
+                if m:
+                    groups = m.groupdict()
+                    self.events.append(Event(
+                        kind, warning_text(line),
+                        page_number(groups.get("p")),
+                        page_number(groups.get("q"))))
+                    break
+            else:
+                if NOTE_WORD_RE.search(line) and not BOX_RE.match(line):
+                    self.events.append(Event("NOTICE", warning_text(line)))
         self.spills = [(int(p), int(q), kind)
                        for p, q, kind in SPILL_RE.findall(text)]
         self.yields = [(int(p), at) for p, at in YIELD_RE.findall(text)]
         self.feet = [(int(p), at) for p, at in FOOT_LOG_RE.findall(text)]
-        self.half_empty = [
-            " ".join(part.strip() for part in
-                     re.sub(r"\(marginfix\)", "", m.group(0)).split("\n"))
-            for m in HALF_RE.finditer(text)]
+        self.half_empty = HALF_RE.findall(text)
         labels = [int(n) for n in SHIPOUT_RE.findall(text)]
         self.mapped = len(labels) == npages
         self.labels = labels if self.mapped else list(range(1, npages + 1))
 
-    def any(self):
-        return bool(self.spills or self.yields or self.half_empty)
+    def version_tuple(self):
+        if self.version is None:
+            return None
+        return tuple(int(x) for x in self.version.split("."))
+
+    def old_records(self):
+        """Whether the log carries marginfix 1.6's records."""
+        return bool(self.spills or self.yields or self.feet
+                    or self.half_empty)
 
     def pdf_pages(self, page):
         return [n for n, lab in enumerate(self.labels, start=1)
                 if lab == page]
 
+    def pdf_page(self, page):
+        """The first PDF page with this page counter, or the counter."""
+        return (self.pdf_pages(page) or [page])[0]
+
     def pdf_pair(self, p, q):
-        """The PDF pages (marker, note) of a spill from page p to q: the
-        first page labelled q after a page labelled p."""
+        """The PDF pages (marker, note) of a note called out on page p and
+        set on page q: of the PDF pages labelled q, the nearest to a page
+        labelled p (a later one first)."""
+        best = None
         for n in self.pdf_pages(p):
-            for m in range(n + 1, len(self.labels) + 1):
-                if self.labels[m - 1] == q:
-                    return n, m
-        return p, q
+            for m, lab in enumerate(self.labels, start=1):
+                if lab == q and m != n:
+                    key = (abs(m - n), m < n)
+                    if best is None or key < best[0]:
+                        best = (key, (n, m))
+        return best[1] if best else (p, q)
 
-    def intended(self):
-        return collections.Counter(self.pdf_pair(p, q)
-                                   for p, q, kind in self.spills
-                                   if kind == "intended")
-
-    def capped(self):
-        return collections.Counter(self.pdf_pair(p, q)
-                                   for p, q, kind in self.spills
-                                   if kind == "capped")
+    def covers(self):
+        """The (marker page, note page) pairs that a warning or a record
+        accounts for: for each, one entry per note, saying what names it."""
+        c = collections.defaultdict(list)
+        for e in self.events:
+            if e.q is not None and e.p is not None and e.kind in (
+                    "CARRIED", "LOOK"):
+                c[self.pdf_pair(e.p, e.q)].append(
+                    f"a didactic warning ({e.kind})")
+        for p, q, kind in self.spills:
+            if kind in ("intended", "capped"):
+                c[self.pdf_pair(p, q)].append(
+                    f"a marginfix-spill {kind} record")
+        return c
 
     def unresolved(self):
         return [self.pdf_pair(p, q) for p, q, kind in self.spills
                 if kind == "unresolved"]
+
+    def where(self, e):
+        """The PDF pages an event names, as (n, m), m None for one page."""
+        if e.p is None:
+            return None, None
+        if e.q is None:
+            return self.pdf_page(e.p), None
+        return self.pdf_pair(e.p, e.q)
 
 
 def guess_columns(pages):
@@ -495,9 +717,9 @@ def main():
                     "carries their marker.")
     ap.add_argument("pdf", help="the notes PDF")
     ap.add_argument("--log", default=None,
-                    help="the build log holding the didactic-margin and "
-                         "marginfix lines (default: beside the PDF, or in "
-                         "ltxobj/)")
+                    help="the build log holding the didactic-margin line "
+                         "and didactic's warnings (default: beside the PDF, "
+                         "or in ltxobj/)")
     ap.add_argument("--margin-x", type=float, default=None,
                     help="x of the margin column's left edge in PDF points, "
                          "on every page (overrides the log)")
@@ -548,106 +770,161 @@ def main():
             print(f"page {n}: markers {sorted(markers)}, "
                   f"notes {sorted(notes)}, at the foot {sorted(foot)}")
 
-    mfx = Marginfix(text, len(pages))
-    if mfx.any() and not mfx.mapped:
+    log_ = Log(text, len(pages))
+    print(rule_of(log_, text is not None))
+    if (log_.events or log_.old_records()) and not log_.mapped:
         print("NOTICE: the log's shipout markers do not match the PDF's "
-              "pages; marginfix's page numbers are taken as PDF pages")
-    for p, at in mfx.yields:
-        where = ", ".join(str(n) for n in mfx.pdf_pages(p)) or "?"
-        if where != str(p):
-            where += f" (page counter {p})"
-        print(f"NOTICE: marginfix ended page {where} early, before the "
-              f"note called out at {at}")
-    for w in mfx.half_empty:
-        print(f"NOTICE: {w} (page counter; not a failure)")
-    intended = mfx.intended()
-    capped = mfx.capped()
-    for (n, m), k in sorted(capped.items()):
-        if args.page is None or args.page in (n, m):
-            print(f"NOTICE: marginfix carried {k} note(s) marked on page "
-                  f"{n} to page {m} instead of ending page {n} early "
-                  f"(marginfix-spill capped; not a failure)")
+              "pages; its page numbers are taken as PDF pages")
 
-    defects, warnings, carried = [], [], []
+    def on_page(n, m=None):
+        return args.page is None or args.page in (n, m)
+
+    # What the log says, classed; the failing kinds are counted.  With
+    # --page, a warning that names pages is shown only for that page.
+    events = [e for e in log_.events
+              if log_.where(e)[0] is None or on_page(*log_.where(e))]
+    failing = []
+    seen = set()
+    for e in events:
+        n, m = log_.where(e)
+        pages_said = ""
+        if n is not None:
+            pages_said = (f" [PDF page {n}" + (f" to {m}" if m else "")
+                          + "]")
+        print(f"{e.kind}: {e.text}{pages_said}")
+        if e.kind in ADVICE and e.kind not in seen:
+            seen.add(e.kind)
+            print(f"  -> {ADVICE[e.kind]}")
+        if e.kind in FAILING:
+            failing.append(e)
+    for p, at in log_.yields:
+        print(f"NOTICE: marginfix ended page {log_.pdf_page(p)} early, "
+              f"before the note called out at {at} (page counter {p})")
+    for w in log_.half_empty:
+        print(f"NOTICE: {w} (page counter; not a failure)")
+
+    covers = log_.covers()
+    defects, warnings, named = [], [], []
     total_markers = total_notes = total_foot = 0
     empty = (set(), set(), set())
-    logged_feet = collections.Counter()
-    for p, _ in mfx.feet:
-        for n in mfx.pdf_pages(p)[:1]:
-            logged_feet[n] += 1
+    accounted = set()
+
+    def placed(m):
+        """The note numbers set on PDF page m, in the margin or at the
+        foot."""
+        _, notes, foot = per_page.get(m, empty)
+        return notes | foot
+
     for n, (markers, notes, foot) in sorted(per_page.items()):
         total_markers += len(markers)
         total_notes += len(notes)
         total_foot += len(foot)
+        for k in sorted(markers - notes - foot):
+            m = next((m for (pn, m), c in sorted(covers.items())
+                      if pn == n and c and k in placed(m)), None)
+            if m is not None:
+                how = covers[(n, m)].pop(0)
+                accounted.add((m, k))
+                named.append(f"page {n}: marker {k} is here, its note on "
+                             f"page {m}, named by {how}")
+            elif k in placed(n + 1):
+                accounted.add((n + 1, k))
+                defects.append(f"page {n}: marker {k} is here, its note is "
+                               f"on the next page, and nothing in the log "
+                               f"names it")
+            elif k in placed(n - 1):
+                accounted.add((n - 1, k))
+                defects.append(f"page {n}: marker {k} is here, its note is "
+                               f"on the previous page, and nothing in the "
+                               f"log names it")
+            else:
+                warnings.append(f"page {n}: marker {k} has no margin note "
+                                f"here or beside it")
+    logged_feet = collections.Counter()
+    for p, _ in log_.feet:
+        logged_feet[log_.pdf_page(p)] += 1
+    for n, (markers, notes, foot) in sorted(per_page.items()):
         near_markers = (per_page.get(n - 1, empty)[0]
                         | per_page.get(n + 1, empty)[0])
         if len(foot) < logged_feet[n]:
             warnings.append(f"page {n}: marginfix set {logged_feet[n]} "
                             f"note(s) at the foot, {len(foot)} found there")
-        for k in sorted(foot - markers):
-            if k in near_markers:
-                defects.append(f"page {n}: note {k} is at the foot of this "
-                               f"page, its marker on the page beside it")
-            else:
-                warnings.append(f"page {n}: note {k} at the foot has no "
-                                f"marker here or beside it")
-        for k in sorted(markers - notes - foot):
-            if k in per_page.get(n + 1, empty)[1]:
-                if intended[(n, n + 1)] > 0:
-                    intended[(n, n + 1)] -= 1
-                    carried.append(("INTENDED",
-                                    f"page {n}: marker {k} is here, its "
-                                    f"note carried to page {n + 1} on "
-                                    f"purpose (marginfix-spill intended)"))
-                elif capped[(n, n + 1)] > 0:
-                    capped[(n, n + 1)] -= 1
-                    carried.append(("CAPPED",
-                                    f"page {n}: marker {k} is here, its "
-                                    f"note carried to page {n + 1} "
-                                    f"(marginfix-spill capped)"))
-                else:
-                    defects.append(f"page {n}: marker {k} is here, its "
-                                   f"margin note is on the next page")
-            elif k in per_page.get(n - 1, empty)[1]:
-                defects.append(f"page {n}: marker {k} is here, its margin "
-                               f"note is on the previous page")
-            else:
-                warnings.append(f"page {n}: marker {k} has no margin note "
-                                f"here or beside it")
-        for k in sorted(notes - markers):
-            if k not in near_markers:
-                warnings.append(f"page {n}: margin note {k} has no marker "
-                                f"here or beside it")
+        for k in sorted((notes | foot) - markers):
+            if (n, k) in accounted or k in near_markers:
+                continue
+            where = "at the foot" if k in foot else "in the margin"
+            warnings.append(f"page {n}: note {k} {where} has no marker here "
+                            f"or beside it")
 
     print(f"{total_markers} markers, {total_notes} margin notes and "
           f"{total_foot} notes at the foot found on {len(per_page)} pages")
     for w in warnings:
         print(f"WARNING: {w} --- read that page by eye")
-    for label, c in carried:
-        print(f"{label}: {c}")
+    for c in named:
+        print(f"NAMED: {c}")
     for d in defects:
         print(f"DEFECT: {d}")
-    unresolved = [(n, m) for n, m in mfx.unresolved()
-                  if args.page is None or args.page in (n, m)]
+    unresolved = [(n, m) for n, m in log_.unresolved() if on_page(n, m)]
     for n, m in unresolved:
         print(f"UNRESOLVED: marginfix could not fit the note marked on "
               f"page {n} and set it on page {m} (marginfix-spill "
               f"unresolved)")
-    if defects or unresolved:
-        print(f"FAIL: {len(defects)} notes print away from their "
-              f"marker, {len(unresolved)} unresolved marginfix spills")
+    look = collections.Counter(e.kind for e in events
+                               if e.kind in ("CARRIED", "PAST FOOT", "LOOK"))
+    if look:
+        print("to look at: " + ", ".join(f"{k} {look[k]}" for k in
+                                         ("CARRIED", "PAST FOOT", "LOOK")
+                                         if look[k]))
+    if defects or unresolved or failing:
+        print(f"FAIL: {len(defects)} notes print away from their marker "
+              f"unnamed, {len(failing)} warnings of a failing kind "
+              f"({', '.join(FAILING)})"
+              + (f", {len(unresolved)} unresolved marginfix spills"
+                 if unresolved else ""))
         return 1
     if total_notes + total_foot == 0 and args.page is None:
         # Markers with no note at all, or neither: the notes were lost
-        # (marginfix) or the column is wrong.  Either way nothing was
-        # paired, so this is not a pass.
+        # or the column is wrong.  Either way nothing was paired, so this
+        # is not a pass.
         print(f"{verdict}: no numbered margin note found, nothing paired: the "
               "notes were lost, or the margin column is wrong; pass "
               "--no-margin-ok if this PDF really has none")
         return nothing
     print("every margin note prints on the page carrying its marker"
-          + (", in the margin or at its foot" if total_foot else ""))
+          + (", in the margin or at its foot" if total_foot else "")
+          + (", or where the log names it" if named else ""))
     return 0
+
+
+def rule_of(log_, have_log):
+    """Which rule judges the notes off their page, as a line of output."""
+    v = log_.version_tuple()
+    if not have_log:
+        return ("rule: no log found, so no warning can name a note: every "
+                "note off its marker's page is a DEFECT")
+    if v is not None and v >= ONEPASS:
+        line = (f"rule: didactic v{log_.version}: a note off its marker's "
+                "page passes only when a didactic warning names it")
+        if log_.old_records():
+            line += ("\nNOTICE: the log also has marginfix-spill, -yield or "
+                     "-foot lines, from a marginfix older than this "
+                     "didactic expects (install the two together); its "
+                     "intended and capped spills are honoured, unresolved "
+                     "ones fail")
+        return line
+    if v is not None:
+        return (f"rule: didactic v{log_.version}, older than 2.19: judged "
+                "as when it was built, by marginfix's records (a "
+                "marginfix-spill intended or capped line names a carried "
+                "note, an unresolved one fails); rebuild under v2.19 for "
+                "the current rule")
+    if log_.old_records():
+        return ("rule: no didactic version in the log; it has marginfix "
+                "1.6's records, so they judge it (intended and capped "
+                "spills name a note, unresolved ones fail), with any "
+                "didactic warnings")
+    return ("rule: no didactic version in the log: a note off its "
+            "marker's page passes only when a didactic warning names it")
 
 
 if __name__ == "__main__":

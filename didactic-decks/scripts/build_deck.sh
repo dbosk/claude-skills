@@ -99,9 +99,9 @@ pre_clean() { rm -rf ltxobj/_minted; }
 # latexmk under -use-make can stop before the final passes: blank ToC
 # frames on the slides, literal MINTED placeholders, unresolved refs.
 # Run biber and pdflatex by hand while the log still asks for it.
-# Up to 8 passes: marginfix's records (anchor pages, early page ends and
-# their cap, \marginnoteyieldlimit) settle a run at a time, and a notes
-# PDF dense with citations in the margin has needed 6 after latexmk.
+# Up to 8 passes: didactic's and marginfix's records (anchor pages, the
+# notes' pages) settle a run at a time, and a notes PDF dense with
+# citations in the margin has needed 6 after latexmk.
 converge() {
   local j=$1 i
   for i in 1 2 3 4 5 6 7 8; do
@@ -308,8 +308,10 @@ case ",$JOBS," in *,notes,*)
                           "or note): python3 $MARGIN $NPDF lists them"
     case "$rc" in
       0) ;;
-      1) bad "notes: margin notes print away from their marker, or" \
-             "marginfix logged an unresolved spill" ;;
+      1) bad "notes: a margin note prints away from its marker unnamed," \
+             "or didactic warned of a lost note or a wrong installation" \
+             "(DEFECT, UNFORESEEN, LOST, INSTALL or, in an old log," \
+             "UNRESOLVED lines above)" ;;
       *) bad "notes: margin-note check checked nothing (exit $rc);" \
              "if the deck really has no margin notes, say so in" \
              ".no-margin-check" ;;
