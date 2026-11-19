@@ -139,6 +139,24 @@ is the tell of an older install):
 | [#194](https://github.com/dbosk/scholarcli/issues/194) | Concurrent saves fill gaps in a paper from the other process's copy (a field both hold keeps this process's value, #206) | — |
 | [#181](https://github.com/dbosk/scholarcli/issues/181) | A session saves into the file it was loaded from; a file whose stored name differs is warned about and flagged by `sessions list` (`name_mismatch`) | `sessions list` |
 
+Merged 2026-11-19, third round (PRs #208–#242; installed via pipx from
+main at f61f48a; `scholar sessions relabel --help` failing is the tell of
+an older install):
+
+| Issue | Capability | Command |
+|-------|------------|---------|
+| [#216](https://github.com/dbosk/scholarcli/issues/216) | Correct who decided without touching the decision: only unreviewed targets (`agent`, `llm`); LLM trace and confidence kept; `pre-relabel` backup; each decision records `relabelled` (from, to, at, note, by) | `sessions relabel S --from human --to agent --all --dry-run --note … --by …` |
+| [#218](https://github.com/dbosk/scholarcli/issues/218) | Audit table: a row is cited when the text's bibliography cites the work, whoever decided; cited exclusions and works the session lacks are listed on stderr; uncited keeps counted apart | `sessions export S -f table --cited-from refs.bib` |
+| [#220](https://github.com/dbosk/scholarcli/issues/220) | Non-Latin text (and Latin letters T1 lacks) wrapped in `\scholarnonlatin{…}` instead of dropped; defined only where used (text under XeLaTeX/LuaLaTeX, a marker under pdfLaTeX); standalone reports load T1; rows starting with `[` compile | `sessions export`, `llm synthesize` |
+| [#230](https://github.com/dbosk/scholarcli/issues/230) | `search -f bibtex`/`bibtex+prov` escape their fields; provenance blocks record `% ID: <paper id>`; an `@preamble` defines `\scholarnonlatin` when needed | `search -f bibtex+prov`, `prov import/export` |
+| [#204](https://github.com/dbosk/scholarcli/issues/204) | A work's audit row comes from its confirmed copy (a human or reviewed verdict on the work), not from an unreviewed classifier copy; `no-abstract`/version-note discards judge only the record | `sessions export -f table` |
+| [#224](https://github.com/dbosk/scholarcli/issues/224) | Classifier and relayed `--source llm` answers must have a category that fits the status; all four categories are offered once a session uses any | `llm classify`, `sessions decide --source llm` |
+| [#237](https://github.com/dbosk/scholarcli/issues/237) | Session arguments: a label fitting two files exits 2; `foo.json` / `<hash>.json` pick a file; paths outside the sessions dir refused | every command taking a session |
+| [#228](https://github.com/dbosk/scholarcli/issues/228) | Two decisions under one id survive appends and concurrent saves; `decide` refuses copies decided apart unless `--all-copies` | `sessions decide … --all-copies` |
+| [#206](https://github.com/dbosk/scholarcli/issues/206), [#219](https://github.com/dbosk/scholarcli/issues/219) | Concurrent saves merge paper fields three ways (a retraction found by `verify` survives a stale save); Crossref notices are united | — |
+| [#203](https://github.com/dbosk/scholarcli/issues/203), [#207](https://github.com/dbosk/scholarcli/issues/207), [#213](https://github.com/dbosk/scholarcli/issues/213), [#214](https://github.com/dbosk/scholarcli/issues/214) | Appends load only their own session file and keep the right merge baseline; a namesake never inherits another work's decision | `search -n` |
+| [#215](https://github.com/dbosk/scholarcli/issues/215), [#221](https://github.com/dbosk/scholarcli/issues/221), [#231](https://github.com/dbosk/scholarcli/issues/231), [#233](https://github.com/dbosk/scholarcli/issues/233), [#241](https://github.com/dbosk/scholarcli/issues/241) | Copy lists show same-id pairs; listings and pooled samples read sessions by file; DBLP homonym numbers no longer split audit rows; the Crossref contact address is read per request | `sessions show`, `llm sample --report` |
+
 ## Future ideas (not yet built)
 
 When a new gap appears, offer to file it as a `gh issue`

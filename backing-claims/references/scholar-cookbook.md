@@ -525,12 +525,26 @@ scholar notes export notes.json        # dump all notes (machine-readable)
 Notes are an optional secondary store; the **authoritative** provenance lives in
 the `.bib` comment block (see `provenance-format.md`).
 
-**Who decided is recorded, and only a human cites.** Sources: `human`,
-`agent` (an AI agent: you), `llm` (a classifier run), and `agent_reviewed`
-/ `llm_reviewed` once the author confirmed or changed them (in the TUI, or
-`decide --source human`). An unreviewed agent or LLM keep is a candidate:
-the audit table never shows it as *cited*, and a stored source scholar
-does not know reads as `unknown source '<value>'`, unreviewed and uncited.
+**Who decided is recorded; what is cited is the text's business.**
+Sources: `human`, `agent` (an AI agent: you), `llm` (a classifier run),
+and `agent_reviewed` / `llm_reviewed` once the *author* confirmed or
+changed them (in the TUI, or `decide --source human`). An unreviewed agent
+or LLM keep is a candidate: by default the audit table never shows it as
+*cited*, and a stored source scholar does not know reads as `unknown
+source '<value>'`, unreviewed and uncited. When the chapter's text cites
+the works, export with `sessions export S -f table --cited-from refs.bib`
+(repeatable): a row is then cited when the bibliography cites its work,
+whoever decided (machine rows keep their confidence, so who decided stays
+visible); a cited work the session excludes keeps its exclusion plus
+"(cited in the text)", and stderr lists cited works the session excludes
+or does not hold: resolve each before publishing.
+A source recorded wrongly (agent work saved as `human` before `--source`
+was required, or an LLM call an agent, not the author, confirmed) is
+corrected with `scholar sessions relabel S --from human --to agent
+(--doi …|--all) [--dry-run] --note "why" --by NAME`: only the source
+changes (status, tags, confidence and the LLM trace stay; a
+`pre-relabel` backup is written), and only unreviewed targets (`agent`,
+`llm`) are accepted, never a confirmation a human did not make.
 A machine decision never replaces one a human made or reviewed: the whole
 batch is refused (exit 2) unless `--force`. **Never pass `--force` to
 override the author**; report the disagreement instead. When the status
@@ -539,7 +553,14 @@ changes, or a `--tag` is a category, the old category tags are replaced
 re-deciding adds tags. `--untag TAG` removes a tag first, e.g. an
 exclusion criterion left on a paper that is now kept (it would read as a
 theme). It is part of a decision: as an agent, pass `-c` again (else the
-confidence is cleared). `sessions show
+confidence is cleared), and any machine decide clears the classifier's
+trace (model, prompt, reason) on that record. A relayed classifier verdict
+(`--source llm`) must have a category that fits the status (keep:
+supports/qualifies/adjacent; discard: adjacent/off-topic). When a work is
+held twice under one id with different decisions, `decide` refuses (exit
+2, naming them) unless `--all-copies`. A session argument that fits two
+files (a named `foo` beside the unnamed session of query `foo`) exits 2:
+give the file name instead (`foo.json`, `<hash>.json`). `sessions show
 -f json` (`decision_sources`) and the report count decisions by source
 ("Decisions by source: 12 human; 40 agent, unreviewed; …").
 
