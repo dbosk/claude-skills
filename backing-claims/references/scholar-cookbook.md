@@ -553,8 +553,10 @@ changes, or a `--tag` is a category, the old category tags are replaced
 re-deciding adds tags. `--untag TAG` removes a tag first, e.g. an
 exclusion criterion left on a paper that is now kept (it would read as a
 theme). It is part of a decision: as an agent, pass `-c` again (else the
-confidence is cleared), and any machine decide clears the classifier's
-trace (model, prompt, reason) on that record. A relayed classifier verdict
+confidence is cleared), and a machine decide clears the classifier's
+trace (model, prompt, reason) on that record unless you correct as an
+agent with `--keep-trace` (needs `-c`; refused with `--source llm`),
+which keeps the record of the call the correction is made on. A relayed classifier verdict
 (`--source llm`) must have a category that fits the status (keep:
 supports/qualifies/adjacent; discard: adjacent/off-topic). When a work is
 held twice under one id with different decisions, `decide` refuses (exit
