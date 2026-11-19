@@ -117,11 +117,26 @@ def extract_text(pdf_path: Path) -> Path | None:
     return txt_path
 
 
+OPTIONS = {"--text", "--quiet"}
+
+
 def main(argv: list[str]) -> int:
+    if "-h" in argv or "--help" in argv:
+        print(__doc__)
+        return 0
+    unknown = [a for a in argv if a.startswith("-") and a not in OPTIONS]
+    if unknown:
+        print(f"fetch_pdf.py: unknown option {unknown[0]} (see --help)",
+              file=sys.stderr)
+        return 2
     want_text = "--text" in argv
     quiet = "--quiet" in argv
-    sources = [a for a in argv if not a.startswith("--")]
+    sources = [a for a in argv if not a.startswith("-")]
     if not sources:
+        if sys.stdin.isatty():
+            print("fetch_pdf.py: give URLs or DOIs as arguments or on stdin "
+                  "(see --help)", file=sys.stderr)
+            return 2
         sources = [line.strip() for line in sys.stdin if line.strip()]
     check_route(quiet)
     failures = 0
