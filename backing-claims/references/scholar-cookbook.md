@@ -534,8 +534,12 @@ does not know reads as `unknown source '<value>'`, unreviewed and uncited.
 A machine decision never replaces one a human made or reviewed: the whole
 batch is refused (exit 2) unless `--force`. **Never pass `--force` to
 override the author**; report the disagreement instead. When the status
-changes, the old category tags are replaced by the new `--tag` values
-(other tags kept); re-deciding the same status adds tags. `sessions show
+changes, or a `--tag` is a category, the old category tags are replaced
+(other tags kept; two categories in one call are refused); otherwise
+re-deciding adds tags. `--untag TAG` removes a tag first, e.g. an
+exclusion criterion left on a paper that is now kept (it would read as a
+theme). It is part of a decision: as an agent, pass `-c` again (else the
+confidence is cleared). `sessions show
 -f json` (`decision_sources`) and the report count decisions by source
 ("Decisions by source: 12 human; 40 agent, unreviewed; …").
 

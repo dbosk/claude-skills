@@ -123,6 +123,22 @@ Merged the same day, from the MFA review's follow-ups (PRs #149, #155–#158,
 `scholar llm sample --help` now names the modified Wilson interval the
 report computes (dbosk/scholarcli PR #187).
 
+Merged 2026-11-19 (PRs #189, #193, #197–#202, #205; installed via pipx
+from main at f8b9ca2; `scholar sessions decide --help` without `--untag`
+is the tell of an older install):
+
+| Issue | Capability | Command |
+|-------|------------|---------|
+| [#188](https://github.com/dbosk/scholarcli/issues/188) | A provider known only from records without an outcome is listed "Also queried, with no recorded outcome", not as searched | caption, report |
+| [#192](https://github.com/dbosk/scholarcli/issues/192) | A re-run with `-n` keeps the stored paper (abstract, sources) and unites providers | `search -n` |
+| [#195](https://github.com/dbosk/scholarcli/issues/195) | Remove a tag (`--untag`, before `--tag`); a category `--tag` replaces the old category whatever the status; two categories in one decide are refused. `--untag` is part of a decision: a machine untag needs `-c` again, a human untag reviews an agent/LLM decision | `sessions decide S --keep --untag no-abstract --source agent -c 0.9 --doi …` |
+| [#196](https://github.com/dbosk/scholarcli/issues/196) | An audit row shows the note tags of every copy of the work (pending copies too); themes stay with their copy | `sessions export -f table` |
+| [#191](https://github.com/dbosk/scholarcli/issues/191) | Papers from pre-#164 merged searches are credited only to providers their `sources` (or a per-provider link) confirm, in the audit rows, the caption and the report | `sessions export` |
+| [#190](https://github.com/dbosk/scholarcli/issues/190) | A failed or skipped re-run replaces a record without an outcome unless a link or a paper naming that provider shows it answered | `sessions show`, report |
+| [#185](https://github.com/dbosk/scholarcli/issues/185) | S2 bulk: whole hyphenated tokens quoted (`"don't-care"`), `~N` kept outside the quotes and routed to bulk, a wildcard after a hyphenated word refused | `-p s2` |
+| [#194](https://github.com/dbosk/scholarcli/issues/194) | Concurrent saves fill gaps in a paper from the other process's copy (a field both hold keeps this process's value, #206) | — |
+| [#181](https://github.com/dbosk/scholarcli/issues/181) | A session saves into the file it was loaded from; a file whose stored name differs is warned about and flagged by `sessions list` (`name_mismatch`) | `sessions list` |
+
 ## Future ideas (not yet built)
 
 When a new gap appears, offer to file it as a `gh issue`
