@@ -73,6 +73,12 @@ Decisions already taken — do not re-litigate and do not guess:
 - {{item a rule seems to demand but which must not change}} → leave it, and
   say so in the report.
 
+Reuse before reimplementation: for a file format, quoting, escaping,
+parsing, locking or the like, use the standard library; else a
+well-maintained package already among the project's dependencies (a new
+dependency is the orchestrator's decision: report it, do not add it);
+write your own only when neither exists, and say why in the report.
+
 Out of scope: {{…}}. Report bugs you notice outside your area; do not fix them.
 
 ## 3. Build and check

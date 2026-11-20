@@ -62,6 +62,11 @@ When making changes to a .nw file:
      summarizes this area, and does this change make it stale?
    - What new chunks are needed? What are their meaningful names?
    - Where in the pedagogical order should this be explained?
+   - Does the standard library already do what a new chunk would
+     implement (a file format, quoting, escaping, parsing, locking)?
+     Use it; else a well-maintained package (check its releases, do not
+     assume); write your own only when neither exists or the packages
+     are abandoned, and say in the prose why (what the library lacks).
 3. **Design documentation BEFORE writing code:**
    - Write prose explaining the problem and solution
    - Use subsections to structure complex explanations

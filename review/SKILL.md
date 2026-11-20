@@ -139,6 +139,25 @@ Apply these criteria to every changed file, regardless of file type:
      approach works in this context, rather than only stating why it was
      selected?
 
+6. **Reuse before reimplementation**
+   - Does the change write by hand something the language's standard
+     library already does (reading or writing CSV, JSON, XML or dates;
+     quoting and escaping; building URLs or shell commands; parsing
+     arguments; atomic file writes; locking; retries)? Flag it: the
+     order is standard library first, a well-maintained package second,
+     own code only when neither exists or the packages are abandoned.
+   - Signs to grep for: rows written with `"\t".join(...)`, `",".join(...)`
+     or an f-string full of separators; JSON, XML, a query string or a
+     command line assembled by string formatting; a regular expression
+     that parses a date, a URL or an e-mail address.
+   - Own code where a library exists needs its reason in the prose or a
+     comment (what the library lacks here). "Well-maintained" is checked
+     (the package's release dates and issue tracker), not remembered.
+   - Why this is a criterion: in dbosk/scholarcli (#300, 2026-11)
+     `search -f csv` printed tab-joined f-strings instead of using
+     `csv`, so a tab or a line break in a title silently broke the row,
+     while the sibling export that used `csv.writer` was correct.
+
 ## Step 3: Review Each File
 
 For each changed file:
