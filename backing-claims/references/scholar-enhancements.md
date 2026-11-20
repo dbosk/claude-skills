@@ -140,7 +140,7 @@ is the tell of an older install):
 | [#181](https://github.com/dbosk/scholarcli/issues/181) | A session saves into the file it was loaded from; a file whose stored name differs is warned about and flagged by `sessions list` (`name_mismatch`) | `sessions list` |
 
 Merged 2026-11-19, third round (PRs #208–#242; installed via pipx from
-main at bc8ec8c; `scholar sessions relabel --help` failing is the tell of
+main at 4ba7a23; `scholar sessions relabel --help` failing is the tell of
 an older install):
 
 | Issue | Capability | Command |
@@ -152,6 +152,8 @@ an older install):
 | [#204](https://github.com/dbosk/scholarcli/issues/204) | A work's audit row comes from its confirmed copy (a human or reviewed verdict on the work), not from an unreviewed classifier copy; `no-abstract`/version-note discards judge only the record | `sessions export -f table` |
 | [#224](https://github.com/dbosk/scholarcli/issues/224) | Classifier and relayed `--source llm` answers must have a category that fits the status; all four categories are offered once a session uses any | `llm classify`, `sessions decide --source llm` |
 | [#237](https://github.com/dbosk/scholarcli/issues/237) | Session arguments: a label fitting two files exits 2; `foo.json` / `<hash>.json` pick a file; paths outside the sessions dir refused | every command taking a session |
+| [#248](https://github.com/dbosk/scholarcli/issues/248) | Set unreviewed decisions back to pending to redo a screen in place, keeping the search records; the old decision and its trace go into a `resets` history; human/reviewed decisions refused; `pre-reset` backup | `sessions reset S --source agent --dry-run` |
+| [#249](https://github.com/dbosk/scholarcli/issues/249) | An agent decision records its reason, who and when (`agent_reason`, `agent_by`, `agent_decided_at`); batches give each paper its own reason and confidence | `sessions decide S --keep --tag … --source agent --reasons-file reasons.tsv --by NAME` |
 | [#245](https://github.com/dbosk/scholarcli/issues/245) | An agent's correction can keep the classifier's trace (model, prompt, reason); `sessions show` marks a trace under someone else's decision | `sessions decide S --discard --tag off-topic-false-hit -c 0.8 --source agent --keep-trace --doi …` |
 | [#228](https://github.com/dbosk/scholarcli/issues/228) | Two decisions under one id survive appends and concurrent saves; `decide` refuses copies decided apart unless `--all-copies` | `sessions decide … --all-copies` |
 | [#206](https://github.com/dbosk/scholarcli/issues/206), [#219](https://github.com/dbosk/scholarcli/issues/219) | Concurrent saves merge paper fields three ways (a retraction found by `verify` survives a stale save); Crossref notices are united | — |

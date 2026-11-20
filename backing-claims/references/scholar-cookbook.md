@@ -556,7 +556,12 @@ theme). It is part of a decision: as an agent, pass `-c` again (else the
 confidence is cleared), and a machine decide clears the classifier's
 trace (model, prompt, reason) on that record unless you correct as an
 agent with `--keep-trace` (needs `-c`; refused with `--source llm`),
-which keeps the record of the call the correction is made on. A relayed classifier verdict
+which keeps the record of the call the correction is made on. Record why with `--reason TEXT` or, for a batch, `--reasons-file`
+(lines `ID<TAB>REASON[<TAB>CONFIDENCE]`, unquoted; the file's ids are the
+selection) and `--by NAME`: every agent decision should carry its reason.
+To redo a flawed machine screen in place, `sessions reset S --source agent
+--dry-run` (then without `--dry-run`) sets those decisions back to pending,
+keeping their history; human and reviewed decisions are refused. A relayed classifier verdict
 (`--source llm`) must have a category that fits the status (keep:
 supports/qualifies/adjacent; discard: adjacent/off-topic). When a work is
 held twice under one id with different decisions, `decide` refuses (exit
