@@ -478,3 +478,274 @@ def test_byte_order_mark_on_json_lines(tmp_path):
     b.write_text("﻿" + b.read_text(), encoding="utf-8")
     rc, rep, _ = run(o, b)
     assert rc == 0, rep["failures"]
+
+
+# ---- templated reasons (scholar #291's documented limit) ----
+
+def test_reasons_templated_with_own_title_are_duplicates(tmp_path):
+    """Book batch b193: 'Unrelated ...; subject is <title, cut>' on most rows."""
+    recs = batch(6)
+    topics = ["Voice foundation models for real-time autonomous interaction",
+              "Electricity price forecasting with a comprehensive framework",
+              "Structural health monitoring of historic masonry minarets",
+              "Credit risk assessment using interpretable machine learning",
+              "Point cloud quality assessment benchmark for diagnostics",
+              "Tamil conversational agent for a closed domain"]
+    for r, t in zip(recs, topics):
+        r["title"] = t
+    rows = good_rows(recs)
+    for r, rec in zip(rows[:4], recs):
+        r[6] = f"Unrelated to the question; subject is {rec['title']}."
+    rc, rep, _ = run(*write(tmp_path, recs, rows))
+    assert rc == 1 and checks(rep) == ["duplicates"]
+    assert "<title>" in messages(rep)
+    for r, rec in zip(rows[:4], recs):            # title cut mid-word
+        r[6] = f"Unrelated to the question; subject is {rec['title'][:45]}"
+    rc, rep, _ = run(*write(tmp_path, recs, rows))
+    assert rc == 1 and checks(rep) == ["duplicates"]
+
+
+def test_reasons_templated_with_own_id_are_duplicates(tmp_path):
+    recs = batch(6)
+    rows = good_rows(recs)
+    for r in rows[:4]:
+        r[6] = f"Record {r[0]} is off the question."
+    rc, rep, _ = run(*write(tmp_path, recs, rows))
+    assert rc == 1 and checks(rep) == ["duplicates"] and "<id>" in messages(rep)
+
+
+def test_templating_spares_honest_reasons(tmp_path):
+    recs = batch(6)
+    rows = good_rows(recs)
+    for r, rec in zip(rows, recs):                # title quoted, own words added
+        r[6] = (f"{rec['title']}: {WORDS[int(r[0][-1])]} audit of "
+                f"{WORDS[int(r[0][-1]) + 9]} answers")
+    rc, rep, _ = run(*write(tmp_path, recs, rows))
+    assert rc == 0, rep["failures"]
+
+
+def test_run_check_sees_templated_reasons(tmp_path):
+    recs = batch(8)
+    for i, r in enumerate(recs):
+        r["title"] = f"{WORDS[i]} {WORDS[i + 8]} {WORDS[i + 16]} benchmark study"
+    rows = good_rows(recs)
+    for r, rec in zip(rows[:6], recs):
+        r[6] = f"Unrelated to the question; subject is {rec['title']}"
+    rc, rep, _ = run(*write(tmp_path, recs, rows), "--max-dup", "10")
+    assert rc == 1 and checks(rep) == ["runs"]
+
+
+# ---- --scholar: scholar sessions decide --dry-run (scholar >= e7dc5f5) ----
+# The installed scholar predates the dry run, so these tests put a stub
+# `scholar` first on PATH (testing ladder rung 4: the real command is not
+# available).  The stub logs its arguments and the reasons files it gets.
+# PATH holds only the stub's directory, so no test can reach a real
+# scholar, even when the stub cannot run.
+
+STUB = r'''#!PYTHON
+import os, sys
+log = os.environ["STUB_LOG"]
+args = sys.argv[1:]
+if "--help" in args:
+    print("Usage: scholar sessions decide ..." +
+          ("  --dry-run  Run every check" if os.environ.get("STUB_NEW") else ""))
+    sys.exit(0)
+with open(log, "a") as f:
+    f.write(" ".join(args) + "\n")
+    rf = args[args.index("--reasons-file") + 1]
+    f.write(open(rf).read())
+sys.exit(int(os.environ.get("STUB_EXIT", "0")))
+'''
+
+
+def stub_text(script=None):
+    return (script or STUB).replace("PYTHON", sys.executable, 1)
+
+
+def stub_env(tmp_path, new=True, exit_code=0):
+    import os
+    d = tmp_path / "bin"
+    d.mkdir(exist_ok=True)
+    s = d / "scholar"
+    s.write_text(stub_text())
+    s.chmod(0o755)
+    env = dict(os.environ, PATH=str(d),
+               STUB_LOG=str(tmp_path / "stub.log"), STUB_EXIT=str(exit_code))
+    if new:
+        env["STUB_NEW"] = "1"
+    return env
+
+
+def run_env(o, b, env, *extra):
+    p = subprocess.run([sys.executable, "-I", str(SCRIPT), str(o), str(b),
+                        "--json", "--exclusions", EXCL, *extra],
+                       capture_output=True, text=True, env=env)
+    rep = json.loads(p.stdout) if p.stdout.strip().startswith("{") else None
+    return p.returncode, rep, p.stderr
+
+
+def mixed_rows(recs):
+    rows = good_rows(recs)
+    rows[1][1:5] = ["discard", "off-topic-false-hit", "off-question", "-"]
+    rows[2][1:5] = ["discard", "off-topic-false-hit", "off-question", "-"]
+    rows[3][4] = "t1"
+    return rows
+
+
+def test_scholar_dry_run_groups_by_verdict_and_tags(tmp_path):
+    recs = batch(4)
+    env = stub_env(tmp_path)
+    o, b = write(tmp_path, recs, mixed_rows(recs))
+    rc, rep, err = run_env(o, b, env, "--scholar", "my-session", "--by", "scr-1")
+    assert rc == 0, (err, rep)
+    log = (tmp_path / "stub.log").read_text()
+    calls = [l for l in log.splitlines() if l.startswith("sessions decide")]
+    assert len(calls) == 3                       # keep, keep+t1, discard group
+    for c in calls:
+        for a in ("my-session", "--source agent", "--dry-run", "--strict",
+                  "--by scr-1", "--reasons-file"):
+            assert a in c
+    disc = next(c for c in calls if "--discard" in c)
+    assert "-t off-topic-false-hit" in disc and "-t off-question" in disc
+    assert f"{recs[1]['id']}\t" in log and "\t0.52\n" in log
+    assert [g["exit"] for g in rep["scholar"]["groups"]] == [0, 0, 0]
+
+
+def test_scholar_refusal_fails_the_batch(tmp_path):
+    recs = batch(4)
+    o, b = write(tmp_path, recs, mixed_rows(recs))
+    rc, rep, _ = run_env(o, b, stub_env(tmp_path, exit_code=2),
+                         "--scholar", "my-session")
+    assert rc == 1 and "scholar" in checks(rep)
+
+
+def test_scholar_too_old_is_a_usage_error(tmp_path):
+    recs = batch(4)
+    o, b = write(tmp_path, recs, mixed_rows(recs))
+    rc, _, err = run_env(o, b, stub_env(tmp_path, new=False),
+                         "--scholar", "my-session")
+    assert rc == 2 and "requires scholar" in err and "e7dc5f5" in err
+    assert not (tmp_path / "stub.log").exists()
+
+
+def test_session_prefixed_ids_templated_without_prefix(tmp_path):
+    """Book batches use `session|paper-id`; a reason names the paper id."""
+    recs = batch(6)
+    for r in recs:
+        r["id"] = "book-s1|" + r["id"]
+    rows = good_rows(recs)
+    for r in rows[:4]:
+        r[6] = f"Record {r[0].split('|')[1]} is off the question."
+    rc, rep, _ = run(*write(tmp_path, recs, rows))
+    assert rc == 1 and checks(rep) == ["duplicates"] and "<id>" in messages(rep)
+
+
+# ---- round 2 review: honest subject-naming reasons, boundaries, --scholar ----
+
+def test_reason_naming_its_subject_in_the_titles_words_is_honest(tmp_path):
+    """'About <the title's opening words>, not <field>' names the subject in
+    the screener's own words; only a long cut (40+ characters, or 60% of
+    the title) counts as a templated title."""
+    recs = batch(6)
+    subjects = ["Blockchain consensus protocols", "Soil moisture sensing",
+                "Coral reef bleaching", "Railway timetable optimisation",
+                "Medieval manuscript dating", "Wind turbine blade icing"]
+    for r, t in zip(recs, subjects):
+        r["title"] = f"{t}: a survey of methods, datasets and open problems in the field"
+    rows = good_rows(recs)
+    for r, t in zip(rows[:5], subjects):
+        r[6] = f"About {t.lower()}, not programming education."
+    rc, rep, _ = run(*write(tmp_path, recs, rows))
+    assert rc == 0, rep["failures"]
+
+
+def test_title_cut_boundary(tmp_path):
+    def cut_rows(k):
+        recs = batch(6)
+        for i, r in enumerate(recs):
+            r["title"] = (WORDS[i] + "-" + "abcdefghij" * 9)[:90]   # no spaces
+        rows = good_rows(recs)
+        for r, rec in zip(rows[:4], recs):
+            r[6] = f"Unrelated to the question; subject is {rec['title'][:k]}"
+        return recs, rows
+    recs, rows = cut_rows(40)                     # 40 characters: the title
+    rc, rep, _ = run(*write(tmp_path, recs, rows))
+    assert rc == 1 and "<title>" in messages(rep)
+    recs, rows = cut_rows(39)                     # 39 of 90 (< 60%): own words
+    assert run(*write(tmp_path, recs, rows))[0] == 0
+
+
+def test_short_title_cut_by_share(tmp_path):
+    recs = batch(6)
+    for i, r in enumerate(recs):
+        r["title"] = f"{WORDS[i]} {WORDS[i + 6]} benchmark"   # about 20 chars
+    rows = good_rows(recs)
+    for r, rec in zip(rows[:4], recs):
+        r[6] = f"Unrelated; subject is {rec['title'][:-2]}"     # 80-90% of it
+    rc, rep, _ = run(*write(tmp_path, recs, rows))
+    assert rc == 1 and "<title>" in messages(rep)
+
+
+def test_reason_naming_the_bare_doi(tmp_path):
+    recs = batch(6)
+    rows = good_rows(recs)
+    for r in rows[:4]:
+        r[6] = f"Record {r[0][4:]} is off the question."     # without doi:
+    rc, rep, _ = run(*write(tmp_path, recs, rows))
+    assert rc == 1 and "<id>" in messages(rep)
+
+
+def test_scholar_reasons_file_content_and_prefixed_ids(tmp_path):
+    recs = batch(4)
+    recs[0]["id"] = "book-s1|" + recs[0]["id"]
+    recs[1]["id"] = "book-s2|" + recs[1]["id"]
+    rows = mixed_rows(recs)
+    o, b = write(tmp_path, recs, rows, fmt="jsonl")
+    lines = [json.loads(x) for x in o.read_text().splitlines()]
+    lines[0]["reason"] = 'abstract: "found 0 invented references";\tsecond part'
+    o.write_text("".join(json.dumps(x) + "\n" for x in lines))
+    rc, rep, err = run_env(o, b, stub_env(tmp_path), "--scholar", "other")
+    log = (tmp_path / "stub.log").read_text()
+    calls = [l for l in log.splitlines() if l.startswith("sessions decide")]
+    # one call per session and group: book-s1 keep, book-s2 discard,
+    # 'other' discard (row 2) and 'other' keep+t1 (row 3)
+    assert sorted(c.split()[2] for c in calls) == ["book-s1", "book-s2",
+                                                   "other", "other"]
+    assert (f"{recs[0]['id'].split('|')[1]}\tabstract: \"found 0 invented "
+            f"references\"; second part\t0.50\n") in log
+    assert "book-s1|" not in log.replace("sessions decide book-s1", "")
+    assert rc == 1                                # the tab is still a failure
+    assert "tab or newline" in messages(rep)
+
+
+def test_scholar_failure_names_the_group_rows(tmp_path):
+    recs = batch(4)
+    o, b = write(tmp_path, recs, mixed_rows(recs))
+    rc, rep, _ = run_env(o, b, stub_env(tmp_path, exit_code=2),
+                         "--scholar", "my-session")
+    ids = sorted(i for f in rep["failures"] if f["check"] == "scholar"
+                 for i in f["ids"])
+    assert ids == sorted(r["id"] for r in recs)
+
+
+def test_scholar_missing_from_path(tmp_path):
+    recs = batch(4)
+    o, b = write(tmp_path, recs, mixed_rows(recs))
+    env = stub_env(tmp_path)
+    env["PATH"] = str(tmp_path / "empty")
+    rc, _, err = run_env(o, b, env, "--scholar", "my-session")
+    assert rc == 2 and "requires scholar" in err
+
+
+def test_scholar_call_that_cannot_start_is_a_failure(tmp_path):
+    """The stub answers --help, then makes itself non-executable, so the
+    decide call itself fails to start (OSError)."""
+    recs = batch(4)
+    o, b = write(tmp_path, recs, mixed_rows(recs))
+    env = stub_env(tmp_path)
+    s = tmp_path / "bin" / "scholar"
+    s.write_text(stub_text(STUB.replace(
+        '    sys.exit(0)\n', '    os.chmod(sys.argv[0], 0o644)\n    sys.exit(0)\n', 1)))
+    rc, rep, _ = run_env(o, b, env, "--scholar", "my-session")
+    assert rc == 1
+    assert all(g["exit"] == -1 for g in rep["scholar"]["groups"])

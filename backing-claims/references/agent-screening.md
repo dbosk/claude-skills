@@ -89,7 +89,9 @@ Rules
    exclusion no-abstract, keeping the bearing category the title
    suggests (supports-claim or qualifies-claim) when it may bear on the
    claim; such records go on a look-up list. Never keep a record without
-   an abstract. Start its reason "no abstract; title: ...".
+   an abstract. Its reason starts "no abstract; title: ..." and then
+   says why the title settles or suggests the category; the title
+   alone is not a reason.
 4. A record that bears on the claim but meets an exclusion criterion is
    discarded and keeps its bearing category.
 5. Every row gets its own reason: one sentence, at most about 300
@@ -126,9 +128,14 @@ consistency, confidence range, empty or placeholder reasons, duplicate
 reasons, flat confidence, long runs of near-identical rows, and every
 quote of three or more words against that row's own title and abstract
 (`--help` lists the thresholds; `--json` for scripts; exit 0 clean, 1
-failures, 2 usage). A sheet is read as written; a TSV written by
-`csv.writer` (doubled quotes) needs `--csv-quoting`, one without a
-header `--columns`. Then:
+failures, 2 usage). Reasons are compared after the row's own id and
+title (whole, or cut to 40 or more characters or 60% of the title) are
+replaced and trailing punctuation is stripped, so a template such as "subject is
+<title>." or "no abstract; title: <title>" counts as one shared
+reason. A flat confidence at 0.9 or above is not counted (a batch of
+plainly off-topic records sits there). A sheet is read as written; a TSV
+written by `csv.writer` (doubled quotes) needs `--csv-quoting`, one
+without a header `--columns`. Then:
 
 - **Duplicates, flat confidence, runs, missing rows:** re-screen the
   batch (or the rows named) with a fresh screener. Never patch the
@@ -138,6 +145,25 @@ header `--columns`. Then:
 - **Quote `mixup`** (the words are another row's): re-screen those rows.
 - **Quote `unsupported`:** re-screen the row.
 - Validate the repaired sheet again; log every repair (row, what, why).
+
+**Which check runs where.** The validator runs on each screener batch
+of about 100 rows, before the writer, with a low threshold (more than 3
+rows sharing a reason). Scholar (from commit e7dc5f5, #291, #293) runs
+its batch check at 10 records on what the writer loads (`sessions
+decide --reasons-file`, `sessions screen --verdicts-file`) and on what a
+session stores (`scholar sessions check-batches S`, read-only), where
+batches are already merged. There it lists findings and saves unless
+`--strict` refuses (exit 2); `sessions decide --dry-run` runs every check
+and writes nothing. Scholar compares reasons only after collapsing white
+space and case, so a trailing full stop or a templated id or title
+defeats it, and its flat check has no exception for high values: it
+fires only when every row of a file of 20 or more has the same
+confidence. Run both. With scholar e7dc5f5 or later installed,
+`validate_screen.py … --scholar S --by <screener>` also sends the sheet
+through `sessions decide S --source agent --dry-run --strict
+--reasons-file …`, one file per verdict and tags (an id
+`other-session|paper-id` goes to that session), and fails on any
+nonzero exit.
 
 ## 6. Write the decisions
 
@@ -219,7 +245,11 @@ screen (until the author has, and then what the author reviewed).
 
 ## 11. Tool support
 
-Scholar issues #291 (batch checks), #292 (screen sheets, batch ids), #293
-(enrich preflight), #256 (quote check) and #287 (doubtful abstracts) will
-move these checks into scholar; #258 adds `sessions set-abstract`. Until
-they ship, `validate_screen.py` does the checks.
+On scholar's main branch (2026-11-20; installed copies may be older):
+#256 (quote check in `sessions decide`), #258 (`sessions set-abstract`),
+#287 (doubtful abstracts flagged by enrich), and, from commit e7dc5f5,
+#291 (batch checks; section 5 says how they divide the work with the
+validator) and #293 (records decided without an abstract). #292 (screen
+sheets in batches, batch ids in the trace) is open. Check the installed
+scholar's `--help` before relying on any of them; until a check is
+installed, `validate_screen.py` does it.

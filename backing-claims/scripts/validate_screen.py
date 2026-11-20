@@ -20,7 +20,12 @@ Checks (a failure of any one exits 1):
   confidence   a number in [0, 1]
   reasons      no empty or placeholder reason
   duplicates   more than --max-dup rows (default 3) with one normalised
-               reason, counting rows with identical titles once
+               reason, counting rows with identical titles once; reasons
+               are compared with the row's own id and title (whole, or a
+               prefix of 40+ characters or 60% of it) replaced by <id> and
+               <title> and
+               trailing punctuation stripped, so "subject is <title>."
+               templates count as one reason
   flat-conf    in a batch of --flat-min-rows (20) or more, the most common
                confidence below --flat-ignore-above (0.9) on more than
                --flat-share (0.6) of the rows (plainly off-topic batches
@@ -40,6 +45,12 @@ Vocabularies: --categories, --keep-categories, --exclusions, --themes
 dashes). Defaults: the four audit categories, keep = supports-claim and
 qualifies-claim, exclusions and themes unchecked.
 
+--scholar SESSION (requires scholar >= e7dc5f5, PR #295) also sends the
+sheet through `scholar sessions decide SESSION --source agent --dry-run
+--strict --reasons-file F`, one file per session + verdict + category +
+exclusion or theme (an id `other|paper-id` goes to session `other`), and
+fails on any nonzero exit; nothing is written.
+
 Exit codes: 0 clean, 1 failures, 2 usage error (unreadable file, unknown
 format, missing columns). Standard library only.
 """
@@ -48,8 +59,11 @@ import collections
 import csv
 import difflib
 import json
+import os
 import re
+import subprocess
 import sys
+import tempfile
 import unicodedata
 
 csv.field_size_limit(sys.maxsize)
@@ -198,7 +212,45 @@ def norm_text(s):
 
 
 def norm_reason(s):
-    return norm_text(s).strip(" .;:,!")
+    return norm_text(s).strip(" .;:,!?")
+
+
+# A cut title counts as the title when it keeps 40 characters, or 60% of
+# a shorter title (12 at least): book batch b193 cut titles at about 60
+# characters, while an honest "About <the title's first words>, not X"
+# keeps a short phrase of a longer title.
+TITLE_CUT_CHARS = 40
+TITLE_CUT_SHARE = 0.6
+TITLE_CUT_MIN = 12
+
+
+def id_variants(rid):
+    """The row's id as a reason might spell it: whole, after a session
+    prefix (`session|id`), and without `doi:`."""
+    v = norm_text(rid)
+    out = {v, v.rsplit("|", 1)[-1]}
+    out |= {x[4:] for x in out if x.startswith("doi:")}
+    return sorted((x for x in out if len(x) >= 6), key=len, reverse=True)
+
+
+def template_key(reason, title, rid):
+    """The reason with the row's own id and title (whole, or cut: see
+    TITLE_CUT_*) replaced by <id> and <title>, trailing punctuation
+    stripped, so that a template such as "subject is <title>." compares
+    equal across rows."""
+    r = norm_reason(reason)
+    for v in id_variants(rid):
+        r = r.replace(v, "<id>")
+    t = norm_reason(title)
+    if t and t in r:
+        r = r.replace(t, "<title>")
+    elif t:
+        for k in range(len(t) - 1, TITLE_CUT_MIN - 1, -1):
+            if t[:k] in r:                        # the longest cut found
+                if k >= TITLE_CUT_CHARS or k >= TITLE_CUT_SHARE * len(t):
+                    r = r.replace(t[:k], "<title>", 1)
+                break
+    return r
 
 
 def words(s):
@@ -322,10 +374,12 @@ def check(out_rows, batch_rows, vocab, opts):
     for msg, ids in bad.items():
         fail("columns", f"{len(ids)} row(s): {msg}", ids)
 
-    # duplicate reasons
+    # duplicate reasons, compared after removing the row's own id and title
+    keys = [template_key(r.get("reason"),
+                         rec.get(str(r.get("id")), {}).get("title"), r.get("id"))
+            for r in out_rows]
     groups = collections.defaultdict(list)
-    for r in out_rows:
-        nr = norm_reason(r.get("reason"))
+    for r, nr in zip(out_rows, keys):
         if nr:
             groups[nr].append(r)
     for nr, rows in groups.items():
@@ -352,13 +406,13 @@ def check(out_rows, batch_rows, vocab, opts):
     k = 0
     while k < len(out_rows):
         a = out_rows[k]
-        ra = norm_reason(a.get("reason"))
+        ra = keys[k]
         j = k + 1
         while j < len(out_rows):
             b = out_rows[j]
             if (b.get("verdict"), b.get("category")) != (a.get("verdict"), a.get("category")):
                 break
-            rb = norm_reason(b.get("reason"))
+            rb = keys[j]
             if rb != ra and difflib.SequenceMatcher(None, ra, rb).ratio() < opts.run_similarity:
                 break
             j += 1
@@ -414,6 +468,67 @@ def check(out_rows, batch_rows, vocab, opts):
         "quote_failures": dict(qkinds),
     }
     return fails, stats
+
+
+# --------------------------------------------------------------- scholar
+
+SCHOLAR_MIN = "e7dc5f5"   # scholar PR #295 (#291, #293): decide --dry-run, --strict
+
+
+def scholar_dry_run(out_rows, session, by):
+    """Send the sheet through `scholar sessions decide --dry-run --strict`,
+    one reasons file per verdict + category + exclusion or theme (decide
+    applies status and tags to a whole file).  Return a list of groups
+    with the exit code of each call."""
+    try:
+        h = subprocess.run(["scholar", "sessions", "decide", "--help"],
+                           capture_output=True, text=True, timeout=120)
+    except (OSError, subprocess.TimeoutExpired) as e:
+        raise UsageError(f"--scholar: cannot run scholar ({e}); it requires "
+                         f"scholar >= {SCHOLAR_MIN}")
+    if "--dry-run" not in h.stdout:
+        raise UsageError(f"--scholar requires scholar >= {SCHOLAR_MIN} "
+                         "(sessions decide --dry-run, #291); the installed "
+                         "scholar has no --dry-run: reinstall it")
+    groups = collections.OrderedDict()
+    for r in out_rows:
+        v = str(r.get("verdict") or "").strip().lower()
+        if v not in ("keep", "discard"):
+            continue
+        second = str(r.get("exclusion" if v == "discard" else "theme") or "").strip()
+        # an id `other-session|paper-id` belongs to that session
+        rid = str(r.get("id"))
+        sess, pid = rid.rsplit("|", 1) if "|" in rid else (session, rid)
+        key = (sess, v, str(r.get("category") or "").strip(),
+               "" if second in EMPTY else second)
+        groups.setdefault(key, []).append((pid, r))
+    results = []
+    with tempfile.TemporaryDirectory(prefix="validate_screen-") as tmp:
+        for n, ((sess, v, cat, second), rows) in enumerate(groups.items(), 1):
+            f = os.path.join(tmp, f"group{n}.tsv")
+            with open(f, "w", encoding="utf-8") as g:
+                for pid, r in rows:
+                    why = re.sub(r"[\t\r\n]+", " ", str(r.get("reason") or "")).strip()
+                    g.write(f"{pid}\t{why}\t{str(r.get('confidence')).strip()}\n")
+            tags = [t for t in (cat, second) if t]
+            cmd = ["scholar", "sessions", "decide", sess, "--source", "agent",
+                   f"--{v}"]
+            for t in tags:
+                cmd += ["-t", t]
+            if by:
+                cmd += ["--by", by]
+            cmd += ["--reasons-file", f, "--dry-run", "--strict"]
+            try:
+                p = subprocess.run(cmd, capture_output=True, text=True,
+                                   timeout=600, stdin=subprocess.DEVNULL)
+                code, err = p.returncode, (p.stderr or "").strip()
+            except (OSError, subprocess.TimeoutExpired) as e:
+                code, err = -1, str(e)
+            results.append({"session": sess, "verdict": v, "tags": tags,
+                            "rows": len(rows), "exit": code,
+                            "ids": [r.get("id") for _, r in rows],
+                            "stderr": err[-2000:]})
+    return results
 
 
 # ------------------------------------------------------------------ main
@@ -474,6 +589,12 @@ def parse_args(argv):
                    help="longest allowed run of near-identical rows (5)")
     p.add_argument("--run-similarity", type=float, default=0.9,
                    help="reason similarity that counts as near-identical (0.9)")
+    p.add_argument("--scholar", metavar="SESSION",
+                   help="also run `scholar sessions decide SESSION --dry-run "
+                        "--strict --reasons-file ...` per verdict and tags "
+                        f"and report its exit codes (requires scholar >= "
+                        f"{SCHOLAR_MIN}); writes nothing")
+    p.add_argument("--by", help="screener name passed to scholar with --scholar")
     p.add_argument("--max-print", type=int, default=20,
                    help="failures listed in the human summary (20)")
     return p.parse_args(argv)
@@ -507,10 +628,28 @@ def main(argv=None):
         print(f"validate_screen: {e}", file=sys.stderr)
         return 2
     fails, stats = check(out_rows, batch_rows, vocab, args)
+    sch = None
+    if args.scholar:
+        try:
+            groups = scholar_dry_run(out_rows, args.scholar, args.by)
+        except UsageError as e:
+            print(f"validate_screen: {e}", file=sys.stderr)
+            return 2
+        sch = {"session": args.scholar, "groups": groups}
+        for g in groups:
+            if g["exit"] != 0:
+                last = g["stderr"].splitlines()[-1] if g["stderr"] else ""
+                fails.append({"check": "scholar", "ids": g["ids"],
+                              "message": f"sessions decide {g['session']} --dry-run --strict "
+                                         f"--{g['verdict']} -t {' -t '.join(g['tags'])} "
+                                         f"({g['rows']} rows) exited {g['exit']}: {last}"})
     if args.json:
-        json.dump({"output": args.output, "batch": args.batch,
-                   "formats": [out_fmt, batch_fmt], "ok": not fails,
-                   "stats": stats, "failures": fails},
+        report = {"output": args.output, "batch": args.batch,
+                  "formats": [out_fmt, batch_fmt], "ok": not fails,
+                  "stats": stats, "failures": fails}
+        if sch:
+            report["scholar"] = sch
+        json.dump(report,
                   sys.stdout, ensure_ascii=False, indent=1)
         print()
     else:
@@ -520,6 +659,10 @@ def main(argv=None):
         print(f"  verdict/category: {stats['verdict_category']}")
         print(f"  top confidences: {stats['confidence_top']}; distinct reasons: "
               f"{stats['distinct_reasons']}; quotes checked: {stats['quotes_checked']}")
+        if sch:
+            print(f"  scholar dry run on {sch['session']}: exit codes "
+                  + ", ".join(f"{g['verdict']}/{'+'.join(g['tags'])}={g['exit']}"
+                              for g in sch["groups"]))
         by = collections.Counter(f["check"] for f in fails)
         if by:
             print(f"  failures by check: {dict(by)}")
