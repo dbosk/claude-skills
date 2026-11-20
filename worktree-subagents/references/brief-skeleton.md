@@ -74,10 +74,11 @@ Decisions already taken — do not re-litigate and do not guess:
   say so in the report.
 
 Reuse before reimplementation: for a file format, quoting, escaping,
-parsing, locking or the like, use the standard library; else a
-well-maintained package already among the project's dependencies (a new
+parsing, locking or the like, use the standard library, or a
+well-maintained package already among the project's dependencies where
+it is as well established and more expressive for the task (a new
 dependency is the orchestrator's decision: report it, do not add it);
-write your own only when neither exists, and say why in the report.
+write your own only when neither can do it, and say why in the report.
 
 Out of scope: {{…}}. Report bugs you notice outside your area; do not fix them.
 

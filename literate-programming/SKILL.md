@@ -64,9 +64,12 @@ When making changes to a .nw file:
    - Where in the pedagogical order should this be explained?
    - Does the standard library already do what a new chunk would
      implement (a file format, quoting, escaping, parsing, locking)?
-     Use it; else a well-maintained package (check its releases, do not
-     assume); write your own only when neither exists or the packages
-     are abandoned, and say in the prose why (what the library lacks).
+     Use it, or a well-maintained package where that is as well
+     established and more expressive, flexible and widely used for the
+     task (check its releases, do not assume); write your own only when
+     neither exists or the packages are abandoned. Say in the prose why
+     a package was preferred to the standard library, or own code to
+     both (what they lack).
 3. **Design documentation BEFORE writing code:**
    - Write prose explaining the problem and solution
    - Use subsections to structure complex explanations

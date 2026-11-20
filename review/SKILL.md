@@ -143,9 +143,17 @@ Apply these criteria to every changed file, regardless of file type:
    - Does the change write by hand something the language's standard
      library already does (reading or writing CSV, JSON, XML or dates;
      quoting and escaping; building URLs or shell commands; parsing
-     arguments; atomic file writes; locking; retries)? Flag it: the
-     order is standard library first, a well-maintained package second,
-     own code only when neither exists or the packages are abandoned.
+     arguments; atomic file writes; locking; retries)? Flag it: use
+     the standard library, or a well-maintained package; own code only
+     when neither exists or the packages are abandoned.
+   - Standard library or package? The standard library by default. A
+     package is the better choice when it is as well established as the
+     standard library's module and is more expressive, more flexible
+     and more widely used for the task (typically one the project
+     already depends on, such as its HTTP client or command-line
+     framework); then use it throughout, not beside the module it
+     replaces. Do not flag such a choice; flag a package picked without
+     that case being made.
    - Signs to grep for: rows written with `"\t".join(...)`, `",".join(...)`
      or an f-string full of separators; JSON, XML, a query string or a
      command line assembled by string formatting; a regular expression
