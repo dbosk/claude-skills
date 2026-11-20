@@ -654,7 +654,7 @@ not open access)", "Web of Science (WoS)". No session name.
 ```latex
 % Author's note (verification and reproduction): see the block above the
 % hit-list \input at the end of the chapter.
-\begin{table}[htbp]
+\begin{table}[tbp]
   \begin{sidecaption}{Sökfrågor och antal träffar per databas,
     2026-09-02, verktyget \texttt{scholar}.  S = stödfråga, M = motfråga,
     K = känt dokument.  Databaser: OpenAlex (OA; inte

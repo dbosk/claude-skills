@@ -371,8 +371,10 @@ captions misbehave in ways that look like unrelated bugs:
 
 Placement comes first, the caption style second:
 
-1. Float `[htbp]` immediately after the paragraph that references the float.
-   Never `[p]`: a float page separates the figure from its reference.
+1. Float `[tbp]` immediately after the paragraph that references the float:
+   top or bottom of a page, never `h` mid-text (author, 2026-11-20). `p` only
+   as LaTeX's way out for a float too tall for top or bottom; a float page
+   far from the reference is fixed in the source.
 2. Use `sidecaption` when the margin beside the float is free **and** the
    rendered caption is not taller than the float itself.
 3. Otherwise use a normal `\caption` with the **same full text**. A side

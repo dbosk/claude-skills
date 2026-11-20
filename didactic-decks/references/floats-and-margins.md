@@ -12,9 +12,14 @@ Contents: [Placement](#placement) · [Captions](#captions) ·
 
 ## Placement
 
-Tables and figures sit close to where they are relevant and referenced:
-`[htbp]` (or `[!htb]`) **right after the paragraph that references them**.
-Never `[p]` — a float page moves the figure away from its discussion.
+Tables and figures sit close to where they are relevant and referenced,
+at the **top or bottom of a page**: `[tbp]`, placed in the source **right
+after the paragraph that references them** (author, 2026-11-20, beside two
+figures set mid-page: "They should preferably be at either top or
+bottom"). Never `h`, so no float splits the running text. `p` stays only
+as LaTeX's way out for a float too tall for the top or bottom; a float
+that lands on a float page far from its reference is moved in the source
+or shrunk, not accepted.
 
 Every figure is referenced from the student-facing prose, not only from an
 `\ltnote`, and the reference names the figure with `\cref`, never by
@@ -63,7 +68,7 @@ Use didactic's `sidecaption` environment when *both* hold:
 - the rendered caption is **not taller than the float itself**.
 
 ```latex
-\begin{figure}[htbp]
+\begin{figure}[tbp]
   \begin{sidecaption}{The full caption text.}[fig:label]
     \includegraphics[width=0.7\textwidth]{figs/x.png}
   \end{sidecaption}
