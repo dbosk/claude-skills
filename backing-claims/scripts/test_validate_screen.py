@@ -499,8 +499,9 @@ def test_reasons_templated_with_own_title_are_duplicates(tmp_path):
     rc, rep, _ = run(*write(tmp_path, recs, rows))
     assert rc == 1 and checks(rep) == ["duplicates"]
     assert "<title>" in messages(rep)
-    for r, rec in zip(rows[:4], recs):            # title cut mid-word
-        r[6] = f"Unrelated to the question; subject is {rec['title'][:45]}"
+    for r, rec in zip(rows[:4], recs):            # 6 of 7-8 words, cut mid-word
+        cut = " ".join(rec["title"].split()[:6]) + " ab"
+        r[6] = f"Unrelated to the question; subject is {cut}"
     rc, rep, _ = run(*write(tmp_path, recs, rows))
     assert rc == 1 and checks(rep) == ["duplicates"]
 
@@ -659,31 +660,112 @@ def test_reason_naming_its_subject_in_the_titles_words_is_honest(tmp_path):
     assert rc == 0, rep["failures"]
 
 
-def test_title_cut_boundary(tmp_path):
-    def cut_rows(k):
+def test_title_word_share_boundary(tmp_path):
+    """A title counts as copied when the reason holds 75% of its words in
+    one run: 6 of 8 words is the title, 5 of 8 is the screener's own."""
+    def cut_rows(n):
         recs = batch(6)
         for i, r in enumerate(recs):
-            r["title"] = (WORDS[i] + "-" + "abcdefghij" * 9)[:90]   # no spaces
+            r["title"] = " ".join(WORDS[(i + 3 * j) % 26] for j in range(8))
         rows = good_rows(recs)
         for r, rec in zip(rows[:4], recs):
-            r[6] = f"Unrelated to the question; subject is {rec['title'][:k]}"
+            kept = " ".join(rec["title"].split()[:n])
+            r[6] = f"Unrelated to the question; subject is {kept}"
         return recs, rows
-    recs, rows = cut_rows(40)                     # 40 characters: the title
+    recs, rows = cut_rows(6)
     rc, rep, _ = run(*write(tmp_path, recs, rows))
     assert rc == 1 and "<title>" in messages(rep)
-    recs, rows = cut_rows(39)                     # 39 of 90 (< 60%): own words
-    assert run(*write(tmp_path, recs, rows))[0] == 0
+    recs, rows = cut_rows(5)
+    rc, rep, _ = run(*write(tmp_path, recs, rows))
+    assert rc == 0, rep["failures"]
 
 
-def test_short_title_cut_by_share(tmp_path):
+def test_ten_rows_title_then_not_relevant(tmp_path):
+    recs = batch(12)
+    for i, r in enumerate(recs):
+        r["title"] = f"{WORDS[i]} {WORDS[i + 12]} in practice"
+    rows = good_rows(recs)
+    for r, rec in zip(rows[:10], recs):
+        r[6] = f"{rec['title']} \u2014 not relevant"
+    rc, rep, _ = run(*write(tmp_path, recs, rows), "--max-run", "50")
+    assert rc == 1 and checks(rep) == ["duplicates"]
+    assert "10 rows" in messages(rep)
+
+
+def test_b193_shape_cut_at_a_fixed_reason_length(tmp_path):
+    """b193 cut each reason at a fixed length, keeping 30-100% of the
+    title's words; the rows that keep 75% or more still share a reason."""
+    recs = batch(10)
+    lengths = [3, 4, 5, 6, 8, 10, 12, 14, 16, 20]       # words per title
+    for r, n in zip(recs, lengths):
+        r["title"] = " ".join(WORDS[(int(r["id"][-1]) * 5 + j) % 26] + "x"
+                              for j in range(n))
+    rows = good_rows(recs)
+    stem = "Unrelated to LLM references or citations; subject is "
+    for r, rec in zip(rows, recs):
+        r[6] = (stem + rec["title"])[:110]
+    rc, rep, _ = run(*write(tmp_path, recs, rows), "--max-run", "50")
+    assert rc == 1 and checks(rep) == ["duplicates"]
+
+
+def test_reviewer_fp1_about_subject_not_field(tmp_path):
+    # the reviewer's sheet, with titles shortened to five words so that the
+    # three-word subject is 60% of each title's words (75% of its letters)
+    titles = ["Blockchain consensus protocols for IoT",
+              "Deep reinforcement learning for grasping",
+              "Electricity price forecasting with boosting",
+              "Structural health monitoring of towers",
+              "Credit risk scoring with models"]
+    recs = batch(5)
+    for r, t in zip(recs, titles):
+        r["title"] = t
+    rows = good_rows(recs)
+    for r, t in zip(rows, titles):
+        r[1:4] = ["discard", "off-topic-false-hit", "off-question"]
+        r[6] = f"About {' '.join(t.split()[:3]).lower()}, not programming education."
+    rc, rep, _ = run(*write(tmp_path, recs, rows))
+    assert rc == 0, rep["failures"]
+
+
+def test_reviewer_fp2_topic_word_opens_the_title(tmp_path):
+    topics = [("loops", "Python: an interview study"),
+              ("variables", "Java: a survey"),
+              ("recursion", "Scheme: a think-aloud study"),
+              ("references", "C: an exam analysis")]
+    recs = batch(4)
+    for r, (w, rest) in zip(recs, topics):
+        r["title"] = f"Novice misconceptions about {w} in {rest}"
+    rows = good_rows(recs)
+    for r, (w, _) in zip(rows, topics):
+        r[6] = (f"Novice misconceptions about {w}: an empirical study of "
+                "exactly the claimed misconception.")
+    rc, rep, _ = run(*write(tmp_path, recs, rows))
+    assert rc == 0, rep["failures"]
+
+
+def test_non_latin_titles_are_templated_too(tmp_path):
     recs = batch(6)
     for i, r in enumerate(recs):
-        r["title"] = f"{WORDS[i]} {WORDS[i + 6]} benchmark"   # about 20 chars
+        r["title"] = f"\u0410\u0432\u0442\u043e{i} \u043a\u0430\u043a \u0442\u0438\u043f {i}"
     rows = good_rows(recs)
     for r, rec in zip(rows[:4], recs):
-        r[6] = f"Unrelated; subject is {rec['title'][:-2]}"     # 80-90% of it
+        r[6] = f"Unrelated; subject is {rec['title']}"
     rc, rep, _ = run(*write(tmp_path, recs, rows))
     assert rc == 1 and "<title>" in messages(rep)
+
+
+def test_scholar_timeout_is_a_failure(tmp_path):
+    recs = batch(4)
+    o, b = write(tmp_path, recs, mixed_rows(recs))
+    env = stub_env(tmp_path)
+    s = tmp_path / "bin" / "scholar"
+    s.write_text(stub_text(STUB.replace(
+        'with open(log, "a") as f:', 'import time; time.sleep(5)\nwith open(log, "a") as f:', 1)))
+    rc, rep, _ = run_env(o, b, env, "--scholar", "my-session",
+                         "--scholar-timeout", "1")
+    assert rc == 1
+    assert all(g["exit"] == -1 for g in rep["scholar"]["groups"])
+    assert "timed out" in rep["scholar"]["groups"][0]["stderr"]
 
 
 def test_reason_naming_the_bare_doi(tmp_path):

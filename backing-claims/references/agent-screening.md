@@ -128,11 +128,12 @@ consistency, confidence range, empty or placeholder reasons, duplicate
 reasons, flat confidence, long runs of near-identical rows, and every
 quote of three or more words against that row's own title and abstract
 (`--help` lists the thresholds; `--json` for scripts; exit 0 clean, 1
-failures, 2 usage). Reasons are compared after the row's own id and
-title (whole, or cut to 40 or more characters or 60% of the title) are
-replaced and trailing punctuation is stripped, so a template such as "subject is
-<title>." or "no abstract; title: <title>" counts as one shared
-reason. A flat confidence at 0.9 or above is not counted (a batch of
+failures, 2 usage). Reasons are compared word by word, after the row's
+own id and any run of 75% or more of its title's words are replaced, so
+a template such as "subject is <title>." or "no abstract; title:
+<title>" counts as one shared reason, while a subject named in a few of
+the title's words ("About blockchain consensus protocols, not
+programming education") stays the screener's own. A flat confidence at 0.9 or above is not counted (a batch of
 plainly off-topic records sits there). A sheet is read as written; a TSV
 written by `csv.writer` (doubled quotes) needs `--csv-quoting`, one
 without a header `--columns`. Then:

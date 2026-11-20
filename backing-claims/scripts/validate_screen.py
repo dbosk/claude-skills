@@ -21,11 +21,10 @@ Checks (a failure of any one exits 1):
   reasons      no empty or placeholder reason
   duplicates   more than --max-dup rows (default 3) with one normalised
                reason, counting rows with identical titles once; reasons
-               are compared with the row's own id and title (whole, or a
-               prefix of 40+ characters or 60% of it) replaced by <id> and
-               <title> and
-               trailing punctuation stripped, so "subject is <title>."
-               templates count as one reason
+               are compared as words, with the row's own id replaced by
+               <id> and a run of 75% or more of its title's words by
+               <title>, so "subject is <title>." templates count as one
+               reason
   flat-conf    in a batch of --flat-min-rows (20) or more, the most common
                confidence below --flat-ignore-above (0.9) on more than
                --flat-share (0.6) of the rows (plainly off-topic batches
@@ -215,13 +214,16 @@ def norm_reason(s):
     return norm_text(s).strip(" .;:,!?")
 
 
-# A cut title counts as the title when it keeps 40 characters, or 60% of
-# a shorter title (12 at least): book batch b193 cut titles at about 60
-# characters, while an honest "About <the title's first words>, not X"
-# keeps a short phrase of a longer title.
-TITLE_CUT_CHARS = 40
-TITLE_CUT_SHARE = 0.6
-TITLE_CUT_MIN = 12
+# A title counts as copied into a reason when the reason holds at least
+# TITLE_WORD_SHARE of the title's words in one unbroken run.  From the
+# cases at hand (2026-11-20): the reviewer's honest sheets name a subject
+# with 3-4 of the title's opening words, 40-50% of them ("About
+# blockchain consensus protocols, not programming education"); book batch
+# b193 cut every reason at a fixed length, keeping 30-100% of the title's
+# words, and 16 of its 53 templated rows keep 75% or more, enough for the
+# batch to fail.  0.75 leaves the honest sheets alone and still catches
+# b193 and any "<title> - not relevant" sheet (100%).
+TITLE_WORD_SHARE = 0.75
 
 
 def id_variants(rid):
@@ -234,27 +236,26 @@ def id_variants(rid):
 
 
 def template_key(reason, title, rid):
-    """The reason with the row's own id and title (whole, or cut: see
-    TITLE_CUT_*) replaced by <id> and <title>, trailing punctuation
-    stripped, so that a template such as "subject is <title>." compares
-    equal across rows."""
+    """The reason as a sequence of words, with the row's own id replaced
+    by <id> and the run of its title's words replaced by <title> when that
+    run holds TITLE_WORD_SHARE of the title; punctuation is dropped.  A
+    template such as "subject is <title>." then compares equal across
+    rows."""
     r = norm_reason(reason)
     for v in id_variants(rid):
-        r = r.replace(v, "<id>")
-    t = norm_reason(title)
-    if t and t in r:
-        r = r.replace(t, "<title>")
-    elif t:
-        for k in range(len(t) - 1, TITLE_CUT_MIN - 1, -1):
-            if t[:k] in r:                        # the longest cut found
-                if k >= TITLE_CUT_CHARS or k >= TITLE_CUT_SHARE * len(t):
-                    r = r.replace(t[:k], "<title>", 1)
-                break
-    return r
+        r = r.replace(v, " <id> ")
+    toks = re.findall(r"<id>|\w+", r)
+    tw = words(title)
+    if tw and toks:
+        m = difflib.SequenceMatcher(None, tw, toks, autojunk=False) \
+            .find_longest_match(0, len(tw), 0, len(toks))
+        if m.size >= TITLE_WORD_SHARE * len(tw):
+            toks[m.b:m.b + m.size] = ["<title>"]
+    return " ".join(toks)
 
 
 def words(s):
-    return re.findall(r"[a-z0-9]+", norm_text(s))
+    return re.findall(r"\w+", norm_text(s))
 
 
 QUOTE_RES = [
@@ -475,7 +476,7 @@ def check(out_rows, batch_rows, vocab, opts):
 SCHOLAR_MIN = "e7dc5f5"   # scholar PR #295 (#291, #293): decide --dry-run, --strict
 
 
-def scholar_dry_run(out_rows, session, by):
+def scholar_dry_run(out_rows, session, by, timeout=600):
     """Send the sheet through `scholar sessions decide --dry-run --strict`,
     one reasons file per verdict + category + exclusion or theme (decide
     applies status and tags to a whole file).  Return a list of groups
@@ -520,10 +521,12 @@ def scholar_dry_run(out_rows, session, by):
             cmd += ["--reasons-file", f, "--dry-run", "--strict"]
             try:
                 p = subprocess.run(cmd, capture_output=True, text=True,
-                                   timeout=600, stdin=subprocess.DEVNULL)
+                                   timeout=timeout, stdin=subprocess.DEVNULL)
                 code, err = p.returncode, (p.stderr or "").strip()
-            except (OSError, subprocess.TimeoutExpired) as e:
-                code, err = -1, str(e)
+            except subprocess.TimeoutExpired:
+                code, err = -1, f"timed out after {timeout:g} s"
+            except OSError as e:
+                code, err = -1, f"could not start scholar: {e}"
             results.append({"session": sess, "verdict": v, "tags": tags,
                             "rows": len(rows), "exit": code,
                             "ids": [r.get("id") for _, r in rows],
@@ -595,6 +598,9 @@ def parse_args(argv):
                         f"and report its exit codes (requires scholar >= "
                         f"{SCHOLAR_MIN}); writes nothing")
     p.add_argument("--by", help="screener name passed to scholar with --scholar")
+    p.add_argument("--scholar-timeout", type=float, default=600,
+                   help="seconds per scholar call with --scholar (600); a "
+                        "call that times out or cannot start fails")
     p.add_argument("--max-print", type=int, default=20,
                    help="failures listed in the human summary (20)")
     return p.parse_args(argv)
@@ -631,7 +637,8 @@ def main(argv=None):
     sch = None
     if args.scholar:
         try:
-            groups = scholar_dry_run(out_rows, args.scholar, args.by)
+            groups = scholar_dry_run(out_rows, args.scholar, args.by,
+                                     args.scholar_timeout)
         except UsageError as e:
             print(f"validate_screen: {e}", file=sys.stderr)
             return 2
